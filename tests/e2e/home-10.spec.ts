@@ -70,3 +70,15 @@ test("keeps the new hero readable and finite at mobile widths", async ({ page })
   await expect(page.getByLabel("Адрес сайта")).toBeVisible();
   await expect(page.getByLabel("Ваше имя")).toHaveCount(0);
 });
+
+test.describe("without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("keeps the home-page promise and primary CTA available", async ({ page }) => {
+    await page.goto("/");
+
+    await expect(page.locator(".brand-intro")).toBeHidden();
+    await expect(page.getByRole("heading", { level: 1, name: "Сайт есть. Пора сделать так, чтобы его находили." })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Проверить сайт бесплатно", exact: true })).toBeVisible();
+  });
+});
