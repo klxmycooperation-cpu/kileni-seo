@@ -59,8 +59,8 @@
 .kileni-site .hero-audit-visual figcaption small { max-width: 240px; color: #8594aa; text-align: right; }
 .kileni-site .hero-audit-visual__stage { overflow: hidden; border: 1px solid #26364d; border-radius: 10px; background: #0a1627; animation: hav-stage-pulse 4.5s ease-in-out infinite; }
 .kileni-site .hero-audit-visual svg { width: 100%; height: auto; }
-.kileni-site .hero-audit-visual button { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: space-between; padding: 10px 4px 0; border: 0; background: transparent; color: #b9c5d7; font-size: .76rem; }
-.kileni-site .hero-audit-visual button:hover { color: #fff; }
+.kileni-site .hero-audit-visual button { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: space-between; padding: 10px 4px 0; border: 0; background: transparent; color: var(--analytics-muted, #b9c5d7); font-size: .76rem; }
+.kileni-site .hero-audit-visual button:hover { color: var(--analytics-text, #fff); }
 
 .kileni-site .marketing-dashboard { position: relative; min-height: 390px; padding: 18px; color: #eef3ff; }
 .kileni-site .marketing-dashboard__toolbar,
@@ -465,8 +465,8 @@
 .kileni-site .home-10 { --home-blue: #4668ff; --home-positive: #159f66; --home-risk: #b9684d; }
 html[data-kileni-theme="dark"] .kileni-site .home-10,
 html[data-kileni-theme="signal"] .kileni-site .home-10 { --home-blue: #9db4ff; }
-.kileni-site .signal-hero .hero-free-audit-usage { display: flex; align-items: center; gap: .6rem; max-width: 34rem; margin: 1.35rem 0 0; color: var(--hero-muted, #9aabc4); font-size: .95rem; line-height: 1.4; }
-.kileni-site .signal-hero .hero-free-audit-usage strong { color: var(--hero-ink, #f7f9ff); font-size: 1.35rem; line-height: 1; letter-spacing: -.04em; }
+.kileni-site .signal-hero .hero-free-audit-usage { display: flex; align-items: center; gap: .6rem; max-width: 34rem; margin: 1.35rem 0 0; color: var(--warm-muted, #9aabc4); font-size: .95rem; line-height: 1.4; }
+.kileni-site .signal-hero .hero-free-audit-usage strong { color: var(--warm-ink, #f7f9ff); font-size: 1.35rem; line-height: 1; letter-spacing: -.04em; }
 .kileni-site .signal-hero .hero-free-audit-usage__dot { width: .55rem; height: .55rem; flex: 0 0 .55rem; border-radius: 50%; background: var(--home-blue); box-shadow: 0 0 0 .35rem color-mix(in srgb, var(--home-blue) 14%, transparent); animation: kileni-social-pulse 2.6s ease-in-out infinite; }
 
 .kileni-site .home-decision,

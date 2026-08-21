@@ -52,3 +52,16 @@ test("applies the persisted Dark palette to architecture pages", async ({ page }
     await expect(surface, `${family.path} foreground`).toHaveCSS("color", "rgb(247, 248, 252)");
   }
 });
+
+test("keeps the light home hero's supporting copy readable", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("kileni:theme:v1", "light");
+  });
+
+  await page.goto("/");
+
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
+  await expect(page.locator(".hero-free-audit-usage")).toHaveCSS("color", "rgb(89, 97, 121)");
+  await expect(page.locator(".hero-free-audit-usage strong")).toHaveCSS("color", "rgb(11, 19, 43)");
+  await expect(page.locator(".analytics-replay")).toHaveCSS("color", "rgb(89, 97, 121)");
+});
