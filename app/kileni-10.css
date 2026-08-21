@@ -1,0 +1,747 @@
+:root {
+  --kileni-night: #0a0d12;
+  --kileni-night-raised: #111722;
+  --kileni-night-soft: #18202c;
+  --kileni-paper: #f3f5f7;
+  --kileni-white: #ffffff;
+  --kileni-action: #4164ff;
+  --kileni-action-hover: #3153e8;
+  --kileni-scan: #8157f6;
+  --kileni-font-body: var(--font-manrope), Arial, sans-serif;
+  --kileni-font-display: var(--font-manrope), Arial, sans-serif;
+  --kileni-font-tech: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  /* Compatibility aliases for the existing public components. */
+  --night: var(--kileni-night);
+  --night-2: var(--kileni-night-raised);
+  --night-3: var(--kileni-night-soft);
+  --paper: var(--kileni-paper);
+  --surface: var(--kileni-white);
+  --ink: var(--kileni-night);
+  --blue: var(--kileni-action);
+  --blue-dark: var(--kileni-action-hover);
+  --violet: var(--kileni-scan);
+  --sans: var(--kileni-font-body);
+  --display: var(--kileni-font-display);
+  --mono: var(--kileni-font-tech);
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+html {
+  background: var(--kileni-paper);
+}
+
+body {
+  background: var(--kileni-paper);
+  color: var(--kileni-night);
+  font-family: var(--kileni-font-body);
+}
+
+.kileni-site {
+  --warm-ink: var(--kileni-night);
+  --warm-charcoal: var(--kileni-night);
+  --warm-paper: var(--kileni-paper);
+  --warm-paper-bright: var(--kileni-white);
+  --warm-orange: var(--kileni-action);
+  --warm-orange-dark: var(--kileni-action-hover);
+  --warm-orange-text: var(--kileni-white);
+  --warm-line: #dce1e8;
+  background: var(--kileni-paper);
+  color: var(--kileni-night);
+  font-family: var(--kileni-font-body);
+}
+
+.kileni-site h1,
+.kileni-site h2,
+.kileni-site h3,
+.kileni-site .signal-hero h1 {
+  font-family: var(--kileni-font-display);
+}
+
+.kileni-site .eyebrow,
+.kileni-site .mono,
+.kileni-site .footer-label {
+  font-family: var(--kileni-font-tech);
+}
+
+.kileni-site .button-primary {
+  border-color: var(--kileni-action);
+  background: var(--kileni-action);
+  color: var(--kileni-white);
+}
+
+.kileni-site .button-primary:hover {
+  border-color: var(--kileni-action-hover);
+  background: var(--kileni-action-hover);
+}
+
+/* Header */
+.kileni-site .site-header {
+  position: fixed;
+  z-index: 100;
+  inset: 0 0 auto;
+  height: 72px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 13, 18, 0.96);
+  color: var(--kileni-white);
+  box-shadow: 0 10px 28px rgba(3, 5, 8, 0.12);
+  backdrop-filter: blur(18px);
+  transition: height 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.kileni-site .site-header--home:not([data-scrolled="true"]) {
+  height: 80px;
+  border-bottom-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.kileni-site .site-header[data-scrolled="true"] {
+  height: 64px;
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  background: rgba(10, 13, 18, 0.94);
+  box-shadow: 0 12px 30px rgba(3, 5, 8, 0.18);
+}
+
+.kileni-site .header-inner {
+  display: grid;
+  height: 100%;
+  grid-template-columns: 184px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(20px, 2.8vw, 44px);
+}
+
+.kileni-site .site-header .brand-logo {
+  width: max-content;
+  min-height: 44px;
+  color: var(--kileni-white);
+}
+
+.kileni-site .site-header .brand-logo__graphic {
+  width: 172px;
+  height: auto;
+  transition: width 180ms ease;
+}
+
+.kileni-site .site-header[data-scrolled="true"] .brand-logo__graphic {
+  width: 152px;
+}
+
+.kileni-site .site-header .brand-logo__scan {
+  stroke: var(--kileni-scan);
+}
+
+.kileni-site .site-header .brand-logo__scan-dot {
+  fill: var(--kileni-scan);
+}
+
+.kileni-site .desktop-nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 1.45vw, 24px);
+}
+
+.kileni-site .desktop-nav > a,
+.kileni-site .desktop-nav-link,
+.kileni-site .language-link {
+  position: relative;
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--kileni-font-body);
+  font-size: 0.94rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.kileni-site .desktop-nav > a::after,
+.kileni-site .desktop-nav-link::after {
+  position: absolute;
+  right: 0;
+  bottom: 5px;
+  left: 0;
+  height: 1px;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right;
+  background: currentColor;
+  transition: transform 160ms ease;
+}
+
+.kileni-site .desktop-nav > a:hover::after,
+.kileni-site .desktop-nav > a[aria-current="page"]::after,
+.kileni-site .desktop-nav-link:hover::after,
+.kileni-site .desktop-nav-link.is-active::after,
+.kileni-site .desktop-nav-link[aria-expanded="true"]::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.kileni-site .services-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: -12px;
+  padding-bottom: 12px;
+}
+
+.kileni-site .services-trigger {
+  gap: 8px;
+}
+
+.kileni-site .services-chevron {
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+.kileni-site [aria-expanded="true"] > .services-chevron {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.kileni-site .services-menu {
+  position: absolute;
+  z-index: 3;
+  top: 100%;
+  left: -20px;
+  display: grid;
+  width: min(320px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--kileni-night-raised);
+  color: var(--kileni-white);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+.kileni-site .services-menu[hidden] {
+  display: none;
+}
+
+.kileni-site .desktop-nav .services-menu a {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--kileni-white);
+  font-family: var(--kileni-font-body);
+  font-size: 0.94rem;
+  font-weight: 520;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.kileni-site .desktop-nav .services-menu a:last-child {
+  border-bottom: 0;
+}
+
+.kileni-site .desktop-nav .services-menu a::after {
+  display: none;
+}
+
+.kileni-site .desktop-nav .services-menu a:hover,
+.kileni-site .desktop-nav .services-menu a:focus-visible,
+.kileni-site .desktop-nav .services-menu a[aria-current="page"] {
+  background: var(--kileni-night-soft);
+}
+
+.kileni-site .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kileni-site .language-link {
+  padding-inline: 6px;
+  font-family: var(--kileni-font-tech);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.kileni-site .site-header .header-cta {
+  min-height: 44px;
+  padding-inline: 17px;
+  border-radius: 2px;
+  font-family: var(--kileni-font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.kileni-site .site-header[data-scrolled="true"] .header-cta {
+  min-height: 40px;
+}
+
+.kileni-site .menu-button {
+  display: none;
+  width: 42px;
+  height: 42px;
+  padding: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+}
+
+.kileni-site .menu-button span {
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin: 5px 0;
+  background: var(--kileni-white);
+  transition: transform 160ms ease;
+}
+
+.kileni-site .menu-button[aria-expanded="true"] span:first-child {
+  transform: translateY(3px) rotate(45deg);
+}
+
+.kileni-site .menu-button[aria-expanded="true"] span:last-child {
+  transform: translateY(-3px) rotate(-45deg);
+}
+
+.kileni-site .site-header :focus-visible {
+  outline: 2px solid #91a6ff;
+  outline-offset: 3px;
+}
+
+.kileni-site .mobile-menu {
+  position: fixed;
+  z-index: -1;
+  top: 68px;
+  right: 0;
+  left: 0;
+  max-height: calc(100svh - 68px);
+  overflow-y: auto;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--kileni-night);
+  color: var(--kileni-white);
+  overscroll-behavior: contain;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.24);
+}
+
+.kileni-site .site-header[data-scrolled="true"] .mobile-menu {
+  top: 60px;
+  max-height: calc(100svh - 60px);
+}
+
+.kileni-site .mobile-menu[hidden] {
+  display: none;
+}
+
+.kileni-site .mobile-menu nav {
+  display: grid;
+  width: min(100% - 24px, 1360px);
+  margin-inline: auto;
+  padding: 10px 0 18px;
+}
+
+.kileni-site .mobile-menu nav > a,
+.kileni-site .mobile-services-trigger,
+.kileni-site .mobile-services-list a {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 4px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: var(--kileni-white);
+  font-family: var(--kileni-font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.kileni-site .mobile-services-list {
+  display: grid;
+  padding: 4px 0 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.kileni-site .mobile-services-list[hidden] {
+  display: none;
+}
+
+.kileni-site .mobile-services-list a {
+  min-height: 40px;
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+  color: #c7ced9;
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.kileni-site .mobile-menu a[aria-current="page"] {
+  color: var(--kileni-white);
+  box-shadow: inset 2px 0 var(--kileni-action);
+}
+
+.kileni-site .mobile-language-link {
+  justify-content: flex-start !important;
+  border-bottom: 0 !important;
+  font-family: var(--kileni-font-body) !important;
+}
+
+.kileni-site .mobile-language-link span {
+  min-width: 30px;
+  color: #9fa9b8;
+  font-family: var(--kileni-font-tech);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+/* Footer */
+.kileni-site .site-footer {
+  padding: clamp(64px, 7vw, 96px) 0 24px;
+  border-top: 1px solid #29313d;
+  background: var(--kileni-night);
+  color: var(--kileni-white);
+}
+
+.kileni-site .footer-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.25fr) repeat(3, minmax(150px, 0.7fr));
+  gap: clamp(36px, 5vw, 76px);
+}
+
+.kileni-site .footer-grid nav,
+.kileni-site .footer-grid > div {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.kileni-site .footer-brand p {
+  max-width: 360px;
+  margin-top: 18px;
+  color: #aeb7c5;
+}
+
+.kileni-site .site-footer a {
+  width: fit-content;
+  color: var(--kileni-white);
+}
+
+.kileni-site .site-footer a:hover {
+  text-decoration: underline;
+}
+
+.kileni-site .footer-label {
+  margin-bottom: 12px;
+  color: #8f9aa9;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.kileni-site .footer-contact-fallback {
+  display: grid;
+  gap: 10px;
+}
+
+.kileni-site .public-contact-links {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.kileni-site .public-contact-link {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.kileni-site .public-contact-link:hover,
+.kileni-site .public-contact-link:focus-visible {
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.kileni-site .public-contact-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.kileni-site .public-contact-icon img {
+  width: 40px;
+  height: 40px;
+}
+
+.kileni-site .public-contact-copy {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.kileni-site .public-contact-label {
+  color: #8f9aa9;
+  font-family: var(--kileni-font-tech);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.kileni-site .public-contact-copy strong {
+  overflow-wrap: anywhere;
+  font-family: var(--kileni-font-body);
+  font-size: 0.86rem;
+  line-height: 1.25;
+}
+
+.kileni-site .public-contact-copy small {
+  color: #8f9aa9;
+  font-size: 0.67rem;
+  line-height: 1.3;
+}
+
+.kileni-site .public-contact-links--footer .public-contact-link {
+  padding-inline: 0;
+}
+
+.kileni-site .public-contact-links--footer .public-contact-link:hover,
+.kileni-site .public-contact-links--footer .public-contact-link:focus-visible {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.kileni-site .public-contact-links--cards {
+  align-content: start;
+}
+
+.kileni-site .contact-grid > .public-contact-links--cards > .public-contact-link {
+  display: flex;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.kileni-site .public-contact-links--cards .public-contact-link:hover,
+.kileni-site .public-contact-links--cards .public-contact-link:focus-visible {
+  border-color: var(--blue);
+  background: var(--paper);
+}
+
+.kileni-site .public-contact-links--cards .public-contact-copy strong {
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+}
+
+.kileni-site .public-contact-links--compact {
+  width: min(100%, 360px);
+}
+
+.kileni-site .public-contact-links--compact .public-contact-link {
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  padding-inline: 0;
+}
+
+.kileni-site .about-next-actions {
+  display: grid;
+  justify-items: end;
+  gap: 18px;
+}
+
+.kileni-site .footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  margin-top: clamp(52px, 6vw, 80px);
+  padding-top: 20px;
+  border-top: 1px solid #29313d;
+  color: #7f8998;
+  font-family: var(--kileni-font-tech);
+  font-size: 0.63rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 1081px) {
+  .kileni-site .desktop-nav {
+    display: flex;
+  }
+
+  .kileni-site .menu-button,
+  .kileni-site .mobile-menu {
+    display: none;
+  }
+}
+
+@media (max-width: 1080px) {
+  .kileni-site .site-header,
+  .kileni-site .site-header--home:not([data-scrolled="true"]) {
+    height: 68px;
+  }
+
+  .kileni-site .site-header[data-scrolled="true"] {
+    height: 60px;
+  }
+
+  .kileni-site .header-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .kileni-site .desktop-nav,
+  .kileni-site .language-link {
+    display: none;
+  }
+
+  .kileni-site .menu-button {
+    display: block;
+  }
+
+  .kileni-site .header-cta {
+    display: inline-flex;
+  }
+
+  .kileni-site .footer-grid {
+    grid-template-columns: 1.2fr repeat(2, 1fr);
+  }
+
+  .kileni-site .footer-contacts {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 720px) {
+  .kileni-site .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kileni-site .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .kileni-site .footer-contacts {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .kileni-site .shell {
+    width: calc(100% - 24px);
+  }
+
+  .kileni-site .site-header,
+  .kileni-site .site-header--home:not([data-scrolled="true"]) {
+    height: 64px;
+  }
+
+  .kileni-site .site-header[data-scrolled="true"] {
+    height: 58px;
+  }
+
+  .kileni-site .site-header .brand-logo__graphic,
+  .kileni-site .site-header[data-scrolled="true"] .brand-logo__graphic {
+    width: 124px;
+  }
+
+  .kileni-site .header-actions {
+    gap: 6px;
+  }
+
+  .kileni-site .site-header .header-cta,
+  .kileni-site .site-header[data-scrolled="true"] .header-cta {
+    min-height: 38px;
+    padding-inline: 10px;
+    font-size: 0.7rem;
+  }
+
+  .kileni-site .menu-button {
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+  }
+
+  .kileni-site .mobile-menu {
+    top: 64px;
+    max-height: calc(100svh - 64px);
+  }
+
+  .kileni-site .site-header[data-scrolled="true"] .mobile-menu {
+    top: 58px;
+    max-height: calc(100svh - 58px);
+  }
+
+  .kileni-site .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kileni-site .footer-brand,
+  .kileni-site .footer-contacts {
+    grid-column: auto;
+  }
+
+  .kileni-site .footer-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kileni-site .public-contact-link {
+    min-height: 56px;
+  }
+
+  .kileni-site .about-next-actions {
+    justify-items: start;
+    width: 100%;
+  }
+
+  .kileni-site .public-contact-links--compact {
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .kileni-site .site-header .brand-logo__graphic,
+  .kileni-site .site-header[data-scrolled="true"] .brand-logo__graphic {
+    width: 108px;
+  }
+
+  .kileni-site .site-header .header-cta,
+  .kileni-site .site-header[data-scrolled="true"] .header-cta {
+    padding-inline: 8px;
+    font-size: 0.66rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site .site-header,
+  .kileni-site .site-header *,
+  .kileni-site .site-footer * {
+    transition-duration: 0.01ms !important;
+  }
+}

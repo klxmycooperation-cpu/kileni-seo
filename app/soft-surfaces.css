@@ -1,0 +1,523 @@
+/* Shared product language: cards are quiet rounded surfaces, never rigid boxes. */
+.kileni-site {
+  --kileni-radius-xl: 1.65rem;
+  --kileni-radius-lg: 1.2rem;
+  --kileni-radius-md: .85rem;
+  --kileni-surface-shadow: 0 1.1rem 3.2rem color-mix(in srgb, var(--warm-ink, #0b132b) 8%, transparent);
+}
+
+.kileni-site .button,
+.kileni-site .warm-button,
+.kileni-site .warm-button-light,
+.kileni-site .header-cta,
+.kileni-site .site-theme-toggle,
+.kileni-site .theme-toggle {
+  border-radius: var(--kileni-radius-md);
+}
+
+.kileni-site .audit-form,
+.kileni-site .lead-form,
+.kileni-site .calculator,
+.kileni-site .report-sample,
+.kileni-site .marketing-dashboard,
+.kileni-site .analytics-card,
+.kileni-site .analytics-score-card,
+.kileni-site .analytics-time-card,
+.kileni-site .analytics-errors-card,
+.kileni-site .case-preview-grid > a,
+.kileni-site .pricing-grid article,
+.kileni-site .download-grid article,
+.kileni-site .service-choice button,
+.kileni-site .toggle-field,
+.kileni-site .cookie-manager {
+  border-radius: var(--kileni-radius-lg);
+}
+
+.kileni-site .audit-form,
+.kileni-site .lead-form,
+.kileni-site .calculator,
+.kileni-site .report-sample,
+.kileni-site .analytics-card,
+.kileni-site .analytics-score-card,
+.kileni-site .analytics-time-card,
+.kileni-site .analytics-errors-card,
+.kileni-site .case-preview-grid > a,
+.kileni-site .pricing-grid article,
+.kileni-site .download-grid article {
+  overflow: hidden;
+  box-shadow: var(--kileni-surface-shadow);
+}
+
+.kileni-site .cookie-manager {
+  overflow: auto;
+  box-shadow: 0 1.7rem 5rem color-mix(in srgb, var(--warm-ink, #0b132b) 20%, transparent);
+}
+
+/* The brief has progressive disclosures that may extend beyond its surface. */
+.kileni-site .brief-refinement .brief-wizard {
+  border-radius: var(--kileni-radius-xl);
+  box-shadow: var(--kileni-surface-shadow);
+}
+
+.kileni-site .cp-narrative-case,
+.kileni-site .cp-case-card,
+.kileni-site .cp-package,
+.kileni-site .cp-narrative-result,
+.kileni-site .cp-narrative-summary,
+.kileni-site .cp-request-grid .lead-form,
+.kileni-site .svc-visual,
+.kileni-site .svc-tier-card,
+.kileni-site .svc-result-example,
+.kileni-site .marketplace-offer,
+.kileni-site .marketplace-result-example {
+  border-radius: var(--kileni-radius-lg);
+}
+
+.kileni-site .cp-narrative-case,
+.kileni-site .cp-case-card,
+.kileni-site .cp-package,
+.kileni-site .svc-tier-card,
+.kileni-site .svc-result-example,
+.kileni-site .marketplace-offer,
+.kileni-site .marketplace-result-example {
+  overflow: hidden;
+  box-shadow: var(--kileni-surface-shadow);
+}
+
+.kileni-site .audit-form input,
+.kileni-site .audit-form select,
+.kileni-site .lead-form input,
+.kileni-site .lead-form textarea,
+.kileni-site .brief-fields input,
+.kileni-site .brief-fields textarea,
+.kileni-site .brief-fields select,
+.kileni-site .calculator input,
+.kileni-site .calculator select,
+.kileni-site .estimate-panel input,
+.kileni-site .file-drop,
+.kileni-site .brief-review dl,
+.kileni-site .svc-result-fragment,
+.kileni-site .marketplace-result-states,
+.kileni-site .cp-fact-strip {
+  border-radius: var(--kileni-radius-md);
+}
+
+.kileni-site .svc-result-fragment,
+.kileni-site .marketplace-result-states {
+  overflow: hidden;
+  box-shadow: var(--kileni-surface-shadow);
+}
+
+.kileni-site .case-preview-grid > a,
+.kileni-site .pricing-grid article,
+.kileni-site .download-grid article,
+.kileni-site .service-choice button,
+.kileni-site .analytics-card,
+.kileni-site .analytics-time-card,
+.kileni-site .analytics-errors-card {
+  transition: transform .3s cubic-bezier(.22, 1, .36, 1), box-shadow .3s ease, border-color .25s ease, background-color .25s ease;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .kileni-site .case-preview-grid > a:hover,
+  .kileni-site .pricing-grid article:hover,
+  .kileni-site .download-grid article:hover,
+  .kileni-site .analytics-card:hover,
+  .kileni-site .analytics-time-card:hover,
+  .kileni-site .analytics-errors-card:hover {
+    transform: translateY(-.32rem);
+    box-shadow: 0 1.45rem 3.8rem color-mix(in srgb, var(--warm-ink, #0b132b) 13%, transparent);
+  }
+
+  .kileni-site .service-choice button:hover {
+    transform: translateY(-.18rem);
+    border-color: var(--home-blue, #4566f6);
+  }
+
+  .kileni-site .button:hover,
+  .kileni-site .warm-button:hover,
+  .kileni-site .header-cta:hover {
+    transform: translateY(-.14rem) scale(1.01);
+  }
+}
+
+@media (max-width: 640px) {
+  .kileni-site {
+    --kileni-radius-xl: 1.3rem;
+    --kileni-radius-lg: 1rem;
+    --kileni-radius-md: .72rem;
+  }
+}
+
+/* Floating navigation keeps the shell light, while the site still has a clear anchor. */
+@media (min-width: 1081px) {
+  .kileni-site .site-header,
+  .kileni-site .site-header--home:not([data-scrolled="true"]),
+  .kileni-site .site-header[data-scrolled="true"] {
+    top: .85rem;
+    right: clamp(.8rem, 1.8vw, 1.9rem);
+    left: clamp(.8rem, 1.8vw, 1.9rem);
+    width: auto;
+    height: 68px;
+    border: 1px solid var(--warm-line);
+    border-radius: 1.3rem;
+    background: color-mix(in srgb, var(--warm-paper-bright) 88%, transparent);
+    box-shadow: 0 .9rem 2.8rem color-mix(in srgb, var(--warm-ink) 14%, transparent);
+    backdrop-filter: blur(18px);
+    transition: height .28s cubic-bezier(.22, 1, .36, 1), transform .28s cubic-bezier(.22, 1, .36, 1), background-color .28s ease, box-shadow .28s ease;
+  }
+
+  .kileni-site .site-header[data-scrolled="true"] {
+    height: 60px;
+    transform: translateY(-.18rem);
+    box-shadow: 0 .7rem 2.1rem color-mix(in srgb, var(--warm-ink) 17%, transparent);
+  }
+
+  .kileni-site .site-header .header-cta {
+    border-radius: .82rem;
+  }
+
+  .kileni-site .services-menu {
+    top: calc(100% + .65rem);
+    left: 50%;
+    border-radius: 1rem;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 1080px) {
+  .kileni-site .site-header,
+  .kileni-site .site-header--home:not([data-scrolled="true"]),
+  .kileni-site .site-header[data-scrolled="true"] {
+    top: .55rem;
+    right: .6rem;
+    left: .6rem;
+    width: auto;
+    border: 1px solid var(--warm-line);
+    border-radius: 1.08rem;
+    background: color-mix(in srgb, var(--warm-paper-bright) 91%, transparent);
+    box-shadow: 0 .65rem 2.2rem color-mix(in srgb, var(--warm-ink) 13%, transparent);
+    backdrop-filter: blur(16px);
+  }
+
+  .kileni-site .mobile-menu {
+    top: calc(.55rem + 68px + .45rem);
+    right: .6rem;
+    left: .6rem;
+    border: 1px solid var(--warm-line);
+    border-radius: 1.08rem;
+  }
+
+  .kileni-site .site-header[data-scrolled="true"] .mobile-menu {
+    top: calc(.55rem + 60px + .45rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .kileni-site .mobile-menu {
+    top: calc(.55rem + 64px + .45rem);
+    max-height: calc(100svh - 5.4rem);
+  }
+
+  .kileni-site .site-header[data-scrolled="true"] .mobile-menu {
+    top: calc(.55rem + 58px + .45rem);
+    max-height: calc(100svh - 5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site .case-preview-grid > a,
+  .kileni-site .pricing-grid article,
+  .kileni-site .download-grid article,
+  .kileni-site .service-choice button,
+  .kileni-site .analytics-card,
+  .kileni-site .analytics-time-card,
+  .kileni-site .analytics-errors-card {
+    transition: none;
+  }
+}
+
+/* The first screen is a composed workspace, not a pair of square columns. */
+.kileni-site .signal-hero {
+  isolation: isolate;
+  overflow: clip;
+}
+
+.kileni-site .signal-hero::after {
+  display: block;
+  position: absolute;
+  z-index: 0;
+  top: 8%;
+  right: max(-7rem, -7vw);
+  width: clamp(15rem, 29vw, 34rem);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  content: "";
+  background: radial-gradient(circle, color-mix(in srgb, var(--home-blue, #4566f6) 19%, transparent) 0%, color-mix(in srgb, var(--home-blue, #4566f6) 7%, transparent) 44%, transparent 72%);
+  filter: blur(2px);
+  opacity: .8;
+  pointer-events: none;
+  animation: kileni-hero-orbit 11s ease-in-out infinite alternate;
+}
+
+.kileni-site .signal-hero .hero-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.kileni-site .signal-hero .hero-copy > .eyebrow,
+.kileni-site .signal-hero .hero-copy > h1,
+.kileni-site .signal-hero .hero-copy > .hero-lead,
+.kileni-site .signal-hero .hero-copy > .hero-honesty,
+.kileni-site .signal-hero .hero-copy > .hero-free-audit-usage,
+.kileni-site .signal-hero .hero-copy > .hero-actions {
+  animation: kileni-hero-rise .7s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.kileni-site .signal-hero .hero-copy > h1 { animation-delay: .06s; }
+.kileni-site .signal-hero .hero-copy > .hero-lead { animation-delay: .12s; }
+.kileni-site .signal-hero .hero-copy > .hero-honesty { animation-delay: .18s; }
+.kileni-site .signal-hero .hero-copy > .hero-free-audit-usage { animation-delay: .23s; }
+.kileni-site .signal-hero .hero-copy > .hero-actions { animation-delay: .28s; }
+
+.kileni-site .signal-hero .hero-tool {
+  align-self: center;
+  animation: kileni-hero-tool-in .9s .1s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.kileni-site .signal-hero .hero-audit-visual.analytics-card {
+  overflow: hidden;
+  border-radius: var(--kileni-radius-xl);
+  box-shadow: 0 1.35rem 3.8rem color-mix(in srgb, var(--warm-ink, #0b132b) 14%, transparent);
+}
+
+.kileni-site .signal-hero .analytics-visibility-detail {
+  border-radius: calc(var(--kileni-radius-lg) - .1rem);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--analytics-grid, #d9e0ed) 60%, transparent);
+}
+
+.kileni-site .signal-hero .analytics-visibility-detail__chips > span,
+.kileni-site .signal-hero .analytics-kpi-grid > article {
+  border-radius: var(--kileni-radius-md);
+}
+
+@keyframes kileni-hero-rise {
+  from { opacity: 0; transform: translateY(1.1rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes kileni-hero-tool-in {
+  from { opacity: 0; transform: translateY(1.25rem) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes kileni-hero-orbit {
+  from { transform: translate3d(-1.5%, -1%, 0) scale(.97); opacity: .58; }
+  to { transform: translate3d(2%, 2.5%, 0) scale(1.04); opacity: .86; }
+}
+
+@media (max-width: 760px) {
+  .kileni-site .signal-hero::after {
+    top: 16%;
+    right: -11rem;
+    width: 21rem;
+  }
+
+  .kileni-site .signal-hero .hero-tool {
+    margin-top: .35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site .signal-hero::after,
+  .kileni-site .signal-hero .hero-copy > .eyebrow,
+  .kileni-site .signal-hero .hero-copy > h1,
+  .kileni-site .signal-hero .hero-copy > .hero-lead,
+  .kileni-site .signal-hero .hero-copy > .hero-honesty,
+  .kileni-site .signal-hero .hero-copy > .hero-free-audit-usage,
+  .kileni-site .signal-hero .hero-copy > .hero-actions,
+  .kileni-site .signal-hero .hero-tool {
+    animation: none;
+  }
+}
+
+/* Connected home scenes: each has one soft boundary instead of a wall of tiles. */
+.kileni-site .home-entry-route__list,
+.kileni-site .home-decision,
+.kileni-site .home-process-board,
+.kileni-site .home-case-explorer__surface,
+.kileni-site .home-case-explorer__chart-wrap,
+.kileni-site .home-case-explorer__results,
+.kileni-site .warm-article-list > a,
+.kileni-site .home-deliverable-list {
+  overflow: hidden;
+  border-radius: var(--kileni-radius-xl);
+}
+
+.kileni-site .home-entry-route__list,
+.kileni-site .home-case-explorer__surface,
+.kileni-site .home-case-explorer__chart-wrap,
+.kileni-site .home-case-explorer__results {
+  box-shadow: 0 1.05rem 3.1rem color-mix(in srgb, var(--warm-ink, #0b132b) 8%, transparent);
+}
+
+.kileni-site .home-process-board {
+  border-radius: var(--kileni-radius-xl);
+  box-shadow: 0 1.5rem 4.1rem rgba(0, 0, 0, .22);
+}
+
+.kileni-site .home-case-explorer__switch {
+  overflow: hidden;
+  border-radius: var(--kileni-radius-lg) var(--kileni-radius-lg) 0 0;
+}
+
+.kileni-site .home-case-explorer__surface {
+  border-radius: 0 0 var(--kileni-radius-xl) var(--kileni-radius-xl);
+}
+
+.kileni-site .home-case-explorer__chart-wrap,
+.kileni-site .home-case-explorer__results {
+  border-radius: var(--kileni-radius-lg);
+}
+
+.kileni-site .warm-article-list > a figure {
+  overflow: hidden;
+  border-radius: calc(var(--kileni-radius-xl) - .2rem);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .kileni-site .home-case-explorer__switch button,
+  .kileni-site .warm-article-list > a,
+  .kileni-site .home-entry-route__list > a {
+    transition: transform .28s cubic-bezier(.22, 1, .36, 1), background-color .28s ease, box-shadow .28s ease;
+  }
+
+  .kileni-site .home-case-explorer__switch button:hover,
+  .kileni-site .home-entry-route__list > a:hover {
+    transform: translateY(-.16rem);
+  }
+
+  .kileni-site .warm-article-list > a:hover figure img {
+    transform: scale(1.035);
+  }
+
+  .kileni-site .warm-article-list > a figure img {
+    transition: transform .55s cubic-bezier(.22, 1, .36, 1);
+  }
+}
+
+/* Long-form routes use the same soft perimeter as the home scenes. The outer
+   boundary changes, not the hierarchy of the working controls inside it. */
+.kileni-site .brief-hero-note,
+.kileni-site .brief-offer-preview,
+.kileni-site .brief-wizard,
+.kileni-site .service-choice,
+.kileni-site .brief-downloads,
+.kileni-site .brief-download-grid,
+.kileni-site .marketplace-grid,
+.kileni-site .cp-hero-note,
+.kileni-site .cp-package-list,
+.kileni-site .cp-extras-section {
+  border-radius: var(--kileni-radius-xl);
+  overflow: hidden;
+}
+
+.kileni-site .brief-hero-note,
+.kileni-site .brief-offer-preview,
+.kileni-site .service-choice,
+.kileni-site .cp-hero-note {
+  box-shadow: var(--kileni-surface-shadow-soft);
+}
+
+.kileni-site .brief-wizard,
+.kileni-site .marketplace-grid,
+.kileni-site .cp-package-list,
+.kileni-site .cp-extras-section {
+  box-shadow: var(--kileni-surface-shadow);
+}
+
+/* The brief used to opt out of clipping for an earlier wide layout. Keep its
+   functional inner controls intact, but let the outer surface follow the
+   same rounded perimeter as the rest of the site. */
+.kileni-site .brief-refinement .brief-wizard.brief-wizard {
+  border-radius: var(--kileni-radius-xl);
+  overflow: clip;
+}
+
+.kileni-site .brief-download-grid > *,
+.kileni-site .marketplace-grid > *,
+.kileni-site .cp-package-list > * {
+  transition: transform 240ms cubic-bezier(.22, .8, .25, 1), box-shadow 240ms ease, border-color 240ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .kileni-site .brief-download-grid > *:hover,
+  .kileni-site .marketplace-grid > *:hover,
+  .kileni-site .cp-package-list > *:hover {
+    position: relative;
+    z-index: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* Product pages retain their editorial hierarchy, but the useful units now
+   read as tactile surfaces instead of a grid of hard rectangles. */
+.kileni-site .editorial-page .article-topic-filter.article-topic-filter,
+.kileni-site .editorial-page .article-card.article-card,
+.kileni-site .editorial-page .article-related-grid.article-related-grid,
+.kileni-site .editorial-page .article-index-grid.article-index-grid,
+.kileni-site .services-10 .svc-index-row.svc-index-row,
+.kileni-site .services-10 .svc-index-custom.svc-index-custom,
+.kileni-site .service-10 .svc-symptom-list.svc-symptom-list,
+.kileni-site .service-10 .svc-step-grid.svc-step-grid,
+.kileni-site .service-10 .svc-work-list.svc-work-list,
+.kileni-site .service-10 .svc-buyer-question-list.svc-buyer-question-list,
+.kileni-site .service-10 .svc-inline-glossary-list.svc-inline-glossary-list,
+.kileni-site .about-10 .about-action-list.about-action-list,
+.kileni-site .about-10 .about-start-route.about-start-route,
+.kileni-site .about-10 .about-boundary-grid.about-boundary-grid,
+.kileni-site .about-10 .about-acceptance-grid.about-acceptance-grid,
+.kileni-site .about-10 .about-roles-grid.about-roles-grid,
+.kileni-site .about-10 .about-deliverables-grid.about-deliverables-grid,
+.kileni-site .about-10 .about-next-grid.about-next-grid {
+  border-radius: var(--kileni-radius-lg);
+  overflow: clip;
+}
+
+.kileni-site .editorial-page .article-card.article-card,
+.kileni-site .service-10 .svc-package-grid > article,
+.kileni-site .service-10 .svc-result-fragment.svc-result-fragment,
+.kileni-site .service-10 .svc-proof-card.svc-proof-card,
+.kileni-site .about-10 .about-boundary-grid.about-boundary-grid,
+.kileni-site .about-10 .about-roles-grid.about-roles-grid,
+.kileni-site .about-10 .about-deliverables-grid.about-deliverables-grid {
+  box-shadow: var(--kileni-surface-shadow-soft);
+}
+
+.kileni-site .editorial-page .article-card.article-card,
+.kileni-site .editorial-page .article-card-image.article-card-image,
+.kileni-site .service-10 .svc-package-grid > article,
+.kileni-site .service-10 .svc-result-fragment.svc-result-fragment,
+.kileni-site .service-10 .svc-proof-card.svc-proof-card {
+  border-radius: var(--kileni-radius-lg);
+  overflow: clip;
+}
+
+.kileni-site .editorial-page .article-card-image.article-card-image {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.kileni-site .service-10 .svc-package-grid > article {
+  transition: transform .28s cubic-bezier(.22, 1, .36, 1), box-shadow .28s ease, border-color .28s ease;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .kileni-site .editorial-page .article-card.article-card:hover,
+  .kileni-site .service-10 .svc-package-grid > article:hover {
+    position: relative;
+    z-index: 1;
+    transform: translateY(-.24rem);
+    box-shadow: var(--kileni-surface-shadow);
+  }
+}

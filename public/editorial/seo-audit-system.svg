@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">SEO audit system</title>
+  <desc id="desc">An abstract modular field of diagnostic layers connected around a verified central state.</desc>
+  <defs>
+    <linearGradient id="bg" x1="120" y1="80" x2="1460" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B0D10"/>
+      <stop offset="0.52" stop-color="#2867F0" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#7457F5" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="420" y1="160" x2="1170" y2="730" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2867F0"/>
+      <stop offset="1" stop-color="#7457F5"/>
+    </linearGradient>
+    <pattern id="microgrid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#2867F0" stroke-opacity="0.08"/>
+      <circle cx="0" cy="0" r="2" fill="#7457F5" fill-opacity="0.24"/>
+    </pattern>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" rx="44" fill="url(#bg)"/>
+  <rect x="36" y="36" width="1528" height="828" rx="28" fill="url(#microgrid)" stroke="#2867F0" stroke-opacity="0.18"/>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M428 260L676 400M1172 260L924 400M428 640L676 500M1172 640L924 500" stroke="#2867F0" stroke-opacity="0.34" stroke-width="3" stroke-dasharray="3 15"/>
+    <path d="M372 450H650M950 450H1228" stroke="#7457F5" stroke-opacity="0.4" stroke-width="3" stroke-dasharray="18 12"/>
+  </g>
+
+  <g transform="translate(214 154)">
+    <path d="M0 66L98 0H300L398 66V196L300 262H98L0 196Z" fill="#0B0D10" stroke="#2867F0" stroke-width="3"/>
+    <path d="M58 78L125 34H270L337 78V184L270 228H125L58 184Z" fill="#2867F0" fill-opacity="0.12" stroke="#2867F0" stroke-opacity="0.6"/>
+    <path d="M105 88H289M105 122H246M105 156H270" stroke="#7457F5" stroke-width="8" stroke-linecap="round" opacity="0.78"/>
+    <circle cx="326" cy="35" r="10" fill="#2867F0"/>
+  </g>
+
+  <g transform="translate(988 154)">
+    <path d="M0 66L98 0H300L398 66V196L300 262H98L0 196Z" fill="#0B0D10" stroke="#7457F5" stroke-width="3"/>
+    <path d="M61 62L120 30H280L337 75L319 198L246 230H104L58 178Z" fill="#7457F5" fill-opacity="0.12" stroke="#7457F5" stroke-opacity="0.65"/>
+    <path d="M104 94H166L201 129H292M104 194H166L201 159H292" stroke="#2867F0" stroke-width="8"/>
+    <path d="M184 144L204 124L224 144L204 164Z" fill="#7457F5" stroke="none"/>
+    <circle cx="72" cy="30" r="10" fill="#7457F5"/>
+  </g>
+
+  <g transform="translate(214 484)">
+    <path d="M0 66L98 0H300L398 66V196L300 262H98L0 196Z" fill="#0B0D10" stroke="#7457F5" stroke-width="3"/>
+    <g fill="#2867F0" fill-opacity="0.18" stroke="#2867F0" stroke-opacity="0.72">
+      <rect x="72" y="55" width="102" height="58" rx="12"/>
+      <rect x="192" y="55" width="132" height="58" rx="12"/>
+      <rect x="72" y="132" width="142" height="58" rx="12"/>
+      <rect x="232" y="132" width="92" height="58" rx="12"/>
+    </g>
+    <circle cx="344" cy="226" r="10" fill="#7457F5"/>
+  </g>
+
+  <g transform="translate(988 484)">
+    <path d="M0 66L98 0H300L398 66V196L300 262H98L0 196Z" fill="#0B0D10" stroke="#2867F0" stroke-width="3"/>
+    <path d="M98 190V138L132 104H178L205 77H266L303 114V190" stroke="#7457F5" stroke-width="9"/>
+    <path d="M132 190V154L158 128H203L229 102H264" stroke="#2867F0" stroke-opacity="0.72" stroke-width="6"/>
+    <g fill="#2867F0">
+      <circle cx="118" cy="142" r="11"/><circle cx="178" cy="85" r="11"/><circle cx="240" cy="88" r="11"/><circle cx="292" cy="147" r="11"/>
+    </g>
+    <circle cx="52" cy="228" r="10" fill="#2867F0"/>
+  </g>
+
+  <g transform="translate(622 302)">
+    <rect x="-30" y="-30" width="416" height="356" rx="66" fill="#2867F0" fill-opacity="0.2" filter="url(#glow)"/>
+    <path d="M0 70L104 0H282L386 70V246L282 316H104L0 246Z" fill="#0B0D10" stroke="url(#edge)" stroke-width="7"/>
+    <path d="M66 104L135 58H251L320 104V212L251 258H135L66 212Z" fill="#2867F0" fill-opacity="0.16" stroke="#7457F5" stroke-width="3"/>
+    <path d="M133 160L176 203L260 113" fill="none" stroke="url(#edge)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="32" cy="54" r="8" fill="#2867F0"/><circle cx="354" cy="262" r="8" fill="#7457F5"/>
+  </g>
+
+  <g fill="none" stroke="url(#edge)" stroke-width="3">
+    <path d="M104 104H286L322 140"/><path d="M1496 104H1314L1278 140"/>
+    <path d="M104 796H286L322 760"/><path d="M1496 796H1314L1278 760"/>
+  </g>
+</svg>

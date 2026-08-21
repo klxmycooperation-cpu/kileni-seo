@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="268" height="64" viewBox="0 0 268 64" role="img" aria-labelledby="title desc">
+  <title id="title">KILENI SEO</title><desc id="desc">Технический знак K с линией сканирования и слово KILENI</desc>
+  <g fill="none" stroke="#F6F7F9" stroke-width="4" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M10 10v20M12 28l17-18M12 30l9 9"/><path d="M10 34v20M23 41l8 13"/>
+    <path d="M67 15v34M67 33l19-18M67 33l20 16M98 15v34M112 15v34h23M146 15h24M146 32h20M146 49h24M146 15v34M183 49V15l27 34V15M225 15v34"/>
+  </g>
+  <path d="M3 32H40" stroke="#2867F0" stroke-width="1.5"/><circle cx="35" cy="32" r="2.5" fill="#7457F5"/>
+  <text x="239" y="48" fill="#AEB6C5" font-family="Arial, sans-serif" font-size="9" font-weight="700" letter-spacing="2">SEO</text>
+</svg>

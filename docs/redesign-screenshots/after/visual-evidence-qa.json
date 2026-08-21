@@ -1,0 +1,160 @@
+{
+  "generatedAt": "2026-08-17T17:27:42.588Z",
+  "baseURL": "http://127.0.0.1:4325",
+  "checks": [
+    {
+      "path": "/",
+      "viewport": "1440x900",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "scrollHeight": 8763,
+      "bodyScrollWidth": 1440,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/",
+      "viewport": "390x844",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "scrollHeight": 14047,
+      "bodyScrollWidth": 390,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/",
+      "viewport": "1440x900",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "scrollHeight": 8763,
+      "bodyScrollWidth": 1440,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/",
+      "viewport": "390x844",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "scrollHeight": 14047,
+      "bodyScrollWidth": 390,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/",
+      "viewport": "1440x900",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "scrollHeight": 8763,
+      "bodyScrollWidth": 1440,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/",
+      "viewport": "390x844",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "scrollHeight": 14047,
+      "bodyScrollWidth": 390,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/marketplaces",
+      "viewport": "1440x900",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "scrollHeight": 2140,
+      "bodyScrollWidth": 1440,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/marketplaces/wildberries",
+      "viewport": "1440x900",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "scrollHeight": 6068,
+      "bodyScrollWidth": 1440,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/marketplaces/wildberries",
+      "viewport": "390x844",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "scrollHeight": 9177,
+      "bodyScrollWidth": 390,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/glossary",
+      "viewport": "1440x900",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "scrollHeight": 6657,
+      "bodyScrollWidth": 1440,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/glossary",
+      "viewport": "390x844",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "scrollHeight": 15037,
+      "bodyScrollWidth": 390,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/",
+      "viewport": "1440x900-cookie",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "scrollHeight": 8763,
+      "bodyScrollWidth": 1440,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/",
+      "viewport": "1440x900-process",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "scrollHeight": 8763,
+      "bodyScrollWidth": 1440,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    },
+    {
+      "path": "/",
+      "viewport": "390x844-process",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "scrollHeight": 14047,
+      "bodyScrollWidth": 390,
+      "h1Count": 1,
+      "consoleErrors": [],
+      "passed": true
+    }
+  ]
+}

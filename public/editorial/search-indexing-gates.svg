@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Search indexing gates</title>
+  <desc id="desc">An abstract document signal passing through a sequence of technical gates toward an indexed state.</desc>
+  <defs>
+    <linearGradient id="bg" x1="180" y1="40" x2="1420" y2="860" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B0D10"/>
+      <stop offset="0.5" stop-color="#2867F0" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#7457F5" stop-opacity="0.22"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="250" y1="620" x2="1370" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2867F0" stop-opacity="0"/>
+      <stop offset="0.32" stop-color="#2867F0" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#7457F5"/>
+    </linearGradient>
+    <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="2" fill="#2867F0" fill-opacity="0.17"/>
+    </pattern>
+    <filter id="soft" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" rx="44" fill="url(#bg)"/>
+  <rect x="40" y="40" width="1520" height="820" rx="28" fill="url(#dots)" stroke="#7457F5" stroke-opacity="0.18"/>
+
+  <path d="M188 684L1392 236" stroke="url(#beam)" stroke-width="78" stroke-linecap="round" opacity="0.12" filter="url(#soft)"/>
+  <path d="M188 684L1392 236" stroke="url(#beam)" stroke-width="5" stroke-linecap="round" stroke-dasharray="12 22"/>
+
+  <g fill="#0B0D10" stroke-linejoin="round">
+    <g transform="translate(332 500)">
+      <path d="M0 90L96 24L214 70V304L118 370L0 324Z" stroke="#2867F0" stroke-width="5"/>
+      <path d="M48 112L105 73L166 97V270L109 309L48 285Z" fill="#2867F0" fill-opacity="0.16" stroke="#2867F0" stroke-opacity="0.72" stroke-width="3"/>
+      <path d="M80 146L135 167M80 190L135 211M80 234L135 255" stroke="#7457F5" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(646 380)">
+      <path d="M0 90L96 24L214 70V304L118 370L0 324Z" stroke="#7457F5" stroke-width="5"/>
+      <path d="M42 118L103 76L172 102V263L110 305L42 279Z" fill="#7457F5" fill-opacity="0.14" stroke="#7457F5" stroke-opacity="0.72" stroke-width="3"/>
+      <path d="M76 138L111 173L76 208M151 138L116 173L151 208" fill="none" stroke="#2867F0" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="114" cy="173" r="10" fill="#7457F5" stroke="none"/>
+    </g>
+    <g transform="translate(960 262)">
+      <path d="M0 90L96 24L214 70V304L118 370L0 324Z" stroke="#2867F0" stroke-width="5"/>
+      <path d="M44 118L104 77L171 103V261L111 302L44 276Z" fill="#2867F0" fill-opacity="0.16" stroke="#2867F0" stroke-opacity="0.72" stroke-width="3"/>
+      <path d="M74 174L107 206L153 146" fill="none" stroke="#7457F5" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <g transform="translate(112 604)">
+    <path d="M0 45L66 0L170 40V188L104 233L0 193Z" fill="#0B0D10" stroke="#2867F0" stroke-width="4"/>
+    <path d="M36 67L76 40L134 62V155L94 182L36 160Z" fill="#2867F0" fill-opacity="0.25"/>
+    <path d="M58 84L113 105M58 112L113 133" stroke="#7457F5" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(1260 104)">
+    <path d="M0 56L84 0L205 46V222L121 278L0 232Z" fill="#0B0D10" stroke="#7457F5" stroke-width="5"/>
+    <path d="M46 89L99 53L159 76V178L106 214L46 191Z" fill="#7457F5" fill-opacity="0.26"/>
+    <path d="M73 137L99 163L139 112" fill="none" stroke="#2867F0" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g fill="#0B0D10" stroke-width="3">
+    <circle cx="286" cy="640" r="16" stroke="#2867F0"/><circle cx="600" cy="522" r="16" stroke="#7457F5"/>
+    <circle cx="914" cy="404" r="16" stroke="#2867F0"/><circle cx="1228" cy="286" r="16" stroke="#7457F5"/>
+  </g>
+  <path d="M134 144H444M1156 756H1466" stroke="#2867F0" stroke-opacity="0.28" stroke-width="3" stroke-dasharray="18 12"/>
+</svg>

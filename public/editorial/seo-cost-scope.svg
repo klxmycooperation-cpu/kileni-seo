@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">SEO scope and cost</title>
+  <desc id="desc">A modular scope map connects page types, implementation, evidence and timing to one transparent estimate.</desc>
+  <defs><linearGradient id="bg" x1="90" y1="70" x2="1480" y2="830" gradientUnits="userSpaceOnUse"><stop stop-color="#0A0D12"/><stop offset="1" stop-color="#18202C"/></linearGradient><linearGradient id="ring" x1="530" y1="190" x2="1080" y2="720" gradientUnits="userSpaceOnUse"><stop stop-color="#4164FF"/><stop offset="1" stop-color="#8157F6"/></linearGradient></defs>
+  <rect width="1600" height="900" rx="44" fill="url(#bg)"/><rect x="38" y="38" width="1524" height="824" rx="28" fill="none" stroke="#FFFFFF" stroke-opacity=".12"/>
+  <g fill="none" stroke="#FFFFFF" stroke-opacity=".15" stroke-width="3" stroke-dasharray="7 14"><path d="M800 450L318 230M800 450L1282 230M800 450L318 670M800 450L1282 670"/></g>
+  <circle cx="800" cy="450" r="230" fill="#4164FF" fill-opacity=".08" stroke="url(#ring)" stroke-width="7"/><circle cx="800" cy="450" r="152" fill="#0A0D12" stroke="#FFFFFF" stroke-opacity=".18" stroke-width="3"/>
+  <path d="M720 480l58-58 50 50 92-108" fill="none" stroke="url(#ring)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/><path d="M715 545h170" stroke="#FFFFFF" stroke-opacity=".75" stroke-width="11" stroke-linecap="round"/>
+  <g fill="#0A0D12" stroke-width="4"><rect x="168" y="150" width="300" height="160" rx="42" stroke="#4164FF"/><rect x="1132" y="150" width="300" height="160" rx="42" stroke="#8157F6"/><rect x="168" y="590" width="300" height="160" rx="42" stroke="#8157F6"/><rect x="1132" y="590" width="300" height="160" rx="42" stroke="#4164FF"/></g>
+  <g fill="#FFFFFF"><rect x="228" y="202" width="180" height="14" rx="7"/><rect x="228" y="242" width="122" height="9" rx="5" fill-opacity=".32"/><rect x="1192" y="202" width="180" height="14" rx="7"/><rect x="1192" y="242" width="128" height="9" rx="5" fill-opacity=".32"/><rect x="228" y="642" width="180" height="14" rx="7"/><rect x="228" y="682" width="138" height="9" rx="5" fill-opacity=".32"/><rect x="1192" y="642" width="180" height="14" rx="7"/><rect x="1192" y="682" width="116" height="9" rx="5" fill-opacity=".32"/></g>
+</svg>

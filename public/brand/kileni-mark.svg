@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Знак KILENI">
+  <rect width="64" height="64" rx="12" fill="#0B0D10"/>
+  <g fill="none" stroke="#F6F7F9" stroke-width="5" stroke-linecap="square"><path d="M17 11v20M19 29L42 11M19 31l12 11"/><path d="M17 36v17M34 43l8 10"/></g>
+  <path d="M9 33H51" stroke="#2867F0" stroke-width="1.5"/><circle cx="47" cy="33" r="3" fill="#7457F5"/>
+</svg>

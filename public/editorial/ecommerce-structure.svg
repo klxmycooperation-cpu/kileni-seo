@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">E-commerce search structure</title>
+  <desc id="desc">A structured catalogue connects demand, categories, filters and product pages without duplicate paths.</desc>
+  <defs><linearGradient id="bg" x1="70" y1="70" x2="1500" y2="830" gradientUnits="userSpaceOnUse"><stop stop-color="#0A0D12"/><stop offset=".55" stop-color="#111722"/><stop offset="1" stop-color="#18202C"/></linearGradient><linearGradient id="edge" x1="260" y1="440" x2="1340" y2="440" gradientUnits="userSpaceOnUse"><stop stop-color="#4164FF"/><stop offset="1" stop-color="#8157F6"/></linearGradient></defs>
+  <rect width="1600" height="900" rx="44" fill="url(#bg)"/><rect x="38" y="38" width="1524" height="824" rx="28" fill="none" stroke="#FFFFFF" stroke-opacity=".12"/>
+  <g fill="none" stroke="url(#edge)" stroke-width="5" stroke-linecap="round"><path d="M330 450H600M740 350L600 450 740 550M870 350L1010 450 870 550M1010 450H1280"/><path d="M740 350H870M740 550H870" stroke-dasharray="12 15"/></g>
+  <g fill="#0A0D12" stroke-width="4"><rect x="150" y="320" width="220" height="260" rx="54" stroke="#4164FF"/><rect x="540" y="250" width="250" height="200" rx="48" stroke="#4164FF"/><rect x="540" y="480" width="250" height="170" rx="48" stroke="#8157F6"/><rect x="820" y="250" width="250" height="200" rx="48" stroke="#8157F6"/><rect x="820" y="480" width="250" height="170" rx="48" stroke="#4164FF"/><rect x="1230" y="320" width="220" height="260" rx="54" stroke="#8157F6"/></g>
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round"><path d="M205 382h110M205 430h78M205 478h94" stroke-width="12"/><path d="M598 310h134M598 350h86" stroke-width="10"/><path d="M598 535h136M598 576h102" stroke-width="10"/><path d="M878 310h134M878 350h82" stroke-width="10"/><path d="M878 535h134M878 576h100" stroke-width="10"/><rect x="1280" y="370" width="120" height="130" rx="22" stroke-width="10"/><path d="M1308 534h64" stroke-width="10"/></g>
+  <circle cx="260" cy="270" r="12" fill="#4164FF"/><circle cx="1340" cy="630" r="12" fill="#8157F6"/>
+</svg>

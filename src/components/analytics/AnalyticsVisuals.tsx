@@ -1,0 +1,589 @@
+"use client";
+
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import type { Locale } from "../../config/site";
+
+type Point = {
+  label: string;
+  value: number;
+  tooltip: string;
+};
+
+export type TechnicalScoreValues = {
+  score: number;
+  performance: number;
+  seo: number;
+  accessibility: number;
+  recommendations: number;
+};
+
+const baselineTechnicalScore: TechnicalScoreValues = {
+  score: 89,
+  performance: 92,
+  seo: 88,
+  accessibility: 95,
+  recommendations: 81,
+};
+
+function useVisualReveal(immediate = false) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [ready, setReady] = useState(immediate);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReducedMotion(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+
+    if (immediate || media.matches) {
+      const frame = window.requestAnimationFrame(() => setReady(true));
+      return () => {
+        window.cancelAnimationFrame(frame);
+        media.removeEventListener("change", sync);
+      };
+    }
+
+    const node = ref.current;
+    if (!node) return () => media.removeEventListener("change", sync);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setReady(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.24 },
+    );
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+      media.removeEventListener("change", sync);
+    };
+  }, [immediate]);
+
+  return { ref, ready, reducedMotion };
+}
+
+function useCountUp(value: number, ready: boolean, reducedMotion: boolean, duration = 1250) {
+  const [display, setDisplay] = useState(ready && reducedMotion ? value : 0);
+
+  useEffect(() => {
+    if (!ready || reducedMotion) {
+      setDisplay(ready ? value : 0);
+      return;
+    }
+
+    const startedAt = performance.now();
+    let frame = 0;
+    const render = (now: number) => {
+      const progress = Math.min((now - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(value * eased));
+      if (progress < 1) frame = requestAnimationFrame(render);
+    };
+    frame = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(frame);
+  }, [duration, ready, reducedMotion, value]);
+
+  return display;
+}
+
+function localeNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US").format(value);
+}
+
+function MetricHeader({
+  title,
+  value,
+  suffix = "",
+  delta,
+  caption,
+  ready,
+  reducedMotion,
+  locale,
+}: {
+  title: string;
+  value: number;
+  suffix?: string;
+  delta: string;
+  caption: string;
+  ready: boolean;
+  reducedMotion: boolean;
+  locale: Locale;
+}) {
+  const number = useCountUp(value, ready, reducedMotion);
+  return (
+    <header className="analytics-metric-header">
+      <p>{title}</p>
+      <div><strong>{localeNumber(number, locale)}{suffix}</strong><span className="analytics-delta">{delta}</span></div>
+      <small>{caption}</small>
+    </header>
+  );
+}
+
+type TrendTick = { label: string; value: number };
+type TrendStage = { index: number; label: string };
+type TrendChip = { label: string; value: string; success?: boolean };
+
+function DetailedTrendChart({
+  locale,
+  points,
+  ready,
+  ariaLabel,
+  yTicks,
+  target,
+  stages,
+  chips,
+  statuses,
+  finalLabel,
+  kind = "blue",
+}: {
+  locale: Locale;
+  points: Point[];
+  ready: boolean;
+  ariaLabel: string;
+  yTicks: TrendTick[];
+  target?: { from: number; to: number; label: string };
+  stages: TrendStage[];
+  chips: TrendChip[];
+  statuses: string[];
+  finalLabel: string;
+  kind?: "blue" | "errors";
+}) {
+  const id = useId().replace(/:/g, "");
+  const [hovered, setHovered] = useState<number | null>(null);
+  const frame = { left: 48, top: 25, width: 462, height: 174 };
+  const high = yTicks[0]?.value ?? 100;
+  const low = yTicks.at(-1)?.value ?? 0;
+  const range = Math.max(high - low, 1);
+  const pointAt = (value: number, index: number) => ({
+    x: frame.left + (index / Math.max(points.length - 1, 1)) * frame.width,
+    y: frame.top + ((high - value) / range) * frame.height,
+  });
+  const plotted = points.map((point, index) => ({ ...point, ...pointAt(point.value, index) }));
+  const path = plotted.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
+  const area = `${path} L${(frame.left + frame.width).toFixed(2)} ${(frame.top + frame.height).toFixed(2)} L${frame.left} ${(frame.top + frame.height).toFixed(2)} Z`;
+  const active = plotted[hovered ?? plotted.length - 1];
+  const tooltipX = Math.min(Math.max(active.x, 92), 474);
+  const tooltipY = Math.max(active.y - 42, 10);
+  const last = plotted.at(-1);
+  const previous = plotted.at(-2);
+  const labelWidth = Math.max(40, Math.min(76, finalLabel.length * 6.2 + 14));
+  const errorTrend = kind === "errors";
+
+  return (
+    <div className="analytics-detail-trend" data-ready={ready ? "true" : "false"} aria-label={ariaLabel}>
+      <div className={`analytics-visibility-detail analytics-trend-detail${errorTrend ? " analytics-trend-detail--errors" : ""}`}>
+        <svg viewBox="0 0 560 238" role="group" aria-label={ariaLabel}>
+          <defs>
+            <linearGradient id={`${id}-area`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" className={errorTrend ? "analytics-trend-detail__risk-fill" : "analytics-visibility-detail__area-top"} />
+              <stop offset="100%" className="analytics-visibility-detail__area-bottom" />
+            </linearGradient>
+            {errorTrend && (
+              <linearGradient id={`${id}-line`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" className="analytics-trend-detail__risk-stop" />
+                <stop offset="64%" className="analytics-trend-detail__neutral-stop" />
+                <stop offset="100%" className="analytics-trend-detail__success-stop" />
+              </linearGradient>
+            )}
+          </defs>
+          {target && (
+            <>
+              <rect
+                className="analytics-visibility-detail__target-zone"
+                x={frame.left}
+                y={pointAt(target.to, 0).y}
+                width={frame.width}
+                height={Math.max(4, pointAt(target.from, 0).y - pointAt(target.to, 0).y)}
+                rx="5"
+              />
+              <text className="analytics-visibility-detail__target-label" x={frame.left + 8} y={pointAt(target.to, 0).y + 13}>{target.label}</text>
+            </>
+          )}
+          {yTicks.map((tick) => (
+            <g key={tick.label}>
+              <line className="analytics-visibility-detail__grid" x1={frame.left} x2={frame.left + frame.width} y1={pointAt(tick.value, 0).y} y2={pointAt(tick.value, 0).y} />
+              <text className="analytics-visibility-detail__axis" x="0" y={pointAt(tick.value, 0).y + 4}>{tick.label}</text>
+            </g>
+          ))}
+          <path className="analytics-visibility-detail__area" d={area} fill={`url(#${id}-area)`} />
+          <path className="analytics-visibility-detail__line" d={path} pathLength="100" stroke={errorTrend ? `url(#${id}-line)` : undefined} />
+          {previous && last && <path className="analytics-visibility-detail__projection" d={`M${previous.x} ${previous.y} L${last.x} ${last.y} L${frame.left + frame.width + 17} ${Math.max(frame.top, last.y - 8)}`} />}
+          {stages.map((stage) => {
+            const point = plotted[stage.index];
+            if (!point) return null;
+            const width = Math.max(58, Math.min(88, stage.label.length * 5 + 15));
+            const x = Math.min(Math.max(frame.left, point.x - width / 2), frame.left + frame.width - width);
+            return <g className="analytics-visibility-detail__stage" key={stage.label} transform={`translate(${x} ${Math.max(frame.top + 16, point.y - 30)})`}><rect width={width} height="17" rx="8.5" /><text x={width / 2} y="11.5">{stage.label}</text></g>;
+          })}
+          {plotted.map((point, index) => {
+            const pointTone = errorTrend
+              ? index < Math.floor(plotted.length * 0.45)
+                ? "is-risk"
+                : index === plotted.length - 1
+                  ? "is-success"
+                  : "is-neutral"
+              : "";
+
+            return (
+              <g
+              className="analytics-visibility-detail__point-wrap"
+              key={`${point.label}-${index}`}
+              tabIndex={0}
+              role="button"
+              aria-label={`${point.label || (locale === "ru" ? "Промежуточное значение" : "Intermediate value")}: ${point.tooltip}`}
+              onFocus={() => setHovered(index)}
+              onBlur={() => setHovered(null)}
+              onMouseEnter={() => setHovered(index)}
+              onMouseLeave={() => setHovered(null)}
+              style={{ "--point-delay": `${520 + index * 76}ms` } as CSSProperties}
+            >
+              <circle className="analytics-visibility-detail__hit" cx={point.x} cy={point.y} r="10" />
+              <circle className={`analytics-visibility-detail__point ${pointTone}`} cx={point.x} cy={point.y} r={index === plotted.length - 1 ? "4.8" : "2.8"} />
+            </g>
+            );
+          })}
+          {hovered !== null && <g className="analytics-visibility-detail__tooltip" transform={`translate(${tooltipX} ${tooltipY})`}><rect x="-42" y="-19" width="84" height="33" rx="7" /><text x="0" y="-6">{active.label || (locale === "ru" ? "Этап" : "Stage")}</text><text className="analytics-visibility-detail__tooltip-value" x="0" y="7">{active.tooltip}</text></g>}
+          <g className="analytics-visibility-detail__end-tag" transform={`translate(${last?.x ?? 0} ${(last?.y ?? 0) - 26})`}><rect x={-labelWidth / 2} y="-14" width={labelWidth} height="20" rx="6" /><text x="0" y="0">{finalLabel}</text></g>
+          {errorTrend && last && <g className="analytics-trend-detail__check" transform={`translate(${last.x + 17} ${last.y - 4})`}><circle r="8" /><path d="M-3 0 L-1.1 2.1 L3.2 -3" /></g>}
+          {plotted.filter((point) => point.label).map((point) => <text className="analytics-visibility-detail__month" key={point.label} x={point.x} y="226">{point.label}</text>)}
+        </svg>
+        <p className="analytics-visibility-detail__summary">{active.label || (locale === "ru" ? "Промежуточный этап" : "Intermediate stage")}: <strong>{active.tooltip}</strong></p>
+      </div>
+      <div className="analytics-visibility-detail__chips" aria-label={locale === "ru" ? "Ключевые показатели" : "Key indicators"}>
+        {chips.map((chip, index) => <span className={chip.success ? "is-success" : ""} key={chip.label} style={{ "--chip-delay": `${1080 + index * 75}ms` } as CSSProperties}><small>{chip.label}</small><strong>{chip.value}</strong></span>)}
+      </div>
+      <div className="analytics-hero-chart__statuses" aria-label={locale === "ru" ? "Положительные изменения" : "Positive signals"}>
+        {statuses.map((status, index) => <span key={status} style={{ "--status-delay": `${1180 + index * 120}ms` } as CSSProperties}><i aria-hidden="true" />{status}</span>)}
+      </div>
+    </div>
+  );
+}
+
+function VisibilityChart({ locale }: { locale: Locale }) {
+  const { ref, ready, reducedMotion } = useVisualReveal(true);
+  const ru = locale === "ru";
+  const [hovered, setHovered] = useState<number | null>(null);
+  const points = ru
+    ? [
+      { label: "Мар", value: 34, detail: "Старт замера" }, { label: "", value: 37, detail: "Первые правки" },
+      { label: "Апр", value: 36, detail: "Небольшая просадка" }, { label: "", value: 42, detail: "Страницы в индексе" },
+      { label: "Май", value: 50, detail: "Уточнили структуру" }, { label: "", value: 49, detail: "Переобход страниц" },
+      { label: "Июн", value: 54, detail: "Расширили контент" }, { label: "", value: 56, detail: "Обновили метаданные" },
+      { label: "", value: 55, detail: "Естественная волатильность" }, { label: "Июл", value: 61, detail: "Рост видимости" },
+      { label: "", value: 66, detail: "Усилили релевантность" }, { label: "", value: 64, detail: "Плановая просадка" },
+      { label: "Авг", value: 68, detail: "Текущий ориентир" },
+    ]
+    : [
+      { label: "Mar", value: 34, detail: "Starting point" }, { label: "", value: 37, detail: "First fixes" },
+      { label: "Apr", value: 36, detail: "Small dip" }, { label: "", value: 42, detail: "Pages indexed" },
+      { label: "May", value: 50, detail: "Structure refined" }, { label: "", value: 49, detail: "Pages re-crawled" },
+      { label: "Jun", value: 54, detail: "Content expanded" }, { label: "", value: 56, detail: "Metadata refreshed" },
+      { label: "", value: 55, detail: "Natural volatility" }, { label: "Jul", value: 61, detail: "Visibility growing" },
+      { label: "", value: 66, detail: "Relevance strengthened" }, { label: "", value: 64, detail: "Planned dip" },
+      { label: "Aug", value: 68, detail: "Current reference" },
+    ];
+  const frame = { left: 48, top: 25, width: 462, height: 174 };
+  const pointAt = (value: number, index: number) => ({
+    x: frame.left + (index / (points.length - 1)) * frame.width,
+    y: frame.top + ((100 - value) / 100) * frame.height,
+  });
+  const plotted = points.map((point, index) => ({ ...point, ...pointAt(point.value, index) }));
+  const path = plotted.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
+  const area = `${path} L${(frame.left + frame.width).toFixed(2)} ${(frame.top + frame.height).toFixed(2)} L${frame.left} ${(frame.top + frame.height).toFixed(2)} Z`;
+  const active = plotted[hovered ?? plotted.length - 1];
+  const tooltipX = Math.min(Math.max(active.x, 92), 474);
+  const tooltipY = Math.max(active.y - 42, 10);
+  const number = useCountUp(68, ready, reducedMotion);
+  const chips = ru
+    ? [{ label: "Целевые переходы", value: "+24%" }, { label: "CTR", value: "4,7%" }, { label: "Индексируемые", value: "92/100" }, { label: "Тех. ошибки", value: "−28%" }]
+    : [{ label: "Target visits", value: "+24%" }, { label: "CTR", value: "4.7%" }, { label: "Indexed", value: "92/100" }, { label: "Tech issues", value: "−28%" }];
+
+  return (
+    <div className="analytics-hero-chart" ref={ref} data-testid="hero-search-visibility" data-ready={ready ? "true" : "false"}>
+      <header className="analytics-hero-chart__header">
+        <p>{ru ? "Поисковая видимость" : "Search visibility"}</p>
+      </header>
+      <div className="analytics-hero-chart__metric"><strong>{number}%</strong><span className="analytics-delta">↑17%</span><p>{ru ? "средняя видимость" : "average visibility"}</p></div>
+      <div className="analytics-visibility-detail">
+        <svg viewBox="0 0 560 238" role="group" aria-label={ru ? "Динамика поисковой видимости с марта по август" : "Search visibility trend from March to August"}>
+          <defs>
+            <linearGradient id="visibility-area" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" className="analytics-visibility-detail__area-top" />
+              <stop offset="100%" className="analytics-visibility-detail__area-bottom" />
+            </linearGradient>
+          </defs>
+          <rect className="analytics-visibility-detail__target-zone" x={frame.left} y={pointAt(75, 0).y} width={frame.width} height={pointAt(60, 0).y - pointAt(75, 0).y} rx="5" />
+          <text className="analytics-visibility-detail__target-label" x={frame.left + 8} y={pointAt(75, 0).y + 13}>{ru ? "ориентир" : "target"}</text>
+          {[100, 75, 50, 25, 0].map((value) => (
+            <g key={value}>
+              <line className="analytics-visibility-detail__grid" x1={frame.left} x2={frame.left + frame.width} y1={pointAt(value, 0).y} y2={pointAt(value, 0).y} />
+              <text className="analytics-visibility-detail__axis" x="0" y={pointAt(value, 0).y + 4}>{value}%</text>
+            </g>
+          ))}
+          <path className="analytics-visibility-detail__area" d={area} fill="url(#visibility-area)" />
+          <path className="analytics-visibility-detail__line" d={path} pathLength="100" />
+          <path className="analytics-visibility-detail__projection" d={`M${plotted.at(-2)?.x} ${plotted.at(-2)?.y} L${plotted.at(-1)?.x} ${plotted.at(-1)?.y} L${frame.left + frame.width + 17} ${Math.max(frame.top, (plotted.at(-1)?.y ?? 0) - 8)}`} />
+          {[{ index: 4, label: ru ? "структура" : "structure" }, { index: 7, label: ru ? "контент" : "content" }].map((stage) => {
+            const point = plotted[stage.index];
+            return <g className="analytics-visibility-detail__stage" key={stage.label} transform={`translate(${point.x - 29} ${Math.max(frame.top + 16, point.y - 30)})`}><rect width="58" height="17" rx="8.5" /><text x="29" y="11.5">{stage.label}</text></g>;
+          })}
+          {plotted.map((point, index) => (
+            <g
+              className="analytics-visibility-detail__point-wrap"
+              key={`${point.label}-${index}`}
+              tabIndex={0}
+              role="button"
+              aria-label={`${point.label || (ru ? "Промежуточное значение" : "Intermediate value")}: ${point.value}%. ${point.detail}`}
+              onFocus={() => setHovered(index)}
+              onBlur={() => setHovered(null)}
+              onMouseEnter={() => setHovered(index)}
+              onMouseLeave={() => setHovered(null)}
+              style={{ "--point-delay": `${520 + index * 76}ms` } as CSSProperties}
+            >
+              <circle className="analytics-visibility-detail__hit" cx={point.x} cy={point.y} r="10" />
+              <circle className="analytics-visibility-detail__point" cx={point.x} cy={point.y} r={index === plotted.length - 1 ? "4.8" : "2.8"} />
+            </g>
+          ))}
+          {hovered !== null && <g className="analytics-visibility-detail__tooltip" transform={`translate(${tooltipX} ${tooltipY})`}><rect x="-42" y="-19" width="84" height="33" rx="7" /><text x="0" y="-6">{active.label || (ru ? "Этап" : "Stage")}</text><text className="analytics-visibility-detail__tooltip-value" x="0" y="7">{active.value}%</text></g>}
+          <g className="analytics-visibility-detail__end-tag" transform={`translate(${plotted.at(-1)?.x ?? 0} ${(plotted.at(-1)?.y ?? 0) - 26})`}><rect x="-18" y="-14" width="40" height="20" rx="6" /><text x="2" y="0">68%</text></g>
+          {plotted.filter((point) => point.label).map((point) => <text className="analytics-visibility-detail__month" key={point.label} x={point.x} y="226">{point.label}</text>)}
+        </svg>
+        <p className="analytics-visibility-detail__summary">{active.label || (ru ? "Промежуточный этап" : "Intermediate stage")}: <strong>{active.value}%</strong> — {active.detail}</p>
+      </div>
+      <div className="analytics-visibility-detail__chips" aria-label={ru ? "Ключевые показатели" : "Key indicators"}>
+        {chips.map((chip, index) => <span key={chip.label} style={{ "--chip-delay": `${1080 + index * 75}ms` } as CSSProperties}><small>{chip.label}</small><strong>{chip.value}</strong></span>)}
+      </div>
+      <div className="analytics-hero-chart__statuses" aria-label={ru ? "Положительные изменения" : "Positive signals"}>
+        {(ru ? ["Видимость ↑", "CTR ↑", "Ошибки ↓"] : ["Visibility ↑", "CTR ↑", "Errors ↓"]).map((status, index) => (
+          <span key={status} style={{ "--status-delay": `${1180 + index * 120}ms` } as CSSProperties}><i aria-hidden="true" />{status}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function HeroSearchVisibilityVisual({ locale }: { locale: Locale }) {
+  const ru = locale === "ru";
+  const [run, setRun] = useState(0);
+
+  useEffect(() => {
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let timer: number | undefined;
+
+    const syncLoop = () => {
+      if (timer) {
+        window.clearInterval(timer);
+        timer = undefined;
+      }
+      if (!motionPreference.matches) {
+        // The line completes in about 1.7 s, then stays readable before restarting.
+        timer = window.setInterval(() => setRun((value) => value + 1), 5_200);
+      }
+    };
+
+    syncLoop();
+    motionPreference.addEventListener("change", syncLoop);
+    return () => {
+      if (timer) window.clearInterval(timer);
+      motionPreference.removeEventListener("change", syncLoop);
+    };
+  }, []);
+
+  return (
+    <figure className="hero-audit-visual analytics-card analytics-card--hero" aria-label={ru ? "Поисковая видимость" : "Search visibility"} data-visualisation-run={run}>
+      <VisibilityChart key={run} locale={locale} />
+      <button className="analytics-replay" type="button" onClick={() => setRun((value) => value + 1)}>
+        {ru ? "Повторить анимацию" : "Replay animation"}<span aria-hidden="true">↻</span>
+      </button>
+    </figure>
+  );
+}
+
+function TechScoreCard({ locale, values = baselineTechnicalScore }: { locale: Locale; values?: TechnicalScoreValues }) {
+  const { ref, ready, reducedMotion } = useVisualReveal();
+  const ru = locale === "ru";
+  const score = useCountUp(values.score, ready, reducedMotion);
+  const bars = ru
+    ? [{ label: "Производительность", value: values.performance }, { label: "SEO", value: values.seo }, { label: "Доступность", value: values.accessibility }, { label: "Рекомендации", value: values.recommendations }]
+    : [{ label: "Performance", value: values.performance }, { label: "SEO", value: values.seo }, { label: "Accessibility", value: values.accessibility }, { label: "Best practices", value: values.recommendations }];
+
+  return (
+    <article ref={ref} className="analytics-card analytics-score-card" data-ready={ready ? "true" : "false"}>
+      <header className="analytics-card__eyebrow"><span>{ru ? "Техническая оценка сайта" : "Technical site score"}</span></header>
+      <div className="analytics-gauge" aria-label={`${ru ? "Техническая оценка" : "Technical score"}: ${score} из 100`}>
+        <svg viewBox="0 0 200 126" aria-hidden="true">
+          <path className="analytics-gauge__track" pathLength="100" d="M20 105 A80 80 0 0 1 180 105" />
+          <path className="analytics-gauge__value" pathLength="100" d="M20 105 A80 80 0 0 1 180 105" style={{ "--gauge-offset": "11" } as CSSProperties} />
+        </svg>
+        <div><strong>{score}</strong><span>/100</span><p>{ru ? "Хорошая база" : "A strong baseline"}</p></div>
+      </div>
+      <div className="analytics-score-bars">
+        {bars.map((bar, index) => (
+          <div key={bar.label} className="analytics-score-bar" style={{ "--bar-value": `${bar.value}%`, "--bar-delay": `${980 + index * 135}ms` } as CSSProperties}>
+            <div><span>{bar.label}</span><strong>{bar.value}/100</strong></div><i aria-hidden="true"><b /></i>
+          </div>
+        ))}
+      </div>
+      <p className="analytics-legend"><i aria-hidden="true" />{ru ? "Оценка помогает расставить приоритеты; это не обещание позиций." : "The score helps prioritise work; it is not a ranking guarantee."}</p>
+    </article>
+  );
+}
+
+export function SeoAuditScoreVisual({ locale, values }: { locale: Locale; values?: TechnicalScoreValues }) {
+  const ru = locale === "ru";
+  return (
+    <section className="svc-decision-section service-analytics-section service-analytics-section--audit" aria-labelledby="technical-score-title">
+      <div className="shell service-analytics-layout">
+        <header><p className="svc-kicker">{ru ? "Технический ориентир" : "Technical reference"}</p><h2 id="technical-score-title">{ru ? "Сначала видим общую картину, затем разбираем причины" : "First see the overall picture, then investigate the causes"}</h2><p>{ru ? "В полном аудите показатели рассчитываются по проверенному сайту и помогают определить порядок работ." : "In a full audit, the metrics are calculated from the checked website and help prioritise the work."}</p></header>
+        <TechScoreCard locale={locale} values={values} />
+      </div>
+    </section>
+  );
+}
+
+function TrafficCard({ locale }: { locale: Locale }) {
+  const { ref, ready, reducedMotion } = useVisualReveal();
+  const ru = locale === "ru";
+  const points: Point[] = ru
+    ? [
+      { label: "Мар", value: 12100, tooltip: "12 100" }, { label: "", value: 13200, tooltip: "13 200" },
+      { label: "Апр", value: 12800, tooltip: "12 800" }, { label: "", value: 15800, tooltip: "15 800" },
+      { label: "Май", value: 15100, tooltip: "15 100" }, { label: "", value: 14100, tooltip: "14 100" },
+      { label: "Июн", value: 16900, tooltip: "16 900" }, { label: "", value: 20300, tooltip: "20 300" },
+      { label: "", value: 23400, tooltip: "23 400" }, { label: "Июл", value: 22100, tooltip: "22 100" },
+      { label: "", value: 23600, tooltip: "23 600" }, { label: "", value: 25900, tooltip: "25 900" },
+      { label: "Авг", value: 27842, tooltip: "27 842" },
+    ]
+    : [
+      { label: "Mar", value: 12100, tooltip: "12,100" }, { label: "", value: 13200, tooltip: "13,200" },
+      { label: "Apr", value: 12800, tooltip: "12,800" }, { label: "", value: 15800, tooltip: "15,800" },
+      { label: "May", value: 15100, tooltip: "15,100" }, { label: "", value: 14100, tooltip: "14,100" },
+      { label: "Jun", value: 16900, tooltip: "16,900" }, { label: "", value: 20300, tooltip: "20,300" },
+      { label: "", value: 23400, tooltip: "23,400" }, { label: "Jul", value: 22100, tooltip: "22,100" },
+      { label: "", value: 23600, tooltip: "23,600" }, { label: "", value: 25900, tooltip: "25,900" },
+      { label: "Aug", value: 27842, tooltip: "27,842" },
+    ];
+  return (
+    <article className="analytics-card analytics-time-card" ref={ref} data-ready={ready ? "true" : "false"}>
+      <MetricHeader locale={locale} title={ru ? "Органический трафик" : "Organic traffic"} value={27842} delta="↑28.4%" caption={ru ? "посетителей в месяц" : "visitors per month"} ready={ready} reducedMotion={reducedMotion} />
+      <DetailedTrendChart
+        locale={locale}
+        points={points}
+        ready={ready}
+        ariaLabel={ru ? "Динамика органического трафика" : "Organic traffic trend"}
+        yTicks={[{ label: "30K", value: 30000 }, { label: "20K", value: 20000 }, { label: "10K", value: 10000 }, { label: "0", value: 0 }]}
+        target={{ from: 20000, to: 25000, label: ru ? "ориентир" : "target" }}
+        stages={[{ index: 3, label: ru ? "основа" : "foundation" }, { index: 8, label: ru ? "контент" : "content" }]}
+        chips={ru ? [{ label: "Видимость", value: "+17%", success: true }, { label: "Переходы", value: "+28,4%", success: true }, { label: "CTR", value: "4,7%" }, { label: "Страницы", value: "92/100" }] : [{ label: "Visibility", value: "+17%", success: true }, { label: "Visits", value: "+28.4%", success: true }, { label: "CTR", value: "4.7%" }, { label: "Pages", value: "92/100" }]}
+        statuses={ru ? ["Видимость ↑", "Переходы ↑", "CTR ↑"] : ["Visibility ↑", "Visits ↑", "CTR ↑"]}
+        finalLabel={ru ? "27 842" : "27,842"}
+      />
+      <p className="analytics-legend"><i aria-hidden="true" />{ru ? "Рост органических переходов — цель работы, а не гарантированный результат." : "Growth in organic visits is the goal of the work, not a guaranteed outcome."}</p>
+    </article>
+  );
+}
+
+function CtrCard({ locale }: { locale: Locale }) {
+  const { ref, ready, reducedMotion } = useVisualReveal();
+  const ru = locale === "ru";
+  const points: Point[] = ru
+    ? [
+      { label: "Мар", value: 1.2, tooltip: "1,2%" }, { label: "", value: 1.5, tooltip: "1,5%" },
+      { label: "Апр", value: 2.5, tooltip: "2,5%" }, { label: "", value: 2.4, tooltip: "2,4%" },
+      { label: "Май", value: 2.3, tooltip: "2,3%" }, { label: "", value: 3.1, tooltip: "3,1%" },
+      { label: "Июн", value: 3.9, tooltip: "3,9%" }, { label: "", value: 4.2, tooltip: "4,2%" },
+      { label: "", value: 3.8, tooltip: "3,8%" }, { label: "Июл", value: 3.7, tooltip: "3,7%" },
+      { label: "", value: 4.4, tooltip: "4,4%" }, { label: "", value: 4.1, tooltip: "4,1%" },
+      { label: "Авг", value: 4.7, tooltip: "4,7%" },
+    ]
+    : [
+      { label: "Mar", value: 1.2, tooltip: "1.2%" }, { label: "", value: 1.5, tooltip: "1.5%" },
+      { label: "Apr", value: 2.5, tooltip: "2.5%" }, { label: "", value: 2.4, tooltip: "2.4%" },
+      { label: "May", value: 2.3, tooltip: "2.3%" }, { label: "", value: 3.1, tooltip: "3.1%" },
+      { label: "Jun", value: 3.9, tooltip: "3.9%" }, { label: "", value: 4.2, tooltip: "4.2%" },
+      { label: "", value: 3.8, tooltip: "3.8%" }, { label: "Jul", value: 3.7, tooltip: "3.7%" },
+      { label: "", value: 4.4, tooltip: "4.4%" }, { label: "", value: 4.1, tooltip: "4.1%" },
+      { label: "Aug", value: 4.7, tooltip: "4.7%" },
+    ];
+  const display = useCountUp(47, ready, reducedMotion);
+  return (
+    <article className="analytics-card analytics-time-card" ref={ref} data-ready={ready ? "true" : "false"}>
+      <header className="analytics-metric-header"><p>{ru ? "CTR в поиске" : "Search CTR"}</p><div><strong>{(display / 10).toLocaleString(ru ? "ru-RU" : "en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong><span className="analytics-delta">↑0.9 {ru ? "п.п." : "pp"}</span></div><small>{ru ? "средний CTR" : "average CTR"}</small></header>
+      <p className="analytics-definition">{ru ? "CTR — доля пользователей, которые увидели сайт в поиске и перешли на него." : "CTR is the share of people who see a site in search and click through."}</p>
+      <DetailedTrendChart
+        locale={locale}
+        points={points}
+        ready={ready}
+        ariaLabel={ru ? "Динамика CTR в поиске" : "Search CTR trend"}
+        yTicks={[{ label: "6%", value: 6 }, { label: "4%", value: 4 }, { label: "2%", value: 2 }, { label: "0%", value: 0 }]}
+        target={{ from: 4, to: 5, label: ru ? "ориентир" : "target" }}
+        stages={[{ index: 3, label: ru ? "сниппеты" : "snippets" }, { index: 8, label: ru ? "проверка" : "review" }]}
+        chips={ru ? [{ label: "Показы", value: "+17%", success: true }, { label: "CTR", value: "4,7%", success: true }, { label: "Сниппеты", value: "обновлены" }, { label: "Переходы", value: "+28,4%", success: true }] : [{ label: "Impressions", value: "+17%", success: true }, { label: "CTR", value: "4.7%", success: true }, { label: "Snippets", value: "refined" }, { label: "Visits", value: "+28.4%", success: true }]}
+        statuses={ru ? ["Показы ↑", "CTR ↑", "Переходы ↑"] : ["Impressions ↑", "CTR ↑", "Visits ↑"]}
+        finalLabel={ru ? "4,7%" : "4.7%"}
+      />
+      <p className="analytics-legend"><i aria-hidden="true" />{ru ? "Кликабельность растёт после понятной работы со сниппетами и страницами." : "Click-through rate can improve after clear work on snippets and pages."}</p>
+    </article>
+  );
+}
+
+export function SeoPromotionMetricsVisual({ locale }: { locale: Locale }) {
+  const ru = locale === "ru";
+  return (
+    <section className="svc-decision-section service-analytics-section service-analytics-section--promotion" aria-labelledby="promotion-metrics-title">
+      <div className="shell"><header className="service-analytics-heading"><p className="svc-kicker">{ru ? "Что отслеживаем каждый месяц" : "What we monitor every month"}</p><h2 id="promotion-metrics-title">{ru ? "Не один график, а связку сигналов" : "Not one graph, but a set of related signals"}</h2><p>{ru ? "Показываем динамику, объясняем колебания и сверяемся с тем, что реально изменили на сайте." : "We show the trend, explain fluctuations and compare them with the actual changes made on the site."}</p></header><div className="analytics-time-grid"><TrafficCard locale={locale} /><CtrCard locale={locale} /></div></div>
+    </section>
+  );
+}
+
+export function CaseErrorsVisual({ locale }: { locale: Locale }) {
+  const { ref, ready, reducedMotion } = useVisualReveal();
+  const ru = locale === "ru";
+  const remaining = useCountUp(25, ready, reducedMotion);
+  const resolved = useCountUp(20289, ready, reducedMotion);
+  const points: Point[] = ru
+    ? [
+      { label: "P1", value: 20314, tooltip: "20 314" }, { label: "", value: 18500, tooltip: "18 500" },
+      { label: "Шаблоны", value: 14820, tooltip: "14 820" }, { label: "", value: 14100, tooltip: "14 100" },
+      { label: "", value: 11300, tooltip: "11 300" }, { label: "Внедрение", value: 7200, tooltip: "7 200" },
+      { label: "", value: 6900, tooltip: "6 900" }, { label: "", value: 4100, tooltip: "4 100" },
+      { label: "Проверка", value: 1160, tooltip: "1 160" }, { label: "", value: 780, tooltip: "780" },
+      { label: "", value: 430, tooltip: "430" }, { label: "", value: 200, tooltip: "200" },
+      { label: "P4", value: 25, tooltip: "25" },
+    ]
+    : [
+      { label: "P1", value: 20314, tooltip: "20,314" }, { label: "", value: 18500, tooltip: "18,500" },
+      { label: "Templates", value: 14820, tooltip: "14,820" }, { label: "", value: 14100, tooltip: "14,100" },
+      { label: "", value: 11300, tooltip: "11,300" }, { label: "Implementation", value: 7200, tooltip: "7,200" },
+      { label: "", value: 6900, tooltip: "6,900" }, { label: "", value: 4100, tooltip: "4,100" },
+      { label: "Review", value: 1160, tooltip: "1,160" }, { label: "", value: 780, tooltip: "780" },
+      { label: "", value: 430, tooltip: "430" }, { label: "", value: 200, tooltip: "200" },
+      { label: "P4", value: 25, tooltip: "25" },
+    ];
+  return (
+    <article className="analytics-card analytics-errors-card" ref={ref} data-ready={ready ? "true" : "false"} aria-label={ru ? "Снижение технических ошибок" : "Technical error reduction"}>
+      <header className="analytics-metric-header">
+        <p>{ru ? "Ошибки на сайте" : "Site errors"}</p>
+        <div><strong>{remaining}</strong><span className="analytics-delta analytics-delta--lower">↓99.9%</span></div>
+        <small>{ru ? "изображения без заданных размеров · засорсервис.рф" : "images without fixed dimensions · zasorservice.rf"}</small>
+      </header>
+      <DetailedTrendChart
+        locale={locale}
+        points={points}
+        ready={ready}
+        ariaLabel={ru ? "Снижение количества технических ошибок" : "Reduction in technical errors"}
+        yTicks={[{ label: "25K", value: 25000 }, { label: "15K", value: 15000 }, { label: "5K", value: 5000 }, { label: "0", value: 0 }]}
+        target={{ from: 0, to: 1000, label: ru ? "контроль" : "control" }}
+        stages={[{ index: 2, label: ru ? "шаблоны" : "templates" }, { index: 6, label: ru ? "внедрение" : "implementation" }]}
+        chips={ru ? [{ label: "Готовность", value: "37 → 80", success: true }, { label: "Страницы", value: "575/575", success: true }, { label: "CLS", value: "0,519 → 0,0001", success: true }, { label: "Контроль", value: "пройден", success: true }] : [{ label: "Readiness", value: "37 → 80", success: true }, { label: "Pages", value: "575/575", success: true }, { label: "CLS", value: "0.519 → 0.0001", success: true }, { label: "Control", value: "passed", success: true }]}
+        statuses={ru ? ["Ошибки ↓", "Проверено ✓", "Стабильность ↑"] : ["Errors ↓", "Verified ✓", "Stability ↑"]}
+        finalLabel="25"
+        kind="errors"
+      />
+      <footer><p><i aria-hidden="true" />{ru ? "Устранено" : "Resolved"}<strong>{localeNumber(resolved, locale)}</strong></p><p className="analytics-case-errors__control"><span>✓</span>{ru ? "Контрольная проверка" : "Follow-up check"}</p></footer>
+    </article>
+  );
+}

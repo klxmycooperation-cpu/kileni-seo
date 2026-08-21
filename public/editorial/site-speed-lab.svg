@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Website speed laboratory</title>
+  <desc id="desc">A page-loading timeline links server response, first screen, stable layout and a verified finish.</desc>
+  <defs>
+    <linearGradient id="bg" x1="80" y1="60" x2="1510" y2="840" gradientUnits="userSpaceOnUse"><stop stop-color="#0A0D12"/><stop offset="1" stop-color="#18202C"/></linearGradient>
+    <linearGradient id="signal" x1="190" y1="450" x2="1410" y2="450" gradientUnits="userSpaceOnUse"><stop stop-color="#4164FF"/><stop offset="1" stop-color="#8157F6"/></linearGradient>
+    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="#FFFFFF" stroke-opacity=".045"/></pattern>
+  </defs>
+  <rect width="1600" height="900" rx="44" fill="url(#bg)"/><rect x="36" y="36" width="1528" height="828" rx="28" fill="url(#grid)" stroke="#FFFFFF" stroke-opacity=".12"/>
+  <path d="M170 500H1430" stroke="#FFFFFF" stroke-opacity=".16" stroke-width="3"/>
+  <path d="M170 500C270 500 286 310 398 310S532 565 650 565 770 385 888 385s136 68 252 68 130-190 290-190" fill="none" stroke="url(#signal)" stroke-width="14" stroke-linecap="round"/>
+  <g fill="#0A0D12" stroke-width="4">
+    <circle cx="398" cy="310" r="64" stroke="#4164FF"/><circle cx="650" cy="565" r="64" stroke="#8157F6"/><circle cx="888" cy="385" r="64" stroke="#4164FF"/><circle cx="1430" cy="263" r="76" stroke="#8157F6"/>
+  </g>
+  <g fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round">
+    <path d="M368 310h60M398 280v60"/><path d="M618 565h64"/><path d="M858 405l26-42 34 42"/><path d="M1392 262l26 27 54-58"/>
+  </g>
+  <g fill="#FFFFFF" fill-opacity=".72"><rect x="170" y="176" width="350" height="18" rx="9"/><rect x="170" y="216" width="230" height="10" rx="5" fill-opacity=".28"/><rect x="1080" y="682" width="350" height="18" rx="9"/><rect x="1198" y="722" width="232" height="10" rx="5" fill-opacity=".28"/></g>
+</svg>

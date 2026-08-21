@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">SEO and advertising dual engine</title>
+  <desc id="desc">Two interlocking acquisition circuits exchange signals around a shared landing-page core.</desc>
+  <defs>
+    <linearGradient id="bg" x1="120" y1="60" x2="1480" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B0D10"/>
+      <stop offset="0.44" stop-color="#2867F0" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#7457F5" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="blueRibbon" x1="180" y1="230" x2="1110" y2="660" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2867F0" stop-opacity="0.18"/>
+      <stop offset="0.5" stop-color="#2867F0"/>
+      <stop offset="1" stop-color="#7457F5"/>
+    </linearGradient>
+    <linearGradient id="violetRibbon" x1="1420" y1="220" x2="500" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7457F5" stop-opacity="0.18"/>
+      <stop offset="0.5" stop-color="#7457F5"/>
+      <stop offset="1" stop-color="#2867F0"/>
+    </linearGradient>
+    <pattern id="field" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M0 32H64M32 0V64" stroke="#2867F0" stroke-opacity="0.05"/>
+      <circle cx="32" cy="32" r="2" fill="#7457F5" fill-opacity="0.2"/>
+    </pattern>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="24"/></filter>
+  </defs>
+  <rect width="1600" height="900" rx="44" fill="url(#bg)"/>
+  <rect x="40" y="40" width="1520" height="820" rx="28" fill="url(#field)" stroke="#2867F0" stroke-opacity="0.16"/>
+
+  <path d="M154 310C368 108 632 142 794 350C950 550 1164 730 1446 564" fill="none" stroke="#2867F0" stroke-opacity="0.16" stroke-width="90" filter="url(#blur)"/>
+  <path d="M1446 306C1216 112 968 170 806 362C642 556 424 734 154 566" fill="none" stroke="#7457F5" stroke-opacity="0.16" stroke-width="90" filter="url(#blur)"/>
+  <path d="M154 310C368 108 632 142 794 350C950 550 1164 730 1446 564" fill="none" stroke="url(#blueRibbon)" stroke-width="34" stroke-linecap="round"/>
+  <path d="M1446 306C1216 112 968 170 806 362C642 556 424 734 154 566" fill="none" stroke="url(#violetRibbon)" stroke-width="34" stroke-linecap="round"/>
+
+  <g transform="translate(635 286)">
+    <rect x="-18" y="-18" width="366" height="366" rx="92" fill="#2867F0" fill-opacity="0.12" filter="url(#blur)"/>
+    <path d="M0 84L84 0H264L348 84V264L264 348H84L0 264Z" fill="#0B0D10" stroke="#2867F0" stroke-width="6"/>
+    <path d="M62 116L122 56H226L286 116V232L226 292H122L62 232Z" fill="#7457F5" fill-opacity="0.18" stroke="#7457F5" stroke-width="3"/>
+    <path d="M116 120H232V228H116Z" fill="#2867F0" fill-opacity="0.19" stroke="#2867F0" stroke-width="4"/>
+    <path d="M142 150H206M142 174H222M142 198H194" stroke="#7457F5" stroke-width="7" stroke-linecap="round"/>
+  </g>
+
+  <g fill="#0B0D10" stroke-width="4">
+    <g stroke="#2867F0">
+      <path d="M112 260L158 214L224 240V316L178 362L112 336Z"/>
+      <path d="M302 154L348 108L414 134V210L368 256L302 230Z"/>
+      <path d="M1224 630L1270 584L1336 610V686L1290 732L1224 706Z"/>
+    </g>
+    <g stroke="#7457F5">
+      <path d="M1376 254L1422 208L1488 234V310L1442 356L1376 330Z"/>
+      <path d="M1186 150L1232 104L1298 130V206L1252 252L1186 226Z"/>
+      <path d="M264 632L310 586L376 612V688L330 734L264 708Z"/>
+    </g>
+  </g>
+  <g fill="#2867F0"><circle cx="168" cy="288" r="11"/><circle cx="358" cy="182" r="11"/><circle cx="1280" cy="658" r="11"/></g>
+  <g fill="#7457F5"><circle cx="1432" cy="282" r="11"/><circle cx="1242" cy="178" r="11"/><circle cx="320" cy="660" r="11"/></g>
+
+  <path d="M98 780H512M1088 120H1502" stroke="#7457F5" stroke-opacity="0.32" stroke-width="3" stroke-dasharray="8 16"/>
+</svg>

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Marketplace product card layers</title>
+  <desc id="desc">An exploded product card composed of factual attributes, useful copy, and visual proof.</desc>
+  <defs>
+    <linearGradient id="bg" x1="140" y1="70" x2="1450" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B0D10"/>
+      <stop offset="0.48" stop-color="#7457F5" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#2867F0" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="470" y1="140" x2="1110" y2="780" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7457F5"/>
+      <stop offset="1" stop-color="#2867F0"/>
+    </linearGradient>
+    <pattern id="tiles" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M0 0H72V72" fill="none" stroke="#7457F5" stroke-opacity="0.055"/>
+      <path d="M18 54L54 18" stroke="#2867F0" stroke-opacity="0.045"/>
+    </pattern>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="22"/></filter>
+  </defs>
+  <rect width="1600" height="900" rx="44" fill="url(#bg)"/>
+  <rect x="40" y="40" width="1520" height="820" rx="28" fill="url(#tiles)" stroke="#7457F5" stroke-opacity="0.17"/>
+
+  <g transform="translate(428 94)" stroke-linejoin="round">
+    <path d="M30 104L226 0H626L822 104L626 208H226Z" fill="#2867F0" fill-opacity="0.08" stroke="#2867F0" stroke-opacity="0.5" stroke-width="3"/>
+    <path d="M88 104L252 28H600L764 104L600 180H252Z" fill="#0B0D10" stroke="#7457F5" stroke-width="4"/>
+    <g fill="#7457F5" fill-opacity="0.3">
+      <rect x="224" y="80" width="128" height="40" rx="12" transform="skewX(-24)"/>
+      <rect x="396" y="80" width="92" height="40" rx="12" transform="skewX(-24)"/>
+      <rect x="532" y="80" width="128" height="40" rx="12" transform="skewX(-24)"/>
+    </g>
+  </g>
+
+  <g transform="translate(356 286)" stroke-linejoin="round">
+    <path d="M24 112L244 0H724L944 112L724 224H244Z" fill="#7457F5" fill-opacity="0.1" stroke="#7457F5" stroke-opacity="0.62" stroke-width="3"/>
+    <path d="M78 112L264 26H704L890 112L704 198H264Z" fill="#0B0D10" stroke="url(#edge)" stroke-width="5"/>
+    <g transform="translate(354 44)">
+      <path d="M0 64L88 16L184 58V132L96 180L0 138Z" fill="#2867F0" fill-opacity="0.23" stroke="#2867F0" stroke-width="4"/>
+      <path d="M88 16L96 94L184 58M96 94L0 64M96 94V180" fill="none" stroke="#7457F5" stroke-width="4"/>
+      <path d="M42 48L126 84L164 64" fill="none" stroke="#7457F5" stroke-width="8" stroke-linecap="round"/>
+    </g>
+    <path d="M182 84H330M182 116H308M614 82H782M636 116H782M654 148H752" stroke="#2867F0" stroke-width="9" stroke-linecap="round" opacity="0.82"/>
+  </g>
+
+  <g transform="translate(286 532)" stroke-linejoin="round">
+    <path d="M18 112L268 0H796L1046 112L796 224H268Z" fill="#2867F0" fill-opacity="0.1" stroke="#2867F0" stroke-opacity="0.62" stroke-width="3"/>
+    <path d="M78 112L288 28H776L986 112L776 196H288Z" fill="#0B0D10" stroke="url(#edge)" stroke-width="5"/>
+    <g fill="#7457F5" fill-opacity="0.18" stroke="#7457F5" stroke-opacity="0.78" stroke-width="3">
+      <path d="M180 102L252 68H354L426 102L354 136H252Z"/>
+      <path d="M456 102L528 68H630L702 102L630 136H528Z"/>
+      <path d="M732 102L804 68H878L950 102L878 136H804Z"/>
+    </g>
+    <g fill="#2867F0">
+      <circle cx="286" cy="102" r="10"/><circle cx="562" cy="102" r="10"/><circle cx="838" cy="102" r="10"/>
+    </g>
+  </g>
+
+  <g fill="#0B0D10" stroke-width="3">
+    <path d="M180 250L230 220H312L362 250V310L312 340H230L180 310Z" stroke="#2867F0"/>
+    <path d="M1240 226L1290 196H1372L1422 226V286L1372 316H1290L1240 286Z" stroke="#7457F5"/>
+    <path d="M134 662L184 632H266L316 662V722L266 752H184L134 722Z" stroke="#7457F5"/>
+    <path d="M1284 632L1334 602H1416L1466 632V692L1416 722H1334L1284 692Z" stroke="#2867F0"/>
+  </g>
+  <path d="M362 280L474 336M1240 256L1126 330M316 692L446 650M1284 662L1152 650" fill="none" stroke="url(#edge)" stroke-width="3" stroke-dasharray="10 12"/>
+  <circle cx="800" cy="450" r="180" fill="#7457F5" fill-opacity="0.08" filter="url(#glow)"/>
+</svg>
