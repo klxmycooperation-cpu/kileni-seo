@@ -147,4 +147,30 @@ describe("deterministic scoring", () => {
     expect(new Set(checkIds).size).toBe(checkIds.length);
     expect(score.partial).toBe(true);
   });
+
+  it("does not reduce the quality score for pages outside the planned public sample", () => {
+    const pages = Array.from({ length: 10 }, () => perfectPage());
+    const common = {
+      targetUrl: "https://example.com/",
+      pages,
+      plannedPages: 10,
+      robots,
+      sitemap,
+      performance: {
+        performance: 1,
+        fcpMs: 1_000,
+        lcpMs: 2_000,
+        cls: 0.05,
+        tbtMs: 100,
+        accessibility: 1,
+      },
+    } as const;
+
+    const exactSample = scoreAudit({ ...common, pagesDiscovered: 10 });
+    const largerSite = scoreAudit({ ...common, pagesDiscovered: 43 });
+
+    expect(largerSite.total).toBe(exactSample.total);
+    expect(largerSite.coverage).toBeLessThan(exactSample.coverage);
+    expect(largerSite.partial).toBe(true);
+  });
 });

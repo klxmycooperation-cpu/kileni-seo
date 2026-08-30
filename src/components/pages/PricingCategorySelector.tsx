@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { localizedPath } from "../../config/site";
 
 export type PricingCategory = {
   slug: string;
   label: string;
   lead: string;
   packages: Array<{
+    offerId: string;
     tierLabel: string;
     name: string;
     description: string;
@@ -28,7 +28,12 @@ export function PricingCategorySelector({ categories, locale }: { categories: Pr
   const ru = locale === "ru";
   const category = categories.find((item) => item.slug === active) ?? categories[0];
   if (!category) return null;
-  const selectedKey = (name: string) => `${category.slug}:${name}`;
+  const selectedKey = (offerId: string) => offerId;
+
+  const selectCategory = (next: PricingCategory) => {
+    setActive(next.slug);
+    setSelected("");
+  };
 
   return (
     <div className="cp-category-selector">
@@ -42,7 +47,7 @@ export function PricingCategorySelector({ categories, locale }: { categories: Pr
             aria-selected={item.slug === category.slug}
             aria-controls={`pricing-panel-${item.slug}`}
             tabIndex={item.slug === category.slug ? 0 : -1}
-            onClick={() => setActive(item.slug)}
+            onClick={() => selectCategory(item)}
           >
             <span>{String(index + 1).padStart(2, "0")}</span>
             {item.label}
@@ -59,50 +64,29 @@ export function PricingCategorySelector({ categories, locale }: { categories: Pr
           <p>{category.lead}</p>
           <span>{ru ? `${category.packages.length} уровня` : `${category.packages.length} tiers`}</span>
         </header>
-        {category.slug === "seo-audit" && (
-          <p className="cp-first-audit-offer">
-            {ru
-              ? "−25% только на первый платный SEO-аудит для нового клиента. После бесплатной проверки подтверждаем право на скидку до оплаты."
-              : "25% off applies only to a new client’s first paid SEO audit. Eligibility is confirmed after the free check and before payment."}
-          </p>
-        )}
-        <div className="cp-package-list">
+        <div className="cp-package-list" aria-live="polite">
           {category.packages.map((item) => (
-            <article className="cp-package" data-featured={item.featured || undefined} data-selected={selected === selectedKey(item.name) || undefined} key={item.name}>
-              {item.featured && <span className="cp-package-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
-              <div className="cp-package-main">
-                <div>
-                  <p className="cp-package-tier">{item.tierLabel}</p>
-                  <h3>{item.name}</h3>
-                  <p className="cp-package-fit"><span>{ru ? "Кому подходит" : "Best for"}</span>{item.description}</p>
-                </div>
-                <div className="cp-package-price">
-                  <strong>{item.price}</strong>
-                  {item.note && <small>{item.note}</small>}
-                </div>
+            <article className="cp-package" data-offer-id={item.offerId} data-featured={item.featured || undefined} data-selected={selected === selectedKey(item.offerId) || undefined} key={item.offerId}>
+              <div className="cp-package-topline">
+                <p className="cp-package-tier">{item.tierLabel}</p>
+                {item.featured && <span className="cp-package-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
               </div>
+              <h3>{item.name}</h3>
+              <p className="cp-package-fit">{item.description}</p>
+              <div className="cp-package-price"><strong>{item.price}</strong>{item.note && <small>{item.note}</small>}</div>
               <dl className="cp-package-facts">
-                <div><dt>{ru ? "Главный результат" : "Main result"}</dt><dd>{item.mainResult}</dd></div>
+                <div><dt>{ru ? "Результат" : "Result"}</dt><dd>{item.mainResult}</dd></div>
                 <div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{item.duration}</dd></div>
+                <div><dt>{ru ? "Объём" : "Scope"}</dt><dd>{item.limit}</dd></div>
               </dl>
-              <div className="cp-package-scope">
-                <span>{ru ? "Предел тарифа" : "Package limit"}</span>
-                <b>{item.limit}</b>
+              <div className="cp-package-included">
+                <span>{ru ? "Что получите" : "What you receive"}</span>
+                <ul aria-label={ru ? `Что входит в «${item.name}»` : `Included in ${item.name}`}>{item.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
               </div>
-              <details className="cp-package-details">
-                <summary>{ru ? "Полный состав уровня" : "Full tier scope"}</summary>
-                <ul aria-label={ru ? `Что входит в «${item.name}»` : `Included in ${item.name}`}>
-                  {item.features.map((feature) => <li key={feature}>{feature}</li>)}
-                </ul>
-              </details>
-              <button className="cp-package-select" type="button" aria-pressed={selected === selectedKey(item.name)} onClick={() => setSelected(selectedKey(item.name))}>
-                {selected === selectedKey(item.name) ? (ru ? "Выбрано" : "Selected") : (ru ? "Выбрать уровень" : "Select tier")}
+              <button className="cp-package-select" type="button" aria-pressed={selected === selectedKey(item.offerId)} onClick={() => setSelected(selected === selectedKey(item.offerId) ? "" : selectedKey(item.offerId))}>
+                {selected === selectedKey(item.offerId) ? (ru ? "Выбрано" : "Selected") : (ru ? "Выбрать" : "Select")}
               </button>
-              {selected === selectedKey(item.name) && (
-                <Link className="cp-package-brief" href={`${localizedPath(locale, "brief")}?service=${encodeURIComponent(category.slug)}&tier=${encodeURIComponent(item.name)}`}>
-                  {ru ? "Перейти к короткому брифу" : "Continue to the short brief"}<span aria-hidden="true">↗</span>
-                </Link>
-              )}
+              {selected === selectedKey(item.offerId) && <Link className="cp-package-brief" href={`${locale === "en" ? "/en" : ""}/brief?offer=${encodeURIComponent(item.offerId)}`}>{ru ? "Перейти к брифу" : "Continue to brief"}<span aria-hidden="true">↗</span></Link>}
             </article>
           ))}
         </div>

@@ -7,6 +7,7 @@ const names = [
   "LEGAL_ADDRESS",
   "LEGAL_EMAIL",
   "LEGAL_INN",
+  "LEGAL_OGRNIP",
   "LEGAL_POLICY_VERSION",
   "LEGAL_POLICY_URL",
   "LEGAL_CONSENT_URL",
@@ -23,13 +24,14 @@ afterEach(() => {
 });
 
 describe("legal document configuration", () => {
-  it("does not expose an operator summary from incomplete launch data", async () => {
+  it("uses the verified company card when deployment overrides are absent", async () => {
     for (const name of names) process.env[name] = "";
     vi.resetModules();
     const site = await import("../../src/config/site");
 
-    expect(site.legalDocumentsAreComplete()).toBe(false);
-    expect(site.legalOperatorSummary("ru")).toBeNull();
+    expect(site.legalDocumentsAreComplete()).toBe(true);
+    expect(site.legalOperatorSummary("ru")).toContain("Калиновская Оксана Анатольевна");
+    expect(site.legalOperatorSummary("ru")).toContain("ОГРНИП 323508100254983");
   });
 
   it("builds a central operator summary only from complete configured data", async () => {
@@ -38,6 +40,7 @@ describe("legal document configuration", () => {
       LEGAL_ADDRESS: "Москва",
       LEGAL_EMAIL: "legal@example.com",
       LEGAL_INN: "123456789012",
+      LEGAL_OGRNIP: "323500000000001",
       LEGAL_POLICY_VERSION: "2026-08-16",
       LEGAL_POLICY_URL: "https://example.com/privacy",
       LEGAL_CONSENT_URL: "https://example.com/consent",
@@ -46,7 +49,7 @@ describe("legal document configuration", () => {
     const site = await import("../../src/config/site");
 
     expect(site.legalDocumentsAreComplete()).toBe(true);
-    expect(site.legalOperatorSummary("ru")).toBe("ИП Тест · ИНН 123456789012 · Москва · legal@example.com");
+    expect(site.legalOperatorSummary("ru")).toBe("ИП Тест · ИНН 123456789012 · ОГРНИП 323500000000001 · Москва · legal@example.com");
   });
 
   it("removes the forbidden public placeholder from the legal page", () => {

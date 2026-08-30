@@ -17,8 +17,20 @@ export function AboutPage({ locale }: { locale: Locale }) {
     ? ["Короткая заявка", "Бриф", "Первичный разбор", "Согласование состава", "Цена", "Срок", "Начало работ"]
     : ["Short request", "Brief", "Initial review", "Scope agreement", "Price", "Timing", "Work begins"];
   const deliverables = ru
-    ? ["Отчёты", "Таблицы", "Тексты", "Изображения", "Технические задания", "Исходники", "Журнал изменений", "Доступы", "Повторная проверка"]
-    : ["Reports", "Tables", "Copy", "Images", "Technical specifications", "Source files", "Change log", "Access details", "Repeat check"];
+    ? [
+      ["Резюме решения", "Причины, выводы и порядок действий без лишнего текста."],
+      ["Рабочие материалы", "Таблицы, тексты, изображения, ТЗ и исходники по согласованному составу."],
+      ["Журнал изменений", "Что именно изменено, где это находится и как проверить."],
+      ["Передача доступа", "Файлы и доступы собраны так, чтобы работу можно было продолжить внутри команды."],
+      ["Повторная проверка", "Финальный контроль по тем же критериям, с которых начиналась работа."],
+    ]
+    : [
+      ["Decision summary", "Causes, conclusions and an action order without filler."],
+      ["Working material", "Tables, copy, images, specifications and source files within the agreed scope."],
+      ["Change log", "What changed, where it lives and how to verify it."],
+      ["Access handover", "Files and access details organised for the client team to continue the work."],
+      ["Repeat check", "A final check against the same criteria used at the start."],
+    ];
   const guarantees = ru
     ? ["Согласованный объём", "Соблюдение границ", "Фиксация изменений", "Сохранение материалов", "Повторная проверка", "Прозрачность"]
     : ["Agreed scope", "Clear boundaries", "Recorded changes", "Preserved materials", "Repeat check", "Transparency"];
@@ -93,8 +105,8 @@ export function AboutPage({ locale }: { locale: Locale }) {
 
         <section className="about-deliverables" aria-labelledby="about-deliverables-title">
           <div className="shell about-deliverables-grid">
-            <div><p className="svc-kicker">{ru ? "Что получает клиент" : "What the client receives"}</p><h2 id="about-deliverables-title">{ru ? "Материалы, которые можно открыть, проверить и передать дальше" : "Material you can open, verify and hand over"}</h2></div>
-            <ul>{deliverables.map((item) => <li key={item}>{item}</li>)}</ul>
+            <div><p className="svc-kicker">{ru ? "Что получает клиент" : "What the client receives"}</p><h2 id="about-deliverables-title">{ru ? "Не россыпь файлов, а понятная передача результата" : "A structured handover, not a pile of files"}</h2></div>
+            <ol className="about-deliverable-flow">{deliverables.map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><p>{text}</p></div></li>)}</ol>
           </div>
         </section>
 
@@ -177,6 +189,34 @@ export function LegalPage({ locale, kind }: { locale: Locale; kind: "privacy" | 
     );
   }
 
+  if (!privacy) {
+    return (
+      <PublicShell locale={locale}>
+        <div className="page-dark-top compact-top">
+          <Breadcrumbs locale={locale} items={[{ label: ru ? "Согласие на обработку данных" : "Data processing consent" }]}/>
+          <section className="page-hero shell">
+            <p className="eyebrow light">{ru ? "Редакция" : "Version"} {legal.version}</p>
+            <h1>{ru ? "Согласие на обработку персональных данных" : "Personal data processing consent"}</h1>
+          </section>
+        </div>
+        <article className="section legal-copy shell">
+          <p>{ru ? `Настоящим я свободно, своей волей и в своём интересе даю ${legal.name} (ИНН ${legal.inn}, ОГРНИП ${legal.ogrnip}) согласие на обработку данных, которые я укажу в форме сайта KILENI.` : `I freely consent to ${legal.name} processing the data I submit through a KILENI form.`}</p>
+          <h2>{ru ? "Какие данные" : "Data covered"}</h2>
+          <p>{ru ? "Имя; e-mail или имя пользователя Telegram; адрес проверяемого сайта, карточки или проекта; комментарий; ответы брифа; выбранный тариф; переданные мной файлы; технические сведения о согласии, источнике обращения и защите формы." : "Name; email or Telegram username; website, listing or project address; comment; brief answers; selected package; submitted files; and technical consent, attribution and form-security records."}</p>
+          <h2>{ru ? "Цели" : "Purposes"}</h2>
+          <p>{ru ? "Ответить на обращение, выполнить запрошенную бесплатную проверку, подготовить расчёт или предложение, связать результат проверки с моим обращением и согласовать возможные работы. Согласие не включает рекламную рассылку." : "To answer the request, run the requested free check, prepare an estimate or proposal, connect the audit result with the request and agree possible work. This consent does not cover advertising messages."}</p>
+          <h2>{ru ? "Действия и способы обработки" : "Processing operations"}</h2>
+          <p>{ru ? "Сбор, запись, систематизация, хранение, уточнение, извлечение, использование, передача только привлечённым для работы сервисам, блокирование и удаление; автоматизированно и без использования средств автоматизации." : "Collection, recording, organisation, storage, update, retrieval, use, transfer only to service providers involved in delivery, restriction and deletion, by automated and non-automated means."}</p>
+          <h2>{ru ? "Срок и отзыв" : "Duration and withdrawal"}</h2>
+          <p>{ru ? `Согласие действует до достижения указанных целей или до его отзыва. Отзыв и запрос на удаление можно направить на ${legal.email}. После отзыва оператор прекращает обработку и удаляет данные, если их дальнейшее хранение не требуется по закону или для исполнения заключённого договора.` : `Consent applies until the stated purposes are achieved or it is withdrawn. Withdrawal and deletion requests may be sent to ${legal.email}.`}</p>
+          <p>{ru ? "Я подтверждаю, что имею право передать указанные сведения и файлы и ознакомился с Политикой обработки персональных данных." : "I confirm that I may lawfully submit the information and files and have read the privacy policy."}</p>
+          <p><Link href={localizedPath(locale, "privacy")}>{ru ? "Политика обработки персональных данных" : "Privacy policy"}</Link></p>
+          <p><a href={`mailto:${legal.email}`}>{legal.email}</a></p>
+        </article>
+      </PublicShell>
+    );
+  }
+
   return (
     <PublicShell locale={locale}>
       <div className="page-dark-top compact-top">
@@ -188,15 +228,21 @@ export function LegalPage({ locale, kind }: { locale: Locale; kind: "privacy" | 
       </div>
       <article className="section legal-copy shell">
         <h2>{ru ? "1. Оператор и область действия" : "1. Operator and scope"}</h2>
-        <p>{ru ? `Оператор: ${operator}. Политика применяется к обращениям, бесплатным аудитам, калькулятору, онлайн-брифу и вложениям на сайте KILENI.` : `Operator: ${operator}. This policy covers requests, free audits, calculator submissions, online briefs and attachments on the KILENI website.`}</p>
+        <p>{ru ? `Оператор: ${operator}. ИП зарегистрирован ${legal.registrationDate}, регистрирующий орган — ${legal.registrationAuthority}. Политика применяется к сайту KILENI и его формам.` : `Operator: ${operator}. This policy applies to the KILENI website and its forms.`}</p>
         <h2>{ru ? "2. Какие данные обрабатываются" : "2. Data processed"}</h2>
-        <p>{ru ? "Имя, выбранный контакт, адрес сайта или проекта, ответы брифа, загруженные пользователем файлы, источник и UTM-параметры, версия согласия, дата и время, а также хеш IP-адреса для защиты от злоупотреблений." : "Name, selected contact, website or project address, brief answers, uploaded files, source and UTM parameters, consent version, timestamp and a hashed IP address for abuse prevention."}</p>
+        <p>{ru ? "Имя; e-mail или имя пользователя Telegram; адрес сайта, карточки или проекта; комментарий; выбранная услуга и тариф; ответы брифа; файлы, которые пользователь прикрепил сам; UTM-параметры; версия и время согласия; необратимый хеш IP-адреса и User-Agent для ограничения злоупотреблений. Платёжные данные сайт не собирает." : "Name; email or Telegram username; website, listing or project address; comment; selected service and package; brief answers; files submitted by the user; UTM parameters; consent version and time; and irreversible IP and User-Agent hashes for abuse prevention. The website does not collect payment data."}</p>
         <h2>{ru ? "3. Цели и действия" : "3. Purposes and operations"}</h2>
-        <p>{ru ? "Данные используются для ответа на обращение, подготовки оценки, выполнения проверки, защиты форм, ведения истории проекта и исполнения согласованных работ. Автоматическое решение о выдаче кредита, трудоустройстве или других юридически значимых последствиях не принимается." : "Data is used to answer requests, prepare estimates, run checks, protect forms, retain project history and deliver agreed work. No automated legally significant decisions are made."}</p>
+        <p>{ru ? "Данные используются, чтобы ответить на обращение, выполнить бесплатную проверку, подготовить расчёт или предложение, защитить формы, сохранить историю согласованного проекта и исполнить договор. Основания: отдельное согласие пользователя, действия по его запросу до заключения договора и исполнение заключённого договора. Юридически значимые решения автоматически не принимаются; рекламная рассылка без отдельного согласия не ведётся." : "Data is used to answer requests, run the free check, prepare an estimate or proposal, protect forms, retain agreed project history and perform a contract. Grounds include the user's separate consent, pre-contract steps requested by the user and contract performance. No legally significant automated decisions or advertising mailings are made."}</p>
         <h2>{ru ? "4. Хранение и безопасность" : "4. Retention and security"}</h2>
-        <p>{ru ? "Публичный результат аудита хранится по криптографически случайной ссылке не менее 90 дней в пределах настроенного срока и не содержит контакта. Вложения хранятся вне публичной папки. Доступ администратора ограничен сессией." : "Public audit results use a cryptographically random link, are retained for the configured period of at least 90 days and contain no contact details. Attachments are stored outside public assets. Administrator access is session-protected."}</p>
+        <p>{ru ? `Результат аудита и связанная заявка хранятся ${siteConfig.audit.retentionDays} дней, затем технические записи аудита удаляются автоматически. Остальные обращения, брифы и вложения хранятся до ответа, завершения согласованного проекта или отзыва согласия; оператор удаляет их через защищённый административный раздел. Вложения находятся вне публичной папки, а публичный результат доступен только по случайной ссылке и не содержит имени или контакта.` : `Audit results and the related request are retained for ${siteConfig.audit.retentionDays} days and then removed automatically. Other requests, briefs and attachments are retained until the reply or agreed project is complete or consent is withdrawn, and are deleted through the protected administration area. Attachments are outside public assets; public results use random links and contain no name or contact.`}</p>
         <h2>{ru ? "5. Согласие и отзыв" : "5. Consent and withdrawal"}</h2>
-        <p>{privacy ? (ru ? "Отправляя форму с отмеченным чекбоксом, пользователь подтверждает согласие с актуальной версией. Отзыв направляется оператору по указанному юридическому контакту." : "Submitting a form with the consent checkbox confirms agreement to the current version. Withdrawal should be sent to the listed legal contact.") : (ru ? "Я добровольно даю согласие на обработку перечисленных данных для получения ответа, оценки и выполнения запрошенного сценария. Я подтверждаю право передать сведения и понимаю возможность отозвать согласие." : "I voluntarily consent to processing the listed data to receive a response, estimate and requested service. I confirm my right to provide the data and understand that consent may be withdrawn.")}</p>
+        <p>{ru ? "Форма отправляется только после отдельной отметки согласия. Согласие можно отозвать, а данные уточнить, заблокировать или удалить по запросу на юридический e-mail оператора. Отзыв не делает незаконной обработку, выполненную до его получения." : "A form can be submitted only after a separate consent checkbox is selected. Consent may be withdrawn and data may be corrected, restricted or deleted by writing to the operator's legal email."}</p>
+        <h2>{ru ? "6. Передача сервисам и за пределы РФ" : "6. Service providers and international transfer"}</h2>
+        <p>{ru ? "Заявки могут доставляться оператору через настроенные серверные e-mail и Telegram-уведомления. Для защиты формы может загружаться Cloudflare Turnstile: браузер соединяется с Cloudflare, а сервер передаёт сервису IP-адрес отправителя для проверки запроса; применяются условия Cloudflare. Иные системы аналитики, Яндекс Метрика и рекламные пиксели сейчас не подключены. При их подключении политика и настройки cookies должны быть обновлены до начала сбора." : "Requests may be delivered through configured server-side email and Telegram notifications. Cloudflare Turnstile may be loaded to protect forms: the browser connects to Cloudflare and the server supplies the sender IP address for request verification under Cloudflare's terms. No analytics systems, Yandex Metrica or advertising pixels are currently connected. This policy and cookie controls must be updated before any such collection begins."}</p>
+        <h2>{ru ? "7. Cookies и локальное хранилище" : "7. Cookies and local storage"}</h2>
+        <p>{ru ? "Сайт использует необходимые технические данные для CSRF-защиты, темы, черновика брифа, связи с результатом аудита, показа вступления и сохранения выбора cookies. Необязательные категории по умолчанию выключены. Полный список, назначение и срок доступны через кнопку «Настройки cookies» в подвале." : "The website uses essential technical storage for CSRF protection, theme, brief drafts, audit handoff, the intro and cookie choices. Optional categories are off by default. The full inventory, purpose and duration are available from Cookie settings in the footer."}</p>
+        <h2>{ru ? "8. Права пользователя и контакты" : "8. User rights and contact"}</h2>
+        <p>{ru ? "Пользователь может получить сведения об обработке, потребовать уточнения, ограничения или удаления данных и отозвать согласие. Для обращения укажите контакт, использованный в форме, и примерную дату отправки — это поможет найти запись без запроса лишних данных." : "Users may request processing information, correction, restriction or deletion and may withdraw consent. Include the contact used in the form and approximate submission date so the record can be found without requesting extra data."}</p>
         <p><a href={`mailto:${legal.email}`}>{legal.email}</a></p>
       </article>
     </PublicShell>

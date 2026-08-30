@@ -1,0 +1,70 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	@backend path /api/* /health
+	reverse_proxy @backend api:8080
+	reverse_proxy web:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+{$PUBLIC_DOMAIN} {
+	encode zstd gzip
+
+	@root path /
+	rewrite @root /public
+
+	@portal path /auth* /billing* /catalog* /content* /help* /invite* /labels* /mappings* /operations* /service-admin* /settings* /storage* /transfer* /warehouse*
+	redir @portal https://{$APP_DOMAIN}{uri} permanent
+
+	@publicSitemap path /sitemap.xml
+	reverse_proxy @publicSitemap api:8080
+	@backend path /api/* /health
+	reverse_proxy @backend api:8080
+	reverse_proxy web:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+{$MEDIA_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy minio:9000 {
+		header_up Host {host}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}
+
+kileni-seo.ru, www.kileni-seo.ru {
+	encode zstd gzip
+	reverse_proxy 172.18.0.1:3001
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}

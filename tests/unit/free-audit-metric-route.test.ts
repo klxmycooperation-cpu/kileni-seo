@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { migrationSql } from "../../src/db/migrations";
+import { FREE_AUDIT_PAGE_BASELINE } from "../../src/config/public-audit";
 
 let temporaryDirectory: string;
 let previousDatabasePath: string | undefined;
@@ -19,9 +20,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  const { sqlite } = await import("../../src/db/client");
-  sqlite.close();
-  delete (globalThis as typeof globalThis & { __kileniSqlite?: unknown }).__kileniSqlite;
+  const { closeDatabaseConnections } = await import("../../src/db/client");
+  await closeDatabaseConnections();
   if (previousDatabasePath === undefined) delete process.env.DATABASE_PATH;
   else process.env.DATABASE_PATH = previousDatabasePath;
   rmSync(temporaryDirectory, { recursive: true, force: true });
@@ -46,6 +46,6 @@ describe("GET /api/public-metrics/free-audits", () => {
     const response = await route.GET();
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
-    expect(await response.json()).toEqual({ count: 0 });
+    expect(await response.json()).toEqual({ count: FREE_AUDIT_PAGE_BASELINE });
   });
 });

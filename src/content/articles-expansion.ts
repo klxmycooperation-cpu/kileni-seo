@@ -2,36 +2,29 @@ import type { Article } from "./articles";
 
 const covers = {
   speed: [
-    "/editorial/site-speed-lab.svg",
-    "KILENI",
-    "",
-    "Лабораторная схема проверки скорости и стабильности страницы",
-    "A lab diagram for page speed and visual stability testing",
+    "/editorial/website-speed-loading-v2.png",
+    "Диагностика загрузки страницы: этапы, найденное узкое место, оптимизация и повторная проверка",
+    "Page-load diagnosis showing stages, a confirmed bottleneck, optimisation and repeat verification",
   ],
   ecommerce: [
-    "/editorial/ecommerce-structure.svg",
-    "KILENI",
-    "",
-    "Структура интернет-магазина от категорий до карточек товара",
-    "Ecommerce structure from categories to product pages",
+    "/editorial/seo-ecommerce-promotion-v2.png",
+    "Структура интернет-магазина: категории, полезные фильтры, карточки товаров и исключённые дубли",
+    "Ecommerce structure with categories, useful filters, product cards and excluded duplicate paths",
   ],
   price: [
-    "/editorial/seo-cost-scope.svg",
-    "KILENI",
-    "",
-    "Состав SEO-работ и факторы оценки стоимости проекта",
-    "SEO scope and the factors used to estimate project cost",
+    "/editorial/seo-promotion-cost-v2.png",
+    "Прозрачный состав SEO-работ: аудит, исправления, материалы, внедрение и контроль результата",
+    "Transparent SEO scope covering audit, fixes, content, implementation and result verification",
   ],
 } as const;
 
 function hero(key: keyof typeof covers, locale: "ru" | "en"): Article["hero"] {
-  const [src, creator, sourceUrl, ruAlt, enAlt] = covers[key];
+  const [src, ruAlt, enAlt] = covers[key];
   return {
     src,
     alt: locale === "ru" ? ruAlt : enAlt,
-    credit: locale === "ru" ? `Иллюстрация: ${creator}` : `Illustration: ${creator}`,
-    sourceUrl: sourceUrl || undefined,
-    license: locale === "ru" ? "Оригинальная иллюстрация KILENI" : "Original KILENI illustration",
+    credit: locale === "ru" ? "Иллюстрация: KILENI" : "Illustration: KILENI",
+    license: "KILENI editorial",
   };
 }
 
@@ -241,7 +234,7 @@ export const additionalRuArticles: Article[] = [
         comparison: {
           columns: ["Вопрос до старта", "Почему важен", "Как зафиксировать"],
           rows: [
-            { label: "Какие страницы", left: "Определяет масштаб и шаблоны", right: "Список URL и типов страниц" },
+            { label: "Какие страницы", left: "Определяет масштаб и типы страниц", right: "Список адресов и типов страниц" },
             { label: "Кто внедряет", left: "Меняет сроки и ответственность", right: "Роли, доступы и формат задания" },
             { label: "Как проверяем", left: "Исключает отчёт без результата", right: "Контрольные URL и критерии приёмки" },
           ],

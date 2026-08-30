@@ -18,10 +18,10 @@ const themes: ReadonlyArray<{
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem(
-      "kileni-cookie-preferences",
-      JSON.stringify({ essential: true, analytics: false, marketing: false }),
+      "kileni-cookie-preferences:v2",
+      JSON.stringify({ essential: true, analytics: false, marketing: false, version: "2026-08-23.2" }),
     );
-    window.sessionStorage.setItem("kileni:intro:v3", "1");
+    window.sessionStorage.setItem("kileni:intro:v9", "1");
   });
 });
 
@@ -57,8 +57,8 @@ for (const theme of themes) {
     await expect(page.locator(".audit-result-shell")).toHaveCSS("background-color", theme.shell);
     await expectNoHorizontalOverflow(page);
 
-    const failed = createQueuedFixtureAudit();
-    failAuditRecord(failed.id, "Fixture failure");
+    const failed = await createQueuedFixtureAudit();
+    await failAuditRecord(failed.id, "Fixture failure");
     await page.goto(`/audit/${failed.publicToken}`);
     await expect(page.getByRole("heading", { name: "Проверку не удалось завершить" })).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", theme.name);
@@ -66,7 +66,7 @@ for (const theme of themes) {
     await expect(page.locator(".audit-result-shell")).toHaveCSS("background-color", theme.shell);
     await expectNoHorizontalOverflow(page);
 
-    const completed = createQueuedFixtureAudit();
+    const completed = await createQueuedFixtureAudit();
     await completeFixtureAudit(completed, 0);
     await page.goto(`/audit/${completed.publicToken}`);
     await expect(page.locator(".audit-complete")).toBeVisible();

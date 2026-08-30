@@ -1,16 +1,15 @@
-import { sqlite } from "@/src/db/client";
+import { database } from "@/src/db/client";
 import { noStoreJson } from "../_lib/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export function GET() {
+export async function GET() {
   try {
-    sqlite.prepare("SELECT 1").get();
+    await database.execute("SELECT 1");
     const inlineVercelAudit = process.env.VERCEL === "1";
-    const worker = sqlite.prepare(
-      "SELECT heartbeat_at AS heartbeatAt FROM worker_state WHERE name='audit-worker' LIMIT 1",
-    ).get() as { heartbeatAt: number } | undefined;
+    const workerResult = await database.execute("SELECT heartbeat_at AS heartbeatAt FROM worker_state WHERE name='audit-worker' LIMIT 1");
+    const worker = workerResult.rows[0] as unknown as { heartbeatAt: number } | undefined;
     const ageMs = worker ? Math.max(0, Date.now() - worker.heartbeatAt) : null;
     const workerHealthy = ageMs !== null && ageMs <= 60_000;
     // The public Vercel route performs its bounded crawl inside the request;

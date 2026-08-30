@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { z } from "zod";
 
-import { sqlite } from "@/src/db/client";
+import { database } from "@/src/db/client";
 import { apiError, jsonReadError, noStoreJson, readJson, validUuid } from "../../_lib/http";
 import { zodError } from "../../_lib/submission";
 import { adminMutationGuard } from "./guard";
@@ -39,18 +39,20 @@ export async function patchSubmission(request: Request, id: string, entity: Subm
   if (!parsed.success) return zodError(parsed.error);
   const selected = config[entity];
   try {
-    const changed = sqlite.transaction(() => {
-      const exists = sqlite.prepare(`SELECT 1 FROM ${selected.table} WHERE id=? LIMIT 1`).get(id);
-      if (!exists) return false;
+    const changed = await database.transaction(async (transaction) => {
+      const exists = await transaction.execute({ sql: `SELECT 1 FROM ${selected.table} WHERE id=? LIMIT 1`, args: [id] });
+      if (exists.rows.length === 0) return false;
       if (parsed.data.status) {
-        sqlite.prepare(`UPDATE ${selected.table} SET status=? WHERE id=?`).run(parsed.data.status, id);
+        await transaction.execute({ sql: `UPDATE ${selected.table} SET status=? WHERE id=?`, args: [parsed.data.status, id] });
       }
       if (parsed.data.note) {
-        sqlite.prepare("INSERT INTO admin_notes(id,entity_type,entity_id,note,created_at) VALUES (?,?,?,?,?)")
-          .run(randomUUID(), selected.notesType, id, parsed.data.note, Date.now());
+        await transaction.execute({
+          sql: "INSERT INTO admin_notes(id,entity_type,entity_id,note,created_at) VALUES (?,?,?,?,?)",
+          args: [randomUUID(), selected.notesType, id, parsed.data.note, Date.now()],
+        });
       }
       return true;
-    })();
+    });
     return changed
       ? noStoreJson({ ok: true, status: parsed.data.status ?? null })
       : apiError(404, "NOT_FOUND", "Запись не найдена");
@@ -75,15 +77,15 @@ export async function deleteSubmission(request: Request, id: string, entity: Sub
   }
   const selected = config[entity];
   try {
-    const deleted = sqlite.transaction(() => {
-      const exists = sqlite.prepare(`SELECT 1 FROM ${selected.table} WHERE id=? LIMIT 1`).get(id);
-      if (!exists) return false;
-      if (entity === "lead") sqlite.prepare("DELETE FROM calculator_requests WHERE lead_id=?").run(id);
-      sqlite.prepare("DELETE FROM admin_notes WHERE entity_type=? AND entity_id=?").run(selected.notesType, id);
-      sqlite.prepare("DELETE FROM notification_events WHERE entity_type=? AND entity_id=?").run(selected.notesType, id);
-      sqlite.prepare(`DELETE FROM ${selected.table} WHERE id=?`).run(id);
+    const deleted = await database.transaction(async (transaction) => {
+      const exists = await transaction.execute({ sql: `SELECT 1 FROM ${selected.table} WHERE id=? LIMIT 1`, args: [id] });
+      if (exists.rows.length === 0) return false;
+      if (entity === "lead") await transaction.execute({ sql: "DELETE FROM calculator_requests WHERE lead_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM admin_notes WHERE entity_type=? AND entity_id=?", args: [selected.notesType, id] });
+      await transaction.execute({ sql: "DELETE FROM notification_events WHERE entity_type=? AND entity_id=?", args: [selected.notesType, id] });
+      await transaction.execute({ sql: `DELETE FROM ${selected.table} WHERE id=?`, args: [id] });
       return true;
-    })();
+    });
     return deleted ? noStoreJson({ ok: true }) : apiError(404, "NOT_FOUND", "Запись не найдена");
   } catch {
     return apiError(500, "DELETE_FAILED", "Не удалось удалить запись");

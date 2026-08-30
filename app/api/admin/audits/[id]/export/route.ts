@@ -1,4 +1,4 @@
-import { sqlite } from "@/src/db/client";
+import { database } from "@/src/db/client";
 import { getAuditById } from "@/src/db/queries";
 import { apiError, safeJsonParse, validUuid } from "../../../../_lib/http";
 import { adminGuard } from "../../../_lib/guard";
@@ -12,15 +12,17 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   if (guard) return guard;
   const { id } = await context.params;
   if (!validUuid(id)) return apiError(400, "INVALID_ID", "Некорректный идентификатор");
-  const audit = getAuditById(id);
+  const audit = await getAuditById(id);
   if (!audit) return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
 
-  const pages = sqlite.prepare(`SELECT id,url,status_code AS statusCode,depth,data_json AS dataJson,created_at AS createdAt
-    FROM audit_pages WHERE audit_id=? ORDER BY created_at,id`).all(id) as Array<Record<string, unknown> & { dataJson: string | null }>;
-  const issues = sqlite.prepare(`SELECT id,code,category,severity,url,evidence,recommendation,created_at AS createdAt
-    FROM audit_issues WHERE audit_id=? ORDER BY created_at,id`).all(id);
-  const events = sqlite.prepare(`SELECT id,event,payload_json AS payloadJson,created_at AS createdAt
-    FROM audit_events WHERE audit_id=? ORDER BY id`).all(id) as Array<Record<string, unknown> & { payloadJson: string | null }>;
+  const [pagesResult, issuesResult, eventsResult] = await Promise.all([
+    database.execute({ sql: `SELECT id,url,status_code AS statusCode,depth,data_json AS dataJson,created_at AS createdAt FROM audit_pages WHERE audit_id=? ORDER BY created_at,id`, args: [id] }),
+    database.execute({ sql: `SELECT id,code,category,severity,url,evidence,recommendation,created_at AS createdAt FROM audit_issues WHERE audit_id=? ORDER BY created_at,id`, args: [id] }),
+    database.execute({ sql: `SELECT id,event,payload_json AS payloadJson,created_at AS createdAt FROM audit_events WHERE audit_id=? ORDER BY id`, args: [id] }),
+  ]);
+  const pages = pagesResult.rows as unknown as Array<Record<string, unknown> & { dataJson: string | null }>;
+  const issues = issuesResult.rows as unknown as Record<string, unknown>[];
+  const events = eventsResult.rows as unknown as Array<Record<string, unknown> & { payloadJson: string | null }>;
   if (new URL(request.url).searchParams.get("format") === "pdf") {
     try {
       const bytes = await createAdminAuditPdf({

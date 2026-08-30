@@ -33,32 +33,48 @@ function useVisualReveal(immediate = false) {
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const sync = () => setReducedMotion(media.matches);
+    const subscribe = () => {
+      if (typeof media.addEventListener === "function") media.addEventListener("change", sync);
+      else media.addListener(sync);
+    };
+    const unsubscribe = () => {
+      if (typeof media.removeEventListener === "function") media.removeEventListener("change", sync);
+      else media.removeListener(sync);
+    };
     sync();
-    media.addEventListener("change", sync);
+    subscribe();
 
     if (immediate || media.matches) {
       const frame = window.requestAnimationFrame(() => setReady(true));
       return () => {
         window.cancelAnimationFrame(frame);
-        media.removeEventListener("change", sync);
+        unsubscribe();
       };
     }
 
     const node = ref.current;
-    if (!node) return () => media.removeEventListener("change", sync);
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setReady(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.24 },
-    );
-    observer.observe(node);
+    if (!node) return unsubscribe;
+
+    // A tall card may never occupy 24% of a short landscape viewport. Start
+    // slightly before it enters the screen and keep a timeout fallback so a
+    // browser without IntersectionObserver never leaves the chart invisible.
+    const fallback = window.setTimeout(() => setReady(true), 1_400);
+    const observer = typeof IntersectionObserver === "function"
+      ? new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setReady(true);
+            observer?.disconnect();
+          }
+        },
+        { threshold: 0.01, rootMargin: "160px 0px" },
+      )
+      : null;
+    observer?.observe(node);
     return () => {
-      observer.disconnect();
-      media.removeEventListener("change", sync);
+      window.clearTimeout(fallback);
+      observer?.disconnect();
+      unsubscribe();
     };
   }, [immediate]);
 
@@ -238,6 +254,13 @@ function DetailedTrendChart({
               onBlur={() => setHovered(null)}
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered(null)}
+              onPointerDown={() => setHovered(index)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setHovered((current) => current === index ? null : index);
+                }
+              }}
               style={{ "--point-delay": `${520 + index * 76}ms` } as CSSProperties}
             >
               <circle className="analytics-visibility-detail__hit" cx={point.x} cy={point.y} r="10" />
@@ -250,7 +273,7 @@ function DetailedTrendChart({
           {errorTrend && last && <g className="analytics-trend-detail__check" transform={`translate(${last.x + 17} ${last.y - 4})`}><circle r="8" /><path d="M-3 0 L-1.1 2.1 L3.2 -3" /></g>}
           {plotted.filter((point) => point.label).map((point) => <text className="analytics-visibility-detail__month" key={point.label} x={point.x} y="226">{point.label}</text>)}
         </svg>
-        <p className="analytics-visibility-detail__summary">{active.label || (locale === "ru" ? "Промежуточный этап" : "Intermediate stage")}: <strong>{active.tooltip}</strong></p>
+        <p className="analytics-visibility-detail__summary" aria-live="polite" aria-atomic="true">{active.label || (locale === "ru" ? "Промежуточный этап" : "Intermediate stage")}: <strong>{active.tooltip}</strong></p>
       </div>
       <div className="analytics-visibility-detail__chips" aria-label={locale === "ru" ? "Ключевые показатели" : "Key indicators"}>
         {chips.map((chip, index) => <span className={chip.success ? "is-success" : ""} key={chip.label} style={{ "--chip-delay": `${1080 + index * 75}ms` } as CSSProperties}><small>{chip.label}</small><strong>{chip.value}</strong></span>)}
@@ -264,16 +287,17 @@ function DetailedTrendChart({
 
 function VisibilityChart({ locale }: { locale: Locale }) {
   const { ref, ready, reducedMotion } = useVisualReveal(true);
+  const chartId = useId().replace(/:/g, "");
   const ru = locale === "ru";
   const [hovered, setHovered] = useState<number | null>(null);
   const points = ru
     ? [
       { label: "Мар", value: 34, detail: "Старт замера" }, { label: "", value: 37, detail: "Первые правки" },
       { label: "Апр", value: 36, detail: "Небольшая просадка" }, { label: "", value: 42, detail: "Страницы в индексе" },
-      { label: "Май", value: 50, detail: "Уточнили структуру" }, { label: "", value: 49, detail: "Переобход страниц" },
-      { label: "Июн", value: 54, detail: "Расширили контент" }, { label: "", value: 56, detail: "Обновили метаданные" },
-      { label: "", value: 55, detail: "Естественная волатильность" }, { label: "Июл", value: 61, detail: "Рост видимости" },
-      { label: "", value: 66, detail: "Усилили релевантность" }, { label: "", value: 64, detail: "Плановая просадка" },
+      { label: "Май", value: 50, detail: "Уточнили структуру" }, { label: "", value: 49, detail: "Поиск повторно проверил страницы" },
+      { label: "Июн", value: 54, detail: "Добавили полезные материалы" }, { label: "", value: 56, detail: "Обновили названия и описания" },
+      { label: "", value: 55, detail: "Обычное колебание" }, { label: "Июл", value: 61, detail: "Сайт чаще появляется в поиске" },
+      { label: "", value: 66, detail: "Точнее ответили на запросы" }, { label: "", value: 64, detail: "Небольшое снижение" },
       { label: "Авг", value: 68, detail: "Текущий ориентир" },
     ]
     : [
@@ -298,8 +322,15 @@ function VisibilityChart({ locale }: { locale: Locale }) {
   const tooltipY = Math.max(active.y - 42, 10);
   const number = useCountUp(68, ready, reducedMotion);
   const chips = ru
-    ? [{ label: "Целевые переходы", value: "+24%" }, { label: "CTR", value: "4,7%" }, { label: "Индексируемые", value: "92/100" }, { label: "Тех. ошибки", value: "−28%" }]
+    ? [{ label: "Целевые переходы", value: "+24%" }, { label: "Переходы из поиска", value: "4,7%" }, { label: "Доступны поиску", value: "92/100" }, { label: "Ошибки сайта", value: "−28%" }]
     : [{ label: "Target visits", value: "+24%" }, { label: "CTR", value: "4.7%" }, { label: "Indexed", value: "92/100" }, { label: "Tech issues", value: "−28%" }];
+  const chartTitle = ru ? "Динамика поисковой видимости с марта по август" : "Search visibility trend from March to August";
+  const spokenMonths = ru
+    ? ["Март", "Март", "Апрель", "Апрель", "Май", "Май", "Июнь", "Июнь", "Июнь", "Июль", "Июль", "Июль", "Август"]
+    : ["March", "March", "April", "April", "May", "May", "June", "June", "June", "July", "July", "July", "August"];
+  const chartDescription = points
+    .map((point, index) => `${spokenMonths[index]}: ${point.value}%. ${point.detail}`)
+    .join("; ");
 
   return (
     <div className="analytics-hero-chart" ref={ref} data-testid="hero-search-visibility" data-ready={ready ? "true" : "false"}>
@@ -308,7 +339,9 @@ function VisibilityChart({ locale }: { locale: Locale }) {
       </header>
       <div className="analytics-hero-chart__metric"><strong>{number}%</strong><span className="analytics-delta">↑17%</span><p>{ru ? "средняя видимость" : "average visibility"}</p></div>
       <div className="analytics-visibility-detail">
-        <svg viewBox="0 0 560 238" role="group" aria-label={ru ? "Динамика поисковой видимости с марта по август" : "Search visibility trend from March to August"}>
+        <svg viewBox="0 0 560 238" role="group" aria-labelledby={`${chartId}-title ${chartId}-description`}>
+          <title id={`${chartId}-title`}>{chartTitle}</title>
+          <desc id={`${chartId}-description`}>{chartDescription}</desc>
           <defs>
             <linearGradient id="visibility-area" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" className="analytics-visibility-detail__area-top" />
@@ -336,11 +369,18 @@ function VisibilityChart({ locale }: { locale: Locale }) {
               key={`${point.label}-${index}`}
               tabIndex={0}
               role="button"
-              aria-label={`${point.label || (ru ? "Промежуточное значение" : "Intermediate value")}: ${point.value}%. ${point.detail}`}
+              aria-label={`${spokenMonths[index]}: ${point.value}%. ${point.detail}`}
               onFocus={() => setHovered(index)}
               onBlur={() => setHovered(null)}
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered(null)}
+              onPointerDown={() => setHovered(index)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setHovered((current) => current === index ? null : index);
+                }
+              }}
               style={{ "--point-delay": `${520 + index * 76}ms` } as CSSProperties}
             >
               <circle className="analytics-visibility-detail__hit" cx={point.x} cy={point.y} r="10" />
@@ -351,13 +391,13 @@ function VisibilityChart({ locale }: { locale: Locale }) {
           <g className="analytics-visibility-detail__end-tag" transform={`translate(${plotted.at(-1)?.x ?? 0} ${(plotted.at(-1)?.y ?? 0) - 26})`}><rect x="-18" y="-14" width="40" height="20" rx="6" /><text x="2" y="0">68%</text></g>
           {plotted.filter((point) => point.label).map((point) => <text className="analytics-visibility-detail__month" key={point.label} x={point.x} y="226">{point.label}</text>)}
         </svg>
-        <p className="analytics-visibility-detail__summary">{active.label || (ru ? "Промежуточный этап" : "Intermediate stage")}: <strong>{active.value}%</strong> — {active.detail}</p>
+        <p className="analytics-visibility-detail__summary" aria-live="polite" aria-atomic="true">{active.label || (ru ? "Промежуточный этап" : "Intermediate stage")}: <strong>{active.value}%</strong> — {active.detail}</p>
       </div>
       <div className="analytics-visibility-detail__chips" aria-label={ru ? "Ключевые показатели" : "Key indicators"}>
         {chips.map((chip, index) => <span key={chip.label} style={{ "--chip-delay": `${1080 + index * 75}ms` } as CSSProperties}><small>{chip.label}</small><strong>{chip.value}</strong></span>)}
       </div>
       <div className="analytics-hero-chart__statuses" aria-label={ru ? "Положительные изменения" : "Positive signals"}>
-        {(ru ? ["Видимость ↑", "CTR ↑", "Ошибки ↓"] : ["Visibility ↑", "CTR ↑", "Errors ↓"]).map((status, index) => (
+        {(ru ? ["Показы в поиске ↑", "Переходы ↑", "Ошибки ↓"] : ["Visibility ↑", "CTR ↑", "Errors ↓"]).map((status, index) => (
           <span key={status} style={{ "--status-delay": `${1180 + index * 120}ms` } as CSSProperties}><i aria-hidden="true" />{status}</span>
         ))}
       </div>
@@ -379,22 +419,27 @@ export function HeroSearchVisibilityVisual({ locale }: { locale: Locale }) {
         timer = undefined;
       }
       if (!motionPreference.matches) {
-        // The line completes in about 1.7 s, then stays readable before restarting.
-        timer = window.setInterval(() => setRun((value) => value + 1), 5_200);
+        // Keep the chart readable. It restarts only once every fifteen seconds.
+        timer = window.setInterval(() => setRun((value) => value + 1), 15_000);
       }
     };
 
     syncLoop();
-    motionPreference.addEventListener("change", syncLoop);
+    if (typeof motionPreference.addEventListener === "function") motionPreference.addEventListener("change", syncLoop);
+    else motionPreference.addListener(syncLoop);
     return () => {
       if (timer) window.clearInterval(timer);
-      motionPreference.removeEventListener("change", syncLoop);
+      if (typeof motionPreference.removeEventListener === "function") motionPreference.removeEventListener("change", syncLoop);
+      else motionPreference.removeListener(syncLoop);
     };
   }, []);
 
   return (
     <figure className="hero-audit-visual analytics-card analytics-card--hero" aria-label={ru ? "Поисковая видимость" : "Search visibility"} data-visualisation-run={run}>
       <VisibilityChart key={run} locale={locale} />
+      <figcaption className="analytics-demo-caption">
+        {ru ? "Пример визуализации динамики — не результат конкретного сайта" : "Example trend visualisation — not the result of a specific website"}
+      </figcaption>
       <button className="analytics-replay" type="button" onClick={() => setRun((value) => value + 1)}>
         {ru ? "Повторить анимацию" : "Replay animation"}<span aria-hidden="true">↻</span>
       </button>
@@ -468,7 +513,7 @@ function TrafficCard({ locale }: { locale: Locale }) {
     ];
   return (
     <article className="analytics-card analytics-time-card" ref={ref} data-ready={ready ? "true" : "false"}>
-      <MetricHeader locale={locale} title={ru ? "Органический трафик" : "Organic traffic"} value={27842} delta="↑28.4%" caption={ru ? "посетителей в месяц" : "visitors per month"} ready={ready} reducedMotion={reducedMotion} />
+      <MetricHeader locale={locale} title={ru ? "Переходы из поиска" : "Organic traffic"} value={27842} delta="↑28.4%" caption={ru ? "посетителей в месяц" : "visitors per month"} ready={ready} reducedMotion={reducedMotion} />
       <DetailedTrendChart
         locale={locale}
         points={points}
@@ -520,12 +565,12 @@ function CtrCard({ locale }: { locale: Locale }) {
         ariaLabel={ru ? "Динамика CTR в поиске" : "Search CTR trend"}
         yTicks={[{ label: "6%", value: 6 }, { label: "4%", value: 4 }, { label: "2%", value: 2 }, { label: "0%", value: 0 }]}
         target={{ from: 4, to: 5, label: ru ? "ориентир" : "target" }}
-        stages={[{ index: 3, label: ru ? "сниппеты" : "snippets" }, { index: 8, label: ru ? "проверка" : "review" }]}
-        chips={ru ? [{ label: "Показы", value: "+17%", success: true }, { label: "CTR", value: "4,7%", success: true }, { label: "Сниппеты", value: "обновлены" }, { label: "Переходы", value: "+28,4%", success: true }] : [{ label: "Impressions", value: "+17%", success: true }, { label: "CTR", value: "4.7%", success: true }, { label: "Snippets", value: "refined" }, { label: "Visits", value: "+28.4%", success: true }]}
+        stages={[{ index: 3, label: ru ? "вид в поиске" : "snippets" }, { index: 8, label: ru ? "проверка" : "review" }]}
+        chips={ru ? [{ label: "Показы", value: "+17%", success: true }, { label: "CTR", value: "4,7%", success: true }, { label: "Вид в поиске", value: "обновлён" }, { label: "Переходы", value: "+28,4%", success: true }] : [{ label: "Impressions", value: "+17%", success: true }, { label: "CTR", value: "4.7%", success: true }, { label: "Snippets", value: "refined" }, { label: "Visits", value: "+28.4%", success: true }]}
         statuses={ru ? ["Показы ↑", "CTR ↑", "Переходы ↑"] : ["Impressions ↑", "CTR ↑", "Visits ↑"]}
         finalLabel={ru ? "4,7%" : "4.7%"}
       />
-      <p className="analytics-legend"><i aria-hidden="true" />{ru ? "Кликабельность растёт после понятной работы со сниппетами и страницами." : "Click-through rate can improve after clear work on snippets and pages."}</p>
+      <p className="analytics-legend"><i aria-hidden="true" />{ru ? "Переходов может стать больше после улучшения заголовков и описаний страниц в поиске." : "Click-through rate can improve after clear work on snippets and pages."}</p>
     </article>
   );
 }

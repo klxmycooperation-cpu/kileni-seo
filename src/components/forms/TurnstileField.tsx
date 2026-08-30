@@ -17,6 +17,7 @@ export function TurnstileField({ onToken, resetKey = 0 }: { onToken: (token: str
   const elementId = `turnstile-${useId().replace(/:/gu, "")}`;
   const widgetId = useRef<string | undefined>(undefined);
   const [siteKey, setSiteKey] = useState<string | null>();
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const configured = document.body.dataset.turnstileSiteKey?.trim();
@@ -46,6 +47,14 @@ export function TurnstileField({ onToken, resetKey = 0 }: { onToken: (token: str
   }, [render]);
 
   useEffect(() => {
+    if (!siteKey || widgetId.current) return;
+    const timer = window.setTimeout(() => {
+      if (!widgetId.current) setLoadError(true);
+    }, 12_000);
+    return () => window.clearTimeout(timer);
+  }, [siteKey]);
+
+  useEffect(() => {
     if (!resetKey || !widgetId.current || !window.turnstile) return;
     window.turnstile.reset(widgetId.current);
     onToken(undefined);
@@ -54,8 +63,9 @@ export function TurnstileField({ onToken, resetKey = 0 }: { onToken: (token: str
   if (!siteKey) return null;
   return (
     <div className="turnstile-field" aria-label="Human verification">
-      <Script id="cloudflare-turnstile" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onLoad={render}/>
+      <Script id="cloudflare-turnstile" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onLoad={() => { setLoadError(false); render(); }} onError={() => { setLoadError(true); onToken(undefined); }}/>
       <div id={elementId}/>
+      {loadError && <p className="turnstile-field__error" role="alert">Не удалось загрузить защиту формы. Отключите блокировщик для этой страницы и <button type="button" onClick={() => window.location.reload()}>повторите</button>.</p>}
     </div>
   );
 }

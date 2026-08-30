@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
@@ -10,9 +9,11 @@ import { auditNeedsResult, mergeAuditSnapshot } from "../../lib/audit/progress-s
 import { withAuditRestore } from "../../lib/audit/restore-url";
 import { ThemeToggle } from "../layout/ThemeToggle";
 import { AuditLiveProgress } from "../forms/AuditLiveProgress";
+import { Logo } from "../brand/Logo";
+import { AuditResultReport, type PublicAuditCtaOfferId, type PublicAuditResultView } from "./AuditResultReport";
 
 type AuditState = { status: string; pagesChecked: number; pagesDiscovered: number; pageLimit: number; overallScore?: number | null; grade?: string | null; partial?: boolean; errorSummary?: string | null; result?: PublicResult | null; normalizedDomain?: string; createdAt?: number; completedAt?: number | null; consentRecorded?: boolean };
-type PublicResult = { score?: number | null; grade?: string | null; interpretation?: string; pagesChecked?: number; pagesDiscovered?: number; partial?: boolean; categories?: ReadonlyArray<{ name: string; risk: string; explanation: string; score?: number; max?: number }> };
+type PublicResult = PublicAuditResultView;
 const terminal = new Set(["completed", "partial", "failed"]);
 
 export function AuditProgressPage({ locale, token, restore }: { locale: Locale; token: string; restore?: string }) {
@@ -60,41 +61,35 @@ export function AuditProgressPage({ locale, token, restore }: { locale: Locale; 
   const completedChecked = Math.min(PUBLIC_AUDIT_PAGE_LIMIT, result?.pagesChecked ?? audit.pagesChecked);
   const completedDiscovered = result?.pagesDiscovered ?? audit.pagesDiscovered;
   const reportHref = withAuditRestore(`/api/audits/${encodeURIComponent(token)}/report.pdf`, restore);
-  return <main id="main-content" className="audit-result-shell"><header className="audit-result-header"><Link className="audit-result-logo" href={localizedPath(locale)} aria-label="KILENI"><Image className="audit-result-logo--light" src="/brand/kileni-logo-light.svg" alt="KILENI SEO" width={201} height={48}/><Image className="audit-result-logo--dark" src="/brand/kileni-logo-dark.svg" alt="" width={201} height={48}/></Link><div className="audit-result-header__actions"><ThemeToggle locale={locale}/><span className="mono">{ru ? "Обновляется автоматически" : "Updates automatically"}</span></div></header>
+  return <main id="main-content" className="audit-result-shell"><header className="audit-result-header"><div className="audit-result-logo"><Logo locale={locale}/></div><div className="audit-result-header__actions"><ThemeToggle locale={locale}/><span className="mono">{done ? (ru ? "Снимок завершённой проверки" : "Completed audit snapshot") : (ru ? "Обновляется автоматически" : "Updates automatically")}</span></div></header>
     {!done && audit.status !== "failed" && <section className="audit-running audit-running--live audit-live-page"><AuditLiveProgress locale={locale} domain={audit.normalizedDomain} snapshot={audit}/></section>}
     {audit.status === "failed" && <section className="audit-failed"><span>!</span><h1>{ru ? "Проверку не удалось завершить" : "The audit could not be completed"}</h1><p>{ru ? "Сайт не ответил или ограничил автоматическую проверку. Можно запросить ручной разбор." : "The website did not respond or restricted the automated check. You can request a manual review."}</p><Link className="button button-light" href={localizedPath(locale, "contacts")}>{ru ? "Запросить ручную проверку" : "Request a manual review"}</Link></section>}
     {done && (
       <section className="audit-complete">
         <div className="score-panel">
-          <p className="eyebrow light">{ru ? "Результат бесплатной проверки" : "Free check result"}</p>
+          <p className="eyebrow light">{ru ? "Техническая оценка проверенной выборки" : "Technical score for the checked sample"}</p>
           <div className="final-score"><strong>{finalScore ?? "—"}</strong>{finalScore !== null && <span>/100</span>}</div>
-          <h1>{result?.interpretation ?? (ru ? "Результат готов" : "Result ready")}</h1>
+          <h1>{result?.summary?.headline ?? result?.interpretation ?? (ru ? "Результат готов" : "Result ready")}</h1>
+          <a className="audit-result-domain" href={result?.finalUrl ?? (audit.normalizedDomain ? `https://${audit.normalizedDomain}` : "#")} target="_blank" rel="noreferrer">{audit.normalizedDomain ?? result?.finalUrl ?? "—"}<span aria-hidden="true">↗</span></a>
           <p className="mono">{ru ? "Уровень" : "Grade"}: {result?.grade ?? audit.grade ?? "—"}</p>
-          <p>{ru ? `Проверено ${completedChecked} из максимум ${PUBLIC_AUDIT_PAGE_LIMIT} страниц. Найдено доступных страниц: ${completedDiscovered}.` : `Checked ${completedChecked} of up to ${PUBLIC_AUDIT_PAGE_LIMIT} pages. Accessible pages found: ${completedDiscovered}.`}</p>
+          <p>{ru ? `Обнаружено ${completedDiscovered} URL. Подробно проверено ${completedChecked} из максимум ${PUBLIC_AUDIT_PAGE_LIMIT} страниц.` : `${completedDiscovered} URLs discovered. ${completedChecked} of up to ${PUBLIC_AUDIT_PAGE_LIMIT} pages were checked in detail.`}</p>
           <p className="result-meta">{formatAuditDate(audit.completedAt ?? audit.createdAt, locale)} · {audit.consentRecorded ? (ru ? "согласие зафиксировано" : "consent recorded") : ""}</p>
-          {(result?.partial ?? audit.partial) && <span className="partial-badge">{ru ? "Частичная проверка" : "Partial audit"}</span>}
+          {(result?.partial ?? audit.partial) && <span className="partial-badge">{ru ? "Проверка завершена раньше запланированного лимита" : "The check ended before the planned limit"}</span>}
           <small>{ru ? "Это предварительная внутренняя оценка KILENI публичной части сайта, а не официальный показатель Яндекса, Google или PageSpeed." : "This is KILENI’s preliminary internal assessment of public pages, not an official Yandex, Google or PageSpeed metric."}</small>
+          <small className="audit-snapshot-note">{ru ? "Результат фиксирует состояние сайта на дату проверки и не меняется после последующих обновлений сайта." : "This result records the website state at the audit date and does not change after later website updates."}</small>
+          <Link className="button button-secondary audit-rerun-link" href={freeAuditHref(locale, audit.normalizedDomain)}>{ru ? "Проверить текущую версию сайта" : "Check the current website version"}</Link>
         </div>
-        <div className="result-body">
-          <div className="result-heading">
-            <div><p className="eyebrow">{ru ? "Основные группы" : "Main areas"}</p><h2>{ru ? "Что требует внимания" : "What needs attention"}</h2></div>
-            <div className="result-actions">
-              <a className="button button-secondary" href={reportHref} download>{ru ? "Скачать PDF-отчёт" : "Download PDF report"}</a>
-              <button className="button button-secondary" onClick={async () => { await copyCurrentUrl(); setCopied(true); }}>{copied ? (ru ? "Ссылка скопирована" : "Link copied") : (ru ? "Скопировать ссылку" : "Copy link")}</button>
-            </div>
-          </div>
-          <div className="risk-directions">{result?.categories?.map((category, index) => <article key={category.name}><span className={`risk risk-${riskClass(category.risk)}`}>{category.risk}</span><small className="mono">0{index + 1}</small><h3>{category.name}</h3><p>{category.explanation}</p></article>) ?? <p>{ru ? "Результаты подготавливаются." : "Results are being prepared."}</p>}</div>
-          <div className="result-cta">
-            <p className="eyebrow">{ru ? "Для новых клиентов" : "For new clients"}</p>
-            <h2>{ru ? "Скидка 25% на первый платный SEO-аудит" : "25% off your first paid SEO audit"}</h2>
-            <p>{ru ? "Без таймера и скрытых условий. Выберите расширенный аудит, аудит с исправлением или комплексное продвижение — домен уже подставлен в ссылку." : "No countdown or artificial urgency. Choose an extended audit, audit with implementation, or ongoing promotion; the domain is already included."}</p>
-            <div>
-              <Link className="button button-primary" href={briefOfferHref(locale, audit.normalizedDomain, "audit", token)}>{ru ? "Получить расширенный аудит со скидкой 25%" : "Get the extended audit with 25% off"}<span>↗</span></Link>
-              <Link className="button button-secondary" href={briefOfferHref(locale, audit.normalizedDomain, "audit-fix", token)}>{ru ? "Обсудить исправление сайта" : "Discuss website fixes"}</Link>
-              <Link className="button button-secondary" href={briefOfferHref(locale, audit.normalizedDomain, "promotion", token)}>{ru ? "Обсудить комплексное продвижение" : "Discuss ongoing promotion"}</Link>
-            </div>
-          </div>
-        </div>
+        <AuditResultReport
+          locale={locale}
+          result={result}
+          domain={audit.normalizedDomain}
+          pagesChecked={completedChecked}
+          pagesDiscovered={completedDiscovered}
+          reportHref={reportHref}
+          copied={copied}
+          onCopy={() => { void copyCurrentUrl().then(() => setCopied(true)); }}
+          offerHref={(offer) => briefOfferHref(locale, audit.normalizedDomain, offer, token)}
+        />
       </section>
     )}
   </main>;
@@ -103,12 +98,16 @@ export function AuditProgressPage({ locale, token, restore }: { locale: Locale; 
 function AuditThemeControl({ locale }: { locale: Locale }) {
   return <div className="audit-floating-theme"><ThemeToggle locale={locale}/></div>;
 }
-function riskClass(value: string) { const lower = value.toLowerCase(); if (lower.includes("unknown") || lower.includes("неиз")) return "unknown"; if (lower.includes("high") || lower.includes("выс")) return "high"; if (lower.includes("low") || lower.includes("низ")) return "low"; return "medium"; }
 function formatAuditDate(value: number | null | undefined, locale: Locale): string { return value ? new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Moscow" }).format(value) : ""; }
 async function copyCurrentUrl(): Promise<void> { try { await navigator.clipboard.writeText(window.location.href); } catch { const field = document.createElement("textarea"); field.value = window.location.href; field.style.position = "fixed"; field.style.opacity = "0"; document.body.append(field); field.select(); document.execCommand("copy"); field.remove(); } }
-export function briefOfferHref(locale: Locale, domain: string | undefined, offer: "audit" | "audit-fix" | "promotion", auditToken: string): string {
-  const query = new URLSearchParams({ offer, discount: "25" });
+export function briefOfferHref(locale: Locale, domain: string | undefined, offer: PublicAuditCtaOfferId, auditToken: string): string {
+  const query = new URLSearchParams({ offer });
   if (domain) query.set("domain", domain);
   query.set("audit", auditToken);
   return `${localizedPath(locale, "brief")}?${query.toString()}`;
+}
+
+function freeAuditHref(locale: Locale, domain?: string): string {
+  const path = localizedPath(locale, "free-audit");
+  return domain ? `${path}?url=${encodeURIComponent(domain)}` : path;
 }

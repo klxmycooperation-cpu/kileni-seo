@@ -24,6 +24,7 @@ describe("optional Turnstile verification", () => {
 
   it("accepts a successful submit action and passes the remote IP", async () => {
     vi.stubEnv("TURNSTILE_SECRET_KEY", "secret");
+    vi.stubEnv("APP_BASE_URL", "https://kileni.test");
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true, action: "submit", hostname: "kileni.test" }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -36,6 +37,14 @@ describe("optional Turnstile verification", () => {
   it("rejects a failed or mismatched action", async () => {
     vi.stubEnv("TURNSTILE_SECRET_KEY", "secret");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true, action: "login" }), { status: 200 })));
+    await expect(verifyTurnstile("client-token")).resolves.toEqual({ configured: true, ok: false, reason: "rejected" });
+  });
+
+  it("rejects a token issued for another hostname", async () => {
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "secret");
+    vi.stubEnv("APP_BASE_URL", "https://kileni-seo.ru");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true, action: "submit", hostname: "attacker.example" }), { status: 200 })));
+
     await expect(verifyTurnstile("client-token")).resolves.toEqual({ configured: true, ok: false, reason: "rejected" });
   });
 });

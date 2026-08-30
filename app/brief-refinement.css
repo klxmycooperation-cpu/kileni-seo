@@ -985,3 +985,74 @@
   .brief-refinement .brief-hero-note { padding: 1.2rem; }
   .brief-refinement .brief-panel section > h2 { font-size: 1.9rem; }
 }
+
+/* Clear validation and attachment controls for the step-by-step brief. */
+.kileni-site .brief-refinement .brief-fields label > span {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.brief-refinement .brief-required {
+  color: var(--brief-muted);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kileni-site .brief-refinement .brief-fields [aria-invalid="true"] {
+  border-color: #a32924;
+  outline: 2px solid rgba(163, 41, 36, 0.16);
+  outline-offset: 1px;
+}
+
+.kileni-site .brief-refinement .brief-fields label > small:not(.brief-required) {
+  color: var(--brief-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.kileni-site .brief-refinement .brief-fields .brief-field-error,
+.brief-refinement .brief-field-error {
+  color: #a32924;
+  font-weight: 700;
+}
+
+.brief-refinement .brief-file-list {
+  display: grid;
+  gap: 0;
+  padding: 0 1.25rem;
+  list-style: none;
+}
+
+.brief-refinement .brief-file-list li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--brief-line);
+  color: var(--brief-muted);
+  font-size: 0.76rem;
+}
+
+.brief-refinement .brief-file-list li:last-child { border-bottom: 0; }
+.brief-refinement .brief-file-list li span { min-width: 0; overflow-wrap: anywhere; }
+.brief-refinement .brief-file-list button {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--brief-ink);
+  cursor: pointer;
+  font: inherit;
+}
+
+@media (max-width: 680px) {
+  .brief-refinement .brief-file-list li { align-items: flex-start; }
+  .brief-refinement .wizard-actions .button { min-height: 3rem; }
+}

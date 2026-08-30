@@ -1,0 +1,6 @@
+services:
+  web:
+    environment:
+      # Keep Next on the container port expected by the base Compose healthcheck
+      # and Caddy. The PORT value from .env is used only for the host binding.
+      PORT: "3000"

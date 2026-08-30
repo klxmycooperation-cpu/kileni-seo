@@ -43,43 +43,34 @@ export type Article = {
 
 const covers = {
   audit: [
-    "/editorial/seo-audit-system.svg",
-    "KILENI",
-    "",
-    "Схема SEO-аудита: страницы, проверки и подтверждённый результат",
-    "SEO audit map: pages, checks and confirmed outcomes",
+    "/editorial/seo-audit-workflow-v2.png",
+    "Карта SEO-аудита: структура сайта, статусы страниц, приоритеты и повторная проверка",
+    "SEO audit map showing site structure, page statuses, priorities and repeat verification",
   ],
   indexing: [
-    "/editorial/search-indexing-gates.svg",
-    "KILENI",
-    "",
-    "Схема прохождения страницы от обхода до индексации",
-    "A page moving through crawling and indexing gates",
+    "/editorial/indexing-path-v2.png",
+    "Путь страницы от обнаружения роботом до индексирования и контрольной проверки",
+    "A page path from crawler discovery to indexing and final verification",
   ],
   channels: [
-    "/editorial/seo-ads-dual-engine.svg",
-    "KILENI",
-    "",
-    "Сравнение SEO и рекламы как двух разных каналов привлечения",
-    "SEO and paid advertising shown as two acquisition systems",
+    "/editorial/seo-vs-yandex-ads-v2.png",
+    "Два маршрута продвижения: накопительный SEO и управляемая реклама сходятся к целевому обращению",
+    "Two promotion routes, compounding SEO and controlled advertising, converge on a qualified enquiry",
   ],
   marketplace: [
-    "/editorial/marketplace-card-layers.svg",
-    "KILENI",
-    "",
-    "Слои карточки товара: запрос, характеристики, текст и медиа",
-    "Product card layers: query, attributes, copy and media",
+    "/editorial/marketplace-card-production-v2.png",
+    "Подготовка карточки товара: характеристики, фотографии, макеты, упаковка и варианты публикации",
+    "Product-card production with specifications, photography, layouts, packaging and publishing variants",
   ],
 } as const;
 
 function hero(key: keyof typeof covers, locale: Locale): Article["hero"] {
-  const [src, creator, sourceUrl, ruAlt, enAlt] = covers[key];
+  const [src, ruAlt, enAlt] = covers[key];
   return {
     src,
     alt: locale === "ru" ? ruAlt : enAlt,
-    credit: locale === "ru" ? `Иллюстрация: ${creator}` : `Illustration: ${creator}`,
-    sourceUrl: sourceUrl || undefined,
-    license: locale === "ru" ? "Оригинальная иллюстрация KILENI" : "Original KILENI illustration",
+    credit: locale === "ru" ? "Иллюстрация: KILENI" : "Illustration: KILENI",
+    license: "KILENI editorial",
   };
 }
 

@@ -1,4 +1,4 @@
-import { sqlite } from "@/src/db/client";
+import { database } from "@/src/db/client";
 import { apiError, jsonReadError, noStoreJson, readJson, validUuid } from "../../../_lib/http";
 import { removePrivateFiles } from "../../../_lib/uploads";
 import { adminMutationGuard } from "../../_lib/guard";
@@ -25,21 +25,22 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     return apiError(409, "DELETE_NOT_CONFIRMED", "Удаление не подтверждено");
   }
   try {
-    const storageNames = sqlite.prepare("SELECT storage_name AS storageName FROM attachments WHERE brief_id=?")
-      .all(id) as { storageName: string }[];
-    const exists = sqlite.prepare("SELECT 1 FROM brief_submissions WHERE id=? LIMIT 1").get(id);
-    if (!exists) return apiError(404, "NOT_FOUND", "Бриф не найден");
+    const storageResult = await database.execute({ sql: "SELECT storage_name AS storageName FROM attachments WHERE brief_id=?", args: [id] });
+    const storageNames = storageResult.rows as unknown as { storageName: string }[];
+    const exists = await database.execute({ sql: "SELECT 1 FROM brief_submissions WHERE id=? LIMIT 1", args: [id] });
+    if (exists.rows.length === 0) return apiError(404, "NOT_FOUND", "Бриф не найден");
     try {
       await removePrivateFiles(storageNames.map((row) => row.storageName));
     } catch {
       return apiError(500, "FILE_DELETE_FAILED", "Не удалось удалить приватные вложения; бриф сохранён");
     }
-    const deleted = sqlite.transaction(() => {
-      sqlite.prepare("DELETE FROM attachments WHERE brief_id=?").run(id);
-      sqlite.prepare("DELETE FROM admin_notes WHERE entity_type='brief' AND entity_id=?").run(id);
-      sqlite.prepare("DELETE FROM notification_events WHERE entity_type='brief' AND entity_id=?").run(id);
-      return sqlite.prepare("DELETE FROM brief_submissions WHERE id=?").run(id).changes > 0;
-    })();
+    const deleted = await database.transaction(async (transaction) => {
+      await transaction.execute({ sql: "DELETE FROM attachments WHERE brief_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM admin_notes WHERE entity_type='brief' AND entity_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM notification_events WHERE entity_type='brief' AND entity_id=?", args: [id] });
+      const result = await transaction.execute({ sql: "DELETE FROM brief_submissions WHERE id=?", args: [id] });
+      return result.rowsAffected > 0;
+    });
     if (!deleted) return apiError(404, "NOT_FOUND", "Бриф уже удалён");
     return noStoreJson({ ok: true });
   } catch {

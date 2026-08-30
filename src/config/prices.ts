@@ -11,13 +11,13 @@ export function getEnglishPriceConfig(): EnglishPriceConfig | undefined {
 export const prices = {
   audits: {
     preliminary: 0,
-    express: 6_900,
-    full: 19_900,
-    strategy: 29_900,
+    express: 24_900,
+    full: 39_900,
+    strategy: 69_900,
     implementation: { from: 49_900 },
   },
   seo: {
-    base: 29_900,
+    base: 34_900,
     growth: 44_900,
     full: 69_900,
   },
@@ -33,9 +33,9 @@ export const prices = {
     },
   },
   development: {
-    landing: 49_900,
+    landing: 59_900,
     corporate: 99_900,
-    commerce: { from: 179_900 },
+    commerce: { from: 189_900 },
     extras: {
       account: 140_000,
       integrations: 80_000,

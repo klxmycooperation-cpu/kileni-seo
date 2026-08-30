@@ -1,14 +1,56 @@
 import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
 import { PublicRoute } from "@/src/components/pages/PublicRoute";
+import {
+  buildArticleMetadata,
+  buildPublicMetadata,
+  isPublicRoutePath,
+} from "@/src/config/seo-metadata";
 import { getArticle } from "@/src/content/articles";
+import { getAuditCheckMetadata } from "@/src/lib/seo/audit-check-metadata";
+import { getGlossaryDetailMetadata } from "@/src/lib/seo/glossary-metadata";
 
-const titles: Record<string, string> = { services: "Services", "seo-audit": "SEO audit", "seo-promotion": "SEO growth", marketplaces: "Marketplace product cards", "marketplaces/wildberries": "Wildberries product cards", "marketplaces/ozon": "Ozon product cards", "marketplaces/yandex-market": "Yandex Market product cards", "marketplaces/megamarket": "Megamarket product cards", "web-development": "Web development", "yandex-ads": "Yandex Ads", "content-materials": "Content and production materials", "custom-task": "Custom project", pricing: "Pricing", calculator: "Estimate calculator", cases: "Cases", "cases/eco-santeh": "eco-santeh.ru case", "cases/zasorservice": "засорсервис.рф case", brief: "Online brief", blog: "SEO and digital blog", articles: "SEO and digital blog", glossary: "SEO and digital glossary", about: "About", contacts: "Contact", privacy: "Privacy", consent: "Consent", "free-audit": "Free SEO check" };
-const descriptions: Record<string, string> = { "free-audit": "Free SEO website check: we review up to 10 key public pages and show an overall score with the main risk areas." };
-export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
-  const { slug } = await params; const canonicalSlug = slug[0] === "articles" ? ["blog", ...slug.slice(1)] : slug; const path = canonicalSlug.join("/"); const article = canonicalSlug[0] === "blog" && canonicalSlug[1] ? getArticle("en", canonicalSlug[1]) : undefined;
-  const alternates = { canonical: `/en/${path}`, languages: { ru: `/${path}`, en: `/en/${path}`, "x-default": `/${path}` } };
-  if (!article) return { title: titles[path] ?? "KILENI", description: descriptions[path], alternates };
-  return { title: article.title, description: article.description, alternates, openGraph: { type: "article", title: article.title, description: article.description, publishedTime: article.date, authors: [article.author], images: [{ url: article.hero.src, alt: article.hero.alt }] }, twitter: { card: "summary_large_image", title: article.title, description: article.description, images: [article.hero.src] } };
+type RouteParams = { params: Promise<{ slug: string[] }> };
+
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { slug } = await params;
+  const canonicalSlug = canonicalParts(slug);
+  const path = canonicalSlug.join("/");
+
+  if (canonicalSlug[0] === "checks" && canonicalSlug.length <= 2) {
+    const metadata = getAuditCheckMetadata("en", canonicalSlug[1]);
+    if (metadata) return metadata;
+  }
+
+  if (canonicalSlug[0] === "glossary" && canonicalSlug.length === 2) {
+    const metadata = getGlossaryDetailMetadata("en", canonicalSlug[1]);
+    if (metadata) return metadata;
+  }
+
+  if (canonicalSlug[0] === "blog" && canonicalSlug.length === 2) {
+    const article = getArticle("en", canonicalSlug[1]);
+    if (article) return buildArticleMetadata("en", article);
+  }
+
+  if (isPublicRoutePath(path)) return buildPublicMetadata("en", path);
+
+  return {
+    title: { absolute: "Page not found — KILENI" },
+    robots: { index: false, follow: false },
+  };
 }
-export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) { const { slug } = await params; if (slug[0] === "articles") permanentRedirect(`/en/blog${slug[1] ? `/${slug[1]}` : ""}`); return <PublicRoute locale="en" parts={slug}/>; }
+
+export default async function Page({ params }: RouteParams) {
+  const { slug } = await params;
+  if (slug[0] === "articles") {
+    permanentRedirect(`/en/blog${slug[1] ? `/${slug[1]}` : ""}`);
+  }
+  if (slug.length === 1 && slug[0] === "seo") permanentRedirect("/en/seo-promotion");
+  return <PublicRoute locale="en" parts={slug}/>;
+}
+
+function canonicalParts(parts: string[]): string[] {
+  if (parts[0] === "articles") return ["blog", ...parts.slice(1)];
+  if (parts.length === 1 && parts[0] === "seo") return ["seo-promotion"];
+  return parts;
+}

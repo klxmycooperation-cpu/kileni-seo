@@ -10,12 +10,12 @@ html[data-kileni-theme="dark"] {
 
 html[data-kileni-theme="signal"] {
   color-scheme: dark;
-  background: #070b18;
+  background: #08150f;
 }
 
 html[data-kileni-theme="signal"] body {
-  background: #070b18;
-  color: #f5f7ff;
+  background: #08150f;
+  color: #f3fff6;
 }
 
 html[data-kileni-theme="dark"] body {
@@ -25,7 +25,7 @@ html[data-kileni-theme="dark"] body {
 
 .theme-toggle {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   gap: 8px;
   padding: 0 8px;
@@ -66,6 +66,23 @@ html[data-kileni-theme="dark"] body {
 
 /* Light is the default public presentation: petroleum typography on white. */
 html[data-kileni-theme="light"] .kileni-site {
+  --background: #f7f8fb;
+  --background-elevated: #eef2f7;
+  --surface: #ffffff;
+  --surface-hover: #eef1f6;
+  --surface-selected: #e2e8ff;
+  --text-primary: #0b132b;
+  --text-secondary: #2f3a55;
+  --text-muted: #596179;
+  --text-inverse: #ffffff;
+  --border: #d8dce6;
+  --border-strong: #aeb8ca;
+  --brand: #4164ff;
+  --brand-contrast: #ffffff;
+  --success: #147d52;
+  --warning: #a85b15;
+  --danger: #ba3f4b;
+  --focus: #4164ff;
   --warm-ink: #0b132b;
   --warm-charcoal: #0b132b;
   --warm-paper: #f7f8fb;
@@ -100,8 +117,7 @@ html[data-kileni-theme="light"] .kileni-site .site-header--home:not([data-scroll
 }
 
 html[data-kileni-theme="light"] .kileni-site .site-header .brand-logo,
-html[data-kileni-theme="light"] .kileni-site .site-header .brand-logo__wordmark,
-html[data-kileni-theme="light"] .kileni-site .site-header .brand-logo__descriptor {
+html[data-kileni-theme="light"] .kileni-site .site-header .brand-logo__wordmark {
   color: var(--warm-ink);
   fill: currentColor;
 }
@@ -182,6 +198,23 @@ html[data-kileni-theme="light"] .kileni-site .free-audit-usage strong { color: v
 
 /* Dark mode uses the same information architecture with dark semantic surfaces. */
 html[data-kileni-theme="dark"] .kileni-site {
+  --background: #07111f;
+  --background-elevated: #0b1727;
+  --surface: #101d2f;
+  --surface-hover: #15253b;
+  --surface-selected: #1d3152;
+  --text-primary: #f7f8fc;
+  --text-secondary: #d5ddec;
+  --text-muted: #aab6c7;
+  --text-inverse: #050b14;
+  --border: #2b3a50;
+  --border-strong: #586983;
+  --brand: #8aa4ff;
+  --brand-contrast: #07111f;
+  --success: #4bd893;
+  --warning: #ffd078;
+  --danger: #ff9da5;
+  --focus: #9db4ff;
   --warm-ink: #f7f8fc;
   --warm-charcoal: #050b14;
   --warm-paper: #07111f;
@@ -354,6 +387,10 @@ html[data-kileni-theme="dark"] .kileni-site .svc-detail-hero,
 html[data-kileni-theme="dark"] .kileni-site .about-hero,
 html[data-kileni-theme="dark"] .kileni-site .pricing-10 .cp-hero { background: #050b14; color: #f7f8fc; }
 
+html[data-kileni-theme="dark"] .kileni-site .about-hero h1 { color: #f7f8fc; }
+html[data-kileni-theme="dark"] .kileni-site .about-hero-grid > p,
+html[data-kileni-theme="dark"] .kileni-site .about-hero .svc-kicker { color: #aab6c7; }
+
 html[data-kileni-theme="dark"] .kileni-site .services-10 .section-light,
 html[data-kileni-theme="dark"] .kileni-site .svc-package-grid > article { background: #0b1727; color: #f7f8fc; }
 
@@ -407,6 +444,13 @@ html[data-kileni-theme="dark"] .kileni-site .pricing-10 .cp-first-audit-offer {
   color: #f7f8fc;
 }
 
+/* Keep package limits inside the dark visual system; a white stripe reads as
+   a broken light-theme fragment when cards are stacked. */
+html[data-kileni-theme="dark"] .kileni-site .pricing-10 .cp-package-scope {
+  background: #142238;
+  color: #f7f8fc;
+}
+
 html[data-kileni-theme="dark"] .kileni-site .cp-request-grid .lead-form input,
 html[data-kileni-theme="dark"] .kileni-site .cp-request-grid .lead-form textarea {
   border-color: #42516a;
@@ -439,18 +483,35 @@ html[data-kileni-theme="dark"] .kileni-site .brief-response-promise h3 { color: 
 
 /* Signal mode: deep graphite and electric blue, with green reserved for verified progress. */
 html[data-kileni-theme="signal"] .kileni-site {
-  --warm-ink: #f5f7ff;
-  --warm-charcoal: #050814;
-  --warm-paper: #070b18;
-  --warm-paper-bright: #0c1428;
-  --warm-stone: #111c34;
-  --warm-muted: #a9b5cd;
-  --warm-line: #2a3856;
-  --home-ink: #f5f7ff;
-  --home-paper: #070b18;
-  --home-line: #2a3856;
-  --kileni-action: #4f6dff;
-  --theme-toggle-cutout: #070b18;
+  --background: #08150f;
+  --background-elevated: #10231a;
+  --surface: #142d21;
+  --surface-hover: #1c3b2b;
+  --surface-selected: #27523b;
+  --text-primary: #f3fff6;
+  --text-secondary: #d2e8d8;
+  --text-muted: #a6c1af;
+  --text-inverse: #07110b;
+  --border: #315642;
+  --border-strong: #638a70;
+  --brand: #b7f44a;
+  --brand-contrast: #07110b;
+  --success: #6cf0b0;
+  --warning: #ffd36b;
+  --danger: #ffabb2;
+  --focus: #d4ff91;
+  --warm-ink: #f3fff6;
+  --warm-charcoal: #07110b;
+  --warm-paper: #08150f;
+  --warm-paper-bright: #10231a;
+  --warm-stone: #142d21;
+  --warm-muted: #a6c1af;
+  --warm-line: #315642;
+  --home-ink: #f3fff6;
+  --home-paper: #08150f;
+  --home-line: #315642;
+  --kileni-action: #b7f44a;
+  --theme-toggle-cutout: #08150f;
   background: var(--warm-paper);
   color: var(--warm-ink);
 }
@@ -501,22 +562,20 @@ html[data-kileni-theme="signal"] .kileni-site .audit-form textarea {
 }
 
 .kileni-site .brand-logo__wordmark {
-  display: inline-flex;
-  align-items: baseline;
+  display: block;
+  width: clamp(8.6rem, 10vw, 10rem);
+  height: auto;
   color: currentColor;
-  font-family: var(--font-manrope), Arial, sans-serif;
-  font-size: clamp(1.22rem, 1.45vw, 1.48rem);
-  font-weight: 800;
-  letter-spacing: -0.075em;
-  line-height: 1;
-  white-space: nowrap;
+  overflow: visible;
 }
 
+.kileni-site .brand-logo__wordmark text { font-family: var(--font-manrope), Arial, sans-serif; dominant-baseline: alphabetic; }
+.kileni-site .brand-logo__name { fill: currentColor; font-size: 43px; font-weight: 720; letter-spacing: -3.25px; }
 .kileni-site .brand-logo__descriptor {
-  margin-left: .08em;
-  font-size: .64em;
-  font-weight: 720;
-  letter-spacing: -0.055em;
+  fill: var(--brand);
+  font-size: 20px;
+  font-weight: 760;
+  letter-spacing: -1.45px;
 }
 
 .kileni-site .site-header .brand-logo,
@@ -527,12 +586,12 @@ html[data-kileni-theme="signal"] .kileni-site .site-header .brand-logo {
 
 .kileni-site .site-footer .brand-logo,
 .kileni-site .site-footer .brand-logo__wordmark,
-.kileni-site .site-footer .brand-logo__name,
-.kileni-site .site-footer .brand-logo__descriptor { color: #f7f8fc; }
+.kileni-site .site-footer .brand-logo__name { color: #f7f8fc; fill: #f7f8fc; }
+.kileni-site .site-footer .brand-logo__descriptor { fill: var(--brand); }
 
 .kileni-site .header-phone {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   gap: 8px;
   color: var(--warm-ink);
@@ -600,6 +659,10 @@ html[data-kileni-theme="signal"] .kileni-site .svc-detail-hero,
 html[data-kileni-theme="signal"] .kileni-site .about-hero,
 html[data-kileni-theme="signal"] .kileni-site .pricing-10 .cp-hero { background: #050814; color: #f5f7ff; }
 
+html[data-kileni-theme="signal"] .kileni-site .about-hero h1 { color: #f5f7ff; }
+html[data-kileni-theme="signal"] .kileni-site .about-hero-grid > p,
+html[data-kileni-theme="signal"] .kileni-site .about-hero .svc-kicker { color: #a9b5cd; }
+
 html[data-kileni-theme="signal"] .kileni-site .services-10 .section-light,
 html[data-kileni-theme="signal"] .kileni-site .svc-package-grid > article,
 html[data-kileni-theme="signal"] .kileni-site .svc-buyer-questions { background: #0c1428; color: #f5f7ff; }
@@ -651,6 +714,11 @@ html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-case-detail-ti
 html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-result-heading p { color: #f5f7ff; }
 html[data-kileni-theme="signal"] .kileni-site .pricing-10 .cp-first-audit-offer {
   background: #111c34;
+  color: #f5f7ff;
+}
+
+html[data-kileni-theme="signal"] .kileni-site .pricing-10 .cp-package-scope {
+  background: #172545;
   color: #f5f7ff;
 }
 
@@ -831,12 +899,11 @@ html[data-kileni-theme="signal"] .audit-result-shell {
 }
 
 .audit-result-logo { position: relative; display: inline-grid; align-items: center; }
-.audit-result-logo > img { grid-area: 1 / 1; }
-.audit-result-logo--dark { visibility: hidden; }
-html[data-kileni-theme="dark"] .audit-result-logo--light,
-html[data-kileni-theme="signal"] .audit-result-logo--light { visibility: hidden; }
-html[data-kileni-theme="dark"] .audit-result-logo--dark,
-html[data-kileni-theme="signal"] .audit-result-logo--dark { visibility: visible; }
+.audit-result-logo .brand-logo { width: 10.5rem; color: var(--audit-ink); }
+.audit-result-logo .brand-logo__wordmark { display: block; width: 100%; height: auto; overflow: visible; }
+.audit-result-logo .brand-logo__wordmark text { font-family: var(--font-manrope), Arial, sans-serif; dominant-baseline: alphabetic; }
+.audit-result-logo .brand-logo__name { fill: currentColor; font-size: 43px; font-weight: 720; letter-spacing: -3.25px; }
+.audit-result-logo .brand-logo__descriptor { fill: var(--audit-action); font-size: 20px; font-weight: 760; letter-spacing: -1.45px; }
 
 .audit-result-header__actions {
   display: flex;
@@ -885,6 +952,8 @@ html[data-kileni-theme="signal"] .audit-result-logo--dark { visibility: visible;
 .audit-result-shell .score-panel > p,
 .audit-result-shell .score-panel > small,
 .audit-result-shell .score-panel .final-score span { color: var(--audit-muted); }
+.audit-result-shell .audit-snapshot-note { display: block; margin-top: .75rem; }
+.audit-result-shell .audit-rerun-link { width: max-content; max-width: 100%; margin-top: 1.25rem; border-color: var(--audit-line); color: var(--audit-ink); }
 .audit-result-shell .result-body { background: var(--audit-surface); color: var(--audit-ink); }
 .audit-result-shell .result-heading h2,
 .audit-result-shell .risk-directions h3 { color: var(--audit-ink); }
@@ -922,5 +991,11 @@ html[data-kileni-theme="signal"] .audit-result-shell .result-cta .button-seconda
   .audit-result-header__actions > .mono { display: none; }
   .audit-result-header__actions .theme-toggle__label { display: none; }
   .audit-result-header { padding-inline: 1rem; }
-  .audit-result-logo img { width: 9.8rem; height: auto; }
+  .audit-result-logo .brand-logo { width: 9.8rem; }
 }
+
+.error-page .brand-logo { width: 201px; margin: 0 auto 50px; color: #f7f8fc; }
+.error-page .brand-logo__wordmark { width: 100%; height: auto; overflow: visible; }
+.error-page .brand-logo__wordmark text { font-family: var(--font-manrope), Arial, sans-serif; dominant-baseline: alphabetic; }
+.error-page .brand-logo__name { fill: currentColor; font-size: 43px; font-weight: 720; letter-spacing: -3.25px; }
+.error-page .brand-logo__descriptor { fill: #6f8dff; font-size: 20px; font-weight: 760; letter-spacing: -1.45px; }

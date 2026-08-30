@@ -25,6 +25,11 @@ CREATE TABLE IF NOT EXISTS worker_state (name TEXT PRIMARY KEY, heartbeat_at INT
 CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS public_metrics (name TEXT PRIMARY KEY, value INTEGER NOT NULL CHECK(value >= 0), updated_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS audit_usage (audit_id TEXT PRIMARY KEY, created_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS audit_domain_locks (
+  normalized_domain TEXT PRIMARY KEY,
+  audit_id TEXT NOT NULL UNIQUE,
+  created_at INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS completed_audit_domains (
   normalized_domain TEXT PRIMARY KEY,
   first_completed_at INTEGER NOT NULL
@@ -73,10 +78,55 @@ BEGIN
   INSERT OR IGNORE INTO completed_audit_domains(normalized_domain, first_completed_at)
   VALUES (lower(trim(NEW.normalized_domain)), NEW.completed_at);
 END;
+INSERT OR IGNORE INTO public_metrics(name, value, updated_at)
+VALUES ('free_audit_pages', 0, unixepoch('now') * 1000);
+CREATE TRIGGER IF NOT EXISTS audits_record_completed_page_usage_insert
+AFTER INSERT ON audits
+WHEN NEW.status IN ('completed', 'partial')
+  AND NEW.completed_at IS NOT NULL
+  AND NEW.pages_checked > 0
+  AND trim(NEW.normalized_domain) <> ''
+  AND lower(trim(NEW.normalized_domain)) NOT LIKE '%.test'
+  AND lower(trim(NEW.normalized_domain)) <> 'test'
+  AND lower(NEW.source) NOT LIKE 'playwright%'
+  AND lower(NEW.source) NOT LIKE 'integration-test%'
+  AND lower(NEW.source) NOT IN ('test', 'fixture')
+  AND lower(NEW.source) NOT LIKE '%:cached'
+BEGIN
+  INSERT OR IGNORE INTO public_metrics(name, value, updated_at)
+  VALUES ('free_audit_pages', 0, unixepoch('now') * 1000);
+  INSERT OR IGNORE INTO audit_usage(audit_id, created_at)
+  VALUES (NEW.id, NEW.completed_at);
+  UPDATE public_metrics
+  SET value = value + MIN(MAX(NEW.pages_checked, 0), 10), updated_at = unixepoch('now') * 1000
+  WHERE name = 'free_audit_pages' AND changes() > 0;
+END;
+CREATE TRIGGER IF NOT EXISTS audits_record_completed_page_usage_update
+AFTER UPDATE OF status, completed_at, pages_checked, normalized_domain, source ON audits
+WHEN NEW.status IN ('completed', 'partial')
+  AND NEW.completed_at IS NOT NULL
+  AND NEW.pages_checked > 0
+  AND trim(NEW.normalized_domain) <> ''
+  AND lower(trim(NEW.normalized_domain)) NOT LIKE '%.test'
+  AND lower(trim(NEW.normalized_domain)) <> 'test'
+  AND lower(NEW.source) NOT LIKE 'playwright%'
+  AND lower(NEW.source) NOT LIKE 'integration-test%'
+  AND lower(NEW.source) NOT IN ('test', 'fixture')
+  AND lower(NEW.source) NOT LIKE '%:cached'
+BEGIN
+  INSERT OR IGNORE INTO public_metrics(name, value, updated_at)
+  VALUES ('free_audit_pages', 0, unixepoch('now') * 1000);
+  INSERT OR IGNORE INTO audit_usage(audit_id, created_at)
+  VALUES (NEW.id, NEW.completed_at);
+  UPDATE public_metrics
+  SET value = value + MIN(MAX(NEW.pages_checked, 0), 10), updated_at = unixepoch('now') * 1000
+  WHERE name = 'free_audit_pages' AND changes() > 0;
+END;
 INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (1, unixepoch('now') * 1000);
 INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (2, unixepoch('now') * 1000);
 INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (3, unixepoch('now') * 1000);
 INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (4, unixepoch('now') * 1000);
 INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (5, unixepoch('now') * 1000);
 INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (6, unixepoch('now') * 1000);
+INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (7, unixepoch('now') * 1000);
 `;

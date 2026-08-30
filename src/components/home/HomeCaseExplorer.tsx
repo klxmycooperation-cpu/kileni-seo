@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CaseStudy } from "../../content/cases";
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
@@ -12,13 +12,23 @@ type HomeCaseExplorerProps = {
   cases: CaseStudy[];
 };
 
-function AnimatedScore({ from, to }: { from: number; to: number }) {
+function useAnimatedNumber(from: number, to: number, enabled: boolean, duration = 2_800) {
+  // The server and first client render always contain the verified final value.
+  // Animation is progressive enhancement and may only change the visual value
+  // after hydration, never the factual HTML exposed to crawlers or no-JS users.
   const [value, setValue] = useState(to);
 
   useEffect(() => {
+    if (!enabled) {
+      setValue(to);
+      return;
+    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(to);
+      return;
+    }
     let frame = 0;
     const startedAt = performance.now();
-    const duration = 900;
     setValue(from);
 
     const update = (now: number) => {
@@ -29,48 +39,110 @@ function AnimatedScore({ from, to }: { from: number; to: number }) {
     };
     frame = window.requestAnimationFrame(update);
     return () => window.cancelAnimationFrame(frame);
-  }, [from, to]);
+  }, [from, to, enabled, duration]);
 
-  return <span className="home-case-explorer__score" data-score-from={from} data-score-to={to}>{from} → {value}</span>;
+  return value;
+}
+
+function AnimatedScore({ from, to, enabled }: { from: number; to: number; enabled: boolean }) {
+  const value = useAnimatedNumber(from, to, enabled);
+
+  return (
+    <span className="home-case-explorer__score" data-score-from={from} data-score-to={to}>
+      <span className="visually-hidden">{from} → {to}</span>
+      <span aria-hidden="true">{from} → {value}</span>
+    </span>
+  );
+}
+
+function AnimatedMetric({
+  from,
+  to,
+  suffix = "",
+  format = (value) => String(value),
+  enabled,
+}: {
+  from: number;
+  to: number;
+  suffix?: string;
+  format?: (value: number) => string;
+  enabled: boolean;
+}) {
+  const value = useAnimatedNumber(from, to, enabled);
+  return (
+    <span className="home-case-explorer__score" data-counter-from={from} data-counter-to={to}>
+      <span className="visually-hidden">{format(to)}{suffix}</span>
+      <span aria-hidden="true">{format(value)}{suffix}</span>
+    </span>
+  );
 }
 
 export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
   const ru = locale === "ru";
   const [active, setActive] = useState(0);
+  const [metricsVisible, setMetricsVisible] = useState(false);
+  const [metricsRun, setMetricsRun] = useState(0);
+  const [interactive, setInteractive] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
   const item = cases[active];
   const isEco = item.slug === "eco-santeh";
   const logo = `/case-sites/${item.slug}.ico`;
-  const scoreFrom = isEco ? 35 : 37;
-  const scoreTo = isEco ? 93 : 80;
+  const scoreFrom = item.before;
+  const scoreTo = item.after;
 
   const resultRows = isEco
     ? ru
-      ? [["Техническая готовность", "35 → 93"], ["Страницы без ошибки", "509 / 509"], ["Desktop Performance", "99 / 100"], ["SEO / Accessibility", "100 / 100"]]
-      : [["Technical readiness", "35 → 93"], ["Pages without errors", "509 / 509"], ["Desktop Performance", "99 / 100"], ["SEO / Accessibility", "100 / 100"]]
+      ? [["Готовность сайта", "score"], ["Страницы открываются", "pages"], ["Скорость на телефоне", "mobilePerformance"], ["Скорость на компьютере", "performance"]]
+      : [["Technical readiness", "score"], ["Pages returning HTTP 200", "pages"], ["Mobile Performance", "mobilePerformance"], ["Desktop Performance", "performance"]]
     : ru
-      ? [["Техническая готовность", "37 → 80"], ["Страницы без ошибки", "575 / 575"], ["CLS главного экрана", "0,519 → 0,0001"], ["JSON-LD / изображения", "0 → 575 / 20 314 → 25"]]
-      : [["Technical readiness", "37 → 80"], ["Pages without errors", "575 / 575"], ["First-screen CLS", "0.519 → 0.0001"], ["JSON-LD / images", "0 → 575 / 20,314 → 25"]];
+      ? [["Готовность сайта", "score"], ["Страницы открываются", "pages"], ["Стабильность первого экрана", "cls"], ["Изображения без размеров", "images"]]
+      : [["Technical readiness", "score"], ["Pages returning HTTP 200", "pages"], ["First-screen CLS", "cls"], ["Images without dimensions", "images"]];
 
   const steps = isEco
-    ? ru ? ["Шаблоны", "Адреса", "Метаданные", "Повторный обход"] : ["Templates", "URLs", "Metadata", "Recheck"]
-    : ru ? ["Диагностика", "Первый экран", "JSON-LD", "Повторный обход"] : ["Diagnostics", "First screen", "JSON-LD", "Recheck"];
+    ? ru ? ["Шаблоны", "Адреса", "Заголовки и описания", "Контрольная проверка"] : ["Templates", "URLs", "Metadata", "Recheck"]
+    : ru ? ["Проверка", "Первый экран", "Данные для поиска", "Контрольная проверка"] : ["Diagnostics", "First screen", "JSON-LD", "Recheck"];
   const chartPoints = isEco ? "24,129 156,118 262,97 382,84 505,58 628,34" : "24,142 156,113 262,93 382,77 505,62 628,44";
 
+  useEffect(() => {
+    setInteractive(true);
+  }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || typeof IntersectionObserver === "undefined") {
+      setMetricsVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setMetricsVisible(true);
+      observer.disconnect();
+    }, { threshold: 0.08, rootMargin: "0px 0px -10%" });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!metricsVisible || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => setMetricsRun((value) => value + 1), 15_000);
+    return () => window.clearInterval(timer);
+  }, [metricsVisible]);
+
   return (
-    <section id="home-cases" className="home-case-explorer" aria-labelledby="case-explorer-heading">
+    <section ref={sectionRef} id="home-cases" className="home-case-explorer" aria-labelledby="case-explorer-heading">
       <header className="home-case-explorer__heading">
         <div>
           <p className="section-label">{ru ? "Доказательства" : "Evidence"}</p>
-          <h2 id="case-explorer-heading">{ru ? "Не «красивые цифры», а проверяемый результат" : "Not nice-looking numbers — verified results"}</h2>
+          <h2 id="case-explorer-heading">{ru ? "Результаты, которые можно проверить" : "Results you can verify"}</h2>
         </div>
-        <p>{ru ? "Показываем стартовую точку, что именно изменили и чем подтвердили финальное состояние." : "We show the starting point, what changed, and how the final state was verified."}</p>
+        <p>{ru ? "Показываем конкретные изменения до и после — без обещаний продаж и нарисованной статистики." : "We show concrete before-and-after changes without sales promises or invented statistics."}</p>
       </header>
 
       <div className="home-case-explorer__switch" role="tablist" aria-label={ru ? "Выбор кейса" : "Choose a case"}>
         {cases.map((study, index) => (
-          <button key={study.slug} type="button" role="tab" aria-selected={active === index} onClick={() => setActive(index)}>
+          <button key={study.slug} type="button" role="tab" aria-selected={active === index} onClick={() => setActive(index)} disabled={!interactive}>
             <span>{String(index + 1).padStart(2, "0")}</span>
-            <Image src={`/case-sites/${study.slug}.ico`} width={42} height={42} alt="" unoptimized />
+            <Image src={`/case-sites/${study.slug}.ico`} width={42} height={42} alt="" unoptimized loading="eager" />
             <strong>{study.domain}</strong>
           </button>
         ))}
@@ -78,7 +150,7 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
 
       <article key={item.slug} className="home-case-explorer__surface" data-case={item.slug}>
         <div className="home-case-explorer__identity">
-          <Image src={logo} width={64} height={64} alt="" unoptimized />
+          <Image src={logo} width={64} height={64} alt="" unoptimized loading="eager" />
           <div>
             <p>{ru ? "Кейс" : "Case"} {String(active + 1).padStart(2, "0")} · {item.period}</p>
             <h3>{item.domain}</h3>
@@ -98,7 +170,7 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
 
           <div className="home-case-explorer__chart-wrap">
             <p>{ru ? "Изменение итоговой шкалы проекта" : "Change in the project score"}</p>
-            <svg key={item.slug} className="home-case-explorer__chart" viewBox="0 0 652 176" role="img" aria-label={resultRows[0][0] + " " + resultRows[0][1]}>
+            <svg key={`${item.slug}-${metricsRun}`} className="home-case-explorer__chart" viewBox="0 0 652 176" role="img" aria-label={`${resultRows[0][0]} ${scoreFrom} → ${scoreTo}`}>
               <defs>
                 <linearGradient id="case-area" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#4668ff" stopOpacity=".24" />
@@ -119,10 +191,17 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
         </div>
 
         <dl className="home-case-explorer__results">
-          {resultRows.map(([label, value], index) => (
+          {resultRows.map(([label, value]) => (
             <div key={label}>
               <dt>{label}</dt>
-              <dd>{index === 0 ? <AnimatedScore key={item.slug} from={scoreFrom} to={scoreTo} /> : value}</dd>
+              <dd>
+                {value === "score" && <AnimatedScore key={`${item.slug}-${metricsRun}-score`} from={scoreFrom} to={scoreTo} enabled={metricsVisible} />}
+                {value === "pages" && <AnimatedMetric key={`${item.slug}-${metricsRun}-pages`} from={0} to={isEco ? 509 : 575} suffix={` / ${isEco ? 509 : 575}`} enabled={metricsVisible} />}
+                {value === "mobilePerformance" && <AnimatedScore key={`${item.slug}-${metricsRun}-mobile-performance`} from={36} to={57} enabled={metricsVisible} />}
+                {value === "performance" && <AnimatedMetric key={`${item.slug}-${metricsRun}-performance`} from={0} to={99} suffix=" / 100" enabled={metricsVisible} />}
+                {value === "cls" && <AnimatedMetric key={`${item.slug}-${metricsRun}-cls`} from={0.519} to={0.0001} enabled={metricsVisible} format={(metric) => Math.abs(metric - 0.0001) < 0.0002 ? (ru ? "0,0001" : "0.0001") : metric.toLocaleString(ru ? "ru-RU" : "en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} />}
+                {value === "images" && <AnimatedScore key={`${item.slug}-${metricsRun}-images`} from={20_314} to={25} enabled={metricsVisible} />}
+              </dd>
             </div>
           ))}
         </dl>

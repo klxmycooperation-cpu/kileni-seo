@@ -316,14 +316,14 @@
 }
 
 .kileni-site .editorial-page .article-body > section > p {
-  color: #303a51;
+  color: var(--article-muted);
   font-family: var(--article-text);
   font-size: clamp(.98rem, 1.08vw, 1.08rem);
   line-height: 1.78;
 }
 
 .article-body ul { margin: 30px 0; padding: 0; list-style: none; }
-.article-body li { position: relative; margin: 13px 0; padding-left: 25px; color: #3f4960; line-height: 1.6; }
+.article-body li { position: relative; margin: 13px 0; padding-left: 25px; color: var(--article-muted); line-height: 1.6; }
 .article-body ul li::before { position: absolute; left: 0; content: "—"; color: var(--article-ink); }
 
 .article-definitions { display: grid; gap: 1px; margin: 36px 0; background: var(--article-line); }
@@ -343,14 +343,14 @@
   margin: 38px 0;
   padding: 25px 27px;
   border-left: 3px solid var(--article-ink);
-  background: #eef0f5;
+  background: var(--article-soft);
 }
 
-.article-callout-warning { background: #f6f3ed; }
+.article-callout-warning { background: color-mix(in srgb, var(--article-soft) 88%, #c38a2b 12%); }
 .article-callout-action { background: var(--article-ink); color: var(--article-paper); }
 .article-callout strong { font-family: var(--article-display); font-size: 1.05rem; }
-.article-callout p { margin: 7px 0 0; color: #3d475d; line-height: 1.55; }
-.kileni-site .editorial-page .article-callout-action p { color: #d9deea; }
+.article-callout p { margin: 7px 0 0; color: var(--article-muted); line-height: 1.55; }
+.kileni-site .editorial-page .article-callout-action p { color: var(--article-paper); }
 
 .article-table-wrap { max-width: 100%; margin: 38px 0; overflow-x: auto; border: 1px solid var(--article-line); }
 .article-table-wrap table { width: 100%; min-width: 640px; border-collapse: collapse; background: var(--article-paper); }

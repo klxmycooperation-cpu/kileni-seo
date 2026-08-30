@@ -1,10 +1,11 @@
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const script = new URL("../../scripts/validate-launch.mjs", import.meta.url);
 
 describe("validate:launch", () => {
-  it("fails a production forms-enabled launch when legal data is incomplete", () => {
+  it("uses verified legal defaults but blocks a launch without security configuration", () => {
     const result = run({
       NODE_ENV: "production",
       FORMS_ENABLED: "true",
@@ -18,8 +19,8 @@ describe("validate:launch", () => {
     });
 
     expect(result.status).not.toBe(0);
-    expect(`${result.stdout}${result.stderr}`).toMatch(/LEGAL_NAME/u);
-    expect(`${result.stdout}${result.stderr}`).toMatch(/LEGAL_POLICY_URL/u);
+    expect(`${result.stdout}${result.stderr}`).toMatch(/APP_BASE_URL/u);
+    expect(`${result.stdout}${result.stderr}`).toMatch(/IP_HASH_SALT/u);
   });
 
   it("allows a production preview with every public form explicitly disabled", () => {
@@ -40,6 +41,8 @@ describe("validate:launch", () => {
     const result = run({
       NODE_ENV: "production",
       FORMS_ENABLED: "true",
+      APP_BASE_URL: "https://example.com",
+      IP_HASH_SALT: "i".repeat(32),
       LEGAL_NAME: "ИП Тест",
       LEGAL_ADDRESS: "Москва",
       LEGAL_EMAIL: "legal@example.com",
@@ -51,6 +54,8 @@ describe("validate:launch", () => {
       DATABASE_PATH: "./data/kileni.sqlite",
       PRIVATE_UPLOADS_PATH: "./data/uploads",
       AUDIT_RESULT_RETENTION_DAYS: "90",
+      TURNSTILE_SITE_KEY: "site-key",
+      TURNSTILE_SECRET_KEY: "secret-key",
     });
 
     expect(result.status).toBe(0);
@@ -62,6 +67,8 @@ describe("validate:launch", () => {
       NODE_ENV: "production",
       VERCEL: "1",
       FORMS_ENABLED: "true",
+      APP_BASE_URL: "https://example.com",
+      IP_HASH_SALT: "i".repeat(32),
       LEGAL_NAME: "ИП Тест",
       LEGAL_ADDRESS: "Москва",
       LEGAL_EMAIL: "legal@example.com",
@@ -70,9 +77,11 @@ describe("validate:launch", () => {
       LEGAL_POLICY_URL: "https://example.com/privacy",
       LEGAL_CONSENT_URL: "https://example.com/consent",
       PUBLIC_EMAIL: "hello@example.com",
-      DATABASE_PATH: "/tmp/kileni.sqlite",
-      PRIVATE_UPLOADS_PATH: "/tmp/uploads",
+      TURSO_DATABASE_URL: "libsql://example.turso.io",
+      TURSO_AUTH_TOKEN: "token",
       AUDIT_RESULT_RETENTION_DAYS: "90",
+      TURNSTILE_SITE_KEY: "site-key",
+      TURNSTILE_SECRET_KEY: "secret-key",
     };
 
     const missing = run({ ...base, AUDIT_RESTORE_SECRET: "" });
@@ -107,9 +116,16 @@ function run(overrides: NodeJS.ProcessEnv) {
     PRIVATE_UPLOADS_PATH: "",
     AUDIT_RESULT_RETENTION_DAYS: "",
     AUDIT_RESTORE_SECRET: "",
+    APP_BASE_URL: "",
+    IP_HASH_SALT: "",
+    LEGAL_OGRNIP: "",
+    TURNSTILE_SITE_KEY: "",
+    TURNSTILE_SECRET_KEY: "",
+    TURSO_DATABASE_URL: "",
+    TURSO_AUTH_TOKEN: "",
     VERCEL: "",
   };
-  return spawnSync(process.execPath, [script.pathname], {
+  return spawnSync(process.execPath, [fileURLToPath(script)], {
     cwd: process.cwd(),
     encoding: "utf8",
     env: { ...process.env, ...cleared, ...overrides },

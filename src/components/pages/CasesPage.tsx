@@ -21,7 +21,7 @@ export function CasesPage({ locale }: { locale: Locale }) {
           <Breadcrumbs locale={locale} items={[{ label: ru ? "Кейсы" : "Cases" }]} />
           <div className="shell cp-cases-title">
             <p className="cp-kicker">{ru ? "Реальные работы" : "Real client work"}</p>
-            <h1>{ru ? "Что было не так — и что изменилось после работы" : "What was wrong — and what changed after the work"}</h1>
+            <h1>{ru ? "Задача, изменения и результат повторной проверки" : "The task, the changes and the verified result"}</h1>
             <p>{ru ? "Без обещаний позиций. Показываем задачу клиента, конкретные изменения и цифры повторной проверки." : "No ranking promises. Each story shows the client task, the actual changes and the follow-up numbers."}</p>
           </div>
         </header>
@@ -261,7 +261,7 @@ function caseFindings(item: NonNullable<ReturnType<typeof getCase>>, locale: Loc
     return locale === "ru"
       ? [
           "В общих шаблонах были системные пропуски основных данных страниц",
-          "Мобильный лабораторный тест главной страницы показывал 36 баллов",
+          "Автоматический тест скорости главной страницы на телефоне показывал 36 баллов",
         ]
       : [
           "Shared page templates were missing core page data",
@@ -273,7 +273,7 @@ function caseFindings(item: NonNullable<ReturnType<typeof getCase>>, locale: Loc
     return locale === "ru"
       ? [
           "Главный экран заметно сдвигался при загрузке: 0,519",
-          "В исходном обходе данные JSON-LD отсутствовали на 606 из 606 страниц",
+          "В исходной проверке на всех 606 страницах не было дополнительных данных для поисковых систем",
           "20 314 изображений загружались без заданных размеров",
         ]
       : [

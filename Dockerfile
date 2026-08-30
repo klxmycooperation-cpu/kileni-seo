@@ -18,6 +18,8 @@ COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm-prod,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 FROM dependencies AS builder
+ARG PRELAUNCH_MODE=false
+ENV PRELAUNCH_MODE=${PRELAUNCH_MODE}
 RUN apt-get update \
   && apt-get install -y --no-install-recommends fonts-dejavu-core \
   && rm -rf /var/lib/apt/lists/*
@@ -52,7 +54,8 @@ COPY --from=builder --chown=node:node /app/runtime ./runtime
 COPY --from=builder --chown=node:node /app/scripts/docker-entrypoint.mjs ./scripts/docker-entrypoint.mjs
 COPY --from=builder --chown=node:node /app/scripts/backup.mjs ./scripts/backup.mjs
 COPY --from=builder --chown=node:node /app/scripts/restore.mjs ./scripts/restore.mjs
-COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules-full
+RUN rm -rf ./node_modules && mv ./node_modules-full ./node_modules
 RUN mkdir -p /data/uploads /data/backups && chown -R node:node /data
 USER node
 EXPOSE 3000

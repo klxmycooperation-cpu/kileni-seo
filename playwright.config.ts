@@ -4,9 +4,11 @@ import { resolve } from "node:path";
 
 const port = Number(process.env.E2E_PORT ?? 3_107);
 const runId = process.env.E2E_RUN_ID ?? `${Date.now()}-${process.pid}`;
+const externalServer = process.env.E2E_EXTERNAL_SERVER === "1";
+const testHost = externalServer ? "localhost" : "127.0.0.1";
 process.env.E2E_RUN_ID = runId;
 process.env.E2E_PORT = String(port);
-process.env.APP_BASE_URL = `http://127.0.0.1:${port}`;
+process.env.APP_BASE_URL = `http://${testHost}:${port}`;
 process.env.DATABASE_PATH ??= resolve(process.cwd(), `tmp/e2e/kileni-${runId}.sqlite`);
 process.env.PRIVATE_UPLOADS_PATH ??= resolve(process.cwd(), `tmp/e2e/uploads-${runId}`);
 process.env.IP_HASH_SALT = "e2e-ip-hash-salt-at-least-thirty-two-characters";
@@ -20,6 +22,10 @@ process.env.TELEGRAM_CHAT_ID = "";
 process.env.SMTP_HOST = "";
 process.env.TURNSTILE_SITE_KEY = "";
 process.env.TURNSTILE_SECRET_KEY = "";
+// Next loads .env.local for the child server. Explicit blanks keep E2E
+// fixtures on their per-run SQLite file instead of ever touching Turso.
+process.env.TURSO_DATABASE_URL = "";
+process.env.TURSO_AUTH_TOKEN = "";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -31,7 +37,7 @@ export default defineConfig({
   workers: 1,
   reporter: "line",
   use: {
-    baseURL: `http://127.0.0.1:${port}`,
+    baseURL: `http://${testHost}:${port}`,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -42,10 +48,10 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
+  webServer: externalServer ? undefined : {
     command: "pnpm exec tsx scripts/e2e-server.ts",
     url: `http://127.0.0.1:${port}`,
-    reuseExistingServer: false,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
 });

@@ -7,12 +7,18 @@ import type {
   AuditIssueSeverity,
   CategoryScore,
   FullAuditResult,
+  PageAnalysis,
   PerformanceAuditInput,
   PublicAuditCategory,
+  PublicAuditIndexability,
+  PublicAuditIssueGroup,
+  PublicAuditPageResult,
   PublicAuditResult,
   PublicAuditRisk,
+  PublicAuditSummary,
 } from "./types";
 import { normalizeTargetUrl } from "./url";
+import { AUDIT_RESULT_VERSION } from "./version";
 
 export interface RunAuditOptions extends CrawlSiteOptions {
   /** Injectable clock keeps integration snapshots stable. */
@@ -29,12 +35,18 @@ const SEVERITY_ORDER: Readonly<Record<AuditIssueSeverity, number>> = {
   info: 4,
 };
 
+const PUBLIC_AUDIT_PAGE_LIMIT = 10;
+const PUBLIC_UNCHECKED_URL_LIMIT = 25;
+const PUBLIC_ISSUE_GROUP_LIMIT = 20;
+const PUBLIC_AFFECTED_URL_LIMIT = 10;
+const PUBLIC_EVIDENCE_LIMIT = 5;
+
 type PublicAuditLocale = "ru" | "en";
 
 const PUBLIC_CATEGORY_NAMES: Readonly<Record<PublicAuditLocale, Readonly<Record<AuditCategory, string>>>> = {
   ru: {
     technicalIndexing: "Техническая доступность и индексация",
-    structureOnPage: "Структура и on-page",
+    structureOnPage: "Содержание и структура страницы",
     performanceMobile: "Скорость и мобильная версия",
     trustStructuredData: "Доверие и структурированные данные",
     contentImages: "Контент и изображения",
@@ -57,11 +69,13 @@ export async function runAudit(
   const startedAt = now().toISOString();
   await options.onEvent?.({ type: "audit:start" });
 
-  const crawl = await crawlSite(target, options);
+  const plannedPages = normalizePageLimit(options.maxPages);
+  const crawl = await crawlSite(target, { ...options, maxPages: plannedPages });
   const measuredScore = scoreAudit({
     targetUrl: crawl.finalUrl,
     pages: crawl.pages,
     pagesDiscovered: crawl.pagesDiscovered,
+    plannedPages,
     robots: crawl.robots,
     sitemap: crawl.sitemap,
     performance: options.performance,
@@ -76,8 +90,10 @@ export async function runAudit(
   const interpretation = interpretationForGrade(grade);
   const finishedAt = now().toISOString();
   const result: FullAuditResult = {
+    resultVersion: AUDIT_RESULT_VERSION,
     targetUrl: crawl.targetUrl,
     finalUrl: crawl.finalUrl,
+    pageLimit: plannedPages,
     score,
     grade,
     interpretation,
@@ -87,6 +103,7 @@ export async function runAudit(
     coverage: score.coverage,
     issueCounts,
     pages: crawl.pages,
+    discoveredUrls: crawl.discoveredUrls,
     issues,
     robots: crawl.robots,
     sitemap: crawl.sitemap,
@@ -105,16 +122,43 @@ export async function runAudit(
   return result;
 }
 
-/** Produces the deliberately redacted DTO allowed outside the paid audit. */
+function normalizePageLimit(value: number | undefined): number {
+  if (value === undefined || !Number.isFinite(value)) return PUBLIC_AUDIT_PAGE_LIMIT;
+  return Math.max(1, Math.min(PUBLIC_AUDIT_PAGE_LIMIT, Math.floor(value)));
+}
+
+/** Produces a bounded, query-free evidence DTO allowed outside the paid audit. */
 export function toPublicAuditResult(result: FullAuditResult, locale: PublicAuditLocale = "ru"): PublicAuditResult {
+  const plannedPages = Math.min(result.pageLimit, Math.max(result.pagesDiscovered, result.pagesChecked));
+  const coverageRatio = plannedPages === 0 ? 0 : roundRatio(result.pagesChecked / plannedPages);
+  const checkedPages = publicCheckedPages(result, locale);
+  const indexability = publicIndexability(result.pages, locale);
+  const issueCounts = {
+    ...result.issueCounts,
+    total: Object.values(result.issueCounts).reduce((sum, count) => sum + count, 0),
+  };
   return {
+    resultVersion: result.resultVersion,
+    finalUrl: publicUrl(result.finalUrl),
     score: result.score.total,
     grade: result.grade,
     interpretation: interpretationForGrade(result.grade, locale),
     pagesChecked: result.pagesChecked,
     pagesDiscovered: result.pagesDiscovered,
     partial: result.partial,
+    coverage: {
+      pageLimit: result.pageLimit,
+      plannedPages,
+      checkedPages: result.pagesChecked,
+      ratio: coverageRatio,
+    },
+    issueCounts,
+    summary: publicSummary(result, indexability, issueCounts.total, locale),
     categories: Object.values(result.score.categories).map((category) => publicCategory(category, locale)),
+    issueGroups: publicIssueGroups(result.issues, locale),
+    checkedPages,
+    indexability,
+    uncheckedUrls: publicUncheckedUrls(result),
   };
 }
 
@@ -131,14 +175,14 @@ export function interpretationForGrade(grade: AuditGrade, locale: PublicAuditLoc
     ru: {
       A: "Сильное техническое состояние",
       B: "Хорошее состояние, нужны точечные улучшения",
-      C: "Сайт требует системной доработки",
+      C: "В проверенной выборке есть заметные задачи",
       D: "Высокий SEO-риск",
       E: "Критическое состояние",
     },
     en: {
       A: "Strong technical condition",
       B: "Good condition with targeted improvements needed",
-      C: "The website needs systematic improvement",
+      C: "The checked sample contains notable tasks",
       D: "High SEO risk",
       E: "Critical condition",
     },
@@ -148,15 +192,24 @@ export function interpretationForGrade(grade: AuditGrade, locale: PublicAuditLoc
 
 function publicCategory(category: CategoryScore, locale: PublicAuditLocale): PublicAuditCategory {
   const risk = publicRisk(category);
+  const status = risk === "not_checked" ? "not_checked" : "checked";
+  const reason = status === "not_checked" ? notCheckedReason(category, locale) : undefined;
   return {
     name: PUBLIC_CATEGORY_NAMES[locale][category.category],
     risk,
-    explanation: publicExplanation(risk, locale),
+    status,
+    explanation: reason ?? publicExplanation(risk, locale),
+    ...(reason ? { reason } : {}),
   };
 }
 
 function publicRisk(category: CategoryScore): PublicAuditRisk {
-  if (category.coverage < 0.25) return "unknown";
+  const totalWeight = category.checks.reduce((sum, check) => sum + check.weight, 0);
+  const observedWeight = category.checks.reduce(
+    (sum, check) => sum + (check.applicable ? check.weight : 0),
+    0,
+  );
+  if (totalWeight === 0 || observedWeight / totalWeight < 0.25) return "not_checked";
   const ratio = category.maxScore === 0 ? 0 : category.score / category.maxScore;
   if (ratio >= 0.8) return "low";
   if (ratio >= 0.55) return "medium";
@@ -169,16 +222,225 @@ function publicExplanation(risk: PublicAuditRisk, locale: PublicAuditLocale): st
       low: "Базовые публичные сигналы выглядят устойчиво.",
       medium: "Есть общие зоны риска для расширенной проверки.",
       high: "Направление требует приоритетной углублённой проверки.",
-      unknown: "Публичных данных недостаточно для уверенного вывода.",
+      not_checked: "Проверка не выполнена: доступных измерений недостаточно.",
     },
     en: {
       low: "The basic public signals appear stable.",
       medium: "This area contains broader risks that need a deeper review.",
       high: "This area needs a priority in-depth review.",
-      unknown: "There is not enough public evidence for a confident conclusion.",
+      not_checked: "Not checked: there are not enough available measurements.",
     },
   };
   return explanations[locale][risk];
+}
+
+function notCheckedReason(category: CategoryScore, locale: PublicAuditLocale): string {
+  const unavailable = category.checks.filter((check) => !check.applicable).map((check) => check.label);
+  if (unavailable.length === 0) return publicExplanation("not_checked", locale);
+  const labels = unavailable.slice(0, 4).join(", ");
+  return locale === "ru"
+    ? `Не проверено без внешних измерений: ${labels}.`
+    : `Not checked without external measurements: ${labels}.`;
+}
+
+function publicCheckedPages(result: FullAuditResult, locale: PublicAuditLocale): PublicAuditPageResult[] {
+  const sitemapUrls = new Set(result.sitemap.urls.map(publicUrl));
+  const incoming = new Map<string, number>();
+  for (const source of result.pages) {
+    const targets = new Set(source.links.internalUrls.map(publicUrl));
+    for (const target of targets) incoming.set(target, (incoming.get(target) ?? 0) + 1);
+  }
+  const sitemapUnavailableReason = locale === "ru"
+    ? "XML sitemap не найдена или не была прочитана."
+    : "The XML sitemap was not found or could not be read.";
+  return result.pages.slice(0, PUBLIC_AUDIT_PAGE_LIMIT).map((page) => {
+    const requestedUrl = publicUrl(page.transport?.requestedUrl ?? page.url);
+    const finalUrl = publicUrl(page.transport?.finalUrl ?? page.url);
+    const sitemap = result.sitemap.status === "found"
+      ? { status: "checked" as const, included: sitemapUrls.has(finalUrl) || sitemapUrls.has(requestedUrl) }
+      : { status: "not_checked" as const, included: null, reason: sitemapUnavailableReason };
+    return {
+      url: requestedUrl,
+      finalUrl,
+      http: {
+        status: page.status,
+        ok: page.status >= 200 && page.status < 300,
+        redirectCount: page.transport?.redirects.length ?? 0,
+      },
+      title: publicTextSignal(page.title),
+      description: publicTextSignal(page.description),
+      h1: { count: page.h1.count, values: page.h1.values.slice(0, 5).map(publicEvidenceText) },
+      noindex: page.indexing.noindex,
+      canonical: {
+        url: page.canonical.valid && page.canonical.url ? publicUrl(page.canonical.url) : null,
+        valid: page.canonical.valid,
+        selfReferential: page.canonical.selfReferential,
+      },
+      sitemap,
+      internalLinks: {
+        outgoing: page.links.internalCount,
+        incomingFromCheckedPages: incoming.get(finalUrl) ?? incoming.get(requestedUrl) ?? 0,
+      },
+    };
+  });
+}
+
+function publicTextSignal(signal: PageAnalysis["title"]): PublicAuditPageResult["title"] {
+  return {
+    value: signal.value === null ? null : publicEvidenceText(signal.value),
+    present: signal.present,
+    length: signal.length,
+    optimal: signal.optimal,
+  };
+}
+
+function publicIndexability(
+  pages: readonly PageAnalysis[],
+  locale: PublicAuditLocale,
+): PublicAuditIndexability {
+  if (pages.length === 0) {
+    return {
+      status: "not_checked",
+      checkedPages: 0,
+      indexablePages: 0,
+      noindexPages: 0,
+      httpErrorPages: 0,
+      ratio: null,
+      reason: locale === "ru"
+        ? "Не удалось загрузить ни одной HTML-страницы."
+        : "No HTML page could be loaded.",
+    };
+  }
+  const indexablePages = pages.filter(
+    (page) => page.status >= 200 && page.status < 300 && !page.indexing.noindex,
+  ).length;
+  return {
+    status: "checked",
+    checkedPages: pages.length,
+    indexablePages,
+    noindexPages: pages.filter((page) => page.indexing.noindex).length,
+    httpErrorPages: pages.filter((page) => page.status >= 400).length,
+    ratio: roundRatio(indexablePages / pages.length),
+  };
+}
+
+function publicSummary(
+  result: FullAuditResult,
+  indexability: PublicAuditIndexability,
+  totalIssues: number,
+  locale: PublicAuditLocale,
+): PublicAuditSummary {
+  const highPriority = result.issueCounts.critical + result.issueCounts.high;
+  const headline = locale === "ru"
+    ? highPriority > 0
+      ? `В выборке найдено приоритетных проблем: ${highPriority}`
+      : totalIssues > 0
+        ? `В выборке найдено замечаний: ${totalIssues}`
+        : "В проверенной выборке явных проблем не найдено"
+    : highPriority > 0
+      ? `Priority issues found in the sample: ${highPriority}`
+      : totalIssues > 0
+        ? `Issues found in the sample: ${totalIssues}`
+        : "No evident issues were found in the checked sample";
+  const facts = locale === "ru"
+    ? [
+        `Проверено страниц: ${result.pagesChecked}; всего обнаружено URL: ${result.pagesDiscovered}.`,
+        indexability.status === "checked"
+          ? `Индексируемы в выборке: ${indexability.indexablePages} из ${indexability.checkedPages}; noindex: ${indexability.noindexPages}; HTTP-ошибок: ${indexability.httpErrorPages}.`
+          : indexability.reason,
+        `Проблемы по важности: critical ${result.issueCounts.critical}, high ${result.issueCounts.high}, medium ${result.issueCounts.medium}, low ${result.issueCounts.low}.`,
+      ]
+    : [
+        `Pages checked: ${result.pagesChecked}; URLs discovered: ${result.pagesDiscovered}.`,
+        indexability.status === "checked"
+          ? `Indexable in the sample: ${indexability.indexablePages} of ${indexability.checkedPages}; noindex: ${indexability.noindexPages}; HTTP errors: ${indexability.httpErrorPages}.`
+          : indexability.reason,
+        `Issues by severity: critical ${result.issueCounts.critical}, high ${result.issueCounts.high}, medium ${result.issueCounts.medium}, low ${result.issueCounts.low}.`,
+      ];
+  return { headline, facts };
+}
+
+function publicIssueGroups(
+  issues: readonly AuditIssue[],
+  locale: PublicAuditLocale,
+): PublicAuditIssueGroup[] {
+  const grouped = new Map<string, AuditIssue[]>();
+  for (const issue of issues) {
+    const group = grouped.get(issue.code) ?? [];
+    group.push(issue);
+    grouped.set(issue.code, group);
+  }
+  return [...grouped.values()].slice(0, PUBLIC_ISSUE_GROUP_LIMIT).map((group) => {
+    const first = group[0] as AuditIssue;
+    const affectedUrls = [...new Set(group.flatMap((issue) => issue.url ? [publicUrl(issue.url)] : []))];
+    return {
+      code: first.code,
+      category: first.category,
+      severity: group.reduce(
+        (highest, issue) => SEVERITY_ORDER[issue.severity] < SEVERITY_ORDER[highest] ? issue.severity : highest,
+        first.severity,
+      ),
+      title: publicEvidenceText(first.title),
+      why: publicEvidenceText(first.description),
+      fix: publicEvidenceText(first.recommendation),
+      acceptance: locale === "ru"
+        ? `Повторная проверка не находит проблему «${first.title}» на затронутых URL.`
+        : `A repeat check no longer finds “${first.title}” on the affected URLs.`,
+      affectedCount: affectedUrls.length,
+      affectedUrls: affectedUrls.slice(0, PUBLIC_AFFECTED_URL_LIMIT),
+      evidence: group.slice(0, PUBLIC_EVIDENCE_LIMIT).map((issue) => ({
+        ...(issue.url ? { url: publicUrl(issue.url) } : {}),
+        observation: publicEvidenceText(issue.description),
+      })),
+    };
+  });
+}
+
+function publicUncheckedUrls(result: FullAuditResult): string[] {
+  const checked = new Set(result.pages.flatMap((page) => [
+    publicUrl(page.url),
+    publicUrl(page.transport?.requestedUrl ?? page.url),
+    publicUrl(page.transport?.finalUrl ?? page.url),
+  ]));
+  const output: string[] = [];
+  const seen = new Set<string>();
+  for (const rawUrl of result.discoveredUrls) {
+    const url = publicUrl(rawUrl);
+    if (checked.has(url) || seen.has(url)) continue;
+    seen.add(url);
+    output.push(url);
+    if (output.length >= PUBLIC_UNCHECKED_URL_LIMIT) break;
+  }
+  return output;
+}
+
+function publicUrl(value: string): string {
+  const url = new URL(value);
+  url.username = "";
+  url.password = "";
+  url.search = "";
+  url.hash = "";
+  return url.href;
+}
+
+function publicEvidenceText(value: string): string {
+  const withoutUrlQueries = value.replace(/https?:\/\/[^\s<>"']+/giu, (match) => {
+    const suffix = match.match(/[),.;:!?]+$/u)?.[0] ?? "";
+    const rawUrl = suffix ? match.slice(0, -suffix.length) : match;
+    try {
+      return `${publicUrl(rawUrl)}${suffix}`;
+    } catch {
+      return `[URL скрыт]${suffix}`;
+    }
+  });
+  return withoutUrlQueries.replace(
+    /[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.[\p{L}]{2,}/giu,
+    "[e-mail скрыт]",
+  );
+}
+
+function roundRatio(value: number): number {
+  return Math.round(Math.max(0, Math.min(1, value)) * 10_000) / 10_000;
 }
 
 function siteIssues(crawl: Awaited<ReturnType<typeof crawlSite>>): readonly AuditIssue[] {

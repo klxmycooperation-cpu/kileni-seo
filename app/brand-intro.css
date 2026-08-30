@@ -956,3 +956,345 @@ html[data-kileni-intro="repeat"] .brand-intro__slogan { opacity: 1; transform: t
     transform: none !important;
   }
 }
+
+/* v4 — one typographic motion scene. This deliberately replaces the legacy
+   scan, glyph and per-span animations above without affecting the hero. */
+html[data-kileni-theme="light"] {
+  --intro-surface: #f7f8fb;
+  --intro-ink: #0b132b;
+  --intro-muted: #596179;
+  --intro-accent: #4164ff;
+  --intro-floor: #aeb8ca;
+}
+
+html[data-kileni-theme="dark"] {
+  --intro-surface: #07111f;
+  --intro-ink: #f7f8fc;
+  --intro-muted: #aab6c7;
+  --intro-accent: #6f8dff;
+  --intro-floor: #41506a;
+}
+
+html[data-kileni-theme="signal"] {
+  --intro-surface: #070b18;
+  --intro-ink: #f5f7ff;
+  --intro-muted: #a9b5cd;
+  --intro-accent: #6e8bff;
+  --intro-floor: #3d4c70;
+}
+
+.brand-intro {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: none;
+  min-height: 100dvh;
+  overflow: clip;
+  place-items: center;
+  background: var(--intro-surface);
+  color: var(--intro-ink);
+  isolation: isolate;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.brand-intro::before { display: none; }
+
+html[data-kileni-intro="play"] .brand-intro {
+  display: grid;
+  animation: kileni-intro-reveal 450ms 4750ms cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+html[data-kileni-intro="pending"] .brand-intro {
+  display: grid;
+}
+
+html[data-kileni-intro="reduced"] .brand-intro {
+  display: grid;
+  animation: kileni-intro-reveal-reduced 200ms 500ms cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+html[data-kileni-intro="finishing"] .brand-intro {
+  display: grid;
+  animation: kileni-intro-controlled-exit 260ms cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+.brand-intro__scene {
+  position: relative;
+  z-index: 1;
+  width: min(86vw, 860px);
+  height: auto;
+  overflow: visible;
+}
+
+.brand-intro__scene text {
+  fill: var(--intro-ink);
+  font-family: var(--font-manrope), Arial, sans-serif;
+  font-size: 250px;
+  font-weight: 700;
+  letter-spacing: -20px;
+  line-height: 1;
+  text-rendering: geometricPrecision;
+}
+
+.brand-intro__initial,
+.brand-intro__letter-stage,
+.brand-intro__floor { opacity: 0; }
+
+/* Reset the old HTML intro positioning. The new scene is entirely SVG. */
+.brand-intro__slogan {
+  position: static;
+  top: auto;
+  left: auto;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: normal;
+  line-height: 1;
+  opacity: 1;
+  text-transform: none;
+  transform: none;
+  white-space: normal;
+  animation: none;
+}
+
+.brand-intro__initial,
+.brand-intro__letter-stage,
+.brand-intro__kil,
+.brand-intro__ni,
+.brand-intro__s,
+.brand-intro__e,
+.brand-intro__o,
+.brand-intro__seo-lock,
+.brand-intro__slogan-first,
+.brand-intro__slogan-second {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.brand-intro__s,
+.brand-intro__o { opacity: 0; }
+
+.brand-intro__slogan text {
+  font-size: 37px;
+  font-weight: 600;
+  letter-spacing: -1.65px;
+  text-anchor: middle;
+}
+
+.brand-intro__slogan-first text { fill: var(--intro-muted); }
+.brand-intro__slogan-second text { fill: var(--intro-accent); }
+.brand-intro__slogan-first,
+.brand-intro__slogan-second { clip-path: inset(100% 0 0); opacity: 0; }
+
+.brand-intro__floor {
+  stroke: var(--intro-floor);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+html[data-kileni-intro="play"] .brand-intro__initial {
+  animation: kileni-intro-full-in 950ms cubic-bezier(.22, 1, .36, 1) both,
+    kileni-intro-full-out 180ms 950ms cubic-bezier(.4, 0, 1, 1) forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__letter-stage {
+  animation: kileni-intro-stage-in 1ms 950ms linear forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__floor {
+  animation: kileni-intro-floor-in 260ms 1180ms ease-out forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__kil {
+  animation: kileni-intro-fall-left 800ms 1250ms cubic-bezier(.32, 0, .82, .48) forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__ni {
+  animation: kileni-intro-fall-right 630ms 1420ms cubic-bezier(.32, 0, .82, .48) forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__e {
+  animation: kileni-intro-e-accent 550ms 2050ms ease-out forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__s {
+  animation: kileni-intro-s-in 650ms 2600ms cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__o {
+  animation: kileni-intro-o-roll 770ms 2780ms cubic-bezier(.16, .78, .2, 1) forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__seo-lock {
+  animation: kileni-intro-lock 300ms 3550ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+html[data-kileni-intro="play"] .brand-intro__slogan-first {
+  animation: kileni-intro-slogan-up 450ms 3850ms cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+html[data-kileni-intro="play"] .brand-intro__slogan-second {
+  animation: kileni-intro-slogan-up 450ms 4050ms cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+html[data-kileni-intro="reduced"] .brand-intro__initial {
+  animation: kileni-intro-reduced-full 300ms ease-out both;
+}
+
+html[data-kileni-intro="reduced"] .brand-intro__letter-stage {
+  animation: kileni-intro-stage-in 1ms 180ms linear forwards;
+}
+
+html[data-kileni-intro="reduced"] .brand-intro__kil,
+html[data-kileni-intro="reduced"] .brand-intro__ni { opacity: 0; }
+
+html[data-kileni-intro="reduced"] .brand-intro__s,
+html[data-kileni-intro="reduced"] .brand-intro__e,
+html[data-kileni-intro="reduced"] .brand-intro__o {
+  opacity: 1;
+  transform: none;
+}
+
+html[data-kileni-intro="reduced"] .brand-intro__e text { fill: var(--intro-accent); }
+html[data-kileni-intro="reduced"] .brand-intro__slogan-first { animation: kileni-intro-slogan-up 180ms 330ms ease-out forwards; }
+html[data-kileni-intro="reduced"] .brand-intro__slogan-second { animation: kileni-intro-slogan-up 180ms 410ms ease-out forwards; }
+
+html[data-kileni-intro="finishing"] .brand-intro__initial,
+html[data-kileni-intro="finishing"] .brand-intro__kil,
+html[data-kileni-intro="finishing"] .brand-intro__ni,
+html[data-kileni-intro="finishing"] .brand-intro__floor { animation: none; opacity: 0; }
+
+html[data-kileni-intro="finishing"] .brand-intro__letter-stage { animation: none; opacity: 1; }
+html[data-kileni-intro="finishing"] .brand-intro__s,
+html[data-kileni-intro="finishing"] .brand-intro__e,
+html[data-kileni-intro="finishing"] .brand-intro__o {
+  animation: none;
+  opacity: 1;
+  transform: none;
+  transition: opacity 160ms ease-out, transform 200ms ease-out;
+}
+html[data-kileni-intro="finishing"] .brand-intro__e text { fill: var(--intro-accent); }
+html[data-kileni-intro="finishing"] .brand-intro__slogan-first,
+html[data-kileni-intro="finishing"] .brand-intro__slogan-second {
+  animation: none;
+  clip-path: inset(0);
+  opacity: 1;
+  transform: none;
+  transition: opacity 160ms ease-out, transform 200ms ease-out;
+}
+
+@keyframes kileni-intro-full-in {
+  from { opacity: 0; transform: scale(.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes kileni-intro-full-out { to { opacity: 0; } }
+@keyframes kileni-intro-stage-in { to { opacity: 1; } }
+@keyframes kileni-intro-floor-in { to { opacity: .24; } }
+
+@keyframes kileni-intro-fall-left {
+  0% { opacity: 1; transform: translateY(0) rotate(0); }
+  22% { transform: translateY(11px) rotate(-.15deg); }
+  91% { opacity: 1; transform: translateY(37px) rotate(-1.5deg); }
+  94%, 100% { opacity: 0; transform: translateY(170px) rotate(-1.5deg); }
+}
+
+@keyframes kileni-intro-fall-right {
+  0% { opacity: 1; transform: translateY(0) rotate(0); }
+  20% { transform: translateY(10px) rotate(.12deg); }
+  91% { opacity: 1; transform: translateY(37px) rotate(1deg); }
+  94%, 100% { opacity: 0; transform: translateY(170px) rotate(1deg); }
+}
+
+@keyframes kileni-intro-e-accent { to { opacity: 1; } }
+@keyframes kileni-intro-e-accent-fill { to { fill: var(--intro-accent); } }
+.brand-intro__e text { fill: var(--intro-ink); }
+html[data-kileni-intro="play"] .brand-intro__e text {
+  animation: kileni-intro-e-accent-fill 550ms 2050ms ease-out forwards;
+}
+html[data-kileni-intro="reduced"] .brand-intro__e text,
+html[data-kileni-intro="finishing"] .brand-intro__e text { animation: none; }
+
+@keyframes kileni-intro-s-in {
+  from { opacity: 0; transform: translateX(-80px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes kileni-intro-o-roll {
+  from { opacity: 0; transform: translateX(240px) rotate(-220deg); }
+  90% { opacity: 1; transform: translateX(-2px) rotate(2deg); }
+  to { opacity: 1; transform: translateX(0) rotate(0); }
+}
+
+@keyframes kileni-intro-lock {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+
+@keyframes kileni-intro-slogan-up {
+  from { clip-path: inset(100% 0 0); opacity: 0; transform: translateY(14px); }
+  to { clip-path: inset(0); opacity: 1; transform: translateY(0); }
+}
+
+@keyframes kileni-intro-reduced-full {
+  0%, 58% { opacity: 0; transform: scale(.985); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+@keyframes kileni-intro-reveal {
+  0%, 55% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(-100%); }
+}
+
+@keyframes kileni-intro-reveal-reduced { to { transform: translateY(-100%); } }
+@keyframes kileni-intro-controlled-exit {
+  0%, 52% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(-100%); }
+}
+
+@media (max-width: 620px) {
+  .brand-intro__scene { width: min(86vw, 440px); }
+  .brand-intro__scene text { font-size: 250px; }
+  .brand-intro__slogan text { font-size: 43px; letter-spacing: -1.3px; }
+
+  html[data-kileni-intro="play"] .brand-intro__kil { animation-name: kileni-intro-fall-left-mobile; }
+  html[data-kileni-intro="play"] .brand-intro__ni { animation-name: kileni-intro-fall-right-mobile; }
+  html[data-kileni-intro="play"] .brand-intro__s { animation-name: kileni-intro-s-in-mobile; }
+  html[data-kileni-intro="play"] .brand-intro__o { animation-name: kileni-intro-o-roll-mobile; }
+}
+
+@keyframes kileni-intro-fall-left-mobile {
+  0% { opacity: 1; transform: translateY(0) rotate(0); }
+  22% { transform: translateY(7px) rotate(-.15deg); }
+  91% { opacity: 1; transform: translateY(24px) rotate(-1.5deg); }
+  94%, 100% { opacity: 0; transform: translateY(96px) rotate(-1.5deg); }
+}
+
+@keyframes kileni-intro-fall-right-mobile {
+  0% { opacity: 1; transform: translateY(0) rotate(0); }
+  20% { transform: translateY(6px) rotate(.12deg); }
+  91% { opacity: 1; transform: translateY(24px) rotate(1deg); }
+  94%, 100% { opacity: 0; transform: translateY(94px) rotate(1deg); }
+}
+
+@keyframes kileni-intro-s-in-mobile {
+  from { opacity: 0; transform: translateX(-80px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes kileni-intro-o-roll-mobile {
+  from { opacity: 0; transform: translateX(170px) rotate(-180deg); }
+  90% { opacity: 1; transform: translateX(-2px) rotate(2deg); }
+  to { opacity: 1; transform: translateX(0) rotate(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-kileni-intro="reduced"] .brand-intro { display: grid !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-kileni-intro="reduced"] .brand-intro { display: grid !important; }
+}

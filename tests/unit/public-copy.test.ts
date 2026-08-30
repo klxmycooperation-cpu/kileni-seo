@@ -28,8 +28,8 @@ describe("public copy", () => {
 
     expect(eco?.previewFacts.slice(0, 3)).toEqual([
       { value: "509/509", label: "страниц открылись без ошибки" },
-      { value: "36 → 57", label: "мобильный лабораторный тест Lighthouse" },
-      { value: "99/100", label: "десктопный лабораторный тест Lighthouse" },
+      { value: "36 → 57", label: "автоматический тест скорости на телефоне (Lighthouse)" },
+      { value: "99/100", label: "автоматический тест скорости на компьютере (Lighthouse)" },
     ]);
     expect(eco?.previewFacts.at(-1)).toEqual({ value: "35 → 93", label: "внутренняя шкала проекта" });
     expect(eco?.evidence.find((row) => row.metric.includes("чек-листу"))).toMatchObject({

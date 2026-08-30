@@ -3,25 +3,25 @@ import { describe, expect, it } from "vitest";
 import { calculateEstimate } from "../../src/config/calculator";
 
 describe("calculateEstimate", () => {
-  it("switches audit tiers at the published 30 and 200-page boundaries", () => {
-    expect(calculateEstimate("audit", { pages: 30 })).toEqual({
-      min: 6_900,
-      max: 8_000,
-      factors: ["сайт до 30 страниц"],
+  it("switches audit tiers at the published 50 and 200-page boundaries", () => {
+    expect(calculateEstimate("audit", { pages: 50 })).toEqual({
+      min: 24_900,
+      max: 29_000,
+      factors: ["сайт до 50 страниц"],
     });
-    expect(calculateEstimate("audit", { pages: 31 })).toEqual({
-      min: 19_900,
-      max: 23_000,
+    expect(calculateEstimate("audit", { pages: 51 })).toEqual({
+      min: 39_900,
+      max: 46_000,
       factors: ["сайт до 200 страниц"],
     });
     expect(calculateEstimate("audit", { pages: 201 })).toEqual({
-      min: 29_900,
-      max: 35_000,
+      min: 69_900,
+      max: 81_000,
       factors: ["сайт до 500 страниц"],
     });
     expect(calculateEstimate("audit", { pages: 501 })).toEqual({
-      min: 59_800,
-      max: 69_000,
+      min: 139_800,
+      max: 162_000,
       factors: ["сайт более 500 страниц — предварительная оценка"],
     });
   });
@@ -33,7 +33,7 @@ describe("calculateEstimate", () => {
     })).toEqual({
       min: 49_900,
       max: 58_000,
-      factors: ["сайт до 30 страниц", "внедрение исправлений"],
+      factors: ["сайт до 50 страниц", "внедрение исправлений"],
     });
   });
 
@@ -99,15 +99,15 @@ describe("calculateEstimate", () => {
       factors: ["500 артикулов"],
     });
     expect(calculateEstimate("audit", { pages: -20 })).toMatchObject({
-      min: 6_900,
-      factors: ["сайт до 30 страниц"],
+      min: 24_900,
+      factors: ["сайт до 50 страниц"],
     });
   });
 
   it("uses the published development entry price as the estimate floor", () => {
     expect(calculateEstimate("development", { siteType: "commerce" })).toEqual({
-      min: 179_900,
-      max: 209_000,
+      min: 189_900,
+      max: 220_000,
       factors: ["каталог или магазин"],
     });
   });
@@ -120,8 +120,8 @@ describe("calculateEstimate", () => {
       languages: 2,
       urgent: true,
     })).toEqual({
-      min: 476_000,
-      max: 657_000,
+      min: 488_000,
+      max: 673_000,
       factors: [
         "каталог или магазин",
         "личный кабинет",

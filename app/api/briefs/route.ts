@@ -3,11 +3,12 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { publicFormsAreEnabled } from "@/src/config/site";
-import { sqlite } from "@/src/db/client";
+import { database } from "@/src/db/client";
 import { createBrief } from "@/src/db/submissions";
 import { notifyTelegram } from "@/src/lib/notifications/telegram";
 import { sendEmail } from "@/src/lib/notifications/email";
 import { briefAnswerLabel, type BriefService } from "@/src/content/brief";
+import { canonicalizeBriefOffer } from "@/src/lib/brief/offer-payload";
 import {
   fileTypeAllowed,
   maxFileCount,
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
   const remoteIp = clientIp(request);
   const ipHash = privateHash(remoteIp);
-  const limited = consumeRules(sqlite, `brief:${ipHash}`, [
+  const limited = await consumeRules(`brief:${ipHash}`, [
     { suffix: "hour", rule: { windowMs: 60 * 60 * 1000, limit: 3 } },
     { suffix: "day", rule: { windowMs: 24 * 60 * 60 * 1000, limit: 10 } },
   ]);
@@ -84,10 +85,15 @@ export async function POST(request: Request) {
   if (isRecord(raw) && isFilledHoneypot(raw.honeypot)) return benignBotResponse();
   const parsed = briefRequestSchema.safeParse(raw);
   if (!parsed.success) return zodError(parsed.error);
+  const canonicalOffer = canonicalizeBriefOffer(parsed.data);
+  if (!canonicalOffer.ok) {
+    return apiError(422, "INVALID_OFFER", canonicalOffer.reason === "unknown_offer" ? "Выбранное предложение не найдено" : "Предложение не соответствует выбранному направлению");
+  }
+  const submission = { ...parsed.data, answers: canonicalOffer.answers };
   const botCheck = await verifyTurnstile(parsed.data.turnstileToken, remoteIp);
   if (!botCheck.ok) return apiError(403, "BOT_VERIFICATION_FAILED", "Не удалось подтвердить, что запрос отправил человек");
-  if (Object.keys(parsed.data.answers).length > 100 ||
-      Object.values(parsed.data.answers).some((value) => Array.isArray(value) && value.length > 100)) {
+  if (Object.keys(submission.answers).length > 100 ||
+      Object.values(submission.answers).some((value) => Array.isArray(value) && value.length > 100)) {
     return apiError(422, "VALIDATION_ERROR", "Слишком много ответов в брифе");
   }
 
@@ -129,18 +135,12 @@ export async function POST(request: Request) {
 
   let briefId: string;
   try {
-    briefId = sqlite.transaction(() => {
-      const id = createBrief(parsed.data, ipHash);
-      const insert = sqlite.prepare(`INSERT INTO attachments
-        (id, brief_id, storage_name, original_name, mime, size, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`);
-      const now = Date.now();
-      for (const file of prepared) {
-        insert.run(file.id, id, file.storageName, file.originalName, file.mime, file.size, now);
-      }
-      if (prepared.length > 0) sqlite.prepare("UPDATE brief_submissions SET status='uploading' WHERE id=?").run(id);
-      return id;
-    })();
+    briefId = await createBrief(submission, ipHash);
+    const now = Date.now();
+    for (const file of prepared) {
+      await database.execute({ sql: `INSERT INTO attachments (id, brief_id, storage_name, original_name, mime, size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, args: [file.id, briefId, file.storageName, file.originalName, file.mime, file.size, now] });
+    }
+    if (prepared.length > 0) await database.execute({ sql: "UPDATE brief_submissions SET status='uploading' WHERE id=?", args: [briefId] });
   } catch {
     return apiError(500, "BRIEF_CREATE_FAILED", "Не удалось сохранить бриф");
   }
@@ -152,22 +152,22 @@ export async function POST(request: Request) {
         attempted.push(file.storageName);
         await writePrivateFile(root, file.storageName, file.bytes);
       }
-      const finalized = sqlite.prepare("UPDATE brief_submissions SET status='new' WHERE id=? AND status='uploading'").run(briefId);
-      if (finalized.changes !== 1) throw new Error("Brief upload finalization failed");
+      const finalized = await database.execute({ sql: "UPDATE brief_submissions SET status='new' WHERE id=? AND status='uploading'", args: [briefId] });
+      if (finalized.rowsAffected !== 1) throw new Error("Brief upload finalization failed");
     } catch {
       const cleaned = await cleanupFiles(attempted);
       if (cleaned) {
         try {
-          sqlite.transaction(() => {
-            sqlite.prepare("DELETE FROM attachments WHERE brief_id=?").run(briefId);
-            sqlite.prepare("DELETE FROM brief_submissions WHERE id=?").run(briefId);
-          })();
+          await database.transaction(async (transaction) => {
+            await transaction.execute({ sql: "DELETE FROM attachments WHERE brief_id=?", args: [briefId] });
+            await transaction.execute({ sql: "DELETE FROM brief_submissions WHERE id=?", args: [briefId] });
+          });
         } catch {
           return apiError(500, "BRIEF_ROLLBACK_FAILED", "Загрузка не завершена; запись сохранена для безопасной очистки");
         }
         return apiError(500, "FILE_STORAGE_FAILED", "Не удалось безопасно сохранить файлы");
       }
-      try { sqlite.prepare("UPDATE brief_submissions SET status='upload_failed' WHERE id=?").run(briefId); } catch { /* record remains traceable as uploading */ }
+      try { await database.execute({ sql: "UPDATE brief_submissions SET status='upload_failed' WHERE id=?", args: [briefId] }); } catch { /* record remains traceable as uploading */ }
       return apiError(500, "FILE_CLEANUP_FAILED", "Загрузка не завершена; запись сохранена для безопасной очистки");
     }
   }
@@ -177,7 +177,8 @@ export async function POST(request: Request) {
     entityId: briefId,
     text: [
       "Новый бриф",
-      `Направление: ${parsed.data.service}`,
+      `Направление: ${submission.service}`,
+      `Предложение: ${submission.offerId ?? "не выбрано"}`,
       `Имя: ${sanitizeLogValue(parsed.data.name)}`,
       `Контакт: ${sanitizeLogValue(parsed.data.contact)}`,
       `Файлов: ${prepared.length}`,
@@ -191,11 +192,13 @@ export async function POST(request: Request) {
     const emailResult = await sendEmail({
       to: parsed.data.contact,
       subject: parsed.data.locale === "ru" ? "Копия брифа KILENI" : "Your KILENI brief copy",
-      text: formatBriefCopy(parsed.data.locale, parsed.data.service, parsed.data.answers),
+      text: formatBriefCopy(submission.locale, submission.service, submission.answers),
     });
     const now = Date.now();
-    sqlite.prepare("INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)")
-      .run(randomUUID(), "brief", briefId, "email", emailResult.sent ? "sent" : emailResult.reason === "not_configured" ? "skipped" : "failed", emailResult.reason?.slice(0, 240) ?? null, now, now);
+    await database.execute({
+      sql: "INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)",
+      args: [randomUUID(), "brief", briefId, "email", emailResult.sent ? "sent" : emailResult.reason === "not_configured" ? "skipped" : "failed", emailResult.reason?.slice(0, 240) ?? null, now, now],
+    });
   }
 
   return NextResponse.json({ ok: true }, { status: 201, headers: { "cache-control": "no-store" } });

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { getEnglishPriceConfig, formatPrice, prices } from "../../src/config/prices";
+import { offersForService, type OfferService } from "../../src/config/offers";
 import { briefEstimatedMinutes, briefServices, serviceQuestions } from "../../src/content/brief";
 import { glossaryTerms } from "../../src/content/glossary";
 import { marketplacePlatforms } from "../../src/content/marketplaces";
@@ -122,14 +123,14 @@ describe("approved buyer journey specification", () => {
         expect(service?.buyerQuestions, `${locale}/${slug}`).toHaveLength(11);
         expect(service?.buyerQuestions.map((item) => item.question), `${locale}/${slug}`).toEqual(requiredBuyerQuestions[locale]);
         expect(service?.buyerQuestions.every((item) => item.answer.length > 20), `${locale}/${slug}`).toBe(true);
-        expect(service?.packages.length, `${locale}/${slug}`).toBeGreaterThanOrEqual(3);
+        expect(service?.packages.length, `${locale}/${slug}`).toBe(offersForService(slug as OfferService).length);
       }
     }
   });
 
   it("states the approved 100-public-page limit for the free automated audit", () => {
-    expect(getService("ru", "seo-audit")?.packages[0]?.limit).toBe("Автоматически до 10 публичных страниц");
-    expect(getService("en", "seo-audit")?.packages[0]?.limit).toBe("Automatically checks up to 10 public pages");
+    expect(getService("ru", "seo-audit")?.packages[0]?.limit).toBe("До 10 открытых страниц");
+    expect(getService("en", "seo-audit")?.packages[0]?.limit).toBe("Up to 10 public pages");
   });
 
   it("never auto-converts English prices from environment variables", () => {

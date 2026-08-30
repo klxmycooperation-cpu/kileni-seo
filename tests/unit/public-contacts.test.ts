@@ -8,8 +8,8 @@ describe("public contacts", () => {
 
     expect(contacts.map((contact) => contact.kind)).toEqual(["phone", "telegram", "max"]);
     expect(contacts.find((contact) => contact.kind === "phone")).toMatchObject({
-      value: "+7 925 225-60-20",
-      href: "tel:+79252256020",
+      value: "+7 929 590-09-00",
+      href: "tel:+79295900900",
       iconSrc: "/contact-icons/phone.svg",
     });
     expect(contacts.find((contact) => contact.kind === "telegram")).toMatchObject({
@@ -18,17 +18,14 @@ describe("public contacts", () => {
       iconSrc: "/contact-icons/telegram.svg",
     });
     expect(contacts.find((contact) => contact.kind === "max")).toMatchObject({
-      value: "+7 925 225-60-20",
+      value: "+7 929 590-09-00",
       href: "https://web.max.ru/",
-      iconSrc: "/contact-icons/max.svg",
-      note: "Найти в MAX по номеру",
     });
   });
 
-  it("keeps the same channels and helpful labels in English", () => {
+  it("keeps the same confirmed channels in English", () => {
     const contacts = getPublicContacts("en", true);
     expect(contacts.map((contact) => contact.kind)).toEqual(["phone", "telegram", "max"]);
-    expect(contacts.find((contact) => contact.kind === "max")?.note).toBe("Find in MAX by phone");
     expect(siteConfig.publicContacts.maxUrl).toBe("https://web.max.ru/");
   });
 });

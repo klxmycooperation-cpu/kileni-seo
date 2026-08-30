@@ -63,13 +63,13 @@ describe("English price labels", () => {
 describe("Russian price source", () => {
   it("keeps every approved public amount unchanged", () => {
     expect(prices).toMatchObject({
-      audits: { preliminary: 0, express: 6_900, full: 19_900, strategy: 29_900, implementation: { from: 49_900 } },
-      seo: { base: 29_900, growth: 44_900, full: 69_900 },
+      audits: { preliminary: 0, express: 24_900, full: 39_900, strategy: 69_900, implementation: { from: 49_900 } },
+      seo: { base: 34_900, growth: 44_900, full: 69_900 },
       marketplaces: { audit: 2_900, optimization: 4_900, turnkey: 12_900, pack10: 39_900, support: 29_900 },
-      development: { landing: 49_900, corporate: 99_900, commerce: { from: 179_900 } },
+      development: { landing: 59_900, corporate: 99_900, commerce: { from: 189_900 } },
       ads: { setup: 14_900, support: 14_900 },
       content: { article: 4_900 },
     });
-    expect(priceLabel("audit-full", "ru").current).toMatch(/^19\s?900\s₽$/u);
+    expect(priceLabel("audit-full", "ru").current).toMatch(/^39\s?900\s₽$/u);
   });
 });

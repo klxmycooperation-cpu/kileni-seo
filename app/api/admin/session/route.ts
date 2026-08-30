@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { sqlite } from "@/src/db/client";
 import { adminCookieName, createAdminSession } from "@/src/lib/security/session";
 import { clientIp, privateHash } from "@/src/lib/security/request";
 import { apiError, declaredBodyTooLarge, jsonReadError, mutationGuard, readJson } from "../../_lib/http";
@@ -21,7 +20,7 @@ export async function POST(request: Request) {
   if (declaredBodyTooLarge(request, 8 * 1024)) return apiError(413, "PAYLOAD_TOO_LARGE", "Запрос слишком большой");
 
   const ipHash = privateHash(clientIp(request));
-  const limited = consumeRules(sqlite, `admin-login:${ipHash}`, [
+  const limited = await consumeRules(`admin-login:${ipHash}`, [
     { suffix: "15m", rule: { windowMs: 15 * 60 * 1000, limit: 8 } },
     { suffix: "day", rule: { windowMs: 24 * 60 * 60 * 1000, limit: 30 } },
   ]);

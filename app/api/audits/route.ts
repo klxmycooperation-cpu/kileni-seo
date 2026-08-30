@@ -1,24 +1,27 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 
-import { publicFormsAreEnabled, siteConfig } from "@/src/config/site";
+import { publicAuditIsEnabled, publicFormsAreEnabled, siteConfig } from "@/src/config/site";
 import { PUBLIC_AUDIT_PAGE_LIMIT } from "@/src/config/public-audit";
-import { assertPublicUrl, AuditUrlError, normalizeAuditDomain, normalizeTargetUrl, runAudit, SsrfProtectionError, toPublicAuditResult, type AuditEvent } from "@/src/lib/audit";
-import { sqlite } from "@/src/db/client";
+import { assertPublicUrl, AuditUrlError, hasCurrentAuditResultVersion, normalizeAuditDomain, normalizeTargetUrl, runAudit, SsrfProtectionError, toPublicAuditResult, type AuditEvent } from "@/src/lib/audit";
+import { database } from "@/src/db/client";
 import {
   appendAuditEvent,
   completeAuditRecord,
-  createAuditRecord,
+  createDomainAudit,
   failAuditRecord,
+  failStaleAudits,
   findRecentCompletedAudit,
   getAuditByToken,
   hasActiveDomainAudit,
+  purgeExpiredAudits,
   type AuditRow,
 } from "@/src/db/queries";
-import { auditRequestSchema, detectContactType } from "@/src/lib/security/inputs";
+import { auditRequestSchema } from "@/src/lib/security/inputs";
 import type { AuditRequest } from "@/src/lib/security/inputs";
 import { clientIp, privateHash, sanitizeLogValue } from "@/src/lib/security/request";
 import { verifyTurnstile } from "@/src/lib/security/turnstile";
+import { purgeExpiredRateLimits } from "@/src/lib/security/rate-limit";
 import { notifyTelegram } from "@/src/lib/notifications/telegram";
 import { sendEmail } from "@/src/lib/notifications/email";
 import { withAuditRestore } from "@/src/lib/audit/restore-url";
@@ -37,9 +40,11 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 type CreationResult = { audit: AuditRow; cached: boolean } | { conflict: true };
+let lastMaintenanceAt = 0;
 
 export async function POST(request: Request) {
   if (!publicFormsAreEnabled()) return apiError(503, "FORM_SUBMISSIONS_DISABLED", "Приём заявок временно отключён");
+  if (!publicAuditIsEnabled()) return apiError(503, "AUDIT_DISABLED", "Бесплатная проверка временно недоступна");
   if (isVercelRuntime() && !auditRestoreIsConfigured()) {
     return apiError(503, "AUDIT_RESTORE_NOT_CONFIGURED", "Проверка временно недоступна: сервер не настроен для безопасного сохранения результата");
   }
@@ -62,6 +67,8 @@ export async function POST(request: Request) {
   const botCheck = await verifyTurnstile(parsed.data.turnstileToken, remoteIp);
   if (!botCheck.ok) return apiError(403, "BOT_VERIFICATION_FAILED", "Не удалось подтвердить, что запрос отправил человек");
 
+  await runAuditMaintenance().catch(() => undefined);
+
   let requestedTarget: URL;
   try {
     requestedTarget = normalizeTargetUrl(parsed.data.url);
@@ -73,7 +80,7 @@ export async function POST(request: Request) {
   }
 
   const normalizedDomain = normalizeAuditDomain(requestedTarget.hostname);
-  if (hasActiveDomainAudit(normalizedDomain)) {
+  if (await hasActiveDomainAudit(normalizedDomain)) {
     return apiError(409, "DOMAIN_AUDIT_ACTIVE", "Для этого домена аудит уже выполняется");
   }
 
@@ -91,59 +98,33 @@ export async function POST(request: Request) {
 
   const cacheDays = siteConfig.audit.cacheDays;
   // Invalid/safety-rejected URLs and a reusable result must not exhaust a visitor's quota.
-  const recentForRateLimit = findRecentCompletedAudit(normalizedDomain, cacheDays * 24 * 60 * 60 * 1000);
+  const recentForRateLimit = await findRecentCompletedAudit(normalizedDomain, cacheDays * 24 * 60 * 60 * 1000);
   if (!recentForRateLimit || !reusableCache(recentForRateLimit)) {
-    const limited = consumeRules(sqlite, `audit:${ipHash}`, [
+    const limited = await consumeRules(`audit:${ipHash}`, [
       { suffix: "hour", rule: { windowMs: 60 * 60 * 1000, limit: siteConfig.audit.rateLimit.hourly } },
       { suffix: "day", rule: { windowMs: 24 * 60 * 60 * 1000, limit: siteConfig.audit.rateLimit.daily } },
     ]);
     if (limited) return limited;
   }
   let created: CreationResult;
+  const auditEmail = parsed.data.email;
   try {
-    const createTransaction = sqlite.transaction((): CreationResult => {
-      const recent = findRecentCompletedAudit(normalizedDomain, cacheDays * 24 * 60 * 60 * 1000);
-      const cached = recent ? reusableCache(recent) : null;
-      if (cached) {
-        return {
-          cached: true,
-          audit: createAuditRecord({
-            originalUrl: canonicalTarget.href,
-            normalizedDomain,
-            locale: parsed.data.locale,
-            name: parsed.data.name,
-            contact: parsed.data.contact,
-            contactType: detectContactType(parsed.data.contact),
-            ipHash,
-            userAgentHash: privateHash(request.headers.get("user-agent") ?? "unknown"),
-            source: parsed.data.source,
-            pageLimit: siteConfig.audit.pageLimit,
-            utm: parsed.data.utm,
-            consentVersion: process.env.LEGAL_POLICY_VERSION ?? "2026-08-15",
-            cached,
-          }),
-        };
-      }
-      if (hasActiveDomainAudit(normalizedDomain)) return { conflict: true };
-      return {
-        cached: false,
-        audit: createAuditRecord({
-          originalUrl: canonicalTarget.href,
-          normalizedDomain,
-          locale: parsed.data.locale,
-          name: parsed.data.name,
-          contact: parsed.data.contact,
-          contactType: detectContactType(parsed.data.contact),
-          ipHash,
-          userAgentHash: privateHash(request.headers.get("user-agent") ?? "unknown"),
-          source: parsed.data.source,
-          pageLimit: siteConfig.audit.pageLimit,
-          utm: parsed.data.utm,
-          consentVersion: process.env.LEGAL_POLICY_VERSION ?? "2026-08-15",
-        }),
-      };
-    });
-    created = createTransaction.immediate();
+    created = await createDomainAudit({
+      originalUrl: canonicalTarget.href,
+      normalizedDomain,
+      locale: parsed.data.locale,
+      name: auditEmail
+        ? parsed.data.locale === "ru" ? "Получатель отчёта" : "Report recipient"
+        : parsed.data.locale === "ru" ? "Без контакта" : "No contact",
+      contact: auditEmail,
+      contactType: auditEmail ? "email" : "none",
+      ipHash,
+      userAgentHash: privateHash(request.headers.get("user-agent") ?? "unknown"),
+      source: parsed.data.source,
+      pageLimit: siteConfig.audit.pageLimit,
+      utm: parsed.data.utm,
+      consentVersion: siteConfig.legal.version,
+    }, cacheDays * 24 * 60 * 60 * 1000, reusableCache);
   } catch {
     return apiError(500, "AUDIT_CREATE_FAILED", "Не удалось поставить аудит в очередь");
   }
@@ -216,6 +197,20 @@ export async function POST(request: Request) {
   );
 }
 
+async function runAuditMaintenance(): Promise<void> {
+  const now = Date.now();
+  if (now - lastMaintenanceAt < 60 * 60 * 1_000) return;
+  lastMaintenanceAt = now;
+  try {
+    await failStaleAudits(Math.max(15 * 60 * 1_000, siteConfig.audit.timeoutMs + 2 * 60 * 1_000), now);
+    await purgeExpiredAudits(siteConfig.audit.retentionDays);
+    await purgeExpiredRateLimits(undefined, now);
+  } catch (error) {
+    lastMaintenanceAt = 0;
+    throw error;
+  }
+}
+
 async function recordSubmissionNotifications(input: {
   created: Exclude<CreationResult, { conflict: true }>;
   currentAudit: AuditRow;
@@ -229,8 +224,7 @@ async function recordSubmissionNotifications(input: {
     text: [
       input.created.cached ? "Повторный SEO-аудит (кеш)" : "Новый SEO-аудит",
       `Домен: ${input.normalizedDomain}`,
-      `Имя: ${sanitizeLogValue(input.request.name)}`,
-      `Контакт: ${sanitizeLogValue(input.request.contact)}`,
+      ...(input.request.email ? [`Email: ${sanitizeLogValue(input.request.email)}`] : []),
       `Язык: ${input.request.locale}`,
       `Источник: ${sanitizeLogValue(input.request.source)}`,
       `Admin: ${adminUrl("audits", input.created.audit.id)}`,
@@ -238,8 +232,8 @@ async function recordSubmissionNotifications(input: {
   }).catch(() => undefined);
 
   if (
-    (input.currentAudit.status === "completed" || input.currentAudit.status === "partial") &&
-    detectContactType(input.request.contact) === "email"
+    input.request.email &&
+    (input.currentAudit.status === "completed" || input.currentAudit.status === "partial")
   ) {
     const publicPath = withAuditRestore(
       `${input.request.locale === "en" ? "/en" : ""}/audit/${encodeURIComponent(input.created.audit.publicToken)}`,
@@ -247,13 +241,15 @@ async function recordSubmissionNotifications(input: {
     );
     const publicUrl = process.env.APP_BASE_URL ? new URL(publicPath, process.env.APP_BASE_URL).toString() : publicPath;
     const emailResult = await sendEmail({
-      to: input.request.contact,
+      to: input.request.email,
       subject: input.request.locale === "ru" ? "Результат предварительной SEO-проверки KILENI" : "Your KILENI preliminary SEO check",
       text: input.request.locale === "ru" ? `Результат проверки готов: ${publicUrl}` : `Your audit result is ready: ${publicUrl}`,
     });
     const now = Date.now();
-    sqlite.prepare("INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)")
-      .run(randomUUID(), "audit", input.created.audit.id, "email", emailResult.sent ? "sent" : emailResult.reason === "not_configured" ? "skipped" : "failed", emailResult.reason?.slice(0, 240) ?? null, now, now);
+    await database.execute({
+      sql: "INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)",
+      args: [randomUUID(), "audit", input.created.audit.id, "email", emailResult.sent ? "sent" : emailResult.reason === "not_configured" ? "skipped" : "failed", emailResult.reason?.slice(0, 240) ?? null, now, now],
+    });
   }
 }
 
@@ -273,22 +269,22 @@ async function runVercelAudit(
       concurrency: 4,
       performance: null,
       signal: controller.signal,
-      onEvent: (event) => {
-        const progress = recordInlineAuditEvent(audit.id, event);
+      onEvent: async (event) => {
+        const progress = await recordInlineAuditEvent(audit.id, event);
         if (progress) onProgress?.(progress);
       },
     });
     const publicResult = toPublicAuditResult(result, audit.locale);
-    appendAuditEvent(audit.id, "analyzing_structure", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
+    await appendAuditEvent(audit.id, "analyzing_structure", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     onProgress?.({ status: "analyzing_structure", pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     // Vercel does not provide a browser runtime for synthetic Lighthouse data.
     // Keep the public stage honest: surface only speed signals observed during
     // the crawl, while unavailable lab metrics remain explicitly unknown.
-    appendAuditEvent(audit.id, "running_performance", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
+    await appendAuditEvent(audit.id, "running_performance", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     onProgress?.({ status: "running_performance", pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
-    appendAuditEvent(audit.id, "calculating_score", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
+    await appendAuditEvent(audit.id, "calculating_score", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     onProgress?.({ status: "calculating_score", pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
-    completeAuditRecord(audit.id, {
+    await completeAuditRecord(audit.id, {
       publicResult: publicResult as unknown as Record<string, unknown>,
       fullResult: result as unknown as Record<string, unknown>,
       score: result.score.total,
@@ -305,11 +301,11 @@ async function runVercelAudit(
       : error instanceof Error
         ? error.message
         : "Audit failed";
-    failAuditRecord(audit.id, reason);
+    await failAuditRecord(audit.id, reason);
   } finally {
     clearTimeout(timer);
   }
-  return getAuditByToken(audit.publicToken) ?? audit;
+  return (await getAuditByToken(audit.publicToken)) ?? audit;
 }
 
 function restoreForAudit(audit: AuditRow): string | null {
@@ -331,10 +327,10 @@ function isVercelRuntime(): boolean {
   return process.env.VERCEL === "1";
 }
 
-function recordInlineAuditEvent(
+async function recordInlineAuditEvent(
   auditId: string,
   event: AuditEvent,
-): InlineProgress | null {
+): Promise<InlineProgress | null> {
   if (event.type === "audit:start") return appendInlineProgress(auditId, "connecting", 0, 0);
   if (event.type === "discovery:start") return appendInlineProgress(auditId, "checking_robots", 0, 0);
   if (event.type === "discovery:robots_complete") return appendInlineProgress(auditId, "checking_sitemaps", 0, 0);
@@ -345,13 +341,13 @@ function recordInlineAuditEvent(
   return null;
 }
 
-function appendInlineProgress(
+async function appendInlineProgress(
   auditId: string,
   status: string,
   pagesChecked: number,
   pagesDiscovered: number,
-): InlineProgress {
-  appendAuditEvent(auditId, status, { pagesChecked, pagesDiscovered });
+): Promise<InlineProgress> {
+  await appendAuditEvent(auditId, status, { pagesChecked, pagesDiscovered });
   return { status, pagesChecked, pagesDiscovered };
 }
 
@@ -382,7 +378,14 @@ function reusableCache(row: AuditRow): {
 } | null {
   const publicResult = sanitizePublicAuditResult(safeJsonParse(row.publicResultJson));
   const fullResult = safeJsonParse(row.fullResultJson);
-  if (publicResult === null || fullResult === null || row.overallScore === null || !row.grade) return null;
+  if (
+    publicResult === null ||
+    fullResult === null ||
+    !hasCurrentAuditResultVersion(publicResult) ||
+    !hasCurrentAuditResultVersion(fullResult) ||
+    row.overallScore === null ||
+    !row.grade
+  ) return null;
   return {
     publicResultJson: JSON.stringify(stripSensitiveFields(publicResult)),
     fullResultJson: JSON.stringify(stripSensitiveFields(fullResult)),

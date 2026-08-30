@@ -7,3 +7,4 @@ export * from "./scoring";
 export * from "./ssrf";
 export * from "./types";
 export * from "./url";
+export * from "./version";

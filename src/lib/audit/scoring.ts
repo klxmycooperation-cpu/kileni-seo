@@ -14,6 +14,10 @@ export interface ScoreAuditInput {
   readonly targetUrl: string | URL;
   readonly pages: readonly PageAnalysis[];
   readonly pagesDiscovered?: number;
+  /** Configured crawl ceiling. Kept as an alias for direct scoring callers. */
+  readonly pageLimit?: number;
+  /** Number of pages the current audit planned to inspect. */
+  readonly plannedPages?: number;
   readonly robots?: RobotsInfo | null;
   readonly sitemap?: SitemapInfo | null;
   readonly performance?: PerformanceAuditInput | null;
@@ -25,6 +29,8 @@ interface ScoreCheck {
   readonly value: number | null;
   readonly weight: number;
   readonly coverage?: number;
+  /** Coverage used only for the uncertainty adjustment, not for reporting. */
+  readonly scoreCoverage?: number;
 }
 
 interface CategoryNormalizationOptions {
@@ -43,17 +49,30 @@ export function scoreAudit(input: ScoreAuditInput): AuditScore {
   const pages = input.pages;
   const pagesDiscovered = Math.max(input.pagesDiscovered ?? pages.length, pages.length);
   const pageCoverage = pagesDiscovered === 0 ? 0 : clamp(pages.length / pagesDiscovered);
+  const plannedPageTarget = Math.min(
+    pagesDiscovered,
+    normalizePlannedPages(input.plannedPages ?? input.pageLimit, pagesDiscovered),
+  );
+  const plannedPageCoverage = plannedPageTarget === 0
+    ? 0
+    : clamp(pages.length / plannedPageTarget);
+  const sampledPageCheck = (
+    id: string,
+    label: string,
+    value: number | null,
+    weight: number,
+  ) => pageCheck(id, label, value, weight, pageCoverage, plannedPageCoverage);
   const technicalIndexing = normalizeCategoryScore(
     "technicalIndexing",
     AUDIT_CATEGORY_BUDGETS.technicalIndexing,
     [
-      pageCheck("status", "HTTP 2xx", average(pages, (page) => statusValue(page.status)), 6, pageCoverage),
-      pageCheck("indexable", "Indexable pages", average(pages, (page) => bool(!page.indexing.noindex)), 6, pageCoverage),
-      pageCheck("canonical", "Canonical consistency", average(pages, canonicalQuality), 5, pageCoverage),
+      sampledPageCheck("status", "HTTP 2xx", average(pages, (page) => statusValue(page.status)), 6),
+      sampledPageCheck("indexable", "Indexable pages", average(pages, (page) => bool(!page.indexing.noindex)), 6),
+      sampledPageCheck("canonical", "Canonical consistency", average(pages, canonicalQuality), 5),
       siteCheck("robots-access", "Robots access", robotsAccessValue(input.robots), 4),
       siteCheck("robots-file", "Robots file", resourceStatusValue(input.robots?.status), 2),
       siteCheck("sitemap", "XML sitemap", sitemapValue(input.sitemap), 4),
-      pageCheck("charset", "Charset", average(pages, (page) => bool(page.charset !== null)), 3, pageCoverage),
+      sampledPageCheck("charset", "Charset", average(pages, (page) => bool(page.charset !== null)), 3),
     ],
     { conservativeWhenPartial: true },
   );
@@ -61,13 +80,13 @@ export function scoreAudit(input: ScoreAuditInput): AuditScore {
     "structureOnPage",
     AUDIT_CATEGORY_BUDGETS.structureOnPage,
     [
-      pageCheck("titles", "Page titles", average(pages, (page) => textQuality(page.title)), 7, pageCoverage),
-      pageCheck("title-uniqueness", "Unique page titles", titleUniqueness(pages), 3, pageCoverage),
-      pageCheck("h1", "Single H1", average(pages, h1Quality), 5, pageCoverage),
-      pageCheck("heading-hierarchy", "Heading hierarchy", average(pages, (page) => bool(page.headingStructure?.hierarchyValid !== false)), 1, pageCoverage),
-      pageCheck("internal-links", "Internal links", internalLinkPresence(pages), 3, pageCoverage),
-      pageCheck("broken-internal-links", "Working internal links", internalLinkHealth(pages), 3, pageCoverage),
-      pageCheck("language", "Document language", average(pages, (page) => bool(page.language.present)), 3, pageCoverage),
+      sampledPageCheck("titles", "Page titles", average(pages, (page) => textQuality(page.title)), 7),
+      sampledPageCheck("title-uniqueness", "Unique page titles", titleUniqueness(pages), 3),
+      sampledPageCheck("h1", "Single H1", average(pages, h1Quality), 5),
+      sampledPageCheck("heading-hierarchy", "Heading hierarchy", average(pages, (page) => bool(page.headingStructure?.hierarchyValid !== false)), 1),
+      sampledPageCheck("internal-links", "Internal links", internalLinkPresence(pages), 3),
+      sampledPageCheck("broken-internal-links", "Working internal links", internalLinkHealth(pages), 3),
+      sampledPageCheck("language", "Document language", average(pages, (page) => bool(page.language.present)), 3),
     ],
     { conservativeWhenPartial: true },
   );
@@ -81,7 +100,7 @@ export function scoreAudit(input: ScoreAuditInput): AuditScore {
       siteCheck("cls", "Cumulative Layout Shift", timingScore(input.performance?.cls, 0.1, 0.25), 2),
       siteCheck("tbt", "Total Blocking Time", timingScore(input.performance?.tbtMs, 200, 600), 2),
       siteCheck("accessibility", "Lighthouse Accessibility", percentScore(input.performance?.accessibility), 3),
-      pageCheck("viewport", "Mobile viewport", average(pages, (page) => bool(page.viewport)), 2, pageCoverage),
+      sampledPageCheck("viewport", "Mobile viewport", average(pages, (page) => bool(page.viewport)), 2),
     ],
     { conservativeWhenPartial: true },
   );
@@ -90,10 +109,10 @@ export function scoreAudit(input: ScoreAuditInput): AuditScore {
     AUDIT_CATEGORY_BUDGETS.trustStructuredData,
     [
       siteCheck("https", "HTTPS", normalizeTargetUrl(input.targetUrl).protocol === "https:" ? 1 : 0, 2),
-      pageCheck("mixed-content", "No mixed content", average(pages, (page) => bool((page.mixedContent?.count ?? 0) === 0)), 1, pageCoverage),
-      pageCheck("security-headers", "Security headers", securityHeaderCoverage(pages), 5, pageCoverage),
-      pageCheck("json-ld", "Valid structured data", structuredDataQuality(pages), 4, pageCoverage),
-      pageCheck("open-graph", "OpenGraph coverage", average(pages, (page) => page.openGraph.coverage), 3, pageCoverage),
+      sampledPageCheck("mixed-content", "No mixed content", average(pages, (page) => bool((page.mixedContent?.count ?? 0) === 0)), 1),
+      sampledPageCheck("security-headers", "Security headers", securityHeaderCoverage(pages), 5),
+      sampledPageCheck("json-ld", "Valid structured data", structuredDataQuality(pages), 4),
+      sampledPageCheck("open-graph", "OpenGraph coverage", average(pages, (page) => page.openGraph.coverage), 3),
     ],
     { conservativeWhenPartial: true },
   );
@@ -101,10 +120,10 @@ export function scoreAudit(input: ScoreAuditInput): AuditScore {
     "contentImages",
     AUDIT_CATEGORY_BUDGETS.contentImages,
     [
-      pageCheck("descriptions", "Meta descriptions", average(pages, (page) => textQuality(page.description)), 4, pageCoverage),
-      pageCheck("content-depth", "Useful content depth", average(pages, (page) => page.content ? bool(!page.content.thin) : 1), 2, pageCoverage),
-      pageCheck("image-alt", "Image alt coverage", imageAltCoverage(pages), 3, pageCoverage),
-      pageCheck("image-dimensions", "Image dimensions", imageDimensionCoverage(pages), 1, pageCoverage),
+      sampledPageCheck("descriptions", "Meta descriptions", average(pages, (page) => textQuality(page.description)), 4),
+      sampledPageCheck("content-depth", "Useful content depth", average(pages, (page) => page.content ? bool(!page.content.thin) : 1), 2),
+      sampledPageCheck("image-alt", "Image alt coverage", imageAltCoverage(pages), 3),
+      sampledPageCheck("image-dimensions", "Image dimensions", imageDimensionCoverage(pages), 1),
     ],
     { conservativeWhenPartial: true },
   );
@@ -144,8 +163,10 @@ export function normalizeCategoryScore(
   options: CategoryNormalizationOptions = {},
 ): CategoryScore {
   const results: ScoreCheckResult[] = checks.map((item) => ({
-    ...item,
+    id: item.id,
+    label: item.label,
     value: item.value === null ? null : clamp(item.value),
+    weight: item.weight,
     applicable: item.value !== null,
     coverage: item.value === null ? 0 : clamp(item.coverage ?? 1),
   }));
@@ -163,8 +184,16 @@ export function normalizeCategoryScore(
           totalWeight,
       );
   const normalized = availableWeight === 0 ? 0 : earned / availableWeight;
-  const confidenceFactor = options.conservativeWhenPartial && coverage < 1
-    ? 0.5 + coverage / 2
+  const scoreCoverage = totalWeight === 0
+    ? 0
+    : roundCoverage(
+        checks.reduce(
+          (sum, item) => sum + (item.value === null ? 0 : clamp(item.scoreCoverage ?? item.coverage ?? 1)) * item.weight,
+          0,
+        ) / totalWeight,
+      );
+  const confidenceFactor = options.conservativeWhenPartial && scoreCoverage < 1
+    ? 0.5 + scoreCoverage / 2
     : 1;
   const score = Math.round(maxScore * normalized * confidenceFactor);
   return {
@@ -183,8 +212,21 @@ function pageCheck(
   value: number | null,
   weight: number,
   pageCoverage: number,
+  scoreCoverage: number,
 ): ScoreCheck {
-  return { id, label, value, weight, coverage: value === null ? 0 : pageCoverage };
+  return {
+    id,
+    label,
+    value,
+    weight,
+    coverage: value === null ? 0 : pageCoverage,
+    scoreCoverage: value === null ? 0 : scoreCoverage,
+  };
+}
+
+function normalizePlannedPages(value: number | undefined, fallback: number): number {
+  if (value === undefined || !Number.isFinite(value)) return fallback;
+  return Math.max(1, Math.min(100, Math.floor(value)));
 }
 
 function siteCheck(

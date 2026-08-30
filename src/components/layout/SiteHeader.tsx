@@ -40,7 +40,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     { label: d.nav.cases, path: "cases" },
     { label: d.nav.pricing, path: "pricing" },
     { label: locale === "ru" ? "Блог" : "Blog", path: "blog" },
-    { label: locale === "ru" ? "О KILENI" : "About", path: "about" },
+    { label: locale === "ru" ? "О компании" : "About company", path: "about" },
     { label: d.nav.brief, path: "brief" },
   ] as const;
 
@@ -262,6 +262,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       </div>
       <div id="mobile-menu" className={`mobile-menu${mobileOpen ? " is-open" : ""}`} hidden={!mobileOpen}>
         <nav aria-label={locale === "ru" ? "Мобильная навигация" : "Mobile navigation"}>
+          <Link className="button button-small button-primary mobile-menu-cta" href={localizedPath(locale, "free-audit")} onClick={closeMobile}>{d.nav.cta}</Link>
           {mobileDisclosure("services", d.nav.services, serviceItems)}
           {mainNavigation.map((item) => <Link key={item.path} href={localizedPath(locale, item.path)} aria-current={isActive(item.path) ? "page" : undefined} onClick={closeMobile}>{item.label}</Link>)}
           <a className="header-phone header-phone--mobile" href={phoneHref} onClick={closeMobile}>

@@ -82,6 +82,7 @@ describe("runAudit", () => {
     });
     const publicResult = toPublicAuditResult(full);
 
+    expect(full.resultVersion).toBe(2);
     expect(full.targetUrl).toBe("https://xn--e1afmkfd.xn--p1ai/");
     expect(full.pages).toHaveLength(1);
     expect(full.issues.length).toBeGreaterThan(0);
@@ -93,26 +94,66 @@ describe("runAudit", () => {
     expect(full.finishedAt).toBe("2026-01-01T00:00:01.000Z");
     expect(Object.keys(publicResult).sort()).toEqual([
       "categories",
+      "checkedPages",
+      "coverage",
+      "finalUrl",
       "grade",
+      "indexability",
       "interpretation",
+      "issueCounts",
+      "issueGroups",
       "pagesChecked",
       "pagesDiscovered",
       "partial",
+      "resultVersion",
       "score",
+      "summary",
+      "uncheckedUrls",
     ]);
     expect(typeof publicResult.score).toBe("number");
+    expect(publicResult.finalUrl).toBe("https://xn--e1afmkfd.xn--p1ai/");
+    expect(publicResult.coverage).toEqual({
+      pageLimit: 10,
+      plannedPages: 1,
+      checkedPages: 1,
+      ratio: 1,
+    });
+    expect(publicResult.checkedPages).toHaveLength(1);
+    expect(publicResult.checkedPages[0]).toMatchObject({
+      finalUrl: "https://xn--e1afmkfd.xn--p1ai/",
+      http: { status: 200, ok: true, redirectCount: 0 },
+      title: { present: true },
+      h1: { count: 1, values: ["Главная"] },
+      noindex: false,
+      sitemap: { status: "not_checked", included: null },
+      internalLinks: { outgoing: 0, incomingFromCheckedPages: 0 },
+    });
+    expect(publicResult.indexability).toMatchObject({
+      status: "checked",
+      checkedPages: 1,
+      indexablePages: 1,
+      ratio: 1,
+    });
+    expect(publicResult.issueGroups.length).toBeGreaterThan(0);
+    expect(publicResult.issueGroups[0]).toEqual(expect.objectContaining({
+      severity: expect.any(String),
+      title: expect.any(String),
+      why: expect.any(String),
+      fix: expect.any(String),
+      acceptance: expect.any(String),
+      affectedUrls: expect.any(Array),
+      evidence: expect.any(Array),
+    }));
     expect(publicResult.categories).toHaveLength(5);
     for (const category of publicResult.categories) {
-      expect(Object.keys(category).sort()).toEqual([
-        "explanation",
-        "name",
-        "risk",
-      ]);
+      expect(category.status === "checked" || category.status === "not_checked").toBe(true);
+      if (category.status === "not_checked") {
+        expect(category.risk).toBe("not_checked");
+        expect(category.reason).toBeTypeOf("string");
+      }
     }
     const serialized = JSON.stringify(publicResult);
-    expect(serialized).not.toMatch(
-      /xn--e1afmkfd|https?:|targetUrl|finalUrl|topIssues|issueCounts|TITLE_|DESCRIPTION_|recommendation|severity/i,
-    );
+    expect(serialized).not.toMatch(/contact|private|recommendation|targetUrl/i);
     expect(events[0]?.type).toBe("audit:start");
     expect(events.at(-1)?.type).toBe("audit:complete");
     expect(events.at(-1)).toMatchObject({
@@ -151,5 +192,51 @@ describe("runAudit", () => {
       partial: false,
     });
     expect(full.partial).toBe(false);
+  });
+
+  it("deeply checks at most ten loaded pages while retaining every discovered URL", async () => {
+    const links = Array.from(
+      { length: 12 },
+      (_, index) => `<a href="/page-${index}?contact=private%40example.com#section">Page ${index}</a>`,
+    ).join("");
+    const fetcher: AuditFetcher = async (input) => {
+      const url = new URL(input);
+      if (url.pathname === "/robots.txt" || url.pathname === "/sitemap.xml") {
+        return response(url.href, "not found", 404);
+      }
+      const canonical = `${url.origin}${url.pathname}`;
+      return response(
+        url.href,
+        `<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Проверяемая страница ${url.pathname}</title><meta name="description" content="Достаточно подробное описание проверяемой страницы без выдуманных данных и маркетинговых обещаний."><link rel="canonical" href="${canonical}"></head><body><h1>Страница ${url.pathname}</h1>${url.pathname === "/" ? links : ""}</body></html>`,
+      );
+    };
+
+    const full = await runAudit("https://example.com", {
+      fetcher,
+      maxPages: 100,
+      performance: {
+        performance: 1,
+        fcpMs: 1_000,
+        lcpMs: 2_000,
+        cls: 0.05,
+        tbtMs: 100,
+        accessibility: 1,
+      },
+    });
+    const publicResult = toPublicAuditResult(full);
+
+    expect(full.pagesChecked).toBe(10);
+    expect(full.pagesDiscovered).toBe(13);
+    expect(full.pageLimit).toBe(10);
+    expect(publicResult.coverage).toEqual({
+      pageLimit: 10,
+      plannedPages: 10,
+      checkedPages: 10,
+      ratio: 1,
+    });
+    expect(publicResult.checkedPages).toHaveLength(10);
+    expect(publicResult.uncheckedUrls).toHaveLength(3);
+    expect(publicResult.uncheckedUrls.every((url) => !url.includes("?") && !url.includes("#"))).toBe(true);
+    expect(publicResult.pagesDiscovered).toBe(13);
   });
 });

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { publicFormsAreEnabled } from "@/src/config/site";
-import { sqlite } from "@/src/db/client";
 import { createLead } from "@/src/db/submissions";
 import { notifyTelegram } from "@/src/lib/notifications/telegram";
 import { leadRequestSchema } from "@/src/lib/security/inputs";
@@ -20,7 +19,7 @@ export async function POST(request: Request) {
 
   const remoteIp = clientIp(request);
   const ipHash = privateHash(remoteIp);
-  const limited = consumeRules(sqlite, `lead:${ipHash}`, [
+  const limited = await consumeRules(`lead:${ipHash}`, [
     { suffix: "hour", rule: { windowMs: 60 * 60 * 1000, limit: 5 } },
     { suffix: "day", rule: { windowMs: 24 * 60 * 60 * 1000, limit: 20 } },
   ]);
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
 
   let id: string;
   try {
-    id = createLead(parsed.data, ipHash);
+    id = await createLead(parsed.data, ipHash);
   } catch {
     return apiError(500, "LEAD_CREATE_FAILED", "Не удалось сохранить заявку");
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readAuditLeadHandoff, saveAuditLeadHandoff } from "../../src/lib/audit/lead-handoff";
+import { normalizeAuditDomain, readAuditLeadHandoff, saveAuditLeadHandoff } from "../../src/lib/audit/lead-handoff";
 
 class MemoryStorage implements Storage {
   private readonly values = new Map<string, string>();
@@ -12,6 +12,12 @@ class MemoryStorage implements Storage {
 }
 
 describe("audit lead handoff", () => {
+  it("normalizes both complete URLs and bare domains", () => {
+    expect(normalizeAuditDomain("https://www.Example.com/path")).toBe("example.com");
+    expect(normalizeAuditDomain(" www.Example.com/path ")).toBe("example.com");
+    expect(normalizeAuditDomain("not a domain")).toBe("");
+  });
+
   it("restores contact data only for the matching public audit token", () => {
     const storage = new MemoryStorage();
     saveAuditLeadHandoff(storage, {

@@ -1,6 +1,7 @@
 import "../../../app/brief-refinement.css";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Locale } from "../../config/site";
 import { BriefWizard } from "../forms/BriefWizard";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
@@ -42,7 +43,9 @@ export function BriefPage({ locale }: { locale: Locale }) {
 
         <section className="brief-workspace" aria-label={ru ? "Интерактивный бриф" : "Interactive brief"}>
           <div className="shell brief-shell">
-            <BriefWizard locale={locale} />
+            <Suspense fallback={<div className="brief-loading" aria-live="polite">{ru ? "Загружаем бриф…" : "Loading brief…"}</div>}>
+              <BriefWizard locale={locale} />
+            </Suspense>
           </div>
         </section>
 

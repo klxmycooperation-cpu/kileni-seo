@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  get: vi.fn(() => undefined),
+  execute: vi.fn(async () => ({ rows: [] })),
 }));
 
 vi.mock("../../src/db/client", () => ({
-  sqlite: {
-    prepare: vi.fn(() => ({ get: mocks.get })),
+  database: {
+    execute: mocks.execute,
   },
 }));
 
@@ -14,8 +14,8 @@ const previousEnvironment = { ...process.env };
 
 afterEach(() => {
   process.env = { ...previousEnvironment };
-  mocks.get.mockReset();
-  mocks.get.mockReturnValue(undefined);
+  mocks.execute.mockReset();
+  mocks.execute.mockResolvedValue({ rows: [] });
 });
 
 describe("health route", () => {
@@ -24,7 +24,7 @@ describe("health route", () => {
     process.env.HEALTH_REQUIRE_WORKER = "true";
 
     const { GET } = await import("../../app/api/health/route");
-    const response = GET();
+    const response = await GET();
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({

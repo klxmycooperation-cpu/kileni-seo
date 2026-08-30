@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
+import { formatOfferPrice, getOffer, localizedOffer, offerBriefHref } from "../../config/offers";
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
 
@@ -24,6 +25,9 @@ type RouteOption = {
 
 export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
   const ru = locale === "ru";
+  const freeAudit = localizedOffer(getOffer("seo-audit-free")!, locale);
+  const fullAudit = localizedOffer(getOffer("seo-audit-200")!, locale);
+  const implementation = localizedOffer(getOffer("seo-audit-implementation")!, locale);
   const options: RouteOption[] = ru
     ? [
         {
@@ -31,11 +35,11 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           title: "Бесплатная проверка",
           eyebrow: "Первый ориентир",
           description: "Быстро проверим до 10 ключевых страниц и покажем, с чего разумно начать.",
-          price: "0 ₽",
-          timing: "в день обращения",
-          scope: "до 10 публичных страниц",
-          details: ["Индексация и доступность", "Базовые технические сигналы", "Ссылка на результат"],
-          href: "free-audit",
+          price: formatOfferPrice(getOffer("seo-audit-free")!, locale),
+          timing: freeAudit.duration,
+          scope: freeAudit.scope,
+          details: freeAudit.features.slice(0, 3),
+          href: localizedPath(locale, "free-audit"),
           cta: "Запустить проверку",
         },
         {
@@ -43,23 +47,23 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           title: "Полный SEO-аудит",
           eyebrow: "Когда нужна ясность",
           description: "Разбираем причины, приоритеты и порядок исправлений — чтобы команда не тратила время на случайные доработки.",
-          price: "от 19 900 ₽",
-          timing: "5–7 рабочих дней",
-          scope: "до 200 страниц",
-          details: ["Приоритеты и понятный план", "Технические, SEO и UX-наблюдения", "PDF-отчёт и созвон по выводам"],
-          href: "seo-audit",
-          cta: "Посмотреть состав аудита",
+          price: formatOfferPrice(getOffer("seo-audit-200")!, locale),
+          timing: fullAudit.duration,
+          scope: fullAudit.scope,
+          details: fullAudit.features.slice(0, 3),
+          href: offerBriefHref("seo-audit-200", locale),
+          cta: "Выбрать полный аудит",
         },
         {
           number: "03",
           title: "Аудит и внедрение",
           eyebrow: "Когда нужна реализация",
           description: "Не только фиксируем проблемы: согласуем объём, вносим изменения и повторно проверяем результат.",
-          price: "по задаче",
-          timing: "после оценки",
-          scope: "работы фиксируются до старта",
-          details: ["Смета и границы до начала", "Внедрение без лишних задач", "Контрольная проверка изменений"],
-          href: "brief",
+          price: formatOfferPrice(getOffer("seo-audit-implementation")!, locale),
+          timing: implementation.duration,
+          scope: implementation.scope,
+          details: implementation.features.slice(0, 3),
+          href: offerBriefHref("seo-audit-implementation", locale),
           cta: "Описать задачу",
         },
       ]
@@ -69,11 +73,11 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           title: "Free check",
           eyebrow: "A first signal",
           description: "We review up to 10 key public pages and show where a sensible review should start.",
-          price: "Free",
-          timing: "on the day of request",
-          scope: "up to 10 public pages",
-          details: ["Indexability and access", "Core technical signals", "A link to the result"],
-          href: "free-audit",
+          price: formatOfferPrice(getOffer("seo-audit-free")!, locale),
+          timing: freeAudit.duration,
+          scope: freeAudit.scope,
+          details: freeAudit.features.slice(0, 3),
+          href: localizedPath(locale, "free-audit"),
           cta: "Start a free check",
         },
         {
@@ -81,23 +85,23 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           title: "Full SEO audit",
           eyebrow: "When you need clarity",
           description: "We turn issues into priorities and an implementation order, so your team can stop guessing.",
-          price: "Individual estimate",
-          timing: "5–7 business days",
-          scope: "up to 200 pages",
-          details: ["Priorities and a clear plan", "Technical, SEO and UX findings", "PDF report and a results call"],
-          href: "seo-audit",
-          cta: "See the audit scope",
+          price: formatOfferPrice(getOffer("seo-audit-200")!, locale),
+          timing: fullAudit.duration,
+          scope: fullAudit.scope,
+          details: fullAudit.features.slice(0, 3),
+          href: offerBriefHref("seo-audit-200", locale),
+          cta: "Choose the full audit",
         },
         {
           number: "03",
           title: "Audit with implementation",
           eyebrow: "When execution matters",
           description: "We agree the scope, implement the work and verify the result instead of leaving you with a list.",
-          price: "Individual estimate",
-          timing: "after scoping",
-          scope: "scope is fixed before work starts",
-          details: ["Quote and boundaries up front", "Focused implementation", "Post-change verification"],
-          href: "brief",
+          price: formatOfferPrice(getOffer("seo-audit-implementation")!, locale),
+          timing: implementation.duration,
+          scope: implementation.scope,
+          details: implementation.features.slice(0, 3),
+          href: offerBriefHref("seo-audit-implementation", locale),
           cta: "Describe your task",
         },
       ];
@@ -156,7 +160,7 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           <ul>
             {activeOption.details.map((detail) => <li key={detail}>{detail}</li>)}
           </ul>
-          <Link className="home-decision__cta" href={localizedPath(locale, activeOption.href)}>
+          <Link className="home-decision__cta" href={activeOption.href}>
             {activeOption.cta}<span aria-hidden="true">↗</span>
           </Link>
         </article>

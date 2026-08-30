@@ -1,8 +1,27 @@
 import type { NextConfig } from "next";
 
+const libsqlTraceIncludes = process.env.VERCEL
+  ? ["./node_modules/@libsql/**/*", "./node_modules/libsql/**/*"]
+  : [
+      "./node_modules/@libsql/**/*",
+      "./node_modules/libsql/**/*",
+      "./node_modules/.pnpm/@libsql+*/node_modules/@libsql/**/*",
+      "./node_modules/.pnpm/libsql@*/node_modules/**/*",
+    ];
+
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Route modules initialize the local SQLite fallback while Next collects
+  // build metadata. Keep that phase single-worker so parallel collectors do
+  // not race over the same temporary database file in clean Docker builds.
+  experimental: {
+    cpus: 1,
+  },
   outputFileTracingIncludes: {
+    // Vercel traces the installed packages directly. Expanding pnpm's
+    // internal symlinks there makes the Lambda packager treat a link as a
+    // directory. Docker keeps the explicit pnpm paths used by standalone.
+    "/*": libsqlTraceIncludes,
     "/api/audits/[token]/report.pdf": ["./public/fonts/Bounded-Variable.ttf"],
     "/api/admin/audits/[id]/export": ["./public/fonts/Bounded-Variable.ttf"],
   },

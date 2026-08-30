@@ -47,4 +47,14 @@ describe("public audit limits", () => {
     siteModule = await import("../../src/config/site");
     expect(siteModule.prelaunchRobotsMetadata()).toBeUndefined();
   });
+
+  it("keeps the site available to search robots when the variable is not set", async () => {
+    delete process.env.PRELAUNCH_MODE;
+    vi.resetModules();
+
+    const siteModule = await import("../../src/config/site");
+
+    expect(siteModule.siteIsInPrelaunchMode()).toBe(false);
+    expect(siteModule.prelaunchRobotsMetadata()).toBeUndefined();
+  });
 });

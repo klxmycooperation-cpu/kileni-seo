@@ -2,8 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { z } from "zod";
 
-import { sqlite } from "@/src/db/client";
-import { deleteAudit, getAuditById } from "@/src/db/queries";
+import { database } from "@/src/db/client";
 import { apiError, jsonReadError, noStoreJson, readJson, validUuid } from "../../../_lib/http";
 import { zodError } from "../../../_lib/submission";
 import { adminMutationGuard } from "../../_lib/guard";
@@ -29,32 +28,29 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const parsed = patchSchema.safeParse(raw);
   if (!parsed.success) return zodError(parsed.error);
   try {
-    const result = sqlite.transaction(() => {
-      const audit = getAuditById(id);
+    const result = await database.transaction(async (transaction) => {
+      const auditResult = await transaction.execute({ sql: "SELECT status FROM audits WHERE id=? LIMIT 1", args: [id] });
+      const audit = auditResult.rows[0] as unknown as { status: string } | undefined;
       if (!audit) return "missing" as const;
       if (parsed.data.status === "queued" && audit.status !== "failed") return "transition" as const;
       if (parsed.data.status === "failed" && audit.status !== "queued") return "transition" as const;
       const now = Date.now();
       if (parsed.data.status === "queued") {
-        sqlite.prepare(`UPDATE audits SET status='queued', started_at=NULL, completed_at=NULL,
+        await transaction.execute({ sql: `UPDATE audits SET status='queued', started_at=NULL, completed_at=NULL,
           pages_discovered=0, pages_checked=0, overall_score=NULL, grade=NULL, partial=0,
-          error_summary=NULL, public_result_json=NULL, full_result_json=NULL, updated_at=? WHERE id=?`).run(now, id);
-        sqlite.prepare("DELETE FROM audit_pages WHERE audit_id=?").run(id);
-        sqlite.prepare("DELETE FROM audit_issues WHERE audit_id=?").run(id);
-        sqlite.prepare("INSERT INTO audit_events(audit_id,event,payload_json,created_at) VALUES (?, 'queued', ?, ?)")
-          .run(id, JSON.stringify({ admin: true, retry: true }), now);
+          error_summary=NULL, public_result_json=NULL, full_result_json=NULL, updated_at=? WHERE id=?`, args: [now, id] });
+        await transaction.execute({ sql: "DELETE FROM audit_pages WHERE audit_id=?", args: [id] });
+        await transaction.execute({ sql: "DELETE FROM audit_issues WHERE audit_id=?", args: [id] });
+        await transaction.execute({ sql: "INSERT INTO audit_events(audit_id,event,payload_json,created_at) VALUES (?, 'queued', ?, ?)", args: [id, JSON.stringify({ admin: true, retry: true }), now] });
       } else if (parsed.data.status === "failed") {
-        sqlite.prepare("UPDATE audits SET status='failed', error_summary='Остановлено администратором', completed_at=?, updated_at=? WHERE id=?")
-          .run(now, now, id);
-        sqlite.prepare("INSERT INTO audit_events(audit_id,event,payload_json,created_at) VALUES (?, 'failed', ?, ?)")
-          .run(id, JSON.stringify({ admin: true }), now);
+        await transaction.execute({ sql: "UPDATE audits SET status='failed', error_summary='Остановлено администратором', completed_at=?, updated_at=? WHERE id=?", args: [now, now, id] });
+        await transaction.execute({ sql: "INSERT INTO audit_events(audit_id,event,payload_json,created_at) VALUES (?, 'failed', ?, ?)", args: [id, JSON.stringify({ admin: true }), now] });
       }
       if (parsed.data.note) {
-        sqlite.prepare("INSERT INTO admin_notes(id,entity_type,entity_id,note,created_at) VALUES (?, 'audit', ?, ?, ?)")
-          .run(randomUUID(), id, parsed.data.note, now);
+        await transaction.execute({ sql: "INSERT INTO admin_notes(id,entity_type,entity_id,note,created_at) VALUES (?, 'audit', ?, ?, ?)", args: [randomUUID(), id, parsed.data.note, now] });
       }
       return "ok" as const;
-    })();
+    });
     if (result === "missing") return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
     if (result === "transition") return apiError(409, "INVALID_STATUS_TRANSITION", "Этот переход статуса небезопасен");
     return noStoreJson({ ok: true, status: parsed.data.status ?? null });
@@ -78,13 +74,17 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     return apiError(409, "DELETE_NOT_CONFIRMED", "Удаление не подтверждено");
   }
   try {
-    const deleted = sqlite.transaction(() => {
-      if (!getAuditById(id)) return false;
-      sqlite.prepare("DELETE FROM admin_notes WHERE entity_type='audit' AND entity_id=?").run(id);
-      sqlite.prepare("DELETE FROM notification_events WHERE entity_type='audit' AND entity_id=?").run(id);
-      deleteAudit(id);
+    const deleted = await database.transaction(async (transaction) => {
+      const existing = await transaction.execute({ sql: "SELECT 1 FROM audits WHERE id=? LIMIT 1", args: [id] });
+      if (!existing.rows[0]) return false;
+      await transaction.execute({ sql: "DELETE FROM admin_notes WHERE entity_type='audit' AND entity_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM notification_events WHERE entity_type='audit' AND entity_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM audit_events WHERE audit_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM audit_pages WHERE audit_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM audit_issues WHERE audit_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM audits WHERE id=?", args: [id] });
       return true;
-    })();
+    });
     return deleted ? noStoreJson({ ok: true }) : apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
   } catch {
     return apiError(500, "DELETE_FAILED", "Не удалось удалить аудит");

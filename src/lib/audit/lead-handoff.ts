@@ -14,7 +14,9 @@ type NewAuditLeadHandoff = Omit<AuditLeadHandoff, "createdAt">;
 
 export function normalizeAuditDomain(value: string): string {
   try {
-    return new URL(value).hostname.toLowerCase().replace(/^www\./u, "");
+    const trimmed = value.trim();
+    const normalized = /^[a-z][a-z\d+.-]*:/iu.test(trimmed) ? trimmed : `https://${trimmed}`;
+    return new URL(normalized).hostname.toLowerCase().replace(/^www\./u, "");
   } catch {
     return "";
   }

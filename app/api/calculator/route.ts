@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 import { calculateEstimate } from "@/src/config/calculator";
 import { publicFormsAreEnabled } from "@/src/config/site";
-import { sqlite } from "@/src/db/client";
 import { createCalculatorRequest, createLead } from "@/src/db/submissions";
 import { notifyTelegram } from "@/src/lib/notifications/telegram";
 import { calculatorRequestSchema } from "@/src/lib/security/inputs";
@@ -21,7 +20,7 @@ export async function POST(request: Request) {
 
   const remoteIp = clientIp(request);
   const ipHash = privateHash(remoteIp);
-  const limited = consumeRules(sqlite, `calculator:${ipHash}`, [
+  const limited = await consumeRules(`calculator:${ipHash}`, [
     { suffix: "hour", rule: { windowMs: 60 * 60 * 1000, limit: 5 } },
     { suffix: "day", rule: { windowMs: 24 * 60 * 60 * 1000, limit: 20 } },
   ]);
@@ -47,8 +46,7 @@ export async function POST(request: Request) {
   const estimate = calculateEstimate(parsed.data.kind, parsed.data.answers, parsed.data.locale);
   let ids: { leadId: string; calculatorId: string };
   try {
-    ids = sqlite.transaction(() => {
-      const leadId = createLead({
+    const leadId = await createLead({
         name: parsed.data.name,
         contact: parsed.data.contact,
         locale: parsed.data.locale,
@@ -60,16 +58,15 @@ export async function POST(request: Request) {
         pageUrl: parsed.data.pageUrl,
         source: parsed.data.source,
         utm: parsed.data.utm,
-      }, ipHash);
-      const calculatorId = createCalculatorRequest({
+    }, ipHash);
+    const calculatorId = await createCalculatorRequest({
         leadId,
         kind: parsed.data.kind,
         answers: parsed.data.answers,
         min: estimate.min,
         max: estimate.max,
-      });
-      return { leadId, calculatorId };
-    })();
+    });
+    ids = { leadId, calculatorId };
   } catch {
     return apiError(500, "CALCULATOR_CREATE_FAILED", "Не удалось сохранить расчёт");
   }

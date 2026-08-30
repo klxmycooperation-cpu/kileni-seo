@@ -1,6 +1,6 @@
 {
-  "baseUrl": "http://127.0.0.1:3134",
-  "checkedAt": "2026-08-16T18:14:33.361Z",
+  "baseUrl": "https://kileni-seo.vercel.app",
+  "checkedAt": "2026-08-22T07:31:29.595Z",
   "checks": [
     {
       "name": "desktop home: HTTP 200",
@@ -103,32 +103,32 @@
       "details": "1440/1440"
     },
     {
-      "name": "capture /articles: HTTP 200",
+      "name": "capture /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "capture /articles: one H1",
+      "name": "capture /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "capture /articles: no horizontal overflow",
+      "name": "capture /blog: no horizontal overflow",
       "passed": true,
       "details": "1440/1440"
     },
     {
-      "name": "capture /articles/seo-audit-when-you-need-it: HTTP 200",
+      "name": "capture /blog/seo-audit-when-you-need-it: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "capture /articles/seo-audit-when-you-need-it: one H1",
+      "name": "capture /blog/seo-audit-when-you-need-it: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "capture /articles/seo-audit-when-you-need-it: no horizontal overflow",
+      "name": "capture /blog/seo-audit-when-you-need-it: no horizontal overflow",
       "passed": true,
       "details": "1440/1440"
     },
@@ -178,21 +178,6 @@
       "details": "1440/1440"
     },
     {
-      "name": "audit progress: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "audit progress: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "audit progress: no horizontal overflow",
-      "passed": true,
-      "details": "1440/1440"
-    },
-    {
       "name": "1440x900 /: HTTP 200",
       "passed": true,
       "details": "200"
@@ -210,10 +195,60 @@
     {
       "name": "1440x900 /: finite document height",
       "passed": true,
-      "details": "8713→8713"
+      "details": "9992→9992"
     },
     {
       "name": "1440x900 /: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1440x900 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1440x900 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1440x900 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "1440x900 /seo: finite document height",
+      "passed": true,
+      "details": "13721→13721"
+    },
+    {
+      "name": "1440x900 /seo: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1440x900 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1440x900 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1440x900 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "1440x900 /seo-audit: finite document height",
+      "passed": true,
+      "details": "12067→12067"
+    },
+    {
+      "name": "1440x900 /seo-audit: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -235,7 +270,7 @@
     {
       "name": "1440x900 /pricing: finite document height",
       "passed": true,
-      "details": "4871→4871"
+      "details": "3726→3726"
     },
     {
       "name": "1440x900 /pricing: footer reachable",
@@ -260,7 +295,7 @@
     {
       "name": "1440x900 /cases: finite document height",
       "passed": true,
-      "details": "2172→2172"
+      "details": "3191→3191"
     },
     {
       "name": "1440x900 /cases: footer reachable",
@@ -268,52 +303,27 @@
       "details": ""
     },
     {
-      "name": "1440x900 /articles: HTTP 200",
+      "name": "1440x900 /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "1440x900 /articles: one H1",
+      "name": "1440x900 /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "1440x900 /articles: no horizontal overflow",
+      "name": "1440x900 /blog: no horizontal overflow",
       "passed": true,
       "details": "1440/1440"
     },
     {
-      "name": "1440x900 /articles: finite document height",
+      "name": "1440x900 /blog: finite document height",
       "passed": true,
-      "details": "4534→4534"
+      "details": "4775→4775"
     },
     {
-      "name": "1440x900 /articles: footer reachable",
-      "passed": true,
-      "details": ""
-    },
-    {
-      "name": "1440x900 /brief: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "1440x900 /brief: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "1440x900 /brief: no horizontal overflow",
-      "passed": true,
-      "details": "1440/1440"
-    },
-    {
-      "name": "1440x900 /brief: finite document height",
-      "passed": true,
-      "details": "2860→2860"
-    },
-    {
-      "name": "1440x900 /brief: footer reachable",
+      "name": "1440x900 /blog: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -335,7 +345,7 @@
     {
       "name": "1440x900 /about: finite document height",
       "passed": true,
-      "details": "4198→4198"
+      "details": "6123→6123"
     },
     {
       "name": "1440x900 /about: footer reachable",
@@ -343,27 +353,52 @@
       "details": ""
     },
     {
-      "name": "1440x900 /en: HTTP 200",
+      "name": "1440x900 /brief: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "1440x900 /en: one H1",
+      "name": "1440x900 /brief: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "1440x900 /en: no horizontal overflow",
+      "name": "1440x900 /brief: no horizontal overflow",
       "passed": true,
       "details": "1440/1440"
     },
     {
-      "name": "1440x900 /en: finite document height",
+      "name": "1440x900 /brief: finite document height",
       "passed": true,
-      "details": "8334→8334"
+      "details": "2931→2931"
     },
     {
-      "name": "1440x900 /en: footer reachable",
+      "name": "1440x900 /brief: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1440x900 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1440x900 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1440x900 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "1440x900 /glossary: finite document height",
+      "passed": true,
+      "details": "6657→6657"
+    },
+    {
+      "name": "1440x900 /glossary: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -400,10 +435,60 @@
     {
       "name": "1280x800 /: finite document height",
       "passed": true,
-      "details": "8210→8210"
+      "details": "9417→9417"
     },
     {
       "name": "1280x800 /: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1280x800 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1280x800 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1280x800 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "1280/1280"
+    },
+    {
+      "name": "1280x800 /seo: finite document height",
+      "passed": true,
+      "details": "13044→13044"
+    },
+    {
+      "name": "1280x800 /seo: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1280x800 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1280x800 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1280x800 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "1280/1280"
+    },
+    {
+      "name": "1280x800 /seo-audit: finite document height",
+      "passed": true,
+      "details": "11511→11511"
+    },
+    {
+      "name": "1280x800 /seo-audit: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -425,7 +510,7 @@
     {
       "name": "1280x800 /pricing: finite document height",
       "passed": true,
-      "details": "4635→4635"
+      "details": "3569→3569"
     },
     {
       "name": "1280x800 /pricing: footer reachable",
@@ -450,7 +535,7 @@
     {
       "name": "1280x800 /cases: finite document height",
       "passed": true,
-      "details": "2156→2156"
+      "details": "3127→3127"
     },
     {
       "name": "1280x800 /cases: footer reachable",
@@ -458,52 +543,27 @@
       "details": ""
     },
     {
-      "name": "1280x800 /articles: HTTP 200",
+      "name": "1280x800 /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "1280x800 /articles: one H1",
+      "name": "1280x800 /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "1280x800 /articles: no horizontal overflow",
+      "name": "1280x800 /blog: no horizontal overflow",
       "passed": true,
       "details": "1280/1280"
     },
     {
-      "name": "1280x800 /articles: finite document height",
+      "name": "1280x800 /blog: finite document height",
       "passed": true,
-      "details": "4134→4134"
+      "details": "4377→4377"
     },
     {
-      "name": "1280x800 /articles: footer reachable",
-      "passed": true,
-      "details": ""
-    },
-    {
-      "name": "1280x800 /brief: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "1280x800 /brief: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "1280x800 /brief: no horizontal overflow",
-      "passed": true,
-      "details": "1280/1280"
-    },
-    {
-      "name": "1280x800 /brief: finite document height",
-      "passed": true,
-      "details": "2723→2723"
-    },
-    {
-      "name": "1280x800 /brief: footer reachable",
+      "name": "1280x800 /blog: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -525,7 +585,7 @@
     {
       "name": "1280x800 /about: finite document height",
       "passed": true,
-      "details": "3985→3985"
+      "details": "5855→5855"
     },
     {
       "name": "1280x800 /about: footer reachable",
@@ -533,27 +593,52 @@
       "details": ""
     },
     {
-      "name": "1280x800 /en: HTTP 200",
+      "name": "1280x800 /brief: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "1280x800 /en: one H1",
+      "name": "1280x800 /brief: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "1280x800 /en: no horizontal overflow",
+      "name": "1280x800 /brief: no horizontal overflow",
       "passed": true,
       "details": "1280/1280"
     },
     {
-      "name": "1280x800 /en: finite document height",
+      "name": "1280x800 /brief: finite document height",
       "passed": true,
-      "details": "7939→7939"
+      "details": "2794→2794"
     },
     {
-      "name": "1280x800 /en: footer reachable",
+      "name": "1280x800 /brief: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1280x800 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1280x800 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1280x800 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "1280/1280"
+    },
+    {
+      "name": "1280x800 /glossary: finite document height",
+      "passed": true,
+      "details": "6584→6584"
+    },
+    {
+      "name": "1280x800 /glossary: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -590,10 +675,60 @@
     {
       "name": "1024x768 /: finite document height",
       "passed": true,
-      "details": "8299→8299"
+      "details": "10176→10176"
     },
     {
       "name": "1024x768 /: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1024x768 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1024x768 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1024x768 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "1024/1024"
+    },
+    {
+      "name": "1024x768 /seo: finite document height",
+      "passed": true,
+      "details": "15702→15702"
+    },
+    {
+      "name": "1024x768 /seo: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1024x768 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1024x768 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1024x768 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "1024/1024"
+    },
+    {
+      "name": "1024x768 /seo-audit: finite document height",
+      "passed": true,
+      "details": "14414→14414"
+    },
+    {
+      "name": "1024x768 /seo-audit: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -615,7 +750,7 @@
     {
       "name": "1024x768 /pricing: finite document height",
       "passed": true,
-      "details": "4405→4405"
+      "details": "3598→3598"
     },
     {
       "name": "1024x768 /pricing: footer reachable",
@@ -640,7 +775,7 @@
     {
       "name": "1024x768 /cases: finite document height",
       "passed": true,
-      "details": "2257→2257"
+      "details": "3265→3265"
     },
     {
       "name": "1024x768 /cases: footer reachable",
@@ -648,52 +783,27 @@
       "details": ""
     },
     {
-      "name": "1024x768 /articles: HTTP 200",
+      "name": "1024x768 /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "1024x768 /articles: one H1",
+      "name": "1024x768 /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "1024x768 /articles: no horizontal overflow",
+      "name": "1024x768 /blog: no horizontal overflow",
       "passed": true,
       "details": "1024/1024"
     },
     {
-      "name": "1024x768 /articles: finite document height",
+      "name": "1024x768 /blog: finite document height",
       "passed": true,
-      "details": "3912→3912"
+      "details": "4233→4233"
     },
     {
-      "name": "1024x768 /articles: footer reachable",
-      "passed": true,
-      "details": ""
-    },
-    {
-      "name": "1024x768 /brief: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "1024x768 /brief: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "1024x768 /brief: no horizontal overflow",
-      "passed": true,
-      "details": "1024/1024"
-    },
-    {
-      "name": "1024x768 /brief: finite document height",
-      "passed": true,
-      "details": "2657→2657"
-    },
-    {
-      "name": "1024x768 /brief: footer reachable",
+      "name": "1024x768 /blog: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -715,7 +825,7 @@
     {
       "name": "1024x768 /about: finite document height",
       "passed": true,
-      "details": "4605→4605"
+      "details": "7955→7955"
     },
     {
       "name": "1024x768 /about: footer reachable",
@@ -723,27 +833,52 @@
       "details": ""
     },
     {
-      "name": "1024x768 /en: HTTP 200",
+      "name": "1024x768 /brief: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "1024x768 /en: one H1",
+      "name": "1024x768 /brief: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "1024x768 /en: no horizontal overflow",
+      "name": "1024x768 /brief: no horizontal overflow",
       "passed": true,
       "details": "1024/1024"
     },
     {
-      "name": "1024x768 /en: finite document height",
+      "name": "1024x768 /brief: finite document height",
       "passed": true,
-      "details": "8043→8043"
+      "details": "2849→2849"
     },
     {
-      "name": "1024x768 /en: footer reachable",
+      "name": "1024x768 /brief: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1024x768 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "1024x768 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "1024x768 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "1024/1024"
+    },
+    {
+      "name": "1024x768 /glossary: finite document height",
+      "passed": true,
+      "details": "6835→6835"
+    },
+    {
+      "name": "1024x768 /glossary: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -795,10 +930,60 @@
     {
       "name": "768x1024 /: finite document height",
       "passed": true,
-      "details": "12229→12229"
+      "details": "12182→12182"
     },
     {
       "name": "768x1024 /: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "768x1024 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "768x1024 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "768x1024 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "768/768"
+    },
+    {
+      "name": "768x1024 /seo: finite document height",
+      "passed": true,
+      "details": "14731→14731"
+    },
+    {
+      "name": "768x1024 /seo: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "768x1024 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "768x1024 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "768x1024 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "768/768"
+    },
+    {
+      "name": "768x1024 /seo-audit: finite document height",
+      "passed": true,
+      "details": "13879→13879"
+    },
+    {
+      "name": "768x1024 /seo-audit: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -820,7 +1005,7 @@
     {
       "name": "768x1024 /pricing: finite document height",
       "passed": true,
-      "details": "5048→5048"
+      "details": "4049→4049"
     },
     {
       "name": "768x1024 /pricing: footer reachable",
@@ -845,7 +1030,7 @@
     {
       "name": "768x1024 /cases: finite document height",
       "passed": true,
-      "details": "3111→3111"
+      "details": "3820→3820"
     },
     {
       "name": "768x1024 /cases: footer reachable",
@@ -853,52 +1038,27 @@
       "details": ""
     },
     {
-      "name": "768x1024 /articles: HTTP 200",
+      "name": "768x1024 /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "768x1024 /articles: one H1",
+      "name": "768x1024 /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "768x1024 /articles: no horizontal overflow",
+      "name": "768x1024 /blog: no horizontal overflow",
       "passed": true,
       "details": "768/768"
     },
     {
-      "name": "768x1024 /articles: finite document height",
+      "name": "768x1024 /blog: finite document height",
       "passed": true,
-      "details": "6779→6779"
+      "details": "7197→7197"
     },
     {
-      "name": "768x1024 /articles: footer reachable",
-      "passed": true,
-      "details": ""
-    },
-    {
-      "name": "768x1024 /brief: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "768x1024 /brief: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "768x1024 /brief: no horizontal overflow",
-      "passed": true,
-      "details": "768/768"
-    },
-    {
-      "name": "768x1024 /brief: finite document height",
-      "passed": true,
-      "details": "3647→3647"
-    },
-    {
-      "name": "768x1024 /brief: footer reachable",
+      "name": "768x1024 /blog: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -920,7 +1080,7 @@
     {
       "name": "768x1024 /about: finite document height",
       "passed": true,
-      "details": "4340→4340"
+      "details": "7426→7426"
     },
     {
       "name": "768x1024 /about: footer reachable",
@@ -928,27 +1088,52 @@
       "details": ""
     },
     {
-      "name": "768x1024 /en: HTTP 200",
+      "name": "768x1024 /brief: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "768x1024 /en: one H1",
+      "name": "768x1024 /brief: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "768x1024 /en: no horizontal overflow",
+      "name": "768x1024 /brief: no horizontal overflow",
       "passed": true,
       "details": "768/768"
     },
     {
-      "name": "768x1024 /en: finite document height",
+      "name": "768x1024 /brief: finite document height",
       "passed": true,
-      "details": "11907→11907"
+      "details": "3714→3714"
     },
     {
-      "name": "768x1024 /en: footer reachable",
+      "name": "768x1024 /brief: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "768x1024 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "768x1024 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "768x1024 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "768/768"
+    },
+    {
+      "name": "768x1024 /glossary: finite document height",
+      "passed": true,
+      "details": "14821→14821"
+    },
+    {
+      "name": "768x1024 /glossary: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1000,10 +1185,60 @@
     {
       "name": "430x932 /: finite document height",
       "passed": true,
-      "details": "12735→12735"
+      "details": "13097→13097"
     },
     {
       "name": "430x932 /: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "430x932 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "430x932 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "430x932 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "430/430"
+    },
+    {
+      "name": "430x932 /seo: finite document height",
+      "passed": true,
+      "details": "16885→16885"
+    },
+    {
+      "name": "430x932 /seo: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "430x932 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "430x932 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "430x932 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "430/430"
+    },
+    {
+      "name": "430x932 /seo-audit: finite document height",
+      "passed": true,
+      "details": "16129→16129"
+    },
+    {
+      "name": "430x932 /seo-audit: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1025,7 +1260,7 @@
     {
       "name": "430x932 /pricing: finite document height",
       "passed": true,
-      "details": "6065→6065"
+      "details": "4872→4872"
     },
     {
       "name": "430x932 /pricing: footer reachable",
@@ -1050,7 +1285,7 @@
     {
       "name": "430x932 /cases: finite document height",
       "passed": true,
-      "details": "4048→4048"
+      "details": "4785→4785"
     },
     {
       "name": "430x932 /cases: footer reachable",
@@ -1058,52 +1293,27 @@
       "details": ""
     },
     {
-      "name": "430x932 /articles: HTTP 200",
+      "name": "430x932 /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "430x932 /articles: one H1",
+      "name": "430x932 /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "430x932 /articles: no horizontal overflow",
+      "name": "430x932 /blog: no horizontal overflow",
       "passed": true,
       "details": "430/430"
     },
     {
-      "name": "430x932 /articles: finite document height",
+      "name": "430x932 /blog: finite document height",
       "passed": true,
-      "details": "6328→6328"
+      "details": "7576→7576"
     },
     {
-      "name": "430x932 /articles: footer reachable",
-      "passed": true,
-      "details": ""
-    },
-    {
-      "name": "430x932 /brief: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "430x932 /brief: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "430x932 /brief: no horizontal overflow",
-      "passed": true,
-      "details": "430/430"
-    },
-    {
-      "name": "430x932 /brief: finite document height",
-      "passed": true,
-      "details": "5052→5052"
-    },
-    {
-      "name": "430x932 /brief: footer reachable",
+      "name": "430x932 /blog: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1125,7 +1335,7 @@
     {
       "name": "430x932 /about: finite document height",
       "passed": true,
-      "details": "4876→4876"
+      "details": "9065→9065"
     },
     {
       "name": "430x932 /about: footer reachable",
@@ -1133,27 +1343,52 @@
       "details": ""
     },
     {
-      "name": "430x932 /en: HTTP 200",
+      "name": "430x932 /brief: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "430x932 /en: one H1",
+      "name": "430x932 /brief: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "430x932 /en: no horizontal overflow",
+      "name": "430x932 /brief: no horizontal overflow",
       "passed": true,
       "details": "430/430"
     },
     {
-      "name": "430x932 /en: finite document height",
+      "name": "430x932 /brief: finite document height",
       "passed": true,
-      "details": "12369→12369"
+      "details": "5242→5242"
     },
     {
-      "name": "430x932 /en: footer reachable",
+      "name": "430x932 /brief: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "430x932 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "430x932 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "430x932 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "430/430"
+    },
+    {
+      "name": "430x932 /glossary: finite document height",
+      "passed": true,
+      "details": "15023→15023"
+    },
+    {
+      "name": "430x932 /glossary: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1205,10 +1440,60 @@
     {
       "name": "390x844 /: finite document height",
       "passed": true,
-      "details": "12904→12904"
+      "details": "13401→13401"
     },
     {
       "name": "390x844 /: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "390x844 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "390x844 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "390x844 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "390x844 /seo: finite document height",
+      "passed": true,
+      "details": "17106→17106"
+    },
+    {
+      "name": "390x844 /seo: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "390x844 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "390x844 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "390x844 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "390x844 /seo-audit: finite document height",
+      "passed": true,
+      "details": "16311→16311"
+    },
+    {
+      "name": "390x844 /seo-audit: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1230,7 +1515,7 @@
     {
       "name": "390x844 /pricing: finite document height",
       "passed": true,
-      "details": "6220→6220"
+      "details": "4982→4982"
     },
     {
       "name": "390x844 /pricing: footer reachable",
@@ -1255,7 +1540,7 @@
     {
       "name": "390x844 /cases: finite document height",
       "passed": true,
-      "details": "4272→4272"
+      "details": "4851→4851"
     },
     {
       "name": "390x844 /cases: footer reachable",
@@ -1263,52 +1548,27 @@
       "details": ""
     },
     {
-      "name": "390x844 /articles: HTTP 200",
+      "name": "390x844 /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "390x844 /articles: one H1",
+      "name": "390x844 /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "390x844 /articles: no horizontal overflow",
+      "name": "390x844 /blog: no horizontal overflow",
       "passed": true,
       "details": "390/390"
     },
     {
-      "name": "390x844 /articles: finite document height",
+      "name": "390x844 /blog: finite document height",
       "passed": true,
-      "details": "6340→6340"
+      "details": "7602→7602"
     },
     {
-      "name": "390x844 /articles: footer reachable",
-      "passed": true,
-      "details": ""
-    },
-    {
-      "name": "390x844 /brief: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "390x844 /brief: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "390x844 /brief: no horizontal overflow",
-      "passed": true,
-      "details": "390/390"
-    },
-    {
-      "name": "390x844 /brief: finite document height",
-      "passed": true,
-      "details": "5138→5138"
-    },
-    {
-      "name": "390x844 /brief: footer reachable",
+      "name": "390x844 /blog: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1330,7 +1590,7 @@
     {
       "name": "390x844 /about: finite document height",
       "passed": true,
-      "details": "4966→4966"
+      "details": "9136→9136"
     },
     {
       "name": "390x844 /about: footer reachable",
@@ -1338,27 +1598,52 @@
       "details": ""
     },
     {
-      "name": "390x844 /en: HTTP 200",
+      "name": "390x844 /brief: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "390x844 /en: one H1",
+      "name": "390x844 /brief: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "390x844 /en: no horizontal overflow",
+      "name": "390x844 /brief: no horizontal overflow",
       "passed": true,
       "details": "390/390"
     },
     {
-      "name": "390x844 /en: finite document height",
+      "name": "390x844 /brief: finite document height",
       "passed": true,
-      "details": "12367→12367"
+      "details": "5308→5308"
     },
     {
-      "name": "390x844 /en: footer reachable",
+      "name": "390x844 /brief: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "390x844 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "390x844 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "390x844 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "390x844 /glossary: finite document height",
+      "passed": true,
+      "details": "15163→15163"
+    },
+    {
+      "name": "390x844 /glossary: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1425,10 +1710,60 @@
     {
       "name": "360x800 /: finite document height",
       "passed": true,
-      "details": "13132→13132"
+      "details": "13605→13605"
     },
     {
       "name": "360x800 /: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "360x800 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "360x800 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "360x800 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "360/360"
+    },
+    {
+      "name": "360x800 /seo: finite document height",
+      "passed": true,
+      "details": "17341→17341"
+    },
+    {
+      "name": "360x800 /seo: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "360x800 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "360x800 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "360x800 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "360/360"
+    },
+    {
+      "name": "360x800 /seo-audit: finite document height",
+      "passed": true,
+      "details": "16708→16708"
+    },
+    {
+      "name": "360x800 /seo-audit: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1450,7 +1785,7 @@
     {
       "name": "360x800 /pricing: finite document height",
       "passed": true,
-      "details": "6330→6330"
+      "details": "5082→5082"
     },
     {
       "name": "360x800 /pricing: footer reachable",
@@ -1475,7 +1810,7 @@
     {
       "name": "360x800 /cases: finite document height",
       "passed": true,
-      "details": "4297→4297"
+      "details": "5016→5016"
     },
     {
       "name": "360x800 /cases: footer reachable",
@@ -1483,52 +1818,27 @@
       "details": ""
     },
     {
-      "name": "360x800 /articles: HTTP 200",
+      "name": "360x800 /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "360x800 /articles: one H1",
+      "name": "360x800 /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "360x800 /articles: no horizontal overflow",
+      "name": "360x800 /blog: no horizontal overflow",
       "passed": true,
       "details": "360/360"
     },
     {
-      "name": "360x800 /articles: finite document height",
+      "name": "360x800 /blog: finite document height",
       "passed": true,
-      "details": "6345→6345"
+      "details": "7602→7602"
     },
     {
-      "name": "360x800 /articles: footer reachable",
-      "passed": true,
-      "details": ""
-    },
-    {
-      "name": "360x800 /brief: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "360x800 /brief: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "360x800 /brief: no horizontal overflow",
-      "passed": true,
-      "details": "360/360"
-    },
-    {
-      "name": "360x800 /brief: finite document height",
-      "passed": true,
-      "details": "5199→5199"
-    },
-    {
-      "name": "360x800 /brief: footer reachable",
+      "name": "360x800 /blog: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1550,7 +1860,7 @@
     {
       "name": "360x800 /about: finite document height",
       "passed": true,
-      "details": "5100→5100"
+      "details": "9435→9435"
     },
     {
       "name": "360x800 /about: footer reachable",
@@ -1558,27 +1868,52 @@
       "details": ""
     },
     {
-      "name": "360x800 /en: HTTP 200",
+      "name": "360x800 /brief: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "360x800 /en: one H1",
+      "name": "360x800 /brief: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "360x800 /en: no horizontal overflow",
+      "name": "360x800 /brief: no horizontal overflow",
       "passed": true,
       "details": "360/360"
     },
     {
-      "name": "360x800 /en: finite document height",
+      "name": "360x800 /brief: finite document height",
       "passed": true,
-      "details": "12361→12361"
+      "details": "5369→5369"
     },
     {
-      "name": "360x800 /en: footer reachable",
+      "name": "360x800 /brief: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "360x800 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "360x800 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "360x800 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "360/360"
+    },
+    {
+      "name": "360x800 /glossary: finite document height",
+      "passed": true,
+      "details": "15423→15423"
+    },
+    {
+      "name": "360x800 /glossary: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1630,10 +1965,60 @@
     {
       "name": "320x568 /: finite document height",
       "passed": true,
-      "details": "13400→13400"
+      "details": "14047→14047"
     },
     {
       "name": "320x568 /: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "320x568 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "320x568 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "320x568 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "320x568 /seo: finite document height",
+      "passed": true,
+      "details": "18208→18208"
+    },
+    {
+      "name": "320x568 /seo: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "320x568 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "320x568 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "320x568 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "320x568 /seo-audit: finite document height",
+      "passed": true,
+      "details": "17442→17442"
+    },
+    {
+      "name": "320x568 /seo-audit: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1655,7 +2040,7 @@
     {
       "name": "320x568 /pricing: finite document height",
       "passed": true,
-      "details": "6449→6449"
+      "details": "5326→5326"
     },
     {
       "name": "320x568 /pricing: footer reachable",
@@ -1680,7 +2065,7 @@
     {
       "name": "320x568 /cases: finite document height",
       "passed": true,
-      "details": "4454→4454"
+      "details": "5200→5200"
     },
     {
       "name": "320x568 /cases: footer reachable",
@@ -1688,52 +2073,27 @@
       "details": ""
     },
     {
-      "name": "320x568 /articles: HTTP 200",
+      "name": "320x568 /blog: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "320x568 /articles: one H1",
+      "name": "320x568 /blog: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "320x568 /articles: no horizontal overflow",
+      "name": "320x568 /blog: no horizontal overflow",
       "passed": true,
       "details": "320/320"
     },
     {
-      "name": "320x568 /articles: finite document height",
+      "name": "320x568 /blog: finite document height",
       "passed": true,
-      "details": "6425→6425"
+      "details": "7707→7707"
     },
     {
-      "name": "320x568 /articles: footer reachable",
-      "passed": true,
-      "details": ""
-    },
-    {
-      "name": "320x568 /brief: HTTP 200",
-      "passed": true,
-      "details": "200"
-    },
-    {
-      "name": "320x568 /brief: one H1",
-      "passed": true,
-      "details": "1"
-    },
-    {
-      "name": "320x568 /brief: no horizontal overflow",
-      "passed": true,
-      "details": "320/320"
-    },
-    {
-      "name": "320x568 /brief: finite document height",
-      "passed": true,
-      "details": "5373→5373"
-    },
-    {
-      "name": "320x568 /brief: footer reachable",
+      "name": "320x568 /blog: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1755,7 +2115,7 @@
     {
       "name": "320x568 /about: finite document height",
       "passed": true,
-      "details": "5241→5241"
+      "details": "9638→9638"
     },
     {
       "name": "320x568 /about: footer reachable",
@@ -1763,27 +2123,52 @@
       "details": ""
     },
     {
-      "name": "320x568 /en: HTTP 200",
+      "name": "320x568 /brief: HTTP 200",
       "passed": true,
       "details": "200"
     },
     {
-      "name": "320x568 /en: one H1",
+      "name": "320x568 /brief: one H1",
       "passed": true,
       "details": "1"
     },
     {
-      "name": "320x568 /en: no horizontal overflow",
+      "name": "320x568 /brief: no horizontal overflow",
       "passed": true,
       "details": "320/320"
     },
     {
-      "name": "320x568 /en: finite document height",
+      "name": "320x568 /brief: finite document height",
       "passed": true,
-      "details": "12706→12706"
+      "details": "5562→5562"
     },
     {
-      "name": "320x568 /en: footer reachable",
+      "name": "320x568 /brief: footer reachable",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "320x568 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "320x568 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "320x568 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "320x568 /glossary: finite document height",
+      "passed": true,
+      "details": "15950→15950"
+    },
+    {
+      "name": "320x568 /glossary: footer reachable",
       "passed": true,
       "details": ""
     },
@@ -1814,6 +2199,1626 @@
     },
     {
       "name": "320x568: mobile menu closes",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /about: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-1440x900 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-1440x900 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-1440x900 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "dark-1440x900 /glossary: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /about: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-390x844 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-390x844 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-390x844 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "dark-390x844 /glossary: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /about: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "dark-320x568 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "dark-320x568 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "dark-320x568 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "dark-320x568 /glossary: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /about: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-1440x900 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-1440x900 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-1440x900 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "signal-1440x900 /glossary: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /about: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-390x844 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-390x844 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-390x844 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "signal-390x844 /glossary: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /about: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "signal-320x568 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "signal-320x568 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "signal-320x568 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "signal-320x568 /glossary: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /about: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-1440x900 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-1440x900 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-1440x900 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "1440/1440"
+    },
+    {
+      "name": "light-1440x900 /glossary: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /about: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-390x844 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-390x844 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-390x844 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "390/390"
+    },
+    {
+      "name": "light-390x844 /glossary: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /seo: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /seo: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /seo: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /seo: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /seo-audit: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /seo-audit: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /seo-audit: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /seo-audit: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /pricing: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /pricing: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /pricing: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /pricing: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /cases: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /cases: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /cases: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /cases: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /blog: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /blog: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /blog: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /blog: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /about: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /about: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /about: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /about: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /brief: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /brief: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /brief: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /brief: expected theme",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "light-320x568 /glossary: HTTP 200",
+      "passed": true,
+      "details": "200"
+    },
+    {
+      "name": "light-320x568 /glossary: one H1",
+      "passed": true,
+      "details": "1"
+    },
+    {
+      "name": "light-320x568 /glossary: no horizontal overflow",
+      "passed": true,
+      "details": "320/320"
+    },
+    {
+      "name": "light-320x568 /glossary: expected theme",
       "passed": true,
       "details": ""
     }

@@ -1,4 +1,3 @@
-import type Database from "better-sqlite3";
 import { z } from "zod";
 
 import { apiError, retryAfterHeaders } from "./http";
@@ -9,12 +8,18 @@ export function zodError(error: z.ZodError) {
 }
 
 export function consumeRules(
-  sqlite: Database.Database,
   keyPrefix: string,
   rules: ReadonlyArray<{ suffix: string; rule: RateLimitRule }>,
-) {
+): Promise<Response | null> {
+  return consumeRulesAsync(keyPrefix, rules);
+}
+
+async function consumeRulesAsync(
+  keyPrefix: string,
+  rules: ReadonlyArray<{ suffix: string; rule: RateLimitRule }>,
+): Promise<Response | null> {
   for (const { suffix, rule } of rules) {
-    const result = consumeRateLimit(sqlite, `${keyPrefix}:${suffix}`, rule);
+    const result = await consumeRateLimit(`${keyPrefix}:${suffix}`, rule);
     if (!result.allowed) {
       return apiError(
         429,

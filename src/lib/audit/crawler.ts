@@ -24,6 +24,7 @@ export interface CrawlResult {
   readonly pages: readonly PageAnalysis[];
   readonly pagesChecked: number;
   readonly pagesDiscovered: number;
+  readonly discoveredUrls: readonly string[];
   readonly failures: readonly CrawlFailure[];
   readonly robots: RobotsInfo;
   readonly sitemap: SitemapInfo;
@@ -153,6 +154,7 @@ export async function crawlSite(
     pages,
     pagesChecked: pages.length,
     pagesDiscovered: discoveredUrls.size,
+    discoveredUrls: [...discoveredUrls],
     failures,
     robots,
     sitemap,

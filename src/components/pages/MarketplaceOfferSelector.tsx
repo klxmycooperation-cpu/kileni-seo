@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { offerBriefHref } from "../../config/offers";
 import type { Locale } from "../../config/site";
-import { localizedPath } from "../../config/site";
 import type { MarketplaceId } from "../../content/marketplaces";
 
 export type MarketplaceOfferView = {
@@ -27,9 +27,9 @@ export function MarketplaceOfferSelector({ platform, locale, offers }: { platfor
     <div className="marketplace-offer-grid">
       {offers.map((offer) => {
         const active = offer.id === selected;
-        const href = `${localizedPath(locale, "brief")}?service=marketplaces&platform=${encodeURIComponent(platform)}&tier=${encodeURIComponent(offer.name)}`;
+        const href = offerBriefHref(offer.id, locale);
         return (
-          <article className="marketplace-offer" data-selected={active || undefined} data-featured={offer.featured || undefined} key={offer.id}>
+          <article className="marketplace-offer" data-offer-id={offer.id} data-platform={platform} data-selected={active || undefined} data-featured={offer.featured || undefined} key={offer.id}>
             {offer.featured && <span className="marketplace-offer-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
             <h3>{offer.name}</h3>
             <p>{offer.description}</p>
@@ -40,10 +40,10 @@ export function MarketplaceOfferSelector({ platform, locale, offers }: { platfor
               <div><dt>{ru ? "Предел" : "Limit"}</dt><dd>{offer.limit}</dd></div>
               <div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{offer.duration}</dd></div>
             </dl>
-            <details>
-              <summary>{ru ? "Полный состав" : "Full scope"}</summary>
+            <div className="marketplace-offer__included">
+              <h4>{ru ? "В результат входят" : "Included in the result"}</h4>
               <ul>{offer.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
-            </details>
+            </div>
             <button type="button" aria-pressed={active} onClick={() => setSelected(offer.id)}>{active ? (ru ? "Выбрано" : "Selected") : (ru ? "Выбрать вариант" : "Select option")}</button>
             {active && <Link href={href}>{ru ? "Передать в короткий бриф" : "Continue to the short brief"}<span aria-hidden="true">↗</span></Link>}
           </article>

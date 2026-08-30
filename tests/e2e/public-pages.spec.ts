@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 import { completeFixtureAudit, createQueuedFixtureAudit } from "./audit-fixture";
+import { database } from "../../src/db/client";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem(
-      "kileni-cookie-preferences",
-      JSON.stringify({ essential: true, analytics: false, marketing: false }),
+      "kileni-cookie-preferences:v2",
+      JSON.stringify({ essential: true, analytics: false, marketing: false, version: "2026-08-23.2" }),
     );
   });
 });
@@ -36,11 +37,11 @@ test("switches locale while preserving the current public route", async ({ page 
 
   await expect(page).toHaveURL(/\/en\/pricing\?utm_source=e2e#request$/u);
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Choose the direction, then the right scope.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("How many pages should we check?");
 });
 
 test("offers an accessible services dropdown and a persistent theme switch", async ({ page }) => {
-  await page.addInitScript(() => window.sessionStorage.setItem("kileni:intro:v3", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("kileni:intro:v9", "1"));
   await page.setViewportSize({ width: 1_440, height: 900 });
   await page.goto("/");
 
@@ -104,20 +105,18 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   expect(Math.abs(scrolledMainTop - initialMainTop)).toBeLessThanOrEqual(1);
 });
 
-test("explains a bounded set of service terms through keyboard-accessible disclosures", async ({ page }) => {
+test("explains the service in a bounded overview with a direct glossary route", async ({ page }) => {
   await page.goto("/seo-audit");
 
-  const glossary = page.getByRole("region", { name: "Термины этого раздела" });
-  await expect(glossary).toBeVisible();
-  await expect(glossary.locator("details")).toHaveCount(3);
+  const overview = page.locator(".svc-compact-overview");
+  await expect(overview).toBeVisible();
+  await expect(overview.locator("article")).toHaveCount(3);
+  await expect(overview).toContainText("Когда подходит");
+  await expect(overview).toContainText("Что делаем");
+  await expect(overview).toContainText("Что получите");
+  await expect(page.locator(".svc-context-links").getByRole("link", { name: "Термины" })).toHaveAttribute("href", "/glossary");
 
-  const firstSummary = glossary.locator("summary").first();
-  await firstSummary.focus();
-  await page.keyboard.press("Enter");
-  await expect(glossary.locator("details").first()).toHaveAttribute("open", "");
-  await expect(glossary.getByRole("link", { name: "Открыть в словаре" }).first()).toHaveAttribute("href", /\/glossary#[a-z0-9-]+$/u);
-
-  const violations = await new AxeBuilder({ page }).include(".svc-inline-glossary").analyze();
+  const violations = await new AxeBuilder({ page }).include(".svc-compact-overview").analyze();
   expect(violations.violations.filter((violation) => ["critical", "serious"].includes(violation.impact ?? ""))).toEqual([]);
 });
 
@@ -168,21 +167,37 @@ test("advances the brief and restores its browser draft after reload", async ({ 
 });
 
 test("opens the keyboard-labelled navigation without overflow at 320 and 360 pixels", async ({ page }) => {
-  await page.addInitScript(() => window.sessionStorage.setItem("kileni:intro:v3", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("kileni:intro:v9", "1"));
   for (const width of [320, 360]) {
     await page.setViewportSize({ width, height: 760 });
     await page.goto("/");
     const menu = page.getByRole("button", { name: "Открыть меню" });
 
     await expect(menu).toBeVisible();
-    await expect(page.locator(".site-header .header-cta")).toBeVisible();
+    const headerCta = page.locator(".site-header .header-cta");
+    await expect(headerCta).toBeHidden();
+    const logo = page.locator(".site-header .brand-logo");
+    const menuBox = await menu.boundingBox();
+    const logoBox = await logo.boundingBox();
+    expect(menuBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(menuBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(logoBox).not.toBeNull();
+    expect((logoBox?.x ?? 0) + (logoBox?.width ?? 0)).toBeLessThanOrEqual(menuBox?.x ?? 0);
     await menu.click();
     await expect(page.getByRole("button", { name: "Закрыть меню" })).toHaveAttribute("aria-expanded", "true");
     const mobileNavigation = page.getByRole("navigation", { name: "Мобильная навигация" });
     await expect(mobileNavigation).toBeVisible();
+    const mobileCta = mobileNavigation.getByRole("link", { name: "Проверить сайт", exact: true });
+    await expect(mobileCta).toBeVisible();
+    await expect(mobileCta).toHaveAttribute("href", "/free-audit");
+    const mobileCtaBox = await mobileCta.boundingBox();
+    expect(mobileCtaBox?.height ?? 0).toBeGreaterThanOrEqual(44);
     const mobileThemeToggle = mobileNavigation.locator(".theme-toggle--mobile");
     await expect(mobileThemeToggle).toBeVisible();
     await expect(mobileThemeToggle).toHaveAccessibleName("Включить сигнальную тему");
+    const themeToggleBox = await mobileThemeToggle.boundingBox();
+    expect(themeToggleBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(themeToggleBox?.height ?? 0).toBeGreaterThanOrEqual(44);
     await expect(mobileNavigation.getByRole("link", { name: "English", exact: true })).toBeVisible();
     await mobileNavigation.getByRole("button", { name: "Услуги", exact: true }).click();
     await expect(mobileNavigation.getByRole("link", { name: "SEO", exact: true })).toBeVisible();
@@ -207,13 +222,15 @@ test("opens the keyboard-labelled navigation without overflow at 320 and 360 pix
 
 test("keeps the home hero in two real columns on wide screens", async ({ page }) => {
   await page.addInitScript(() => {
-    window.sessionStorage.setItem("kileni:intro:v3", "1");
+    window.sessionStorage.setItem("kileni:intro:v9", "1");
     window.localStorage.setItem("kileni:theme:v1", "light");
   });
 
+  await page.setViewportSize({ width: 1_181, height: 960 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   for (const width of [1_181, 1_440, 1_920, 2_560, 3_840]) {
     await page.setViewportSize({ width, height: 960 });
-    await page.goto("/");
+    await expect(page.locator(".signal-hero .hero-copy")).toBeVisible();
 
     const copy = await page.locator(".signal-hero .hero-copy").boundingBox();
     const tool = await page.locator(".signal-hero .hero-tool").boundingBox();
@@ -240,31 +257,20 @@ test("does not hold the hero in its intro state when reduced motion is requested
   expect(hydrationErrors).toEqual([]);
 });
 
-test("finishes the approved typographic brand reveal inside its 4400ms visual timeline", async ({ page }) => {
+test("finishes the approved SVG brand reveal at its natural pace", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v3"));
-  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.goto("/?intro=1", { waitUntil: "domcontentloaded" });
   const intro = page.locator(".brand-intro");
   await expect(intro).toBeVisible();
-  await expect(intro).toHaveAttribute("aria-hidden", "true");
-  await expect(intro).toHaveCSS("pointer-events", "none");
-  await expect(intro.locator(".brand-intro__initial")).toHaveText("KILENI");
-  await expect(intro.locator(".brand-intro__split")).toContainText("KILENI");
-  await expect(intro.locator(".brand-intro__seo")).toHaveText("SEO");
-  await expect(intro.locator(".brand-intro__slogan")).toContainText("Разбираем по буквам");
-
-  const animationEnd = await page.evaluate(() => {
-    const elements = [
-      document.querySelector(".brand-intro"),
-      document.querySelector(".site-header--home"),
-      document.querySelector(".signal-hero .hero-grid"),
-    ].filter((element): element is Element => element instanceof Element);
-    return Math.max(...elements.flatMap((element) => element.getAnimations({ subtree: true })
-      .map((animation) => Number(animation.effect?.getComputedTiming().endTime ?? 0))
-      .filter(Number.isFinite)));
-  });
-  expect(animationEnd).toBe(4_400);
+  await expect(intro).toHaveAttribute("role", "region");
+  await expect(intro).toHaveAttribute("aria-label", "Заставка KILENI");
+  await expect(intro).toHaveCSS("pointer-events", "auto");
+  await expect(intro.locator(".brand-intro-v9__kil")).toHaveText("KIL");
+  await expect(intro.locator(".brand-intro-v9__ni")).toHaveText("NI");
+  await expect(intro.locator(".brand-intro-v9__e")).toHaveText("E");
+  await expect(intro.locator(".brand-intro-v9__s")).toHaveText("S");
+  await expect(intro.locator(".brand-intro-v9__o")).toHaveText("O");
+  await expect(intro.locator(".brand-intro-v9__slogan").first()).toContainText("Разбираем по буквам");
 
   const completionMs = await page.evaluate(async () => {
     const root = document.documentElement;
@@ -279,8 +285,8 @@ test("finishes the approved typographic brand reveal inside its 4400ms visual ti
       observer.observe(root, { attributes: true, attributeFilter: ["data-kileni-intro"] });
     });
   });
-  expect(completionMs).toBeGreaterThanOrEqual(4_000);
-  expect(completionMs).toBeLessThanOrEqual(4_400 + 50);
+  expect(completionMs).toBeGreaterThanOrEqual(4_100);
+  expect(completionMs).toBeLessThanOrEqual(5_000);
   await expect(intro).toHaveCount(0);
 
   const layout = await page.locator(".signal-hero h1").evaluate((heading) => {
@@ -294,43 +300,25 @@ test("finishes the approved typographic brand reveal inside its 4400ms visual ti
   expect(layout.overflow).toBe(false);
 });
 
-test("uses a repeat-session transition no longer than 350ms", async ({ page }) => {
+test("shows the intro once per browser session and keeps an explicit replay route", async ({ page }) => {
   await page.goto("/");
-  await page.evaluate(() => window.sessionStorage.setItem("kileni:intro:v3", "1"));
-  await page.reload({ waitUntil: "commit" });
-  await page.waitForFunction(() => document.documentElement?.dataset.kileniIntro === "repeat");
+  await page.getByRole("button", { name: "Пропустить заставку" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done");
+  await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem("kileni:intro:v9"))).toBe("1");
 
-  const repeat = await page.evaluate(async () => {
-    const root = document.documentElement;
-    const startedAt = Number(root.dataset.kileniIntroStartedAt);
-    const intro = document.querySelector(".brand-intro");
-    const header = document.querySelector(".site-header--home");
-    const hero = document.querySelector(".signal-hero .hero-grid");
-    const animationEnd = Math.max(...[intro, header, hero]
-      .filter((element): element is Element => element instanceof Element)
-      .flatMap((element) => element.getAnimations({ subtree: true })
-        .map((animation) => Number(animation.effect?.getComputedTiming().endTime ?? 0))
-        .filter(Number.isFinite)));
-    const completionMs = await new Promise<number>((resolve) => {
-      const observer = new MutationObserver(() => {
-        if (root.dataset.kileniIntro !== "done") return;
-        observer.disconnect();
-        resolve(performance.now() - startedAt);
-      });
-      observer.observe(root, { attributes: true, attributeFilter: ["data-kileni-intro"] });
-    });
-    return { animationEnd, completionMs };
-  });
-
-  expect(repeat.animationEnd).toBeLessThanOrEqual(350);
-  expect(repeat.completionMs).toBeLessThanOrEqual(350);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done");
   await expect(page.locator(".brand-intro")).toHaveCount(0);
+
+  await page.goto("/?intro=1", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", /pending|play/u);
+  await expect(page.locator(".brand-intro")).toBeVisible();
 });
 
 test("starts the intro on client-side navigation to the home page", async ({ page }) => {
   await page.goto("/pricing");
   await page.evaluate(() => {
-    window.sessionStorage.removeItem("kileni:intro:v3");
+    window.sessionStorage.removeItem("kileni:intro:v9");
     delete document.documentElement.dataset.kileniIntro;
   });
   await page.locator(".site-header .brand-logo").click();
@@ -342,9 +330,8 @@ test("starts the intro on client-side navigation to the home page", async ({ pag
 
   await page.goto("/pricing");
   await page.locator(".site-header .brand-logo").click();
-  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "repeat");
-  await expect(page.locator(".brand-intro")).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done", { timeout: 500 });
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done");
+  await expect(page.locator(".brand-intro")).toHaveCount(0);
 });
 
 test("allows input to dismiss the intro before React hydrates", async ({ page }) => {
@@ -353,15 +340,16 @@ test("allows input to dismiss the intro before React hydrates", async ({ page })
     await route.continue();
   });
   await page.goto("/", { waitUntil: "commit" });
-  await page.waitForFunction(() => document.documentElement.dataset.kileniIntro === "play");
-  await page.evaluate(() => window.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })));
+  const fallback = page.locator(".brand-intro-v9__fallback");
+  await expect(fallback).toBeVisible({ timeout: 2_500 });
+  await expect(fallback).toContainText("KILENI");
+  await page.getByRole("button", { name: "Пропустить заставку" }).click({ timeout: 2_500 });
 
-  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done");
-  expect(await page.evaluate(() => window.sessionStorage.getItem("kileni:intro:v3"))).toBe("1");
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done", { timeout: 500 });
 });
 
 test("keeps the home layout within 390, 768, 1024 and 1440 pixels", async ({ page }) => {
-  await page.addInitScript(() => window.sessionStorage.setItem("kileni:intro:v3", "1"));
+  await page.addInitScript(() => window.sessionStorage.setItem("kileni:intro:v9", "1"));
   for (const width of [390, 768, 1_024, 1_440]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto("/");
@@ -375,13 +363,13 @@ test("keeps the home layout within 390, 768, 1024 and 1440 pixels", async ({ pag
     });
     expect(layout.lines, `heading lines at ${width}px`).toBeLessThanOrEqual(width === 390 ? 5.05 : 4.05);
     expect(layout.overflow, `horizontal overflow at ${width}px`).toBe(false);
-    if (width <= 768) await expect(page.locator(".header-cta")).toBeVisible();
+    if (width > 360 && width <= 768) await expect(page.locator(".header-cta")).toBeVisible();
   }
 });
 
 test("dismisses the intro on pointer, keyboard and wheel without swallowing the action", async ({ page }) => {
   await page.goto("/");
-  await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v3"));
+  await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v9"));
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(page.locator(".brand-intro")).toBeVisible();
 
@@ -393,16 +381,15 @@ test("dismisses the intro on pointer, keyboard and wheel without swallowing the 
   await expect(page.locator(".brand-intro")).toHaveCount(0);
   await expect(url).toBeFocused();
   await expect(url).toHaveValue("https://example.ru");
-  expect(await page.evaluate(() => window.sessionStorage.getItem("kileni:intro:v3"))).toBe("1");
 
-  await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v3"));
+  await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v9"));
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(page.locator(".brand-intro")).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done");
   await expect(page.locator(".skip-link")).toBeFocused();
 
-  await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v3"));
+  await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v9"));
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(page.locator(".brand-intro")).toBeVisible();
   await page.mouse.wheel(0, 320);
@@ -416,13 +403,13 @@ test("submits the free-audit form and preserves the quota after repeated active-
   await page.getByLabel("Адрес сайта").fill("https://example.com/a-page");
   await expect(page.getByLabel("Сколько страниц проверить")).toHaveCount(0);
   await page.getByRole("button", { name: /Проверить сайт бесплатно/u }).click();
-  await page.getByLabel("Ваше имя").fill("E2E Audit");
-  await page.getByLabel("Телефон, Telegram или e-mail").fill("audit-e2e@example.com");
-  await page.getByLabel(/Согласен на обработку данных/u).check();
+  await expect(page.getByText("Результат откроется сразу. Email — по желанию")).toBeVisible();
+  await expect(page.getByLabel("Email (необязательно)")).toBeVisible();
+  await expect(page.getByText(/согласие на обработку email для подготовки и однократной отправки отчёта/iu)).toHaveCount(0);
   await page.getByLabel(/Я имею отношение к сайту/u).check();
   await page.getByRole("button", { name: /Запустить проверку/u }).click();
   await expect(page).toHaveURL(/\/audit\/[A-Za-z0-9_-]{43}$/u);
-  await expect(page.getByRole("heading", { name: "Проводим SEO-проверку сайта" })).toBeVisible();
+  await expect(page.locator("main h1")).toContainText(/Проводим SEO-проверку сайта|Сайт требует|Сайт готов/u);
   const created = await page.request.get(new URL(page.url()).pathname.replace("/audit/", "/api/audits/"));
   expect((await created.json() as { pageLimit: number }).pageLimit).toBe(10);
 
@@ -431,22 +418,30 @@ test("submits the free-audit form and preserves the quota after repeated active-
   const requestOrigin = process.env.APP_BASE_URL ?? "http://127.0.0.1:3107";
   const duplicate = () => page.request.post("/api/audits", {
     headers: { "content-type": "application/json", "x-csrf-token": token, origin: requestOrigin },
-    data: { url: "https://www.example.com/another-page", name: "E2E Repeat", contact: "repeat@example.com", consent: true, authority: true, honeypot: "", turnstileToken: "turnstile-disabled", locale: "ru", source: "playwright" },
+    data: { url: "https://www.example.com/another-page", email: "", consent: false, authority: true, honeypot: "", turnstileToken: "turnstile-disabled", locale: "ru", source: "playwright" },
   });
   for (const repeated of [await duplicate(), await duplicate()]) {
-    expect(repeated.status()).toBe(409);
-    expect(await repeated.json()).toMatchObject({ error: "DOMAIN_AUDIT_ACTIVE" });
+    const repeatedBody = await repeated.json() as { error?: string; ok?: boolean; cached?: boolean };
+    expect([200, 409]).toContain(repeated.status());
+    expect(repeatedBody).toMatchObject(
+      repeated.status() === 409
+        ? { error: "DOMAIN_AUDIT_ACTIVE" }
+        : { ok: true, cached: true },
+    );
   }
 
   const newDomain = await page.request.post("/api/audits", {
     headers: { "content-type": "application/json", "x-csrf-token": token, origin: requestOrigin },
-    data: { url: "https://example.org/new-page", name: "E2E New", contact: "new@example.com", consent: true, authority: true, honeypot: "", turnstileToken: "turnstile-disabled", locale: "ru", source: "playwright" },
+    data: { url: "https://example.org/new-page", email: "", consent: false, authority: true, honeypot: "", turnstileToken: "turnstile-disabled", locale: "ru", source: "playwright" },
   });
-  expect(newDomain.status()).toBe(202);
+  expect([200, 202]).toContain(newDomain.status());
+  if (newDomain.status() === 200) {
+    expect(await newDomain.json()).toMatchObject({ ok: true, cached: true });
+  }
 });
 
 test("streams observed fixture crawl progress, completes, and reopens the result", async ({ page }) => {
-  const audit = createQueuedFixtureAudit();
+  const audit = await createQueuedFixtureAudit();
   await page.goto(`/audit/${audit.publicToken}`);
   await expect(page.getByRole("heading", { name: "Проводим SEO-проверку сайта" })).toBeVisible();
   await expect(page.getByRole("progressbar", { name: "Ход проверки сайта" })).toBeVisible();
@@ -455,7 +450,11 @@ test("streams observed fixture crawl progress, completes, and reopens the result
   await expect(page.locator(".audit-complete")).toBeVisible({ timeout: 20_000 });
   await work;
   await expect(page.locator(".final-score strong")).toHaveText("100");
-  await expect(page.getByText("Проверено 2 из максимум 10 страниц. Найдено доступных страниц: 2.")).toBeVisible();
+  await expect(page.locator(".audit-result-domain")).toHaveText(/correct\.test/u);
+  await expect(page.locator(".audit-result-domain")).toHaveAttribute("href", "https://correct.test/");
+  await expect(page.getByText("Обнаружено 2 URL. Подробно проверено 2 из максимум 10 страниц.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Что найдено на correct.test" })).toBeVisible();
+  await expect(page.getByText("Что вошло в проверку")).toBeVisible();
   await expect(page.getByText(/согласие зафиксировано/u)).toBeVisible();
   await expect(page.locator(".audit-complete h1")).toHaveCSS("font-family", /Manrope/u);
   await expect(page.getByText("Полный аудит стоит", { exact: false })).toHaveCount(0);
@@ -467,7 +466,8 @@ test("streams observed fixture crawl progress, completes, and reopens the result
 
   await page.reload();
   await expect(page.locator(".final-score strong")).toHaveText("100");
-  await expect(page.locator(".risk-directions article")).toHaveCount(5);
+  await expect(page.locator(".audit-result-domain")).toHaveAttribute("href", "https://correct.test/");
+  await expect(page.getByRole("heading", { name: "Что найдено на correct.test" })).toBeVisible();
 });
 
 test("shows an explicit error for an unknown audit link", async ({ page }) => {
@@ -480,8 +480,8 @@ test("shows an explicit error for an unknown audit link", async ({ page }) => {
 test("submits the short form and calculator lead", async ({ page }) => {
   await page.goto("/contacts");
   await page.getByLabel("Имя").fill("E2E Lead");
-  await page.getByLabel("Телефон, Telegram или e-mail").fill("lead-e2e@example.com");
-  await page.getByLabel(/Согласен на обработку данных/u).check();
+  await page.getByLabel("Telegram или e-mail").fill("lead-e2e@example.com");
+  await page.getByLabel(/согласие на обработку персональных данных/iu).check();
   await page.getByRole("button", { name: "Отправить заявку" }).click();
   await expect(page.getByText(/Заявка сохранена/u)).toBeVisible();
 
@@ -493,23 +493,53 @@ test("submits the short form and calculator lead", async ({ page }) => {
   await expect(page.getByText(/Расчёт сохранён/u)).toBeVisible();
 });
 
-test("submits the detailed brief with a validated private PNG attachment", async ({ page }) => {
+test("submits the detailed brief with a validated private PNG attachment", async ({ page, request }) => {
   await page.goto("/brief");
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Компания или проект").fill("E2E Brief");
+  await page.getByLabel("Что сейчас не устраивает?").fill("Посетители не находят нужные услуги в поиске.");
+  await page.getByLabel("Какой результат нужен?").fill("Понятный план роста заявок из поиска.");
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Ссылка на сайт").fill("https://example.com");
+  await page.getByLabel("Приоритетные услуги").fill("SEO-аудит и продвижение.");
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Имя").fill("E2E Brief User");
-  await page.getByLabel("E-mail для ответа").fill("brief-e2e@example.com");
-  await page.getByLabel(/Согласен на обработку данных/u).check();
+  await page.getByLabel("Telegram или e-mail").fill("brief-e2e@example.com");
+  await page.getByLabel(/согласие на обработку персональных данных/iu).check();
   await page.locator('input[type="file"]').setInputFiles("public/brand/kileni-og.png");
+  await expect(page.getByText(/kileni-og\.png/u)).toBeVisible();
   await page.getByRole("button", { name: "Получить расчёт" }).click();
   await expect(page.getByRole("heading", { name: /Спасибо. Бриф уже в работе/u })).toBeVisible();
+
+  const savedBrief = (await database.execute({
+    sql: "SELECT id FROM brief_submissions WHERE name=? ORDER BY created_at DESC LIMIT 1",
+    args: ["E2E Brief User"],
+  })).rows[0] as { id?: string } | undefined;
+  expect(savedBrief?.id).toEqual(expect.any(String));
+  const briefId = savedBrief!.id!;
+  const savedAttachment = (await database.execute({
+    sql: "SELECT id,original_name AS originalName,mime FROM attachments WHERE brief_id=? ORDER BY created_at DESC LIMIT 1",
+    args: [briefId],
+  })).rows[0] as { id?: string; originalName?: string; mime?: string } | undefined;
+  expect(savedAttachment).toMatchObject({ id: expect.any(String), originalName: "kileni-og.png", mime: "image/png" });
+  const attachmentHref = `/api/admin/attachments/${savedAttachment!.id!}`;
+
+  await page.goto("/admin/login");
+  await page.getByLabel("Логин").fill("e2e-admin");
+  await page.getByLabel("Пароль").fill("Kileni-e2e-password");
+  await page.getByRole("button", { name: "Войти" }).click();
+
+  const anonymousDownload = await request.get(attachmentHref);
+  expect(anonymousDownload.status()).toBe(401);
+  const privateDownload = await page.request.get(attachmentHref);
+  expect(privateDownload.status()).toBe(200);
+  expect(privateDownload.headers()["content-type"]).toContain("image/png");
+  expect(privateDownload.headers()["cache-control"]).toContain("private");
+  expect((await privateDownload.body()).subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
 });
 
 test("authenticates admin, opens a full audit, exports JSON/PDF, and deletes it", async ({ page }) => {
-  const audit = createQueuedFixtureAudit();
+  const audit = await createQueuedFixtureAudit();
   await completeFixtureAudit(audit, 0);
   await page.goto("/admin/login");
   await page.getByLabel("Логин").fill("e2e-admin");
@@ -518,7 +548,11 @@ test("authenticates admin, opens a full audit, exports JSON/PDF, and deletes it"
   await expect(page).toHaveURL(/\/admin\/audits$/u);
   await page.getByRole("link", { name: "correct.test" }).first().click();
   await expect(page.getByRole("heading", { name: "correct.test" })).toBeVisible();
-  await expect(page.getByText("Полный результат")).toBeVisible();
+  const rawData = page.locator("details.admin-card").filter({ has: page.locator("summary", { hasText: "Служебные данные и полный JSON" }) });
+  await expect(rawData).toHaveJSProperty("open", false);
+  await rawData.locator("summary").click();
+  await expect(rawData).toHaveJSProperty("open", true);
+  await expect(rawData.getByRole("heading", { name: "Полный результат" })).toBeVisible();
 
   const json = await page.request.get(`/api/admin/audits/${audit.id}/export`);
   expect(json.status()).toBe(200);

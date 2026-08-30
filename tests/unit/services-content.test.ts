@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { getService, serviceSlugs } from "../../src/content/services";
+import { offersForService, type OfferService } from "../../src/config/offers";
 
 describe("service information architecture", () => {
   it("keeps the six public service directions with a distinct explanatory visual", () => {
@@ -28,7 +29,8 @@ describe("service information architecture", () => {
         expect(service?.diagnosis.length).toBeGreaterThanOrEqual(3);
         expect(service?.outcomes.length).toBeGreaterThanOrEqual(3);
         expect(service?.work.length).toBeGreaterThanOrEqual(4);
-        expect(service?.packages.length).toBeGreaterThanOrEqual(2);
+        expect(service?.packages.length).toBe(offersForService(slug as OfferService).length);
+        expect(service?.packages.length).toBeGreaterThan(0);
         expect(service?.duration.length).toBeGreaterThan(20);
         expect(service?.exclusions.length).toBeGreaterThanOrEqual(3);
         expect(service?.faq.length).toBeGreaterThanOrEqual(3);

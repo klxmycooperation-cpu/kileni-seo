@@ -1,11 +1,7 @@
-import type { Metadata } from "next";
 import { HomePage } from "@/src/components/home/HomePage";
+import { buildPublicMetadata } from "@/src/config/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "KILENI — SEO, разработка и digital-решения",
-  description: "Бесплатная SEO-проверка до 10 ключевых публичных страниц: общая оценка, основные зоны риска и понятный следующий шаг.",
-  alternates: { canonical: "/", languages: { ru: "/", en: "/en", "x-default": "/" } },
-};
+export const metadata = buildPublicMetadata("ru", "");
 
 export default function Home() {
   return <HomePage locale="ru"/>;

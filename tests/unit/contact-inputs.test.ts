@@ -21,7 +21,6 @@ describe("contact input parsing", () => {
     ["anna@example.com", "email"],
     ["@kileni_team", "telegram"],
     ["kileni_team", "telegram"],
-    ["+7 (999) 123-45-67", "phone"],
   ] as const)("classifies %s as %s", (value, expected) => {
     expect(detectContactType(value)).toBe(expected);
   });
@@ -61,10 +60,7 @@ describe("contact input parsing", () => {
 
 describe("free audit page limit", () => {
   const validAudit = {
-    name: "Анна",
-    contact: "anna@example.com",
     locale: "ru" as const,
-    consent: true as const,
     authority: true as const,
     honeypot: "",
     url: "https://example.com",
@@ -78,9 +74,27 @@ describe("free audit page limit", () => {
     expect(auditRequestSchema.parse({ ...validAudit, pageLimit }).pageLimit).toBe(10);
   });
 
-  it("accepts a phone, Telegram handle or email for an audit contact", () => {
-    expect(auditRequestSchema.safeParse({ ...validAudit, contact: "+7 999 123-45-67" }).success).toBe(true);
-    expect(auditRequestSchema.safeParse({ ...validAudit, contact: "@kileni_team" }).success).toBe(true);
-    expect(auditRequestSchema.safeParse({ ...validAudit, contact: "anna@example.com" }).success).toBe(true);
+  it("accepts an audit without an email or personal-data consent", () => {
+    expect(auditRequestSchema.parse(validAudit)).toMatchObject({ email: "", consent: false });
+    expect(auditRequestSchema.parse({ ...validAudit, email: "" })).toMatchObject({ email: "", consent: false });
+  });
+
+  it("validates a supplied email and requires consent only for that email", () => {
+    expect(auditRequestSchema.parse({
+      ...validAudit,
+      email: "  anna@example.com  ",
+      consent: true,
+    }).email).toBe("anna@example.com");
+    expect(auditRequestSchema.safeParse({ ...validAudit, email: "anna@example.com" }).success).toBe(false);
+    expect(auditRequestSchema.safeParse({ ...validAudit, email: "@kileni_team", consent: true }).success).toBe(false);
+    expect(auditRequestSchema.safeParse({ ...validAudit, email: "+7 999 123-45-67", consent: true }).success).toBe(false);
+  });
+
+  it("rejects the legacy audit name/contact payload", () => {
+    expect(auditRequestSchema.safeParse({
+      ...validAudit,
+      name: "Анна",
+      contact: "anna@example.com",
+    }).success).toBe(false);
   });
 });

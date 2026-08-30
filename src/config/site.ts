@@ -1,14 +1,15 @@
 import { PUBLIC_AUDIT_PAGE_LIMIT } from "./public-audit";
+import legalDefaults from "./legal-defaults.json";
 
-const defaultPublicPhone = "+7 925 225-60-20";
+const defaultPublicPhone = "+7 929 590-09-00";
 const publicPhone = process.env.PUBLIC_PHONE?.trim() || defaultPublicPhone;
-
 export const siteConfig = {
   name: "KILENI",
   descriptor: "SEO",
   pronunciation: "Килени",
   baseUrl: resolvedBaseUrl(),
   audit: {
+    enabled: publicAuditIsEnabled(),
     // Public audit scope is a product boundary, not a deployment override.
     pageLimit: PUBLIC_AUDIT_PAGE_LIMIT,
     timeoutMs: configuredNumber(process.env.AUDIT_TIMEOUT_MS, 420_000, 30_000, 420_000),
@@ -19,21 +20,25 @@ export const siteConfig = {
   },
   publicContacts: {
     phone: publicPhone,
-    email: process.env.PUBLIC_EMAIL?.trim() ?? "",
+    email: process.env.PUBLIC_EMAIL?.trim() || legalDefaults.email,
     telegram: process.env.PUBLIC_TELEGRAM?.trim() || "@kmdozz",
     whatsapp: process.env.PUBLIC_WHATSAPP?.trim() ?? "",
     maxPhone: process.env.PUBLIC_MAX?.trim() || publicPhone,
     maxUrl: process.env.PUBLIC_MAX_URL?.trim() || "https://web.max.ru/",
   },
   legal: {
-    name: process.env.LEGAL_NAME ?? "",
-    address: process.env.LEGAL_ADDRESS ?? "",
-    email: process.env.LEGAL_EMAIL ?? "",
-    inn: process.env.LEGAL_INN ?? "",
-    version: process.env.LEGAL_POLICY_VERSION ?? "2026-08-15",
-    policyUrl: process.env.LEGAL_POLICY_URL ?? "",
-    consentUrl: process.env.LEGAL_CONSENT_URL ?? "",
-    prelaunch: process.env.PRELAUNCH_MODE !== "false",
+    name: process.env.LEGAL_NAME?.trim() || legalDefaults.name,
+    shortName: process.env.LEGAL_SHORT_NAME?.trim() || legalDefaults.shortName,
+    address: process.env.LEGAL_ADDRESS?.trim() || legalDefaults.address,
+    email: process.env.LEGAL_EMAIL?.trim() || legalDefaults.email,
+    inn: process.env.LEGAL_INN?.trim() || legalDefaults.inn,
+    ogrnip: process.env.LEGAL_OGRNIP?.trim() || legalDefaults.ogrnip,
+    registrationAuthority: process.env.LEGAL_REGISTRATION_AUTHORITY?.trim() || legalDefaults.registrationAuthority,
+    registrationDate: process.env.LEGAL_REGISTRATION_DATE?.trim() || legalDefaults.registrationDate,
+    version: process.env.LEGAL_POLICY_VERSION?.trim() || legalDefaults.version,
+    policyUrl: process.env.LEGAL_POLICY_URL?.trim() || legalDefaults.policyUrl,
+    consentUrl: process.env.LEGAL_CONSENT_URL?.trim() || legalDefaults.consentUrl,
+    prelaunch: process.env.PRELAUNCH_MODE === "true",
   },
   forms: {
     enabled: publicFormsAreEnabled(),
@@ -43,7 +48,7 @@ export const siteConfig = {
 function resolvedBaseUrl(): string {
   if (process.env.APP_BASE_URL?.trim()) return process.env.APP_BASE_URL.trim();
   const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() || process.env.VERCEL_URL?.trim();
-  return vercelHost ? `https://${vercelHost.replace(/^https?:\/\//, "").replace(/\/$/, "")}` : "http://localhost:3000";
+  return vercelHost ? `https://${vercelHost.replace(/^https?:\/\//, "").replace(/\/$/, "")}` : "https://kileni-seo.ru";
 }
 
 function configuredNumber(raw: string | undefined, fallback: number, minimum: number, maximum: number): number {
@@ -91,6 +96,10 @@ export function localizedPath(locale: Locale, path = ""): string {
 /** Read at request time so an operator can disable every public mutation endpoint. */
 export function publicFormsAreEnabled(): boolean {
   const configured = process.env.FORMS_ENABLED?.trim();
+  // Public collection of contacts and files is legally meaningful. On Vercel it
+  // must stay fail-closed until the operator supplies the real legal details;
+  // a switch alone must not make placeholder data public.
+  if (process.env.VERCEL === "1" && !legalEnvironmentIsComplete()) return false;
   if (configured) return configured !== "false";
   // A serverless deployment without legal/storage configuration must never
   // silently open public submissions. Local development keeps its useful
@@ -98,8 +107,30 @@ export function publicFormsAreEnabled(): boolean {
   return process.env.VERCEL !== "1";
 }
 
+function legalEnvironmentIsComplete(): boolean {
+  const values = [
+    process.env.LEGAL_NAME?.trim() || legalDefaults.name,
+    process.env.LEGAL_ADDRESS?.trim() || legalDefaults.address,
+    process.env.LEGAL_EMAIL?.trim() || legalDefaults.email,
+    process.env.LEGAL_INN?.trim() || legalDefaults.inn,
+    process.env.LEGAL_OGRNIP?.trim() || legalDefaults.ogrnip,
+    process.env.LEGAL_POLICY_VERSION?.trim() || legalDefaults.version,
+    process.env.LEGAL_POLICY_URL?.trim() || legalDefaults.policyUrl,
+    process.env.LEGAL_CONSENT_URL?.trim() || legalDefaults.consentUrl,
+  ];
+  return values.every((value) => value.length > 0);
+}
+
+/** Read at request time so an operator can stop the audit without closing other forms. */
+export function publicAuditIsEnabled(): boolean {
+  const configured = process.env.AUDIT_ENABLED?.trim();
+  return configured !== "false";
+}
+
 export function siteIsInPrelaunchMode(): boolean {
-  return process.env.PRELAUNCH_MODE !== "false";
+  // Search access must not depend on a missing deployment variable. A temporary
+  // noindex state is enabled only by an explicit operator decision.
+  return process.env.PRELAUNCH_MODE === "true";
 }
 
 export function prelaunchRobotsMetadata(): { index: false; follow: false; nocache: true } | undefined {
@@ -108,7 +139,7 @@ export function prelaunchRobotsMetadata(): { index: false; follow: false; nocach
 
 export function legalDocumentsAreComplete(): boolean {
   const legal = siteConfig.legal;
-  return [legal.name, legal.address, legal.email, legal.inn, legal.version, legal.policyUrl, legal.consentUrl]
+  return [legal.name, legal.address, legal.email, legal.inn, legal.ogrnip, legal.version, legal.policyUrl, legal.consentUrl]
     .every((value) => value.trim().length > 0);
 }
 
@@ -116,8 +147,8 @@ export function legalOperatorSummary(locale: Locale): string | null {
   if (!legalDocumentsAreComplete()) return null;
   const legal = siteConfig.legal;
   return locale === "ru"
-    ? `${legal.name} · ИНН ${legal.inn} · ${legal.address} · ${legal.email}`
-    : `${legal.name} · Tax ID ${legal.inn} · ${legal.address} · ${legal.email}`;
+    ? `${legal.name} · ИНН ${legal.inn} · ОГРНИП ${legal.ogrnip} · ${legal.address} · ${legal.email}`
+    : `${legal.name} · Tax ID ${legal.inn} · Sole proprietor registration ${legal.ogrnip} · ${legal.address} · ${legal.email}`;
 }
 
 let legalWarningShown = false;

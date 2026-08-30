@@ -2,11 +2,12 @@ import { randomUUID } from "node:crypto";
 
 import type { AuditEvent, FullAuditResult } from "../src/lib/audit/index";
 import { gradeForScore, interpretationForGrade, runAudit, scoreAudit, toPublicAuditResult } from "../src/lib/audit/index";
-import { sqlite } from "../src/db/client";
-import { acquireNextAudit, appendAuditEvent, completeAuditRecord, failAuditRecord, heartbeatWorker, purgeExpiredAudits, type AuditRow, type AuditStatus } from "../src/db/queries";
+import { database } from "../src/db/client";
+import { acquireNextAudit, appendAuditEvent, completeAuditRecord, failAuditRecord, failStaleAudits, heartbeatWorker, purgeExpiredAudits, type AuditRow, type AuditStatus } from "../src/db/queries";
 import { sendEmail } from "../src/lib/notifications/email";
 import { notifyTelegram } from "../src/lib/notifications/telegram";
 import { runMobileLighthouse } from "../src/lib/performance/lighthouse";
+import { purgeExpiredRateLimits } from "../src/lib/security/rate-limit";
 
 const pollIntervalMs = positiveNumber(process.env.WORKER_POLL_MS ?? process.env.WORKER_POLL_INTERVAL_MS, 1_500);
 const auditTimeoutMs = Math.min(420_000, positiveNumber(process.env.AUDIT_TIMEOUT_MS, 420_000));
@@ -23,27 +24,33 @@ async function runWorker(): Promise<void> {
   log("worker_started", { pollIntervalMs, pageLimit });
   let lastHeartbeat = 0;
   let lastRetentionCheck = 0;
+  let lastStaleCheck = 0;
   while (!shutdown.signal.aborted) {
     if (Date.now() - lastRetentionCheck >= 24 * 60 * 60 * 1_000) {
-      const purged = purgeExpiredAudits(retentionDays);
-      log("retention_check", { retentionDays, purged });
+      const purgedAudits = await purgeExpiredAudits(retentionDays);
+      const purgedRateLimits = await purgeExpiredRateLimits();
+      log("retention_check", { retentionDays, purgedAudits, purgedRateLimits });
       lastRetentionCheck = Date.now();
     }
+    if (Date.now() - lastStaleCheck >= 60_000) {
+      const recovered = await failStaleAudits(Math.max(15 * 60 * 1_000, auditTimeoutMs + 2 * 60 * 1_000));
+      if (recovered) log("stale_audits_recovered", { recovered });
+      lastStaleCheck = Date.now();
+    }
     if (Date.now() - lastHeartbeat >= 10_000) {
-      heartbeatWorker({ pid: process.pid, state: "idle" });
+      await heartbeatWorker({ pid: process.pid, state: "idle" });
       lastHeartbeat = Date.now();
     }
-    const audit = acquireNextAudit();
+    const audit = await acquireNextAudit();
     if (!audit) {
       await wait(pollIntervalMs, shutdown.signal);
       continue;
     }
-    heartbeatWorker({ pid: process.pid, state: "working", auditId: audit.id });
+    await heartbeatWorker({ pid: process.pid, state: "working", auditId: audit.id });
     await processAudit(audit);
     lastHeartbeat = 0;
   }
-  heartbeatWorker({ pid: process.pid, state: "stopped" });
-  sqlite.close();
+  await heartbeatWorker({ pid: process.pid, state: "stopped" });
   log("worker_stopped", {});
 }
 
@@ -54,37 +61,38 @@ async function processAudit(audit: AuditRow): Promise<void> {
   const stopListener = () => controller.abort("WORKER_SHUTDOWN");
   shutdown.signal.addEventListener("abort", stopListener, { once: true });
   let stage: AuditStatus = "validating_target";
-  const transition = (next: AuditStatus, payload: Record<string, unknown> = {}) => {
+  const transition = async (next: AuditStatus, payload: Record<string, unknown> = {}) => {
     if (stage === next) {
-      appendAuditEvent(audit.id, next, payload);
+      await appendAuditEvent(audit.id, next, payload);
       return;
     }
     stage = next;
-    appendAuditEvent(audit.id, next, payload);
-    heartbeatWorker({ pid: process.pid, state: "working", auditId: audit.id, stage: next });
+    await appendAuditEvent(audit.id, next, payload);
+    await heartbeatWorker({ pid: process.pid, state: "working", auditId: audit.id, stage: next });
     log("audit_stage", { auditId: audit.id, stage: next, ...safeProgress(payload) });
   };
 
   try {
     log("audit_started", { auditId: audit.id });
+    const plannedPages = Math.min(pageLimit, audit.pageLimit);
     const initial = await runAudit(audit.originalUrl, {
-      maxPages: Math.min(pageLimit, audit.pageLimit),
+      maxPages: plannedPages,
       concurrency: 4,
       signal: controller.signal,
       performance: null,
       onEvent: (event) => handleAuditEvent(event, transition),
     });
 
-    transition("analyzing_structure", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
-    transition("running_performance", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
+    await transition("analyzing_structure", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
+    await transition("running_performance", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
     const lighthouse = controller.signal.aborted
       ? { performance: null, pagesAttempted: 0, pagesChecked: 0 }
       : await runMobileLighthouse(initial.pages.map((page) => page.url).slice(0, 3), { signal: controller.signal });
 
-    transition("calculating_score", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
-    const result = rescore(initial, lighthouse.performance, controller.signal.aborted || lighthouse.pagesChecked < lighthouse.pagesAttempted);
+    await transition("calculating_score", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
+    const result = rescore(initial, lighthouse.performance, controller.signal.aborted || lighthouse.pagesChecked < lighthouse.pagesAttempted, plannedPages);
     const publicResult = toPublicAuditResult(result, audit.locale);
-    completeAuditRecord(audit.id, {
+    await completeAuditRecord(audit.id, {
       publicResult: publicResult as unknown as Record<string, unknown>,
       fullResult: result as unknown as Record<string, unknown>,
       score: result.score.total,
@@ -108,7 +116,7 @@ async function processAudit(audit: AuditRow): Promise<void> {
   } catch (error) {
     const timedOut = controller.signal.aborted && controller.signal.reason === "AUDIT_TIMEOUT";
     const summary = timedOut ? "Audit time limit exceeded" : error instanceof Error ? error.message : "Audit failed";
-    failAuditRecord(audit.id, summary);
+    await failAuditRecord(audit.id, summary);
     log("audit_failed", { auditId: audit.id, stage, durationMs: Date.now() - started, reason: timedOut ? "timeout" : errorName(error) });
   } finally {
     clearTimeout(timeout);
@@ -116,25 +124,31 @@ async function processAudit(audit: AuditRow): Promise<void> {
   }
 }
 
-function handleAuditEvent(event: AuditEvent, transition: (status: AuditStatus, payload?: Record<string, unknown>) => void): void {
+async function handleAuditEvent(event: AuditEvent, transition: (status: AuditStatus, payload?: Record<string, unknown>) => Promise<void>): Promise<void> {
   switch (event.type) {
-    case "audit:start": transition("connecting"); break;
-    case "discovery:start": transition("checking_robots"); break;
-    case "discovery:robots_complete": transition("checking_sitemaps"); break;
-    case "discovery:sitemaps_complete": transition("discovering_pages"); break;
+    case "audit:start": await transition("connecting"); break;
+    case "discovery:start": await transition("checking_robots"); break;
+    case "discovery:robots_complete": await transition("checking_sitemaps"); break;
+    case "discovery:sitemaps_complete": await transition("discovering_pages"); break;
     case "discovery:complete": break;
-    case "crawl:page": transition("crawling_pages", { pagesChecked: event.pagesChecked, pagesDiscovered: event.pagesDiscovered }); break;
-    case "crawl:progress": transition("crawling_pages", { pagesChecked: event.pagesChecked, pagesDiscovered: event.pagesDiscovered, queued: event.queued, limit: event.limit }); break;
+    case "crawl:page": await transition("crawling_pages", { pagesChecked: event.pagesChecked, pagesDiscovered: event.pagesDiscovered }); break;
+    case "crawl:progress": await transition("crawling_pages", { pagesChecked: event.pagesChecked, pagesDiscovered: event.pagesDiscovered, queued: event.queued, limit: event.limit }); break;
     case "warning": log("audit_warning", { code: event.code }); break;
     case "audit:complete": break;
   }
 }
 
-function rescore(initial: FullAuditResult, performance: FullAuditResult["performance"], forcedPartial: boolean): FullAuditResult {
+function rescore(
+  initial: FullAuditResult,
+  performance: FullAuditResult["performance"],
+  forcedPartial: boolean,
+  plannedPages: number,
+): FullAuditResult {
   const score = scoreAudit({
     targetUrl: initial.finalUrl,
     pages: initial.pages,
     pagesDiscovered: initial.pagesDiscovered,
+    plannedPages,
     robots: initial.robots,
     sitemap: initial.sitemap,
     performance,
@@ -169,14 +183,16 @@ async function sendCompletionNotifications(audit: AuditRow, result: FullAuditRes
       subject: audit.locale === "ru" ? "Предварительная SEO-проверка KILENI завершена" : "Your KILENI preliminary SEO check is ready",
       text: audit.locale === "ru" ? `Проверка завершена. Результат: ${publicUrl}` : `Your check is complete. Result: ${publicUrl}`,
     });
-    recordEmailNotification(audit.id, emailResult.sent ? "sent" : emailResult.reason === "not_configured" ? "skipped" : "failed", emailResult.reason);
+    await recordEmailNotification(audit.id, emailResult.sent ? "sent" : emailResult.reason === "not_configured" ? "skipped" : "failed", emailResult.reason);
   }
 }
 
-function recordEmailNotification(entityId: string, status: string, error?: string): void {
+async function recordEmailNotification(entityId: string, status: string, error?: string): Promise<void> {
   const now = Date.now();
-  sqlite.prepare("INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)")
-    .run(randomUUID(), "audit", entityId, "email", status, error?.slice(0, 240) ?? null, now, now);
+  await database.execute({
+    sql: "INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)",
+    args: [randomUUID(), "audit", entityId, "email", status, error?.slice(0, 240) ?? null, now, now],
+  });
 }
 
 function safeProgress(payload: Record<string, unknown>): Record<string, unknown> {

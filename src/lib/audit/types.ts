@@ -199,27 +199,128 @@ export interface AuditScore {
 }
 
 export type AuditGrade = "A" | "B" | "C" | "D" | "E";
-export type PublicAuditRisk = "low" | "medium" | "high" | "unknown";
+export type PublicAuditCheckStatus = "checked" | "not_checked";
+export type PublicAuditRisk = "low" | "medium" | "high" | "not_checked";
 
 export interface PublicAuditCategory {
   readonly name: string;
   readonly risk: PublicAuditRisk;
+  readonly status: PublicAuditCheckStatus;
   readonly explanation: string;
+  readonly reason?: string;
 }
 
+export interface PublicAuditCoverage {
+  /** Hard ceiling for one public audit run. */
+  readonly pageLimit: number;
+  /** Reachable sample target: min(pageLimit, pagesDiscovered). */
+  readonly plannedPages: number;
+  readonly checkedPages: number;
+  /** checkedPages / plannedPages, never checkedPages / whole site. */
+  readonly ratio: number;
+}
+
+export interface PublicAuditIssueCounts extends Readonly<Record<AuditIssueSeverity, number>> {
+  readonly total: number;
+}
+
+export interface PublicAuditSummary {
+  readonly headline: string;
+  readonly facts: readonly string[];
+}
+
+export interface PublicAuditIssueEvidence {
+  readonly url?: string;
+  readonly observation: string;
+}
+
+export interface PublicAuditIssueGroup {
+  readonly code: string;
+  readonly category: AuditCategory;
+  readonly severity: AuditIssueSeverity;
+  readonly title: string;
+  readonly why: string;
+  readonly fix: string;
+  readonly acceptance: string;
+  readonly affectedCount: number;
+  readonly affectedUrls: readonly string[];
+  readonly evidence: readonly PublicAuditIssueEvidence[];
+}
+
+export interface PublicAuditPageResult {
+  readonly url: string;
+  readonly finalUrl: string;
+  readonly http: {
+    readonly status: number;
+    readonly ok: boolean;
+    readonly redirectCount: number;
+  };
+  readonly title: Pick<TextSignal, "value" | "present" | "length" | "optimal">;
+  readonly description: Pick<TextSignal, "value" | "present" | "length" | "optimal">;
+  readonly h1: {
+    readonly count: number;
+    readonly values: readonly string[];
+  };
+  readonly noindex: boolean;
+  readonly canonical: {
+    readonly url: string | null;
+    readonly valid: boolean;
+    readonly selfReferential: boolean | null;
+  };
+  readonly sitemap:
+    | { readonly status: "checked"; readonly included: boolean }
+    | { readonly status: "not_checked"; readonly included: null; readonly reason: string };
+  readonly internalLinks: {
+    readonly outgoing: number;
+    readonly incomingFromCheckedPages: number;
+  };
+}
+
+export type PublicAuditIndexability =
+  | {
+      readonly status: "checked";
+      readonly checkedPages: number;
+      readonly indexablePages: number;
+      readonly noindexPages: number;
+      readonly httpErrorPages: number;
+      readonly ratio: number;
+    }
+  | {
+      readonly status: "not_checked";
+      readonly checkedPages: 0;
+      readonly indexablePages: 0;
+      readonly noindexPages: 0;
+      readonly httpErrorPages: 0;
+      readonly ratio: null;
+      readonly reason: string;
+    };
+
 export interface PublicAuditResult {
+  readonly resultVersion: number;
+  /** Query and fragment are intentionally removed from every public URL. */
+  readonly finalUrl: string;
   readonly score: number;
   readonly grade: AuditGrade;
   readonly interpretation: string;
   readonly pagesChecked: number;
   readonly pagesDiscovered: number;
   readonly partial: boolean;
+  readonly coverage: PublicAuditCoverage;
+  readonly issueCounts: PublicAuditIssueCounts;
+  readonly summary: PublicAuditSummary;
   readonly categories: readonly PublicAuditCategory[];
+  readonly issueGroups: readonly PublicAuditIssueGroup[];
+  readonly checkedPages: readonly PublicAuditPageResult[];
+  readonly indexability: PublicAuditIndexability;
+  /** Bounded public-safe sample; pagesDiscovered remains the complete count. */
+  readonly uncheckedUrls: readonly string[];
 }
 
 export interface FullAuditResult {
+  readonly resultVersion: number;
   readonly targetUrl: string;
   readonly finalUrl: string;
+  readonly pageLimit: number;
   readonly score: AuditScore;
   readonly grade: AuditGrade;
   readonly interpretation: string;
@@ -230,6 +331,7 @@ export interface FullAuditResult {
   readonly coverage: number;
   readonly issueCounts: Readonly<Record<AuditIssueSeverity, number>>;
   readonly pages: readonly PageAnalysis[];
+  readonly discoveredUrls: readonly string[];
   readonly issues: readonly AuditIssue[];
   readonly robots: RobotsInfo;
   readonly sitemap: SitemapInfo;

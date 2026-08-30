@@ -25,6 +25,7 @@ vercel.json
 vite.config.ts
 *.log
 *.png
+!public/editorial/*.png
 *.docx
 *.zip
 !public/brand/kileni-og.png

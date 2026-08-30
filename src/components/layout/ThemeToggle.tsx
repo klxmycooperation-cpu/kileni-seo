@@ -48,6 +48,7 @@ export function ThemeToggle({ locale, mobile = false }: { locale: Locale; mobile
       className={`theme-toggle${mobile ? " theme-toggle--mobile" : ""}`}
       type="button"
       data-theme-toggle
+      data-theme={theme}
       aria-label={actionLabel}
       title={actionLabel}
       onClick={toggle}

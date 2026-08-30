@@ -1,11 +1,55 @@
 import type { MetadataRoute } from "next";
-import { publicRoutes, siteConfig } from "@/src/config/site";
-import { articleSlugs } from "@/src/content/articles";
+import { localizedPath, publicRoutes, siteConfig } from "@/src/config/site";
+import { publicRouteLastModified } from "@/src/config/seo-metadata";
+import { articleSlugs, getArticle } from "@/src/content/articles";
+import { getGlossaryTerm } from "@/src/content/glossary";
+import { auditCheckSitemapEntries } from "@/src/lib/seo/audit-check-metadata";
+import { glossarySitemapPaths } from "@/src/lib/seo/glossary-metadata";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = [...publicRoutes, ...articleSlugs.map((slug) => `blog/${slug}`)];
-  return paths.flatMap((path) => {
-    const ru = path ? `/${path}` : "/"; const en = path ? `/en/${path}` : "/en";
-    return [{ url: new URL(ru, siteConfig.baseUrl).toString(), lastModified: new Date("2026-08-17"), changeFrequency: path.startsWith("blog") ? "monthly" : "weekly", priority: path === "" ? 1 : .7, alternates: { languages: { ru: new URL(ru, siteConfig.baseUrl).toString(), en: new URL(en, siteConfig.baseUrl).toString() } } }, { url: new URL(en, siteConfig.baseUrl).toString(), lastModified: new Date("2026-08-17"), changeFrequency: path.startsWith("blog") ? "monthly" : "weekly", priority: path === "" ? .8 : .65, alternates: { languages: { ru: new URL(ru, siteConfig.baseUrl).toString(), en: new URL(en, siteConfig.baseUrl).toString() } } }];
-  });
+  const sources = [
+    ...publicRoutes.map((path) => ({ path, lastModified: publicRouteLastModified(path) })),
+    ...articleSlugs.map((slug) => ({
+      path: `blog/${slug}`,
+      lastModified: articleLastModified(slug),
+    })),
+    ...auditCheckSitemapEntries.map(({ path, updatedAt }) => ({
+      path,
+      lastModified: updatedAt,
+    })),
+    ...glossarySitemapPaths.map((path) => ({
+      path,
+      lastModified: glossaryLastModified(path),
+    })),
+  ];
+
+  return sources.flatMap(({ path, lastModified }) => localizedEntries(path, lastModified));
+}
+
+function localizedEntries(path: string, lastModified: string): MetadataRoute.Sitemap {
+  const ru = absoluteUrl(localizedPath("ru", path));
+  const en = absoluteUrl(localizedPath("en", path));
+  const languages = { ru, en, "x-default": ru };
+
+  return [
+    { url: ru, lastModified, alternates: { languages } },
+    { url: en, lastModified, alternates: { languages } },
+  ];
+}
+
+function absoluteUrl(path: string): string {
+  return new URL(path, siteConfig.baseUrl).toString();
+}
+
+function articleLastModified(slug: string): string {
+  const article = getArticle("ru", slug);
+  if (!article) throw new Error(`Sitemap article is missing: ${slug}`);
+  return article.date;
+}
+
+function glossaryLastModified(path: string): string {
+  const slug = path.slice("glossary/".length);
+  const term = getGlossaryTerm(slug);
+  if (!term) throw new Error(`Sitemap glossary term is missing: ${slug}`);
+  return term.updatedAt;
 }

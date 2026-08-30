@@ -4,17 +4,12 @@ import Link from "next/link";
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
 import { getDictionary } from "../../content/dictionary";
-import { serviceGlossarySlugs } from "../../content/service-glossary";
-import { getServiceResultExample } from "../../content/service-result-examples";
 import { getService } from "../../content/services";
-import { priceLabel } from "../../config/price-labels";
-import { selectPricingTiers } from "../../config/pricing-tiers";
+import { formatOfferPrice, getOffer, localizedOffer, offerBriefHref, type Offer } from "../../config/offers";
 import { LeadForm } from "../forms/LeadForm";
-import { SeoAuditScoreVisual, SeoPromotionMetricsVisual } from "../analytics/AnalyticsVisuals";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
 import { Faq } from "./Faq";
-import { InlineGlossaryTerms } from "./InlineGlossaryTerms";
 import { ServiceVisual } from "./ServiceVisual";
 import { ServiceTierProvider, ServiceTierSelector } from "./ServiceTierSelection";
 
@@ -23,24 +18,32 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
   if (!service) return null;
   const d = getDictionary(locale);
   const ru = locale === "ru";
-  const packages = selectPricingTiers(service.packages);
-  const resultExample = getServiceResultExample(locale, slug);
-  const tierLabels = ru ? ["Базовый", "Расширенный", "Под ключ"] : ["Basic", "Advanced", "Turnkey"];
-  const tierViews = packages.map((item, index) => {
-    const price = priceLabel(item.priceKey, locale);
+  const heroTitle = slug === "custom-task"
+    ? (ru ? "Опишите задачу — предложим формат работы" : "Describe the task — we will propose a working format")
+    : service.title;
+  const heroLead = slug === "custom-task"
+    ? (ru
+        ? "Состав, срок и стоимость определим после короткого брифа. Работу начинаем только после согласования."
+        : "Scope, timing and price are confirmed after a short brief. Work starts only after approval.")
+    : service.lead;
+  const offers = offersForServicePage(slug);
+  const tierLabels = tierLabelsForService(slug, locale);
+  const tierViews = offers.map((offer, index) => {
+    const item = localizedOffer(offer, locale);
     return {
-      id: item.name,
+      id: offer.id,
       tierLabel: tierLabels[index] ?? tierLabels[tierLabels.length - 1],
-      name: item.name,
+      name: item.title,
       description: item.description,
-      limit: item.limit,
-      duration: item.duration ?? (ru ? "Срок после подтверждения" : "Timing confirmed upfront"),
-      current: price.current,
-      note: price.note,
+      limit: item.scope,
+      duration: item.duration,
+      current: formatOfferPrice(offer, locale),
       features: item.features,
-      featured: Boolean(item.featured),
+      featured: offer.recommended,
+      briefHref: offerBriefHref(offer.id, locale),
     };
   });
+  const variantsCopy = getVariantsCopy(slug, locale);
 
   return (
     <PublicShell locale={locale}>
@@ -51,138 +54,71 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
           <div className="shell svc-detail-hero-grid">
             <div className="svc-detail-copy">
               <p className="svc-kicker">{service.eyebrow}</p>
-              <h1>{service.title}</h1>
-              <p>{service.lead}</p>
+              <h1>{heroTitle}</h1>
+              <p>{heroLead}</p>
               <div className="svc-hero-actions">
                 <Link className="button button-primary" href="#request">{d.common.order}<span aria-hidden="true">↘</span></Link>
                 <Link href="#variants">{ru ? "Посмотреть варианты" : "See the options"}<span aria-hidden="true">↓</span></Link>
               </div>
             </div>
-            <ServiceVisual visual={service.visual} />
+            <ServiceVisual visual={service.visual} locale={locale} items={service.deliverables.slice(0, 3)} outcome={service.outcomes[0]} />
           </div>
         </header>
 
-        <section className="svc-decision-section svc-problem" aria-labelledby="svc-problem-title">
-          <div className="shell svc-two-columns">
-            <div><p className="svc-kicker">{ru ? "01 · Проблема" : "01 · Problem"}</p><h2 id="svc-problem-title">{ru ? "Когда услуга нужна" : "When this service helps"}</h2></div>
-            <div><p className="svc-lead">{service.problem}</p><ul className="svc-symptom-list">{service.fit.map((item) => <li key={item}>{item}</li>)}</ul></div>
+        <nav className="svc-page-nav" aria-label={ru ? "Разделы этой услуги" : "Sections on this service page"}>
+          <div className="shell svc-page-nav__inner">
+            <Link href="#overview">{ru ? "Коротко об услуге" : "Service summary"}<span aria-hidden="true">↓</span></Link>
+            <Link href="#variants">{ru ? "Варианты и цены" : "Options and prices"}<span aria-hidden="true">↓</span></Link>
+            <Link href="#assurance">{ru ? "Границы работы" : "Work boundaries"}<span aria-hidden="true">↓</span></Link>
+            <Link href="#request">{ru ? "Обсудить задачу" : "Discuss the task"}<span aria-hidden="true">↓</span></Link>
+          </div>
+        </nav>
+
+        <section className="svc-compact-overview" id="overview" aria-labelledby="svc-overview-title">
+          <div className="shell">
+            <header className="svc-compact-heading">
+              <p className="svc-kicker">{ru ? "Как решаем задачу" : "How the task is solved"}</p>
+              <h2 id="svc-overview-title">{ru ? "Только нужное: причина, работа и результат" : "Only what matters: cause, work and result"}</h2>
+              <p>{service.problem}</p>
+            </header>
+            <div className="svc-compact-grid">
+              <article>
+                <span>01</span><h3>{ru ? "Когда подходит" : "When it fits"}</h3>
+                <ul>{service.fit.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ul>
+              </article>
+              <article>
+                <span>02</span><h3>{ru ? "Что делаем" : "What we do"}</h3>
+                <ol>{service.work.slice(0, 4).map((item, index) => <li key={item}><b>{index + 1}</b>{item}</li>)}</ol>
+              </article>
+              <article>
+                <span>03</span><h3>{ru ? "Что получите" : "What you receive"}</h3>
+                <ul>{service.deliverables.slice(0, 5).map((item) => <li key={item}>{item}</li>)}</ul>
+              </article>
+            </div>
           </div>
         </section>
 
-        <section className="svc-decision-section svc-diagnosis" aria-labelledby="svc-diagnosis-title">
-          <div className="shell"><div className="svc-section-heading"><p className="svc-kicker">{ru ? "02 · Диагностика" : "02 · Diagnosis"}</p><h2 id="svc-diagnosis-title">{ru ? "Как находим причину" : "How we find the cause"}</h2></div>
-            <ol className="svc-step-grid">{service.diagnosis.map((item, index) => <li key={item}><span>{String(index + 1).padStart(2, "0")}</span><p>{item}</p></li>)}</ol></div>
-        </section>
-
-        <InlineGlossaryTerms locale={locale} slugs={serviceGlossarySlugs[slug] ?? []} />
-
-        {slug === "seo-audit" && <SeoAuditScoreVisual locale={locale} />}
-        {slug === "seo-promotion" && <SeoPromotionMetricsVisual locale={locale} />}
-
-        <section className="svc-decision-section svc-results" aria-labelledby="svc-result-title">
-          <div className="shell svc-two-columns"><div><p className="svc-kicker">{ru ? "03 · Результат" : "03 · Result"}</p><h2 id="svc-result-title">{ru ? "Что изменится и что останется у вас" : "What changes and what you keep"}</h2></div>
-            <div className="svc-result-columns"><ul>{service.outcomes.map((item) => <li key={item}>{item}</li>)}</ul><ul>{service.deliverables.map((item) => <li key={item}>{item}</li>)}</ul></div></div>
-        </section>
-
-        <section className="svc-decision-section svc-process" aria-labelledby="svc-process-title">
-          <div className="shell"><div className="svc-section-heading"><p className="svc-kicker">{ru ? "04 · Процесс" : "04 · Process"}</p><h2 id="svc-process-title">{ru ? "Что именно делаем" : "What we actually do"}</h2></div>
-            <ol className="svc-work-list">{service.work.map((item, index) => <li key={item}><span>{String(index + 1).padStart(2, "0")}</span><p>{item}</p></li>)}</ol></div>
-        </section>
-
         <section className="svc-decision-section svc-variants" id="variants" aria-labelledby="svc-variants-title">
-          <div className="shell"><div className="svc-section-heading"><p className="svc-kicker">{ru ? "05 · Варианты" : "05 · Options"}</p><h2 id="svc-variants-title">{ru ? "Состав, предел и цена рядом" : "Scope, limit and price together"}</h2></div>
+          <div className="shell"><div className="svc-section-heading"><p className="svc-kicker">{ru ? "Варианты" : "Options"}</p><h2 id="svc-variants-title">{variantsCopy.title}</h2><p>{variantsCopy.subtitle}</p></div>
             <ServiceTierSelector locale={locale} tiers={tierViews} /></div>
         </section>
 
-        <section className="svc-decision-section svc-boundaries" aria-labelledby="svc-boundaries-title">
-          <div className="shell svc-two-columns"><div><p className="svc-kicker">{ru ? "06 · Сроки и ограничения" : "06 · Timing and limits"}</p><h2 id="svc-boundaries-title">{ru ? "Что учитываем до старта" : "What we clarify upfront"}</h2><p className="svc-timing">{service.duration}</p></div>
-            <ul>{service.exclusions.map((item) => <li key={item}>{item}</li>)}</ul></div>
-        </section>
-
-        <section className="svc-decision-section svc-proof" aria-labelledby="svc-proof-title">
-          <div className="shell svc-two-columns"><div><p className="svc-kicker">{ru ? "07 · Проверка результата" : "07 · Proof"}</p><h2 id="svc-proof-title">{ru ? "Работу можно принять по фактам" : "Delivery can be accepted against evidence"}</h2></div>
-            <div><ol><li><span>01</span><p>{ru ? "До начала фиксируем исходное состояние и состав работ." : "We record the baseline and scope before work begins."}</p></li><li><span>02</span><p>{ru ? "Передаём сделанные изменения и материалы, которые входят в вариант." : "We hand over the completed changes and included materials."}</p></li><li><span>03</span><p>{ru ? "Повторяем применимые проверки и отдельно отмечаем ограничения." : "We repeat applicable checks and state the remaining limits."}</p></li></ol>
-              {service.caseLink && <Link className="svc-case-link" href={localizedPath(locale, service.caseLink)}>{ru ? "Открыть кейс с доказательствами" : "Open an evidence-based case"}<span aria-hidden="true">↗</span></Link>}<p className="svc-guarantee-note">{d.common.noGuarantee}</p></div></div>
-        </section>
-
-        {resultExample && (
-          <section className="svc-decision-section svc-result-example" aria-labelledby="svc-result-example-title">
-            <div className="shell">
-              <header className="svc-result-example__heading">
-                <div>
-                  <p className="svc-kicker">{resultExample.eyebrow}</p>
-                  <h2 id="svc-result-example-title">{resultExample.title}</h2>
-                </div>
-                <p>{resultExample.lead}</p>
-              </header>
-
-              <article className="svc-result-fragment" aria-labelledby="svc-result-fragment-title">
-                <header>
-                  <h3 id="svc-result-fragment-title">{resultExample.fragment.title}</h3>
-                  <p>{resultExample.fragment.caption}</p>
-                </header>
-                <dl>
-                  {resultExample.fragment.rows.map((row) => (
-                    <div key={row.key}>
-                      <dt>{row.label}</dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </article>
-
-              <section className="svc-before-after" aria-labelledby="svc-before-after-title">
-                <h3 id="svc-before-after-title">{resultExample.beforeAfter.title}</h3>
-                <div>
-                  {[resultExample.beforeAfter.before, resultExample.beforeAfter.after].map((state, index) => (
-                    <article key={state.label} data-after={index === 1 ? "" : undefined}>
-                      <span>{state.label}</span>
-                      <h4>{state.title}</h4>
-                      <ul>{state.items.map((item) => <li key={item}>{item}</li>)}</ul>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              <div className="svc-result-reasons">
-                {[
-                  { title: resultExample.whyThisOptionTitle, items: resultExample.whyThisOption },
-                  { title: resultExample.whyKileniTitle, items: resultExample.whyKileni },
-                ].map((group) => (
-                  <section key={group.title}>
-                    <h3>{group.title}</h3>
-                    <ul>{group.items.map((item) => <li key={item}>{item}</li>)}</ul>
-                  </section>
-                ))}
-              </div>
-              <p className="svc-result-disclaimer">{resultExample.disclaimer}</p>
+        <section className="svc-assurance" id="assurance" aria-labelledby="svc-assurance-title">
+          <div className="shell">
+            <header><p className="svc-kicker">{ru ? "До старта и после работы" : "Before and after delivery"}</p><h2 id="svc-assurance-title">{ru ? "Границы и приёмка без мелкого шрифта" : "Clear boundaries and acceptance"}</h2><p>{service.duration}</p></header>
+            <div className="svc-assurance-grid">
+              <article><h3>{ru ? "Не входит" : "Not included"}</h3><ul>{service.exclusions.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ul></article>
+              <article><h3>{ru ? "Как принимаем" : "How we accept delivery"}</h3><ol><li>01 · {ru ? "Фиксируем исходное состояние." : "Record the baseline."}</li><li>02 · {ru ? "Передаём изменения и материалы." : "Hand over changes and materials."}</li><li>03 · {ru ? "Повторяем согласованные проверки." : "Repeat the agreed checks."}</li></ol></article>
             </div>
-          </section>
-        )}
-
-        <section className="svc-decision-section svc-buyer-questions" aria-labelledby="svc-buyer-questions-title">
-          <div className="shell svc-two-columns">
-            <div>
-              <p className="svc-kicker">{ru ? "08 · До заказа" : "08 · Before ordering"}</p>
-              <h2 id="svc-buyer-questions-title">{ru ? "11 ответов для принятия решения" : "11 answers for a buying decision"}</h2>
-              <p className="svc-timing">{ru ? "Состав, доступы, сроки, приёмка и границы услуги — без скрытых допущений." : "Scope, access, timing, acceptance and service boundaries — without hidden assumptions."}</p>
-            </div>
-            <div className="svc-buyer-question-list">
-              {service.buyerQuestions.map((item, index) => (
-                <details key={item.question}>
-                  <summary><span>{String(index + 1).padStart(2, "0")}</span>{item.question}</summary>
-                  <p>{item.answer}</p>
-                </details>
-              ))}
-            </div>
+            <div className="svc-assurance-footer">{service.caseLink && <Link href={localizedPath(locale, service.caseLink)}>{ru ? "Кейс с доказательствами" : "Evidence-based case"}<span aria-hidden="true">↗</span></Link>}<p>{d.common.noGuarantee}</p></div>
           </div>
         </section>
 
         <section className="svc-context-links" aria-label={ru ? "Связанные разделы" : "Related pages"}>
           <div className="shell">
-            <Link href={localizedPath(locale, "pricing")}>{ru ? "Сравнить три уровня и пределы" : "Compare three tiers and limits"}<span aria-hidden="true">↗</span></Link>
-            <Link href={localizedPath(locale, "glossary")}>{ru ? "Открыть словарь терминов" : "Open the terminology glossary"}<span aria-hidden="true">↗</span></Link>
-            <Link href={`${localizedPath(locale, "brief")}?service=${encodeURIComponent(slug)}`}>{ru ? "Передать задачу в коротком брифе" : "Share the task in a short brief"}<span aria-hidden="true">↗</span></Link>
+            <Link href={localizedPath(locale, "pricing")}>{ru ? "Все цены" : "All prices"}<span aria-hidden="true">↗</span></Link>
+            <Link href={localizedPath(locale, "glossary")}>{ru ? "Термины" : "Terminology"}<span aria-hidden="true">↗</span></Link>
+            <Link href={`${localizedPath(locale, "brief")}?service=${encodeURIComponent(slug)}`}>{ru ? "Короткий бриф" : "Short brief"}<span aria-hidden="true">↗</span></Link>
           </div>
         </section>
 
@@ -192,4 +128,55 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
       </ServiceTierProvider>
     </PublicShell>
   );
+}
+
+const offersByServicePage: Record<string, readonly string[]> = {
+  "seo-audit": ["seo-audit-free", "seo-audit-200", "seo-audit-implementation"],
+  "seo-promotion": ["seo-promotion-start", "seo-promotion-growth", "seo-promotion-team"],
+  "web-development": ["development-start", "development-business", "development-max"],
+  "yandex-ads": ["yandex-ads-setup", "yandex-ads-support"],
+  "content-materials": ["content-article"],
+  "custom-task": ["custom-task-consultation"],
+};
+
+function offersForServicePage(slug: string): Offer[] {
+  return (offersByServicePage[slug] ?? []).map((id) => getOffer(id)).filter((offer): offer is Offer => Boolean(offer));
+}
+
+function tierLabelsForService(slug: string, locale: Locale): string[] {
+  if (slug === "seo-audit") {
+    return locale === "ru"
+      ? ["Предварительная оценка", "Подробный аудит", "Аудит и исправления"]
+      : ["Preliminary check", "Detailed audit", "Audit and fixes"];
+  }
+  if (slug === "custom-task") return [locale === "ru" ? "После короткого брифа" : "After a short brief"];
+  return locale === "ru" ? ["Старт", "Рекомендуем", "Расширенный"] : ["Start", "Recommended", "Advanced"];
+}
+
+function getVariantsCopy(slug: string, locale: Locale): { title: string; subtitle: string } {
+  if (slug === "seo-audit") {
+    return locale === "ru"
+      ? {
+          title: "Какую помощь хотите получить?",
+          subtitle: "Выберите формат: только предварительная оценка, подробный аудит или аудит с внедрением исправлений.",
+        }
+      : {
+          title: "What kind of help do you need?",
+          subtitle: "Choose a preliminary check, a detailed audit, or an audit with implemented fixes.",
+        };
+  }
+  if (slug === "custom-task") {
+    return locale === "ru"
+      ? {
+          title: "Сначала — короткий бриф",
+          subtitle: "Состав, срок и стоимость определим после короткого брифа. Работу начинаем только после согласования.",
+        }
+      : {
+          title: "Start with a short brief",
+          subtitle: "Scope, timing and price are confirmed after a short brief. Work starts only after approval.",
+        };
+  }
+  return locale === "ru"
+    ? { title: "Выберите подходящий формат", subtitle: "Цена, срок и границы каждого варианта показаны рядом." }
+    : { title: "Choose a suitable format", subtitle: "Price, timing and boundaries are shown for every option." };
 }

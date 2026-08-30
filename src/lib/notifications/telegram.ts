@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { sqlite } from "../../db/client";
+
+import { database } from "../../db/client";
 
 type TelegramMessage = { entityType: string; entityId: string; text: string };
 
@@ -9,8 +10,7 @@ export async function notifyTelegram(message: TelegramMessage): Promise<{ sent: 
   const chatId = process.env.TELEGRAM_CHAT_ID;
   const now = Date.now();
   if (!token || !chatId) {
-    sqlite.prepare("INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)")
-      .run(id, message.entityType, message.entityId, "telegram", "skipped", "not_configured", now, now);
+    await recordNotification(id, message, "skipped", "not_configured", now);
     return { sent: false, reason: "not_configured" };
   }
   try {
@@ -21,13 +21,18 @@ export async function notifyTelegram(message: TelegramMessage): Promise<{ sent: 
       signal: AbortSignal.timeout(8_000),
     });
     if (!response.ok) throw new Error(`Telegram HTTP ${response.status}`);
-    sqlite.prepare("INSERT INTO notification_events(id,entity_type,entity_id,channel,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?)")
-      .run(id, message.entityType, message.entityId, "telegram", "sent", now, Date.now());
+    await recordNotification(id, message, "sent", null, now);
     return { sent: true };
   } catch (error) {
     const summary = error instanceof Error ? error.message.slice(0, 240) : "telegram_failed";
-    sqlite.prepare("INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)")
-      .run(id, message.entityType, message.entityId, "telegram", "failed", summary, now, Date.now());
+    await recordNotification(id, message, "failed", summary, now);
     return { sent: false, reason: summary };
   }
+}
+
+async function recordNotification(id: string, message: TelegramMessage, status: string, error: string | null, createdAt: number): Promise<void> {
+  await database.execute({
+    sql: "INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)",
+    args: [id, message.entityType, message.entityId, "telegram", status, error, createdAt, Date.now()],
+  });
 }

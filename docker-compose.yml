@@ -4,6 +4,8 @@ services:
     build:
       context: .
       target: web
+      args:
+        PRELAUNCH_MODE: "${PRELAUNCH_MODE:-false}"
     env_file:
       - .env
     environment:
@@ -13,7 +15,7 @@ services:
       BACKUP_PATH: /data/backups
       HEALTH_REQUIRE_WORKER: "false"
     ports:
-      - "127.0.0.1:${PORT:-3000}:3000"
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-3000}:3000"
     volumes:
       - kileni_data:/data
     init: true
@@ -34,6 +36,8 @@ services:
     build:
       context: .
       target: worker
+      args:
+        PRELAUNCH_MODE: "${PRELAUNCH_MODE:-false}"
     env_file:
       - .env
     environment:

@@ -1,55 +1,201 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "../../config/site";
+import { INTRO_FINISHED_EVENT } from "../home/brand-intro-config";
 
-const STORAGE_KEY = "kileni-cookie-preferences";
+const STORAGE_KEY = "kileni-cookie-preferences:v2";
+// Increment whenever the inventory or legal wording materially changes so a
+// previously stored choice cannot silently suppress the updated notice.
+const CONSENT_VERSION = "2026-08-23.2";
 const OPEN_EVENT = "kileni:open-cookie-settings";
+const POST_INTRO_DELAY_MS = 160;
 
-type Preferences = { essential: true; analytics: boolean; marketing: boolean };
+type Preferences = { essential: true; analytics: boolean; marketing: boolean; version?: string; savedAt?: string };
 const defaults: Preferences = { essential: true, analytics: false, marketing: false };
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "summary",
+  "[contenteditable='true']",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
+
+function getFocusableElements(container: HTMLElement) {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter((element) => (
+    element.getAttribute("aria-hidden") !== "true" && element.getClientRects().length > 0
+  ));
+}
 
 export function CookieManager({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
   const [open, setOpen] = useState(false);
   const [configuring, setConfiguring] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>(defaults);
+  const layerRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const persistedPreferencesRef = useRef<Preferences>(defaults);
+  const dismissOnEscapeRef = useRef(false);
 
   useEffect(() => {
+    let revealTimer: number | undefined;
+    let safetyTimer: number | undefined;
+    let introObserver: MutationObserver | undefined;
+
+    const stopWaitingForIntro = () => {
+      window.removeEventListener(INTRO_FINISHED_EVENT, revealAfterIntro);
+      introObserver?.disconnect();
+      introObserver = undefined;
+    };
+
+    const revealAfterIntro = () => {
+      stopWaitingForIntro();
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(safetyTimer);
+      revealTimer = window.setTimeout(() => {
+        dismissOnEscapeRef.current = false;
+        setOpen(true);
+      }, POST_INTRO_DELAY_MS);
+    };
+
+    const revealWhenPageIsReady = () => {
+      const state = document.documentElement.dataset.kileniIntro;
+      if (!state || state === "done") {
+        revealAfterIntro();
+        return;
+      }
+
+      window.addEventListener(INTRO_FINISHED_EVENT, revealAfterIntro, { once: true });
+      introObserver = new MutationObserver(() => {
+        if (document.documentElement.dataset.kileniIntro === "done") revealAfterIntro();
+      });
+      introObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-kileni-intro"] });
+      safetyTimer = window.setTimeout(revealAfterIntro, 10_000);
+    };
+
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<Preferences>;
-        setPreferences({ essential: true, analytics: Boolean(parsed.analytics), marketing: Boolean(parsed.marketing) });
-        setSaved(true);
-      } else setOpen(true);
+        if (parsed.version === CONSENT_VERSION) {
+          const storedPreferences = { essential: true, analytics: Boolean(parsed.analytics), marketing: Boolean(parsed.marketing), version: CONSENT_VERSION, savedAt: parsed.savedAt } satisfies Preferences;
+          persistedPreferencesRef.current = storedPreferences;
+          setPreferences(storedPreferences);
+        } else revealWhenPageIsReady();
+      } else revealWhenPageIsReady();
     } catch {
-      setOpen(true);
+      revealWhenPageIsReady();
     }
     const show = () => {
+      stopWaitingForIntro();
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(safetyTimer);
+      dismissOnEscapeRef.current = true;
       setConfiguring(true);
       setOpen(true);
     };
     window.addEventListener(OPEN_EVENT, show);
-    return () => window.removeEventListener(OPEN_EVENT, show);
+    return () => {
+      stopWaitingForIntro();
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(safetyTimer);
+      window.removeEventListener(OPEN_EVENT, show);
+    };
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const layer = layerRef.current;
+    const dialog = dialogRef.current;
+    if (!layer || !dialog) return;
+
+    const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const returnTarget = activeElement && activeElement !== document.body && activeElement !== document.documentElement
+      ? activeElement
+      : document.getElementById("main-content");
+
+    titleRef.current?.focus({ preventScroll: true });
+
+    const backgroundElements = Array.from(layer.parentElement?.children ?? [])
+      .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== layer)
+      .map((element) => ({
+        element,
+        hadInert: element.hasAttribute("inert"),
+        ariaHidden: element.getAttribute("aria-hidden"),
+      }));
+
+    for (const { element } of backgroundElements) {
+      element.setAttribute("inert", "");
+      element.setAttribute("aria-hidden", "true");
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && dismissOnEscapeRef.current) {
+        event.preventDefault();
+        event.stopPropagation();
+        dismissOnEscapeRef.current = false;
+        setPreferences(persistedPreferencesRef.current);
+        setConfiguring(false);
+        setOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const focusableElements = getFocusableElements(dialog);
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        titleRef.current?.focus({ preventScroll: true });
+        return;
+      }
+
+      const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const activeIndex = active ? focusableElements.indexOf(active) : -1;
+      const first = focusableElements[0];
+      const last = focusableElements.at(-1);
+
+      if (event.shiftKey && activeIndex <= 0) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && (activeIndex === -1 || activeIndex === focusableElements.length - 1)) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown, true);
+      for (const { element, hadInert, ariaHidden } of backgroundElements) {
+        if (!hadInert) element.removeAttribute("inert");
+        if (ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", ariaHidden);
+      }
+      if (returnTarget?.isConnected) returnTarget.focus({ preventScroll: true });
+    };
+  }, [open]);
+
   const save = (next: Preferences) => {
-    setPreferences(next);
-    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
-    setSaved(true);
+    const recorded = { ...next, version: CONSENT_VERSION, savedAt: new Date().toISOString() };
+    persistedPreferencesRef.current = recorded;
+    dismissOnEscapeRef.current = false;
+    setPreferences(recorded);
+    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(recorded)); } catch {}
     setConfiguring(false);
     setOpen(false);
   };
 
-  if (!open) return saved ? null : null;
+  if (!open) return null;
   return (
-    <div className="cookie-layer" role="presentation">
-      <section className={`cookie-manager${configuring ? " cookie-manager--settings" : " cookie-manager--compact"}`} role="dialog" aria-modal="true" aria-labelledby="cookie-title">
+    <div ref={layerRef} className="cookie-layer" role="presentation">
+      <section ref={dialogRef} className={`cookie-manager${configuring ? " cookie-manager--settings" : " cookie-manager--compact"}`} role="dialog" aria-modal="true" aria-labelledby="cookie-title">
         <div className="cookie-manager__intro">
           <p className="section-kicker">{ru ? "Настройки данных" : "Data settings"}</p>
-          <h2 id="cookie-title">{ru ? "Cookies и локальные настройки" : "Cookies and local preferences"}</h2>
+          <h2 ref={titleRef} id="cookie-title" tabIndex={-1}>{ru ? "Cookies и локальные настройки" : "Cookies and local preferences"}</h2>
           <p>{ru ? "Обязательные данные нужны для защиты форм, темы, черновика брифа и результата проверки. Аналитические и маркетинговые инструменты сейчас не подключены." : "Essential storage protects forms and keeps theme, brief drafts and audit results. Analytics and marketing tools are not currently connected."}</p>
         </div>
         {configuring ? (
@@ -122,7 +268,6 @@ function StorageInventory({ locale }: { locale: Locale }) {
         ["Тема", "Запоминает Light, Dark или Signal", "До удаления данных сайта", "KILENI · localStorage"],
         ["Черновик брифа", "Сохраняет незавершённые ответы", "До отправки брифа или удаления данных", "KILENI · localStorage"],
         ["Связка аудита", "Передаёт имя и контакт в бриф только в этом браузере", "24 часа", "KILENI · sessionStorage"],
-        ["Вступительная анимация", "Не повторяет длинное вступление в одной сессии", "До закрытия вкладки", "KILENI · sessionStorage"],
         ["Выбор cookies", "Запоминает этот выбор", "До удаления данных сайта", "KILENI · localStorage"],
       ]
     : [
@@ -130,7 +275,6 @@ function StorageInventory({ locale }: { locale: Locale }) {
         ["Theme", "Remembers Light, Dark or Signal", "Until site data is removed", "KILENI · localStorage"],
         ["Brief draft", "Keeps unfinished answers", "Until submission or data removal", "KILENI · localStorage"],
         ["Audit handoff", "Passes name and contact to the brief in this browser only", "24 hours", "KILENI · sessionStorage"],
-        ["Intro animation", "Avoids replaying the long intro in one session", "Until the tab is closed", "KILENI · sessionStorage"],
         ["Cookie choice", "Remembers this selection", "Until site data is removed", "KILENI · localStorage"],
       ];
 

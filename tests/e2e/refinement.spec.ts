@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem("kileni-cookie-preferences", JSON.stringify({
+  await page.addInitScript(() => window.localStorage.setItem("kileni-cookie-preferences:v2", JSON.stringify({
     essential: true,
     analytics: false,
     marketing: false,
+    version: "2026-08-23.2",
   })));
 });
 
@@ -56,36 +57,28 @@ test("uses the dark hero and leads from the task to proof before prices", async 
   expect(directionsIndex).toBeGreaterThan(reportIndex);
 
   const caseExplorer = page.locator(".home-case-explorer");
+  await caseExplorer.scrollIntoViewIfNeeded();
   await expect(caseExplorer.locator('[role="tab"]')).toHaveCount(2);
   await expect(caseExplorer.locator(".home-case-explorer__surface")).toContainText("Задача");
   await expect(caseExplorer.locator(".home-case-explorer__surface")).toContainText("509 / 509");
   await expect(caseExplorer.locator(".home-case-explorer__identity img")).toBeVisible();
-  await expect(page.locator(".home-deliverables")).toContainText("Причина, приоритет, действие");
+  await expect(page.locator(".home-deliverables")).toContainText("Понятный маршрут исправления");
+  await expect(page.locator(".home-deliverables")).toContainText("Показываем проблему на конкретной странице");
 });
 
 test("uses the site palette and the approved typographic first-visit brand reveal", async ({ page }) => {
-  await page.goto("/");
-  await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v3"));
-  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.addInitScript(() => window.localStorage.setItem("kileni:theme:v1", "light"));
+  await page.goto("/?intro=1", { waitUntil: "domcontentloaded" });
 
   const intro = page.locator(".brand-intro");
   await expect(intro).toBeVisible();
-  await expect(intro).toHaveCSS("background-color", "rgb(247, 248, 251)");
+  await expect(intro).toHaveCSS("background-color", "rgb(243, 245, 248)");
   await expect(intro).toHaveCSS("color", "rgb(11, 19, 43)");
-  await expect(intro.locator(".brand-intro__split")).toContainText("KILENI");
-  await expect(intro.locator(".brand-intro__seo")).toHaveText("SEO");
-
-  const animationEnd = await page.evaluate(() => {
-    const elements = [
-      document.querySelector(".brand-intro"),
-      document.querySelector(".site-header--home"),
-      document.querySelector(".signal-hero .hero-grid"),
-    ].filter((element): element is Element => element instanceof Element);
-    return Math.max(...elements.flatMap((element) => element.getAnimations({ subtree: true })
-      .map((animation) => Number(animation.effect?.getComputedTiming().endTime ?? 0))
-      .filter(Number.isFinite)));
-  });
-  expect(animationEnd).toBe(4_400);
+  await expect(intro.locator(".brand-intro-v9__kil")).toHaveText("KIL");
+  await expect(intro.locator(".brand-intro-v9__ni")).toHaveText("NI");
+  await expect(intro.locator(".brand-intro-v9__e")).toHaveText("E");
+  await expect(intro.locator(".brand-intro-v9__s")).toHaveText("S");
+  await expect(intro.locator(".brand-intro-v9__o")).toHaveText("O");
 });
 
 test("shows a staged, accessible audit scan without changing the brand intro", async ({ page }) => {

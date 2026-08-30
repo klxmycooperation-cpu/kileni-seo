@@ -25,7 +25,7 @@ export function PublicContactLinks({
           {...(contact.external ? { target: "_blank", rel: "noreferrer" } : {})}
         >
           <span className="public-contact-icon" aria-hidden="true">
-            <Image src={contact.iconSrc} alt="" width={40} height={40} unoptimized />
+            <Image src={contact.iconSrc} alt="" width={40} height={40} loading="eager" unoptimized />
           </span>
           <span className="public-contact-copy">
             <span className="public-contact-label">{contact.label}</span>

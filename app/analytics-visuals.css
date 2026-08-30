@@ -50,6 +50,15 @@ html[data-kileni-theme="signal"] .kileni-site {
   min-width: 0;
 }
 
+.kileni-site .hero-audit-visual .analytics-demo-caption {
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: var(--analytics-muted);
+  font: 500 .72rem/1.45 var(--font-manrope, sans-serif);
+  text-align: left;
+}
+
 .kileni-site .analytics-hero-chart__header,
 .kileni-site .analytics-card__eyebrow {
   display: flex;

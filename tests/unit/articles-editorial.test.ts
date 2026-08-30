@@ -66,18 +66,28 @@ describe("article editorial presentation", () => {
     expect(combinedCopy).toContain("0,519 → 0,0001");
   });
 
-  it("uses a unique original local illustration for every article", () => {
+  it("uses a unique, attributed local visual for every article", () => {
     const articles = getArticles("ru");
+    const expectedCovers = [
+      "/editorial/seo-audit-workflow-v2.png",
+      "/editorial/marketplace-card-production-v2.png",
+      "/editorial/indexing-path-v2.png",
+      "/editorial/seo-vs-yandex-ads-v2.png",
+      "/editorial/website-speed-loading-v2.png",
+      "/editorial/seo-ecommerce-promotion-v2.png",
+      "/editorial/seo-promotion-cost-v2.png",
+    ];
 
     expect(articles).toHaveLength(7);
+    expect(articles.map((article) => article.hero.src)).toEqual(expectedCovers);
     expect(new Set(articles.map((article) => article.hero.src)).size).toBe(7);
     for (const article of articles) {
-      expect(article.hero.src).toMatch(/^\/editorial\/[a-z0-9-]+\.svg$/u);
+      expect(article.hero.src).toMatch(/^\/editorial\/(?:photos\/)?[a-z0-9-]+\.(?:jpg|png|svg)$/u);
       expect(existsSync(join(projectRoot, "public", article.hero.src))).toBe(true);
-      expect(article.hero.credit).toBe("Иллюстрация: KILENI");
       expect(article.hero.alt.trim().length).toBeGreaterThan(30);
+      expect(article.hero.credit).toBe("Иллюстрация: KILENI");
       expect(article.hero.sourceUrl).toBeUndefined();
-      expect(article.hero.license).toBe("Оригинальная иллюстрация KILENI");
+      expect(article.hero.license).toBe("KILENI editorial");
       expect(article.hero.licenseUrl).toBeUndefined();
     }
   });
@@ -90,7 +100,7 @@ describe("article editorial presentation", () => {
     for (const russianArticle of russian) {
       const englishArticle = english.find((article) => article.slug === russianArticle.slug);
       expect(englishArticle?.hero.src).toBe(russianArticle.hero.src);
-      expect(englishArticle?.hero.credit.replace(/^Illustration: /u, "")).toBe(russianArticle.hero.credit.replace(/^Иллюстрация: /u, ""));
+      expect(englishArticle?.hero.credit.replace(/^(?:Photo|Illustration): /u, "")).toBe(russianArticle.hero.credit.replace(/^(?:Фото|Иллюстрация): /u, ""));
       expect(englishArticle?.hero.sourceUrl).toBe(russianArticle.hero.sourceUrl);
       expect(englishArticle?.hero.licenseUrl).toBe(russianArticle.hero.licenseUrl);
       expect(englishArticle?.hero.alt).not.toBe(russianArticle.hero.alt);

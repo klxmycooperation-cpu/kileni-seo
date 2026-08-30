@@ -1,11 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { chromium } from "playwright";
+import { chromium } from "@playwright/test";
 
 const baseUrl = process.env.KILENI_BASE_URL ?? "http://127.0.0.1:3000";
 const outputDir = path.join(process.cwd(), "docs", "redesign-screenshots", "after");
+const matrixDir = path.join(outputDir, "matrix");
 const reportPath = path.join(outputDir, "visual-qa.json");
 await mkdir(outputDir, { recursive: true });
+await mkdir(matrixDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const issues = [];
@@ -32,9 +34,10 @@ function monitor(page, label) {
 }
 
 async function open(page, route, label, wait = 220) {
-  const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
+  const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "load" });
   record(`${label}: HTTP 200`, response?.status() === 200, String(response?.status()));
   await page.waitForTimeout(wait);
+  await page.evaluate(() => document.fonts.ready);
   const h1Count = await page.locator("h1").count();
   record(`${label}: one H1`, h1Count === 1, String(h1Count));
   record(
@@ -54,7 +57,10 @@ async function stableDocumentHeight(page, label) {
 }
 
 const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
-await desktop.addInitScript(() => window.sessionStorage.setItem("kileni:intro:v3", "1"));
+await desktop.addInitScript(() => {
+  window.sessionStorage.setItem("kileni:intro:v4", "1");
+  window.localStorage.setItem("kileni-cookie-preferences", JSON.stringify({ essential: true, analytics: false, marketing: false }));
+});
 const desktopPage = await desktop.newPage();
 monitor(desktopPage, "desktop");
 
@@ -72,8 +78,8 @@ const captures = [
   ["/cases", "cases-desktop.png"],
   ["/cases/eco-santeh", "case-eco-santeh.png"],
   ["/cases/zasorservice", "case-zasorservice.png"],
-  ["/articles", "articles-desktop.png"],
-  ["/articles/seo-audit-when-you-need-it", "article-desktop.png"],
+  ["/blog", "blog-desktop.png"],
+  ["/blog/seo-audit-when-you-need-it", "article-desktop.png"],
   ["/brief", "brief-desktop.png"],
   ["/about", "about-desktop.png"],
   ["/en", "home-en.png"],
@@ -108,12 +114,15 @@ const viewports = [
   { width: 360, height: 800 },
   { width: 320, height: 568 },
 ];
-const routes = ["/", "/pricing", "/cases", "/articles", "/brief", "/about", "/en"];
+const routes = ["/", "/seo", "/seo-audit", "/pricing", "/cases", "/blog", "/about", "/brief", "/glossary"];
 
 for (const viewport of viewports) {
   const label = `${viewport.width}x${viewport.height}`;
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1, hasTouch: viewport.width <= 768 });
-  await context.addInitScript(() => window.sessionStorage.setItem("kileni:intro:v3", "1"));
+  await context.addInitScript(() => {
+    window.sessionStorage.setItem("kileni:intro:v4", "1");
+    window.localStorage.setItem("kileni-cookie-preferences", JSON.stringify({ essential: true, analytics: false, marketing: false }));
+  });
   const page = await context.newPage();
   monitor(page, label);
 
@@ -142,6 +151,37 @@ for (const viewport of viewports) {
 
   await page.close();
   await context.close();
+}
+
+const matrixViewports = [
+  { width: 1440, height: 900 },
+  { width: 390, height: 844 },
+  { width: 320, height: 568 },
+];
+const themes = ["dark", "signal", "light"];
+
+for (const theme of themes) {
+  for (const viewport of matrixViewports) {
+    const label = `${theme}-${viewport.width}x${viewport.height}`;
+    const context = await browser.newContext({ viewport, deviceScaleFactor: 1, hasTouch: viewport.width <= 768 });
+    await context.addInitScript(({ selectedTheme }) => {
+      window.sessionStorage.setItem("kileni:intro:v4", "1");
+      window.localStorage.setItem("kileni:theme:v1", selectedTheme);
+      window.localStorage.setItem("kileni-cookie-preferences", JSON.stringify({ essential: true, analytics: false, marketing: false }));
+    }, { selectedTheme: theme });
+    const page = await context.newPage();
+    monitor(page, label);
+
+    for (const route of routes) {
+      const slug = route === "/" ? "home" : route.slice(1).replaceAll("/", "-");
+      await open(page, route, `${label} ${route}`, 350);
+      record(`${label} ${route}: expected theme`, await page.locator("html").getAttribute("data-kileni-theme") === theme);
+      await page.screenshot({ path: path.join(matrixDir, `${label}-${slug}.png`) });
+    }
+
+    await page.close();
+    await context.close();
+  }
 }
 
 await browser.close();

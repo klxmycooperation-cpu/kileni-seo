@@ -13,7 +13,7 @@ export const dictionaries = {
     },
     auditForm: {
       title: "Бесплатная предварительная проверка",
-      url: "Адрес сайта", name: "Ваше имя", contact: "Телефон, Telegram или e-mail",
+      url: "Адрес сайта", name: "Ваше имя", contact: "Telegram или e-mail",
       consent: "Согласен на обработку данных и получение ответа.",
       authority: "Я имею отношение к сайту или вправе запросить проверку его публичной части.",
       submit: "Проверить сайт бесплатно", details: "Что именно проверяется?", pending: "Отправляем сайт на проверку…",
@@ -46,7 +46,7 @@ export const dictionaries = {
       scanWords: ["Indexing", "Structure", "Speed", "Optimisation"],
     },
     auditForm: {
-      title: "Free preliminary website check", url: "Website address", name: "Your name", contact: "Phone, Telegram or email",
+      title: "Free preliminary website check", url: "Website address", name: "Your name", contact: "Telegram or email",
       consent: "I agree to personal data processing and receiving a response.",
       authority: "I am associated with this website or authorized to request a check of its public pages.",
       submit: "Check my website", details: "What is checked?", pending: "Sending the website for review…",

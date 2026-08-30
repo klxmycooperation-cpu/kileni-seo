@@ -14,7 +14,7 @@ export async function GET(
   const { token } = await context.params;
   if (!validOpaqueToken(token)) return apiError(400, "INVALID_TOKEN", "Некорректный токен аудита");
 
-  const audit = getAuditByToken(token);
+  const audit = await getAuditByToken(token);
   if (!audit) {
     const restored = verifyAuditRestoreEnvelope(new URL(request.url).searchParams.get("restore"), token);
     if (!restored) return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");

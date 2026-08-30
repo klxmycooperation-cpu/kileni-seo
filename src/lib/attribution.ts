@@ -18,5 +18,8 @@ export function collectBrowserAttribution(): { pageUrl: string; utm: UtmAttribut
     if (value) utm[key] = value.slice(0, 200);
   }
 
-  return { pageUrl: window.location.href.slice(0, 2048), utm };
+  // Never persist an arbitrary query string: it may contain contacts, restore
+  // tokens or other personal data. Campaign parameters are already collected
+  // separately through the strict allowlist above.
+  return { pageUrl: `${window.location.origin}${window.location.pathname}`.slice(0, 2048), utm };
 }

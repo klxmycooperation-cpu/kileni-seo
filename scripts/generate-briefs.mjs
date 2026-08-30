@@ -20,14 +20,14 @@ const [regularFontBytes, boldFontBytes] = await Promise.all([readFile(regularFon
 const common = {
   ru: [
     ["name", "Ваше имя", "Как к вам обращаться"], ["company", "Компания или проект", "Официальное название необязательно"],
-    ["contact", "Телефон, Telegram или e-mail", "Укажите один удобный способ связи"], ["business", "Чем занимается бизнес?", "Товары, услуги и ключевое направление"],
+    ["contact", "Telegram или e-mail", "Укажите один удобный способ связи"], ["business", "Чем занимается бизнес?", "Товары, услуги и ключевое направление"],
     ["audience", "Кто основной клиент?", "Кто принимает решение о покупке"], ["geography", "География работы", "Город, регионы или страны"],
     ["problem", "Что сейчас не устраивает?", "Опишите ситуацию своими словами"], ["result", "Какой результат нужен?", "Что должно измениться после проекта"],
     ["timeline", "Желаемый срок", "Если точной даты нет, укажите ориентир"], ["budget", "Бюджетный диапазон", "Можно написать «пока не знаю»"],
   ],
   en: [
     ["name", "Your name", "How should we address you"], ["company", "Company or project", "A legal name is not required"],
-    ["contact", "Phone, Telegram or email", "One preferred contact is enough"], ["business", "What does the business do?", "Products, services and primary direction"],
+    ["contact", "Telegram or email", "One preferred contact is enough"], ["business", "What does the business do?", "Products, services and primary direction"],
     ["audience", "Who is the primary customer?", "Who makes the purchasing decision"], ["geography", "Geography", "Cities, regions or countries"],
     ["problem", "What is not working today?", "Describe the situation in your own words"], ["result", "What outcome do you need?", "What should change after the project"],
     ["timeline", "Preferred timeline", "An approximate target is sufficient"], ["budget", "Budget range", "You can write “not sure yet”"],

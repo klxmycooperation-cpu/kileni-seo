@@ -4,14 +4,17 @@ import { PUBLIC_AUDIT_PAGE_LIMIT } from "../../config/public-audit";
 const contactSchema = z.string().trim().min(4).max(160).refine((value) => {
   const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value);
   const telegram = /^@?[a-zA-Z0-9_]{5,32}$/u.test(value);
-  const phone = /^\+?[\d\s().-]{7,24}$/u.test(value);
-  return email || telegram || phone;
-}, "Укажите телефон, Telegram или e-mail");
+  return email || telegram;
+}, "Укажите Telegram или e-mail");
 
-export function detectContactType(value: string): "email" | "telegram" | "phone" {
+const optionalAuditEmailSchema = z.string().trim().max(160).refine(
+  (value) => value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value),
+  "Укажите корректный e-mail",
+).optional().default("");
+
+export function detectContactType(value: string): "email" | "telegram" {
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value)) return "email";
-  if (/^@?[a-zA-Z0-9_]{5,32}$/u.test(value) && /[a-zA-Z_]/u.test(value)) return "telegram";
-  return "phone";
+  return "telegram";
 }
 
 const common = {
@@ -32,14 +35,26 @@ const utmSchema = z.object({
 }).strict();
 
 export const auditRequestSchema = z.object({
-  ...common,
   url: z.string().trim().min(4).max(2048),
+  email: optionalAuditEmailSchema,
+  locale: z.enum(["ru", "en"]).default("ru"),
+  consent: z.boolean().optional().default(false),
   authority: z.literal(true),
+  honeypot: z.string().max(0).optional().default(""),
+  turnstileToken: z.string().trim().max(2048).optional(),
   // The crawler limit is server-owned. The transform safely absorbs legacy
   // clients that still send the removed page selector.
   pageLimit: z.unknown().optional().transform(() => PUBLIC_AUDIT_PAGE_LIMIT),
   source: z.string().trim().max(120).default("free-audit"),
   utm: utmSchema.optional().default({}),
+}).strict().superRefine((value, context) => {
+  if (value.email && value.consent !== true) {
+    context.addIssue({
+      code: "custom",
+      path: ["consent"],
+      message: "Для отправки отчёта по email нужно согласие на обработку этого адреса",
+    });
+  }
 });
 
 export const leadRequestSchema = z.object({
@@ -65,6 +80,7 @@ export const calculatorRequestSchema = z.object({
 export const briefRequestSchema = z.object({
   ...common,
   service: z.enum(["seo", "audit", "marketplaces", "development", "ads", "custom"]),
+  offerId: z.string().trim().min(1).max(120).optional(),
   answers: z.record(z.string(), z.union([z.string().max(3000), z.number(), z.boolean(), z.array(z.string().max(500))])),
 });
 

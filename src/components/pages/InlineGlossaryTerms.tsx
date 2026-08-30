@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { Locale } from "../../config/site";
 import { glossaryTerms } from "../../content/glossary";
+import { glossaryDetailPath } from "../../lib/seo/glossary-metadata";
 
 export function InlineGlossaryTerms({ locale, slugs }: { locale: Locale; slugs: readonly string[] }) {
   const terms = slugs
@@ -24,7 +25,7 @@ export function InlineGlossaryTerms({ locale, slugs }: { locale: Locale; slugs: 
         <div className="svc-inline-glossary-list">
           {terms.map((term) => {
             const copy = term[locale];
-            const glossaryHref = `${locale === "ru" ? "/glossary" : "/en/glossary"}#${term.slug}`;
+            const glossaryHref = glossaryDetailPath(locale, term.slug);
             return (
               <details key={term.slug}>
                 <summary>

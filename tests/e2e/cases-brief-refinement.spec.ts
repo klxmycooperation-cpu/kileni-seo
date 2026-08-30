@@ -2,10 +2,11 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem("kileni-cookie-preferences", JSON.stringify({
+  await page.addInitScript(() => window.localStorage.setItem("kileni-cookie-preferences:v2", JSON.stringify({
     essential: true,
     analytics: false,
     marketing: false,
+    version: "2026-08-23.2",
   })));
 });
 
@@ -66,7 +67,7 @@ test("shows the source site logos alongside both case names", async ({ page }) =
 
 test("labels final-only case evidence without inventing a before value", async ({ page }) => {
   await page.goto("/cases/eco-santeh");
-  const desktopPerformance = page.locator(".cp-evidence-item", { hasText: "Десктопный Performance" });
+  const desktopPerformance = page.locator(".cp-evidence-item", { hasText: "Скорость на компьютере" });
   await expect(desktopPerformance).toContainText("Финальная проверка");
   await expect(desktopPerformance).toContainText("99");
   await expect(desktopPerformance.getByText("До", { exact: true })).toHaveCount(0);
@@ -101,7 +102,10 @@ test("shows the brief as an accessible five-stage route and preserves the chosen
   await page.reload();
   await expect(page.getByRole("heading", { level: 2, name: "Контекст задачи" })).toBeVisible();
 
-  await page.evaluate(() => localStorage.removeItem("kileni-brief"));
+  await page.evaluate(() => {
+    localStorage.removeItem("kileni-brief");
+    localStorage.removeItem("kileni-brief:v2");
+  });
   await page.goto("/en/brief");
   const englishRoute = page.getByRole("navigation", { name: "Brief route" });
   await expect(englishRoute.getByRole("listitem")).toHaveCount(5);
@@ -117,21 +121,28 @@ test("explains price, scope and preparation before the brief is sent", async ({ 
   const guide = page.locator(".brief-service-guide");
   await expect(guide.getByText("За что вы платите", { exact: true })).toBeVisible();
   await expect(guide.getByText("Что подготовить", { exact: true })).toBeVisible();
-  await expect(guide.getByText(/29\s*900\s*₽/u)).toBeVisible();
+  await expect(guide.getByText("Стоимость после короткого брифа", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: /SEO-аудит/u }).click();
-  await expect(guide.getByText(/6\s*900\s*₽/u)).toBeVisible();
+  await expect(guide.getByText("Стоимость после короткого брифа", { exact: true })).toBeVisible();
   await expect(guide.getByText(/Список проблем по приоритету/u)).toBeVisible();
 
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Компания или проект").fill("Проверка брифа");
+  await page.getByLabel("Что сейчас не устраивает?").fill("Неясно, какие страницы мешают поиску");
+  await page.getByLabel("Какой результат нужен?").fill("Понятный список проблем и порядок исправлений");
   await page.getByRole("button", { name: /^Далее/u }).click();
+  await page.getByLabel("Ссылка на сайт").fill("https://example.ru");
+  await page.getByLabel("Что беспокоит?").fill("Страницы плохо находятся в поиске");
   await page.getByRole("button", { name: /^Далее/u }).click();
 
   await expect(page.getByRole("heading", { level: 2, name: "Итог перед отправкой" })).toBeVisible();
   await expect(page.getByText("Что вы получите в ответ", { exact: true })).toBeVisible();
 
-  await page.evaluate(() => localStorage.removeItem("kileni-brief"));
+  await page.evaluate(() => {
+    localStorage.removeItem("kileni-brief");
+    localStorage.removeItem("kileni-brief:v2");
+  });
   await page.goto("/en/brief");
   const englishGuide = page.locator(".brief-service-guide");
   await expect(englishGuide.getByText("What you are paying for", { exact: true })).toBeVisible();
@@ -146,11 +157,11 @@ test("switches pricing categories without changing the approved Russian amounts"
   const categories = page.getByRole("tablist", { name: "Категории услуг" });
   await expect(categories.getByRole("tab")).toHaveCount(6);
   await expect(categories.getByRole("tab", { name: "SEO-аудит" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("tabpanel")).toContainText(/19\s*900\s*₽/u);
+  await expect(page.getByRole("tabpanel")).toContainText(/39\s*900\s*₽/u);
 
   await categories.getByRole("tab", { name: "Разработка" }).click();
   await expect(categories.getByRole("tab", { name: "Разработка" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("tabpanel")).toContainText(/49\s*900\s*₽/u);
+  await expect(page.getByRole("tabpanel")).toContainText(/99\s*900\s*₽/u);
 
   await page.goto("/en/pricing");
   await expect(page.getByRole("tabpanel")).toContainText("Individual estimate");

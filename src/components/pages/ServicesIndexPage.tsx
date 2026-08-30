@@ -1,65 +1,68 @@
-import "../../../app/service-pricing-brief-10.css";
+import "../../../app/services-hub.css";
 
 import Link from "next/link";
+
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
-import { getService, serviceSlugs } from "../../content/services";
-import { Breadcrumbs } from "../layout/Breadcrumbs";
+import { getServiceDirections } from "../../content/service-directions";
 import { PublicShell } from "../layout/PublicShell";
-import { Faq } from "./Faq";
+import { ServicesExplorer } from "./ServicesExplorer";
 
 export function ServicesIndexPage({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
-  const faq = ru ? [
-    { q: "С чего начать, если услуга непонятна?", a: "Начните с бесплатной проверки сайта или короткого брифа. По ответам предложим один подходящий следующий шаг — без обязательства покупать большой пакет." },
-    { q: "Можно заказать только отдельный этап?", a: "Да. Диагностику, прототип, настройку или внедрение можно выделить отдельно, если у этапа есть понятный результат и границы." },
-    { q: "Цена изменится после начала?", a: "До старта фиксируем состав и предел тарифа. Всё, что не входит в него, сначала оцениваем и согласуем отдельно." },
-    { q: "Вы гарантируете позиции или продажи?", a: "Нет. Мы отвечаем за согласованный объём и качество выполнения, но спрос, конкуренты и алгоритмы площадок невозможно контролировать полностью." },
-  ] : [
-    { q: "Where should I start if the service is unclear?", a: "Start with the free website check or a short brief. We will suggest one sensible next step without pushing a large package." },
-    { q: "Can we buy one stage only?", a: "Yes. Diagnosis, prototyping, setup or implementation can be scoped separately when the deliverable is clear." },
-    { q: "Can the price change after work starts?", a: "Scope and package limits are agreed upfront. Anything outside them is estimated and approved separately." },
-    { q: "Do you guarantee rankings or sales?", a: "No. We are accountable for the agreed delivery, but demand, competition and platform algorithms cannot be controlled completely." },
-  ];
+  const directions = getServiceDirections(locale);
 
   return (
     <PublicShell locale={locale}>
-      <div className="services-10">
-        <header className="svc-index-hero">
-          <Breadcrumbs locale={locale} items={[{ label: ru ? "Услуги" : "Services" }]} />
-          <div className="shell svc-index-hero-grid">
-            <div>
-              <p className="svc-kicker">{ru ? "Шесть направлений" : "Six directions"}</p>
-              <h1>{ru ? "От проблемы — к понятному результату" : "From a problem to a clear deliverable"}</h1>
+      <div className="services-10 services-hub">
+        <header className="services-hub__hero">
+          <div className="shell services-hub__hero-layout">
+            <div className="services-hub__hero-copy">
+              <p className="services-hub__eyebrow">{ru ? "Услуги KILENI" : "KILENI services"}</p>
+              <h1>{ru ? "От проблемы — к понятному результату" : "From a problem to a clear result"}</h1>
+              <p className="services-hub__hero-lead">
+                {ru
+                  ? "Выберите задачу. Сразу покажем, что сделаем, сколько это занимает, сколько стоит и что останется у вас после работы."
+                  : "Choose the task. See what we will do, how long it takes, what it costs and what you keep after the work is done."}
+              </p>
+              <div className="services-hub__hero-actions">
+                <Link className="services-hub__button services-hub__button--primary" href="#services-directions">{ru ? "Выбрать направление" : "Choose a direction"}<span aria-hidden="true">↓</span></Link>
+                <Link className="services-hub__text-link" href={localizedPath(locale, "free-audit")}>{ru ? "Проверить сайт бесплатно" : "Check a website for free"}<span aria-hidden="true">↗</span></Link>
+              </div>
             </div>
-            <p>{ru ? "Выберите задачу, которую узнаёте. На каждой странице показаны диагностика, результат, процесс, сроки, ограничения и цена." : "Choose the task that sounds familiar. Every page explains diagnosis, deliverables, process, timing, limitations and pricing."}</p>
+            <ServicesHeroJourney locale={locale} />
           </div>
         </header>
 
-        <section className="svc-index-list" aria-labelledby="services-list-title">
-          <div className="shell">
-            <h2 className="visually-hidden" id="services-list-title">{ru ? "Направления KILENI" : "KILENI services"}</h2>
-            {serviceSlugs.map((slug, index) => {
-              const item = getService(locale, slug)!;
-              return (
-                <Link href={localizedPath(locale, slug)} key={slug} className={`svc-index-row svc-index-row-${item.visual.kind}`}>
-                  <span className="svc-index-number">{String(index + 1).padStart(2, "0")}</span>
-                  <div>
-                    <p className="svc-kicker">{item.eyebrow}</p>
-                    <h2>{item.title}</h2>
-                    <p>{item.lead}</p>
-                  </div>
-                  <ul aria-label={ru ? "Ожидаемый результат" : "Expected outcome"}>
-                    {item.outcomes.slice(0, 2).map((outcome) => <li key={outcome}>{outcome}</li>)}
-                  </ul>
-                  <b aria-hidden="true">↗</b>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-        <Faq title={ru ? "Перед выбором услуги" : "Before choosing a service"} items={faq} />
+        <ServicesExplorer directions={directions} locale={locale} />
       </div>
     </PublicShell>
+  );
+}
+
+function ServicesHeroJourney({ locale }: { locale: Locale }) {
+  const ru = locale === "ru";
+  const stages = ru
+    ? ["Проблема", "Разбор", "Решение", "Проверяемый результат"]
+    : ["Problem", "Review", "Solution", "Verified result"];
+  return (
+    <div className="services-hub__trajectory" role="img" aria-label={stages.join(" — ")}>
+      <div className="services-hub__trajectory-heading">
+        <span>{ru ? "Один понятный маршрут" : "One clear route"}</span>
+        <b>{ru ? "От вопроса к проверке" : "From question to verification"}</b>
+      </div>
+      <svg aria-hidden="true" className="services-hero__journey" viewBox="0 0 720 270">
+        <path className="services-hero__guide" d="M70 182C174 182 176 78 286 78S402 204 510 204 594 118 650 118" />
+        <path className="services-hero__line" d="M70 182C174 182 176 78 286 78S402 204 510 204 594 118 650 118" />
+        <g className="services-hero__node services-hero__node--1"><circle cx="70" cy="182" r="22" /><path d="M61 173L79 191M79 173L61 191" /></g>
+        <g className="services-hero__node services-hero__node--2"><circle cx="286" cy="78" r="28" /><path d="M274 78H298M286 66V90" /></g>
+        <g className="services-hero__node services-hero__node--3"><rect height="48" rx="12" width="64" x="478" y="180" /><path d="M493 204H527" /></g>
+        <g className="services-hero__node services-hero__node--4"><circle cx="650" cy="118" r="25" /><path d="M638 118L646 126 663 108" /></g>
+      </svg>
+      <ol>
+        {stages.map((stage, index) => <li key={stage}><span>{String(index + 1).padStart(2, "0")}</span>{stage}</li>)}
+      </ol>
+      <p><span aria-hidden="true">✓</span>{ru ? "Результат можно проверить" : "The result can be verified"}</p>
+    </div>
   );
 }

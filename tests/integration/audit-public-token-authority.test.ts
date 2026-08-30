@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 let temporaryDirectory: string;
 let previousDatabasePath: string | undefined;
 let previousRestoreSecret: string | undefined;
-let sqlite: Awaited<typeof import("../../src/db/client")>["sqlite"];
+let closeDatabaseConnections: Awaited<typeof import("../../src/db/client")>["closeDatabaseConnections"];
 let publicAuditRoute: Awaited<typeof import("../../app/api/audits/[token]/route")>;
 let publicAuditEventsRoute: Awaited<typeof import("../../app/api/audits/[token]/events/route")>;
 let publicReportRoute: Awaited<typeof import("../../app/api/audits/[token]/report.pdf/route")>;
@@ -21,16 +21,15 @@ beforeAll(async () => {
   process.env.DATABASE_PATH = join(temporaryDirectory, "kileni.sqlite");
   process.env.AUDIT_RESTORE_SECRET = restoreSecret;
   vi.resetModules();
-  ({ sqlite } = await import("../../src/db/client"));
+  ({ closeDatabaseConnections } = await import("../../src/db/client"));
   ({ createAuditRestoreEnvelope } = await import("../../app/api/_lib/audit-restore"));
   publicAuditRoute = await import("../../app/api/audits/[token]/route");
   publicAuditEventsRoute = await import("../../app/api/audits/[token]/events/route");
   publicReportRoute = await import("../../app/api/audits/[token]/report.pdf/route");
 });
 
-afterAll(() => {
-  sqlite.close();
-  delete (globalThis as typeof globalThis & { __kileniSqlite?: unknown }).__kileniSqlite;
+afterAll(async () => {
+  await closeDatabaseConnections();
   if (previousDatabasePath === undefined) delete process.env.DATABASE_PATH;
   else process.env.DATABASE_PATH = previousDatabasePath;
   if (previousRestoreSecret === undefined) delete process.env.AUDIT_RESTORE_SECRET;
@@ -95,7 +94,7 @@ describe("public audit token authority", () => {
 
   it("keeps the database authoritative when a conflicting signed restore is supplied", async () => {
     const queries = await import("../../src/db/queries");
-    const audit = queries.createAuditRecord({
+    const audit = await queries.createAuditRecord({
       originalUrl: "https://database.example/",
       normalizedDomain: "database.example",
       locale: "ru",
@@ -108,7 +107,7 @@ describe("public audit token authority", () => {
       pageLimit: 10,
       consentVersion: "test-v1",
     });
-    queries.completeAuditRecord(audit.id, {
+    await queries.completeAuditRecord(audit.id, {
       publicResult: { score: 70, grade: "B", interpretation: "DB RESULT", pagesChecked: 1, pagesDiscovered: 1, partial: false, categories: [] },
       fullResult: {}, score: 70, grade: "B", partial: false, pagesDiscovered: 1, pagesChecked: 1,
     });
@@ -167,7 +166,7 @@ describe("public audit token authority", () => {
 
   it("returns only the redacted summary even when the database contains private evidence", async () => {
     const queries = await import("../../src/db/queries");
-    const audit = queries.createAuditRecord({
+    const audit = await queries.createAuditRecord({
       originalUrl: "https://safe.example/",
       normalizedDomain: "safe.example",
       locale: "ru",
@@ -180,7 +179,7 @@ describe("public audit token authority", () => {
       pageLimit: 10,
       consentVersion: "test-v1",
     });
-    queries.completeAuditRecord(audit.id, {
+    await queries.completeAuditRecord(audit.id, {
       publicResult: {
         score: 62,
         grade: "C",

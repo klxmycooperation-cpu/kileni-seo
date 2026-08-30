@@ -2,8 +2,7 @@ import "../../../app/cases-pricing-redesign.css";
 import "../../../app/service-pricing-brief-10.css";
 
 import type { Locale } from "../../config/site";
-import { priceLabel } from "../../config/price-labels";
-import { selectPricingTiers } from "../../config/pricing-tiers";
+import { formatOfferPrice, localizedOffer, offersForService, type OfferService } from "../../config/offers";
 import { getService, serviceSlugs } from "../../content/services";
 import { LeadForm } from "../forms/LeadForm";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
@@ -13,26 +12,27 @@ import { PricingCategorySelector, type PricingCategory } from "./PricingCategory
 export function PricingPage({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
   const numericPrices = ru;
-  const tierLabels = ru ? ["Базовый", "Расширенный", "Под ключ"] : ["Basic", "Advanced", "Turnkey"];
   const categories: PricingCategory[] = serviceSlugs.map((slug) => {
     const service = getService(locale, slug)!;
+    let offers = offersForService(slug as OfferService);
+    if (slug === "seo-audit") offers = offers.filter((offer) => /^seo-audit-(?:50|200|500)$/u.test(offer.id));
     return {
       slug,
       label: service.eyebrow,
       lead: service.lead,
-      packages: selectPricingTiers(service.packages).map((item, index) => {
-        const price = priceLabel(item.priceKey, locale);
+      packages: offers.map((offer, index) => {
+        const item = localizedOffer(offer, locale);
         return {
-          tierLabel: tierLabels[index] ?? tierLabels[tierLabels.length - 1],
-          name: item.name,
+          offerId: offer.id,
+          tierLabel: slug === "seo-audit" ? item.shortTitle : ru ? `Вариант ${String(index + 1).padStart(2, "0")}` : `Option ${String(index + 1).padStart(2, "0")}`,
+          name: item.title,
           description: item.description,
-          price: price.current,
-          note: price.note,
-          limit: item.limit,
-          duration: item.duration ?? (ru ? "После уточнения задачи" : "Confirmed after scope review"),
-          mainResult: item.features[0] ?? service.outcomes[0] ?? service.lead,
+          price: formatOfferPrice(offer, locale),
+          limit: item.scope,
+          duration: item.duration,
+          mainResult: item.result,
           features: item.features,
-          featured: Boolean(item.featured),
+          featured: offer.recommended,
         };
       }),
     };
@@ -45,12 +45,12 @@ export function PricingPage({ locale }: { locale: Locale }) {
           <Breadcrumbs locale={locale} items={[{ label: ru ? "Цены" : "Pricing" }]} />
           <div className="shell cp-hero-grid">
             <div>
-              <p className="cp-kicker">{ru ? "Цена после выбора задачи" : "Pricing by task"}</p>
-              <h1>{ru ? "Сначала направление. Затем подходящий объём." : "Choose the direction, then the right scope."}</h1>
+              <p className="cp-kicker">{ru ? "Стоимость SEO-аудита" : "SEO audit pricing"}</p>
+              <h1>{ru ? "Сколько страниц нужно проверить?" : "How many pages should we check?"}</h1>
             </div>
             <div className="cp-hero-note">
-              <strong>{ru ? "Цена и предел — рядом" : numericPrices ? "Price and limits together" : "Scope before a quote"}</strong>
-              <p>{ru ? "Не нужно читать все тарифы подряд. Выберите категорию — покажем только относящиеся к ней варианты." : numericPrices ? "Choose a category to see only the relevant packages and limits." : "Choose a category to see the package limits. Currency and exact price are confirmed before work begins."}</p>
+              <strong>{ru ? "Объём определяет глубину проверки" : numericPrices ? "Scope defines the depth of review" : "Scope before a quote"}</strong>
+              <p>{ru ? "Чем больше сайт, тем больше страниц, шаблонов и повторяющихся проблем входит в проверку." : numericPrices ? "A larger website means more pages, templates and repeated issues are included in the review." : "Choose a category to see the package limits. Currency and exact price are confirmed before work begins."}</p>
             </div>
           </div>
         </header>
@@ -58,9 +58,9 @@ export function PricingPage({ locale }: { locale: Locale }) {
         <section className="cp-pricing-section" aria-labelledby="pricing-list-title">
           <div className="shell">
             <div className="cp-section-intro">
-              <p className="cp-kicker">{ru ? "Шесть категорий" : "Six categories"}</p>
-              <h2 id="pricing-list-title">{ru ? "Что нужно сделать?" : "What needs to be done?"}</h2>
-              <p>{ru ? "Числа в рублях сохранены без пересчёта. Внешние расходы и всё сверх предела согласуются отдельно." : numericPrices ? "External spend and work beyond the package limit are agreed separately." : "No automatic exchange-rate conversion is used. We prepare an individual estimate in the agreed currency."}</p>
+              <p className="cp-kicker">{ru ? "Сравнение вариантов" : "Compare options"}</p>
+              <h2 id="pricing-list-title">{ru ? "Выберите подходящий объём" : "Choose the right scope"}</h2>
+              <p>{ru ? "Внешние расходы и работа сверх указанного объёма согласуются до начала." : numericPrices ? "External spend and work beyond the package limit are agreed separately." : "No automatic exchange-rate conversion is used. We prepare an individual estimate in the agreed currency."}</p>
             </div>
             <PricingCategorySelector categories={categories} locale={locale} />
           </div>

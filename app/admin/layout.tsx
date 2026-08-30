@@ -18,8 +18,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="admin-shell">
       <header className="admin-header">
-        <Link className="admin-brand" href={admin ? "/admin/audits" : "/admin/login"}>KILENI <span>ADMIN</span></Link>
+        <Link className="admin-brand" href={admin ? "/admin" : "/admin/login"}>KILENI <span>ADMIN</span></Link>
         {admin && <nav aria-label="Администрирование">
+          <Link href="/admin">Обзор</Link>
           <Link href="/admin/audits">Аудиты</Link>
           <Link href="/admin/leads">Заявки</Link>
           <Link href="/admin/briefs">Брифы</Link>

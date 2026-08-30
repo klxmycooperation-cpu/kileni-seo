@@ -3,47 +3,105 @@ import { expect, test } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem(
-      "kileni-cookie-preferences",
-      JSON.stringify({ essential: true, analytics: false, marketing: false }),
+      "kileni-cookie-preferences:v2",
+      JSON.stringify({ essential: true, analytics: false, marketing: false, version: "2026-08-23.2" }),
     );
   });
 });
 
-test("shows a real non-zero free-audit counter without inventing reviews or a page-limit control", async ({ page }) => {
+test("keeps the free-audit form, counter and actions physically inside 320–430 px viewports", async ({ page }) => {
   await page.route("**/api/public-metrics/free-audits", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ count: 2 }),
+    body: JSON.stringify({ count: 1_369 }),
   }));
+
+  for (const width of [320, 360, 390, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/free-audit");
+
+    const usage = page.getByTestId("free-audit-usage-count");
+    await expect(usage).toContainText("1 369");
+    await expect(usage).toContainText(/бесплатн.*провер/u);
+    await expect(page.getByText(/демо-примеры|review layout examples/iu)).toHaveCount(0);
+    await expect(page.getByLabel(/Сколько страниц проверить/iu)).toHaveCount(0);
+    await expect(page.getByLabel("Ваше имя")).toHaveCount(0);
+    await expect(page.getByLabel("Email (необязательно)")).toHaveCount(0);
+    await expect(page.locator(".audit-form .form-limit")).toContainText("до 10 страниц");
+
+    const elements = [
+      page.locator(".audit-page-grid"),
+      page.locator(".audit-page-grid > div").first(),
+      page.locator(".audit-page-grid .audit-form"),
+      page.getByLabel("Адрес сайта"),
+      page.getByRole("button", { name: "Проверить сайт бесплатно" }),
+    ];
+    for (const element of elements) {
+      const box = await element.boundingBox();
+      expect(box, `${await element.evaluate((node) => node.className || node.tagName)} must render at ${width}px`).not.toBeNull();
+      expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
+      expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(width + 0.5);
+    }
+
+    const numberLineCount = await usage.locator("strong").evaluate((node) => {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return range.getClientRects().length;
+    });
+    expect(numberLineCount, `usage number must not wrap at ${width}px`).toBe(1);
+  }
+
   await page.setViewportSize({ width: 320, height: 760 });
   await page.goto("/free-audit");
-
-  await expect(page.getByTestId("free-audit-usage-count")).toContainText("2");
-  await expect(page.getByTestId("free-audit-usage-count")).toContainText(/бесплатн.*провер/u);
-  await expect(page.getByText(/демо-примеры|review layout examples/iu)).toHaveCount(0);
-  await expect(page.getByLabel(/Сколько страниц проверить/iu)).toHaveCount(0);
-  await expect(page.getByLabel("Ваше имя")).toHaveCount(0);
-  await expect(page.getByLabel("Телефон, Telegram или e-mail")).toHaveCount(0);
-  await expect(page.locator(".audit-form .form-limit")).toContainText("до 10 страниц");
-
-  await page.getByLabel("Адрес сайта").fill("https://example.com");
+  await page.getByLabel("Адрес сайта").fill("example.com");
   await page.getByRole("button", { name: "Проверить сайт бесплатно" }).click();
 
   await expect(page.getByText("Шаг 2 из 2")).toBeVisible();
-  await expect(page.getByLabel("Ваше имя")).toBeVisible();
-  await expect(page.getByLabel("Телефон, Telegram или e-mail")).toBeVisible();
+  await expect(page.getByLabel("Адрес сайта")).toHaveAttribute("type", "url");
+  await expect(page.getByLabel("Адрес сайта")).toHaveValue("https://example.com");
+  await expect(page.getByLabel("Ваше имя")).toHaveCount(0);
+  await expect(page.getByLabel("Email (необязательно)")).toBeVisible();
   await expect(page.getByRole("button", { name: "Запустить проверку" })).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
 
-test("hides the free-audit counter while no completed domains exist", async ({ page }) => {
+test("explains an invalid website address inline and returns focus to the field", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page.goto("/free-audit");
+  const url = page.getByLabel("Адрес сайта");
+  await url.fill("not a website");
+  await page.getByRole("button", { name: "Проверить сайт бесплатно" }).click();
+
+  await expect(page.locator("#audit-url-error")).toContainText("Проверьте адрес");
+  await expect(url).toHaveAttribute("aria-invalid", "true");
+  await expect(url).toBeFocused();
+  await expect(page.getByText("Шаг 1 из 2")).toBeVisible();
+  for (const element of [url, page.locator("#audit-url-error")]) {
+    const box = await element.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(320.5);
+  }
+});
+
+test("accepts a bare domain from the keyboard without starting an incomplete audit", async ({ page }) => {
+  await page.goto("/free-audit");
+  const url = page.getByLabel("Адрес сайта");
+  await url.fill("example.ru");
+  await url.press("Enter");
+
+  await expect(page.getByText("Шаг 2 из 2")).toBeVisible();
+  await expect(url).toHaveValue("https://example.ru");
+  await expect(page.getByLabel("Email (необязательно)")).toBeFocused();
+});
+
+test("keeps the approved baseline visible while no newly completed audits exist", async ({ page }) => {
   await page.route("**/api/public-metrics/free-audits", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({ count: 0 }),
   }));
   await page.goto("/free-audit");
-  await expect(page.getByTestId("free-audit-usage-count")).toHaveCount(0);
+  await expect(page.getByTestId("free-audit-usage-count")).toContainText("1 267");
 });
 
 test("shows the real audit stages in a fixed, minimizable panel while the request is running", async ({ page }) => {
@@ -68,8 +126,7 @@ test("shows the real audit stages in a fixed, minimizable panel while the reques
   await page.goto("/free-audit");
   await page.getByLabel("Адрес сайта").fill("https://example.com");
   await page.getByRole("button", { name: "Проверить сайт бесплатно" }).click();
-  await page.getByLabel("Ваше имя").fill("Проверка анимации");
-  await page.getByLabel("Телефон, Telegram или e-mail").fill("scan@example.com");
+  await page.getByLabel("Email (необязательно)").fill("scan@example.com");
   await page.getByRole("checkbox").nth(0).check();
   await page.getByRole("checkbox").nth(1).check();
 
@@ -98,7 +155,7 @@ test("prefills the paid brief only from a matching same-browser audit handoff", 
   const token = "a".repeat(43);
   await page.goto("/");
   await page.evaluate(({ auditToken }) => {
-    window.sessionStorage.setItem("kileni:intro:v3", "1");
+    window.sessionStorage.setItem("kileni:intro:v9", "1");
     window.sessionStorage.setItem(`kileni:audit-lead:${auditToken}`, JSON.stringify({
       token: auditToken,
       name: "Анна",
@@ -108,12 +165,16 @@ test("prefills the paid brief only from a matching same-browser audit handoff", 
     }));
   }, { auditToken: token });
 
-  await page.goto(`/brief?offer=audit&discount=25&audit=${token}`);
+  await page.goto(`/brief?offer=seo-audit-200&audit=${token}`);
   await expect(page.getByRole("button", { name: /SEO-аудит/u })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Далее" }).click();
+  await page.getByLabel("Компания или проект").fill("Проект Анны");
+  await page.getByLabel("Что сейчас не устраивает?").fill("Нужно понять, что мешает поиску");
+  await page.getByLabel("Какой результат нужен?").fill("Порядок исправлений");
   await page.getByRole("button", { name: "Далее" }).click();
   await expect(page.getByLabel("Ссылка на сайт")).toHaveValue("https://example.com");
+  await page.getByLabel("Что беспокоит?").fill("Страницы плохо находятся");
   await page.getByRole("button", { name: "Далее" }).click();
   await expect(page.getByLabel("Имя")).toHaveValue("Анна");
-  await expect(page.getByLabel("E-mail для ответа")).toHaveValue("anna@example.com");
+  await expect(page.getByLabel("Telegram или e-mail")).toHaveValue("anna@example.com");
 });

@@ -16,6 +16,10 @@ import "./theme.css";
 import "./architecture-10.css";
 import "./analytics-visuals.css";
 import "./soft-surfaces.css";
+import "./brand-intro-v9.css";
+import "./compact-redesign.css";
+import "./responsive-foundation.css";
+import "./content-navigation.css";
 
 const manrope = Manrope({
   variable: "--font-manrope",

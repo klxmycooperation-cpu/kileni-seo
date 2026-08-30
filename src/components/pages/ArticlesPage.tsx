@@ -96,7 +96,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
         dateModified: article.date,
         inLanguage: locale,
         author: { "@type": "Organization", name: article.author, url: siteConfig.baseUrl },
-        publisher: { "@type": "Organization", name: "KILENI", logo: { "@type": "ImageObject", url: new URL("/brand/kileni-logo-light.svg", siteConfig.baseUrl).toString() } },
+        publisher: { "@type": "Organization", name: "KILENI", logo: { "@type": "ImageObject", url: new URL("/brand/kileni-logo-current.svg", siteConfig.baseUrl).toString(), width: 484, height: 108 } },
         mainEntityOfPage: new URL(localizedPath(locale, `blog/${article.slug}`), siteConfig.baseUrl).toString(),
       },
       {
@@ -139,7 +139,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
                 {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
                 {section.definitions?.length ? <dl className="article-definitions">{section.definitions.map((item) => <div key={item.term}><dt>{item.term}</dt><dd>{item.definition}</dd></div>)}</dl> : null}
                 {section.bullets?.length ? <ul>{section.bullets.map((item) => <li key={item}>{item}</li>)}</ul> : null}
-                {section.comparison ? <div className="article-table-wrap"><table><thead><tr>{section.comparison.columns.map((column) => <th key={column} scope="col">{column}</th>)}</tr></thead><tbody>{section.comparison.rows.map((row) => <tr key={row.label}><th scope="row">{row.label}</th><td>{row.left}</td><td>{row.right}</td></tr>)}</tbody></table></div> : null}
+                {section.comparison ? <div className="article-table-wrap" role="region" aria-label={`${ru ? "Сравнительная таблица" : "Comparison table"}: ${section.heading}`} tabIndex={0}><table><thead><tr>{section.comparison.columns.map((column) => <th key={column} scope="col">{column}</th>)}</tr></thead><tbody>{section.comparison.rows.map((row) => <tr key={row.label}><th scope="row">{row.label}</th><td>{row.left}</td><td>{row.right}</td></tr>)}</tbody></table></div> : null}
                 {section.callout ? <aside className={`article-callout article-callout-${section.callout.tone ?? "note"}`}><strong>{section.callout.title}</strong><p>{section.callout.text}</p></aside> : null}
               </section>
             ))}

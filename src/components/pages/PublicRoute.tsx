@@ -11,11 +11,14 @@ import { ServicesIndexPage } from "./ServicesIndexPage";
 import { AboutPage, ContactsPage, LegalPage } from "./StaticPages";
 import { ArticlePage, ArticlesPage } from "./ArticlesPage";
 import { GlossaryPage } from "./GlossaryPage";
+import { GlossaryTermPage } from "./GlossaryTermPage";
 import { MarketplacePage } from "./MarketplacePage";
+import { AuditCheckPage, AuditChecksIndexPage } from "./AuditChecksPage";
 
 export function PublicRoute({ locale, parts }: { locale: Locale; parts: string[] }) {
   const path = parts.join("/");
   if (path === "services") return <ServicesIndexPage locale={locale}/>;
+  if (path === "seo") return <ServicePage locale={locale} slug="seo-promotion"/>;
   if (serviceSlugs.includes(path)) return <ServicePage locale={locale} slug={path}/>;
   if (path === "pricing") return <PricingPage locale={locale}/>;
   if (path === "calculator") return <CalculatorPage locale={locale}/>;
@@ -27,6 +30,9 @@ export function PublicRoute({ locale, parts }: { locale: Locale; parts: string[]
   if ((parts[0] === "blog" || parts[0] === "articles") && parts.length === 2) return <ArticlePage locale={locale} slug={parts[1]}/>;
   if (path === "marketplaces" || (parts[0] === "marketplaces" && parts.length === 2)) return <MarketplacePage locale={locale} platform={parts[1]}/>;
   if (path === "glossary") return <GlossaryPage locale={locale}/>;
+  if (parts[0] === "glossary" && parts.length === 2) return <GlossaryTermPage locale={locale} slug={parts[1]}/>;
+  if (path === "checks") return <AuditChecksIndexPage locale={locale}/>;
+  if (parts[0] === "checks" && parts.length === 2) return <AuditCheckPage locale={locale} slug={parts[1]}/>;
   if (path === "about") return <AboutPage locale={locale}/>;
   if (path === "contacts") return <ContactsPage locale={locale}/>;
   if (path === "privacy") return <LegalPage locale={locale} kind="privacy"/>;

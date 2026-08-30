@@ -4,6 +4,8 @@ import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 
+import { auditIssueCopy, auditPageFindings, auditTermDefinitions, type AuditReportLocale } from "../audit/report-content";
+
 type AuditPdfInput = {
   audit: {
     id: string;
@@ -104,11 +106,7 @@ export async function createAdminAuditPdf(input: AuditPdfInput): Promise<Uint8Ar
   return pdf.save({ useObjectStreams: false });
 }
 
-/**
- * A deliberately small report for an owner who has the opaque audit link.
- * It only contains fields already returned by the public audit endpoint:
- * no applicant details, crawled URLs, internal checks or full issue data.
- */
+/** Public report generated from the same redacted evidence snapshot as the web result. */
 export async function createPublicAuditPdf(input: PublicAuditPdfInput): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
@@ -122,27 +120,124 @@ export async function createPublicAuditPdf(input: PublicAuditPdfInput): Promise<
 
   const writer = new PublicPdfWriter(pdf, font, bold, ru);
   writer.cover(input);
-  writer.heading(ru ? "Что проверили" : "What was checked");
-  writer.keyValue(ru ? "Страниц проверено" : "Pages checked", `${input.pagesChecked} ${ru ? "из" : "of"} ${input.pagesDiscovered}`);
-  writer.keyValue(ru ? "Статус" : "Status", input.partial ? (ru ? "Частичная проверка" : "Partial check") : (ru ? "Проверка завершена" : "Check completed"));
+  writer.heading(ru ? "Охват проверки" : "Audit coverage");
+  writer.keyValue(ru ? "URL обнаружено" : "URLs discovered", `${input.pagesDiscovered}`);
+  writer.keyValue(ru ? "Подробно проверено" : "Checked in detail", `${input.pagesChecked} ${ru ? "из максимум 10 страниц" : "of up to 10 pages"}`);
+  writer.keyValue(ru ? "Не вошло в выборку" : "Outside the sample", `${Math.max(0, input.pagesDiscovered - input.pagesChecked)}`);
+  writer.keyValue(ru ? "Статус" : "Status", input.partial ? (ru ? "Проверка завершилась раньше запланированного лимита" : "The check ended before its planned limit") : (ru ? "Запланированная выборка проверена" : "The planned sample was checked"));
   if (input.completedAt) writer.keyValue(ru ? "Дата" : "Date", new Intl.DateTimeFormat(ru ? "ru-RU" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Moscow" }).format(input.completedAt));
+  writer.paragraph(ru
+    ? "Остальные обнаруженные адреса не считаются проверенными: по ним отчёт не делает выводов, пока страница не была загружена и разобрана."
+    : "Other discovered addresses are not treated as checked. No conclusions are made until a page has been loaded and analysed.", { size: 8.5, color: rgb(.33, .36, .42) });
   writer.paragraph(ru ? PUBLIC_AUDIT_DISCLAIMER.ru : PUBLIC_AUDIT_DISCLAIMER.en, { size: 8.5, color: rgb(.33, .36, .42) });
 
-  const categories = publicCategories(input.publicResult);
-  writer.heading(ru ? "Направления для внимания" : "Areas to review");
-  if (!categories.length) {
-    writer.paragraph(ru ? "Подробные результаты ещё подготавливаются." : "Detailed results are still being prepared.");
-  } else {
-    for (const category of categories) {
-      writer.paragraph(`${category.name}${category.risk ? ` · ${category.risk}` : ""}`, { bold: true, size: 11 });
-      if (category.explanation) writer.paragraph(category.explanation, { size: 9, color: rgb(.26, .29, .35) });
-      writer.rule();
+  const snapshot = buildPublicAuditPdfModel(input.publicResult, input.locale);
+  if (snapshot.summary.headline || snapshot.summary.risks.length || snapshot.summary.strengths.length || snapshot.summary.facts.length) {
+    writer.heading(ru ? "Главное по проверенным страницам" : "Summary of checked pages");
+    if (snapshot.summary.headline) writer.paragraph(snapshot.summary.headline, { bold: true, size: 13, lineHeight: 17 });
+    if (snapshot.summary.risks.length) {
+      writer.paragraph(ru ? "Сначала исправить" : "Fix first", { bold: true, size: 10.5 });
+      snapshot.summary.risks.slice(0, 5).forEach((item) => writer.paragraph(`• ${item}`, { size: 9 }));
+    }
+    if (snapshot.summary.strengths.length) {
+      writer.paragraph(ru ? "Уже работает" : "Already working", { bold: true, size: 10.5 });
+      snapshot.summary.strengths.slice(0, 5).forEach((item) => writer.paragraph(`• ${item}`, { size: 9 }));
+    }
+    snapshot.summary.facts.slice(0, 5).forEach((item) => writer.paragraph(`• ${item}`, { size: 9 }));
+  }
+
+  if (snapshot.indexability.checked > 0 || snapshot.indexability.status === "not_checked" || snapshot.indexability.stages.length) {
+    writer.heading(ru ? "Может ли поисковик обработать страницы" : "Can search engines process the pages" );
+    if (snapshot.indexability.status === "not_checked") {
+      writer.paragraph(snapshot.indexability.limitation || (ru
+        ? "Не удалось загрузить ни одной страницы, поэтому вывод о доступности для поиска не сделан."
+        : "No page could be loaded, so no conclusion about search accessibility was made."), { bold: true, size: 11 });
+    } else {
+      writer.paragraph(ru
+        ? `${snapshot.indexability.technicallyIndexable} из ${snapshot.indexability.checked || input.pagesChecked} проверенных страниц открылись без ошибки и не имеют найденного запрета noindex.`
+        : `${snapshot.indexability.technicallyIndexable} of ${snapshot.indexability.checked || input.pagesChecked} checked pages opened without an error and have no detected noindex rule.`, { bold: true, size: 11 });
+    }
+    snapshot.indexability.stages.forEach((stage, index) => {
+      writer.paragraph(`${index + 1}. ${stage.label}: ${stage.count}/${snapshot.indexability.checked || input.pagesChecked}`, { bold: true, size: 9.5 });
+      if (stage.explanation) writer.paragraph(stage.explanation, { size: 8.5, color: rgb(.33, .36, .42) });
+    });
+    if (snapshot.indexability.status !== "not_checked") {
+      writer.paragraph(snapshot.indexability.limitation || (ru
+        ? "Этот результат не подтверждает, что страница уже показывается в поиске. Это можно увидеть только в Яндекс Вебмастере или Google Search Console."
+        : "This result does not confirm that a page already appears in search. That can only be checked in Yandex Webmaster or Google Search Console."), { size: 8.5, color: rgb(.33, .36, .42) });
     }
   }
+
+  if (snapshot.issues.length) {
+    writer.heading(`${ru ? "Очередь исправлений" : "Fix queue"} · ${snapshot.issues.length}`);
+    snapshot.issues.forEach((issue, index) => {
+      writer.paragraph(`${index + 1}. ${severityPdfLabel(issue.severity, ru)} · ${issue.title || issue.code || (ru ? "Замечание" : "Finding")}`, { bold: true, size: 11, color: severityColor(issue.severity) });
+      writer.paragraph(`${ru ? "Что найдено" : "Finding"}: ${issue.observation}`, { size: 9 });
+      writer.paragraph(`${ru ? "Почему важно" : "Why it matters"}: ${issue.whyItMatters}`, { size: 9 });
+      writer.paragraph(`${ru ? "Что сделать" : "Action"}: ${issue.recommendation}`, { size: 9 });
+      writer.paragraph(`${ru ? "Как проверить исправление" : "How to verify the fix"}: ${issue.acceptance}`, { size: 9 });
+      if (issue.evidence.length) {
+        writer.paragraph(ru ? "Факты из проверки" : "Observed evidence", { bold: true, size: 8.5 });
+        issue.evidence.slice(0, 5).forEach((item) => writer.paragraph(`• ${item}`, { size: 8 }));
+      }
+      if (issue.affectedUrls.length) {
+        writer.paragraph(`${ru ? "Затронутые URL" : "Affected URLs"} · ${issue.affectedCount || issue.affectedUrls.length}`, { bold: true, size: 8.5 });
+        issue.affectedUrls.slice(0, 12).forEach((url) => writer.paragraph(url, { size: 7.5, color: rgb(.27, .32, .42) }));
+        if (issue.affectedUrls.length > 12) writer.paragraph(ru ? `Ещё ${issue.affectedUrls.length - 12} URL показаны в веб-отчёте.` : `${issue.affectedUrls.length - 12} more URLs are shown in the web report.`, { size: 8 });
+      }
+      writer.rule();
+    });
+  } else if (snapshot.isLegacy) {
+    const categories = publicCategories(input.publicResult);
+    if (categories.length) {
+      writer.heading(ru ? "Сводка предыдущей версии" : "Legacy summary");
+      writer.paragraph(ru ? "Этот сохранённый результат не содержит URL-доказательств. Запустите проверку снова, чтобы получить новый формат." : "This saved result does not contain URL evidence. Run the audit again to receive the new format.", { size: 8.5, color: rgb(.33, .36, .42) });
+      for (const category of categories) {
+        writer.paragraph(`${category.name}${category.risk ? ` · ${category.risk}` : ""}`, { bold: true, size: 11 });
+        if (category.explanation) writer.paragraph(category.explanation, { size: 9, color: rgb(.26, .29, .35) });
+        writer.rule();
+      }
+    }
+  } else {
+    writer.heading(ru ? "Замечания по проверенной выборке" : "Findings in the checked sample");
+    writer.paragraph(ru
+      ? `В сохранённых данных нет замечаний по ${input.pagesChecked} подробно проверенным страницам. Этот вывод не относится к адресам, которые не вошли в бесплатную проверку.`
+      : `The saved result has no findings for the ${input.pagesChecked} pages checked in detail. This conclusion does not cover addresses outside the free check.`, { size: 9 });
+  }
+
+  if (snapshot.pages.length) {
+    writer.heading(`${ru ? "Проверенные страницы" : "Checked pages"} · ${snapshot.pages.length}`);
+    snapshot.pages.forEach((page, index) => {
+      writer.paragraph(`${index + 1}. ${page.url || "—"}`, { bold: true, size: 9.5 });
+      if (page.finalUrl && page.finalUrl !== page.url) writer.paragraph(`${ru ? "После перенаправления" : "After redirects"}: ${page.finalUrl}`, { size: 8 });
+      writer.paragraph(`${ru ? "Код ответа страницы" : "Page response code"}: ${page.status || "—"}`, { size: 8.5, color: rgb(.33, .36, .42) });
+      writer.paragraph(`${ru ? "Заголовок для поисковой выдачи (title)" : "Search-result title"}: ${page.title || "—"}`, { size: 8.5 });
+      writer.paragraph(`${ru ? "Главный заголовок страницы (H1)" : "Main page heading (H1)"}: ${page.h1 || "—"}`, { size: 8.5 });
+      writer.paragraph(`${ru ? "Основной адрес (canonical)" : "Preferred address (canonical)"}: ${page.canonical || "—"}`, { size: 8 });
+      writer.paragraph(`${ru ? "В файле страниц (sitemap.xml)" : "In the page-list file (sitemap.xml)"}: ${boolPdf(page.inSitemap, ru)}`, { size: 8 });
+      if (page.findings.length) {
+        writer.paragraph(ru ? "Замечания по странице" : "Page findings", { bold: true, size: 8.5, color: rgb(.67, .4, .08) });
+        page.findings.forEach((finding) => writer.paragraph(`• ${finding}`, { size: 8 }));
+      } else {
+        writer.paragraph(ru ? "По сохранённым признакам замечаний нет." : "No findings in the saved signals.", { size: 8, color: rgb(.12, .48, .32) });
+      }
+      writer.space(4);
+    });
+  }
+
+  writer.heading(ru ? "Пояснения к словам в отчёте" : "Terms used in this report");
+  auditTermDefinitions(input.locale).forEach((item) => writer.paragraph(`${item.term} — ${item.meaning}.`, { size: 8.5 }));
+
+  writer.heading(ru ? "Ограничения метода" : "Method limitations");
+  writer.paragraph(ru
+    ? "Балл относится только к проверенным страницам и помогает определить порядок исправлений. Это не оценка поисковой системы и не прогноз позиций, посещаемости или продаж."
+    : "The score applies only to the checked sample and helps prioritize technical work. It is not a search-engine score and does not predict rankings, traffic, or sales.");
+  snapshot.limitations.forEach((item) => writer.paragraph(`• ${item}`, { size: 8.5 }));
+
   writer.heading(ru ? "Следующий шаг" : "Next step");
   writer.paragraph(ru
-    ? "Сохраните этот отчёт и опишите задачу в брифе. Мы уточним объём работ и порядок исправлений."
-    : "Save this report and describe your task in the brief. We will clarify the scope and the order of fixes.");
+    ? "Сначала исправьте замечания высокого приоритета и проверьте те же страницы повторно. Для полного аудита заранее согласуются число страниц, состав проверки и результат, который можно проверить после исправлений."
+    : "Fix the priority causes and repeat the same checks. In the extended audit, KILENI checks the agreed scope and prepares an actionable fix queue.");
   writer.finish();
   return pdf.save({ useObjectStreams: false });
 }
@@ -157,11 +252,11 @@ class PublicPdfWriter {
   cover(input: PublicAuditPdfInput) {
     this.newPage();
     this.y = PAGE[1] - 145;
-    this.paragraph(this.ru ? "Предварительная SEO-проверка" : "Preliminary SEO check", { size: 26, bold: true, lineHeight: 31 });
+    this.paragraph(this.ru ? "SEO-проверка с доказательствами" : "Evidence-based SEO check", { size: 26, bold: true, lineHeight: 31 });
     this.paragraph(input.normalizedDomain, { size: 17, color: rgb(.05, .16, .34) });
     this.space(22);
-    this.keyValue(this.ru ? "Оценка" : "Assessment", input.score === null ? "—" : `${input.score}/100${input.grade ? ` · ${input.grade}` : ""}`);
-    this.keyValue(this.ru ? "Охват" : "Coverage", `${input.pagesChecked} / ${input.pagesDiscovered}${input.partial ? ` · ${this.ru ? "частичная проверка" : "partial check"}` : ""}`);
+    this.keyValue(this.ru ? "Техническая оценка выборки" : "Technical sample score", input.score === null ? "—" : `${input.score}/100${input.grade ? ` · ${input.grade}` : ""}`);
+    this.keyValue(this.ru ? "Охват" : "Coverage", `${this.ru ? "найдено" : "discovered"} ${input.pagesDiscovered} · ${this.ru ? "проверено" : "checked"} ${input.pagesChecked}`);
   }
 
   heading(value: string) {
@@ -376,6 +471,175 @@ function publicCategories(value: unknown): Array<{ name: string; risk: string; e
     risk: text(category.risk),
     explanation: text(category.explanation),
   })).filter((category) => Boolean(category.name));
+}
+
+/** Normalizes the current public audit DTO (and legacy snapshots) for the printable report. */
+export function buildPublicAuditPdfModel(value: unknown, locale: AuditReportLocale) {
+  const root = record(value);
+  const resultVersion = number(root.resultVersion);
+  const summary = record(root.summary);
+  const indexability = record(root.indexability);
+  const methodology = record(root.methodology);
+  const rawIssues = recordArray(root.issueGroups).length ? recordArray(root.issueGroups) : recordArray(root.issues);
+  const pages = recordArray(root.checkedPages).map((page) => {
+    const http = record(page.http);
+    const titleSignal = record(page.title);
+    const descriptionSignal = record(page.description);
+    const h1Signal = record(page.h1);
+    const canonicalSignal = record(page.canonical);
+    const sitemapSignal = record(page.sitemap);
+    const status = number(http.status) || number(page.status);
+    const title = text(titleSignal.value) || nullableText(page.title);
+    const description = text(descriptionSignal.value) || nullableText(page.description);
+    const h1 = stringArray(h1Signal.values).join(" · ") || nullableText(page.h1);
+    const canonical = text(canonicalSignal.url) || nullableText(page.canonical);
+    const incomingFromCheckedPages = optionalNumber(record(page.internalLinks).incomingFromCheckedPages);
+    const inSitemap = typeof sitemapSignal.included === "boolean"
+      ? sitemapSignal.included
+      : typeof page.inSitemap === "boolean" ? page.inSitemap : null;
+    return {
+      url: text(page.url),
+      finalUrl: text(page.finalUrl),
+      status,
+      title,
+      h1,
+      canonical,
+      inSitemap,
+      findings: auditPageFindings(locale, {
+        http: { status, redirectCount: number(http.redirectCount) },
+        title: {
+          value: title || null,
+          present: typeof titleSignal.present === "boolean" ? titleSignal.present : Boolean(title),
+          length: number(titleSignal.length) || title.length,
+          optimal: typeof titleSignal.optimal === "boolean" ? titleSignal.optimal : undefined,
+        },
+        description: {
+          value: description || null,
+          present: typeof descriptionSignal.present === "boolean" ? descriptionSignal.present : Boolean(description),
+          length: optionalNumber(descriptionSignal.length) ?? description.length,
+          optimal: typeof descriptionSignal.optimal === "boolean" ? descriptionSignal.optimal : undefined,
+        },
+        h1: {
+          count: number(h1Signal.count) || (h1 ? 1 : 0),
+          values: stringArray(h1Signal.values),
+        },
+        noindex: page.noindex === true,
+        canonical: {
+          url: canonical || null,
+          valid: typeof canonicalSignal.valid === "boolean" ? canonicalSignal.valid : page.canonicalValid !== false,
+        },
+        sitemap: {
+          status: text(sitemapSignal.status),
+          included: inSitemap,
+          reason: text(sitemapSignal.reason),
+        },
+        inSitemap,
+        ...(incomingFromCheckedPages === undefined ? {} : {
+          internalLinks: { incomingFromCheckedPages },
+        }),
+      }),
+    };
+  }).filter((page) => Boolean(page.url));
+  const issues = rawIssues.map((issue) => {
+    const evidenceRecords = recordArray(issue.evidence);
+    const prepared = auditIssueCopy(locale, {
+      code: text(issue.code),
+      title: text(issue.title),
+      description: text(issue.description),
+      why: text(issue.why),
+      whyItMatters: text(issue.whyItMatters),
+      fix: text(issue.fix),
+      recommendation: text(issue.recommendation),
+      acceptance: text(issue.acceptance),
+      evidence: evidenceRecords,
+    });
+    return {
+      code: text(issue.code),
+      severity: text(issue.severity),
+      title: prepared.title,
+      observation: prepared.observation,
+      whyItMatters: prepared.why,
+      recommendation: prepared.action,
+      acceptance: prepared.acceptance,
+      affectedCount: number(issue.affectedCount),
+      affectedUrls: stringArray(issue.affectedUrls),
+      evidence: evidenceRecords.map((item) => {
+        const observation = text(item.observation) || text(item.value) || text(item.label);
+        const url = text(item.url);
+        return url && observation ? `${observation} — ${url}` : observation || url;
+      }).filter(Boolean),
+    };
+  });
+  const checked = number(indexability.checkedPages) || number(indexability.checked);
+  const technicallyIndexable = number(indexability.indexablePages) || number(indexability.technicallyIndexable);
+  const noindexPages = number(indexability.noindexPages) || number(indexability.blocked);
+  const httpErrorPages = number(indexability.httpErrorPages);
+  const derivedStrengths: string[] = [];
+  const pagesWithoutHttpErrors = pages.filter((page) => page.status >= 200 && page.status < 300).length;
+  if (pagesWithoutHttpErrors > 0) derivedStrengths.push(locale === "ru"
+    ? `${pagesWithoutHttpErrors} из ${pages.length} проверенных страниц открылись без ошибки сервера.`
+    : `${pagesWithoutHttpErrors} of ${pages.length} checked pages opened without a server error.`);
+  if (technicallyIndexable > 0) derivedStrengths.push(locale === "ru"
+    ? `${technicallyIndexable} страниц не имеют найденного технического запрета для поискового робота.`
+    : `${technicallyIndexable} pages have no detected technical crawler block.`);
+  const plainFacts = checked > 0 ? [locale === "ru"
+    ? `Без найденного технического запрета для поиска: ${technicallyIndexable} из ${checked}. Закрыто правилом noindex: ${noindexPages}; страниц с ошибкой сервера: ${httpErrorPages}.`
+    : `No detected technical search block: ${technicallyIndexable} of ${checked}. Blocked by noindex: ${noindexPages}; pages with a server error: ${httpErrorPages}.`] : [];
+  return {
+    isLegacy: resultVersion < 2,
+    summary: {
+      headline: text(summary.headline),
+      facts: plainFacts,
+      risks: stringArray(summary.risks).length
+        ? stringArray(summary.risks)
+        : issues.filter((issue) => issue.severity === "critical" || issue.severity === "high" || issue.severity === "medium").slice(0, 5).map((issue) => issue.title),
+      strengths: stringArray(summary.strengths).length ? stringArray(summary.strengths) : derivedStrengths,
+    },
+    indexability: {
+      status: text(indexability.status),
+      checked,
+      technicallyIndexable,
+      noindexPages,
+      httpErrorPages,
+      limitation: text(indexability.reason) || text(indexability.limitation),
+      stages: recordArray(indexability.stages).map((stage) => ({
+        label: text(stage.label),
+        count: number(stage.count),
+        explanation: text(stage.explanation),
+      })).filter((stage) => Boolean(stage.label)),
+    },
+    issues,
+    pages,
+    limitations: stringArray(methodology.limitations),
+  };
+}
+
+function stringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => typeof item === "string" ? [clean(item)] : []).filter(Boolean);
+}
+
+function nullableText(value: unknown): string {
+  return typeof value === "string" ? clean(value) : "";
+}
+
+function optionalNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function severityPdfLabel(value: string, ru: boolean): string {
+  const severity = value.toLowerCase();
+  if (severity === "critical") return ru ? "Критично" : "Critical";
+  if (severity === "high") return ru ? "Высокий приоритет" : "High priority";
+  if (severity === "medium") return ru ? "Средний приоритет" : "Medium priority";
+  if (severity === "low") return ru ? "Низкий приоритет" : "Low priority";
+  return ru ? "Наблюдение" : "Observation";
+}
+
+function boolPdf(value: boolean | null, ru: boolean): string {
+  if (value === true) return ru ? "да" : "yes";
+  if (value === false) return ru ? "нет" : "no";
+  return ru ? "не проверено" : "not checked";
 }
 
 function record(value: unknown): Record<string, unknown> { return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {}; }

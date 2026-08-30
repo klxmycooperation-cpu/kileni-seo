@@ -37,7 +37,7 @@ export function getPublicContacts(locale: Locale, primaryOnly = false): PublicCo
           ariaLabel: `${ru ? "Написать в Telegram" : "Message on Telegram"} ${normalizeTelegramHandle(siteConfig.publicContacts.telegram)}`,
         }
       : null,
-    siteConfig.publicContacts.maxPhone
+    siteConfig.publicContacts.maxPhone && siteConfig.publicContacts.maxUrl
       ? {
           kind: "max",
           label: "MAX",

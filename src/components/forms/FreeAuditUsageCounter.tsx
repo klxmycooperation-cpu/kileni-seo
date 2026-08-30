@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 
 import type { Locale } from "../../config/site";
+import { FREE_AUDIT_PAGE_BASELINE, freeAuditUsageLabel } from "../../config/public-audit";
 
 export function FreeAuditUsageCounter({ locale }: { locale: Locale }) {
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<number>(FREE_AUDIT_PAGE_BASELINE);
   const ru = locale === "ru";
 
   useEffect(() => {
@@ -14,19 +15,17 @@ export function FreeAuditUsageCounter({ locale }: { locale: Locale }) {
       .then(async (response) => response.ok ? response.json() as Promise<{ count?: unknown }> : null)
       .then((payload) => {
         const value = Number(payload?.count);
-        if (current && Number.isSafeInteger(value) && value > 0) setCount(value);
+        if (current && Number.isSafeInteger(value) && value >= FREE_AUDIT_PAGE_BASELINE) setCount(value);
       })
       .catch(() => undefined);
     return () => { current = false; };
   }, []);
 
-  if (!count) return null;
-
   return (
     <p className="free-audit-usage" data-testid="free-audit-usage-count" aria-live="polite">
       <i className="free-audit-usage__pulse" aria-hidden="true" />
       <strong>{new Intl.NumberFormat(ru ? "ru-RU" : "en-US").format(count)}</strong>
-      <span>{ru ? "сайтов уже получили результат бесплатной SEO-проверки" : "websites have received a free SEO check result"}</span>
+      <span>{freeAuditUsageLabel(locale, count)}</span>
     </p>
   );
 }

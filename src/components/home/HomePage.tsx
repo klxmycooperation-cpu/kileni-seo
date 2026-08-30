@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
@@ -7,8 +6,10 @@ import { getCases } from "../../content/cases";
 import { getDictionary } from "../../content/dictionary";
 import { PublicShell } from "../layout/PublicShell";
 import { Faq } from "../pages/Faq";
+import { BrandIntro } from "./BrandIntro";
 import { HeroScan } from "./HeroScan";
 import { HomeCaseExplorer } from "./HomeCaseExplorer";
+import { HomeArticleCarousel } from "./HomeArticleCarousel";
 import { HomeDecisionRoute } from "./HomeDecisionRoute";
 import { HomeProcessSteps } from "./HomeProcessSteps";
 
@@ -16,10 +17,10 @@ export function HomePage({ locale }: { locale: Locale }) {
   const d = getDictionary(locale);
   const ru = locale === "ru";
   const cases = getCases(locale);
-  const articles = getArticles(locale).slice(0, 3);
+  const articles = getArticles(locale);
   const process = ru
     ? [
-        { title: "Проверяем", text: "Проводим бесплатную экспресс-проверку до 10 ключевых страниц: доступность, индексирование и очевидные технические риски.", result: "Понимаем: есть ли системные ограничения роста" },
+        { title: "Проверяем", text: "Проводим бесплатную проверку до 10 ключевых страниц: открываются ли они, доступны ли поиску и нет ли повторяющихся ошибок.", result: "Видим, что мешает сайту появляться в поиске" },
         { title: "Объясняем", text: "Показываем, где сайт теряет видимость и обращения, и отделяем критичное от того, что может подождать.", result: "Получаете приоритеты без технического шума" },
         { title: "Исправляем", text: "Согласуем объём и по этапам внедряем нужные изменения: от структуры до контента и скорости.", result: "Работы привязаны к понятному результату" },
         { title: "Перепроверяем", text: "После внедрения повторяем те же проверки и фиксируем, что действительно изменилось.", result: "Есть доказательство результата, а не просто отчёт" },
@@ -45,8 +46,8 @@ export function HomePage({ locale }: { locale: Locale }) {
       ];
   const faq = ru
     ? [
-        { q: "Что покажет бесплатная проверка?", a: "Общую SEO-оценку, число найденных и проверенных страниц и основные зоны риска. Точные адреса проблем и инструкции не публикуются в открытом результате." },
-        { q: "Нужен доступ к сайту?", a: "Нет. Бесплатная проверка работает только с публичной частью и учитывает ограничения robots.txt." },
+        { q: "Что покажет бесплатная проверка?", a: "Общую оценку, число найденных и проверенных страниц, конкретные замечания по этим страницам и понятный порядок действий." },
+        { q: "Нужен доступ к сайту?", a: "Нет. Проверка видит только те страницы, которые доступны обычному посетителю, и соблюдает правила сайта для поисковых систем." },
         { q: "Можно проверить большой сайт?", a: "Бесплатно проверяем до 10 ключевых публичных страниц. Для более крупного сайта покажем, какие разделы стоит разобрать отдельно." },
         { q: "Можно заказать исправления?", a: "Да. Сначала отдельно согласуем состав, срок, стоимость и критерии повторной проверки." },
         { q: "Вы гарантируете позиции?", a: "Нет. Позиции зависят от спроса, конкурентов, поисковых систем и самого предложения. Мы отвечаем за согласованный объём и проверяемые изменения." },
@@ -61,6 +62,7 @@ export function HomePage({ locale }: { locale: Locale }) {
 
   return (
     <PublicShell locale={locale}>
+      <BrandIntro />
       <div className="home-content home-redesign home-10">
         <HeroScan locale={locale}/>
 
@@ -98,19 +100,26 @@ export function HomePage({ locale }: { locale: Locale }) {
 
         <HomeCaseExplorer locale={locale} cases={cases} />
 
+        <section className="section home-articles" id="home-articles" aria-labelledby="home-articles-title">
+          <div className="shell">
+            <div className="home-section-heading home-section-heading--row"><div><p>{ru ? "Блог" : "Blog"}</p><h2 id="home-articles-title">{ru ? "Новые разборы — прямо на главной" : "Latest practical guides on the home page"}</h2></div><Link className="warm-text-link" href={localizedPath(locale, "blog")}>{ru ? "Весь блог" : "All guides"} <span>↗</span></Link></div>
+            <HomeArticleCarousel locale={locale} articles={articles} />
+          </div>
+        </section>
+
         <section className="section home-deliverables" id="home-deliverables" aria-labelledby="home-deliverables-title">
           <div className="shell home-deliverables-grid">
             <div className="home-section-heading">
               <p>{ru ? "Что вы получите" : "What you receive"}</p>
-              <h2 id="home-deliverables-title">{ru ? "Очередь работ, которую можно принять" : "A work queue you can verify"}</h2>
-              <p className="warm-lead">{ru ? "Причина, приоритет, действие и критерий повторной проверки — без списка терминов ради объёма." : "Cause, priority, action and a follow-up check — without jargon added for volume."}</p>
+              <h2 id="home-deliverables-title">{ru ? "Понятный маршрут исправления" : "A clear route to a verified fix"}</h2>
+              <p className="warm-lead">{ru ? "Каждая задача проходит четыре состояния — от найденной причины до повторной проверки." : "Each task moves through four states, from the confirmed cause to a repeat check."}</p>
               <Link className="button button-primary" href={localizedPath(locale, "seo-audit")}>{ru ? "Что входит в аудит" : "What the audit includes"}<span>↗</span></Link>
             </div>
             <ol className="home-deliverable-list">
               {(ru
-                ? ["Краткое резюме для принятия решения", "Таблица приоритетных работ", "Критерии для разработчика", "Повторная проверка согласованных изменений"]
-                : ["Decision-ready summary", "Prioritised work table", "Developer acceptance criteria", "Follow-up check of agreed changes"]
-              ).map((item, index) => <li key={item}><span>{String(index + 1).padStart(2, "0")}</span><strong>{item}</strong></li>)}
+                ? [["Находим", "Показываем проблему на конкретной странице"], ["Расставляем", "Объясняем приоритет и влияние"], ["Исправляем", "Передаём действие и критерий готовности"], ["Проверяем", "Повторяем замер и фиксируем результат"]]
+                : [["Find", "Show the issue on a specific page"], ["Prioritise", "Explain impact and urgency"], ["Fix", "Define the action and acceptance check"], ["Verify", "Repeat the measurement and record the result"]]
+              ).map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><small>{text}</small></div><b aria-hidden="true">{index === 3 ? "✓" : "→"}</b></li>)}
             </ol>
           </div>
         </section>
@@ -122,15 +131,6 @@ export function HomePage({ locale }: { locale: Locale }) {
               {directions.map((item, index) => <Link key={item.href} href={localizedPath(locale, item.href)}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{item.title}</h3><p>{item.text}</p></div><b aria-hidden="true">↗</b></Link>)}
             </div>
             <Link className="warm-text-link" href={localizedPath(locale, "pricing")}>{ru ? "Посмотреть цены и ограничения" : "See prices and limits"} <span>↗</span></Link>
-          </div>
-        </section>
-
-        <section className="section home-articles" id="home-articles" aria-labelledby="home-articles-title">
-          <div className="shell">
-            <div className="home-section-heading home-section-heading--row"><div><p>{ru ? "Блог" : "Blog"}</p><h2 id="home-articles-title">{ru ? "Разбираем работу на понятных примерах" : "Practical explanations with clear examples"}</h2></div><Link className="warm-text-link" href={localizedPath(locale, "blog")}>{ru ? "Все материалы" : "All guides"} <span>↗</span></Link></div>
-            <div className="warm-article-list">
-              {articles.map((article, index) => <Link key={article.slug} href={localizedPath(locale, `blog/${article.slug}`)}><figure><Image src={article.hero.src} alt={article.hero.alt} width={720} height={450} sizes="(max-width: 820px) 100vw, 31vw"/></figure><div className="warm-article-meta"><span>0{index + 1}</span><small>{article.readingMinutes} {ru ? "мин" : "min"}</small></div><h3>{article.title}</h3><p>{article.readerOutcome}</p><b aria-hidden="true">↗</b></Link>)}
-            </div>
           </div>
         </section>
 

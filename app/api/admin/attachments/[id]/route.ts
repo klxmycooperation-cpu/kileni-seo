@@ -1,4 +1,4 @@
-import { sqlite } from "@/src/db/client";
+import { database } from "@/src/db/client";
 import { apiError, validUuid } from "../../../_lib/http";
 import { readPrivateFile } from "../../../_lib/uploads";
 import { adminGuard } from "../../_lib/guard";
@@ -11,8 +11,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   if (guard) return guard;
   const { id } = await context.params;
   if (!validUuid(id)) return apiError(400, "INVALID_ID", "Некорректный идентификатор");
-  const attachment = sqlite.prepare(`SELECT storage_name AS storageName, original_name AS originalName, mime, size
-    FROM attachments WHERE id=? LIMIT 1`).get(id) as {
+  const result = await database.execute({ sql: `SELECT storage_name AS storageName, original_name AS originalName, mime, size
+    FROM attachments WHERE id=? LIMIT 1`, args: [id] });
+  const attachment = result.rows[0] as unknown as {
       storageName: string; originalName: string; mime: string; size: number;
     } | undefined;
   if (!attachment) return apiError(404, "ATTACHMENT_NOT_FOUND", "Файл не найден");

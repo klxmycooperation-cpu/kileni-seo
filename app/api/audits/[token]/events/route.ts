@@ -1,6 +1,5 @@
-import { sqlite } from "@/src/db/client";
 import { siteConfig } from "@/src/config/site";
-import { getAuditByToken, getAuditEvents } from "@/src/db/queries";
+import { getAuditByToken, getAuditEvents, type AuditRow } from "@/src/db/queries";
 import { consumeRateLimit } from "@/src/lib/security/rate-limit";
 import { clientIp, privateHash } from "@/src/lib/security/request";
 import { apiError, noStoreJson, retryAfterHeaders, safeJsonParse, validOpaqueToken } from "../../../_lib/http";
@@ -25,15 +24,14 @@ export async function GET(
   const wantsSse = (request.headers.get("accept") ?? "").includes("text/event-stream") && url.searchParams.get("format") !== "json";
   const requester = privateHash(clientIp(request));
   const tokenHash = privateHash(token);
-  const rate = consumeRateLimit(
-    sqlite,
+  const rate = await consumeRateLimit(
     `audit-events:${wantsSse ? "sse" : "poll"}:${requester}:${tokenHash}`,
     wantsSse ? { windowMs: 60_000, limit: 10 } : { windowMs: 60_000, limit: 120 },
   );
   if (!rate.allowed) {
     return apiError(429, "RATE_LIMITED", "Слишком много запросов событий", undefined, retryAfterHeaders(rate.retryAfterMs));
   }
-  const audit = getAuditByToken(token);
+  const audit = await getAuditByToken(token);
   if (!audit) {
     const restored = verifyAuditRestoreEnvelope(url.searchParams.get("restore"), token);
     if (!restored) return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
@@ -60,8 +58,8 @@ export async function GET(
     );
   }
   if (!wantsSse) {
-    const events = publicEvents(audit.id, after);
-    const current = getAuditByToken(token) ?? audit;
+    const events = await publicEvents(audit.id, after);
+    const current = (await getAuditByToken(token)) ?? audit;
     return noStoreJson({
       ...publicSnapshot(current),
       terminal: TERMINAL.has(current.status),
@@ -93,15 +91,15 @@ export async function GET(
       let lastKeepAlive = Date.now();
       try {
         while (!closed && Date.now() - startedAt < 55_000) {
-          const events = publicEvents(audit.id, cursor);
+          const events = await publicEvents(audit.id, cursor);
           for (const event of events) {
             cursor = event.id;
-            const current = getAuditByToken(token) ?? audit;
+            const current = (await getAuditByToken(token)) ?? audit;
             controller.enqueue(encoder.encode(
               `id: ${event.id}\ndata: ${JSON.stringify({ ...publicSnapshot(current), event: safeEventName(event.event), payload: event.payload, eventCreatedAt: event.createdAt })}\n\n`,
             ));
           }
-          const current = getAuditByToken(token);
+          const current = await getAuditByToken(token);
           if (!current || TERMINAL.has(current.status)) {
             controller.enqueue(encoder.encode(
               `event: done\ndata: ${JSON.stringify({ status: current?.status ?? "not_found", lastEventId: cursor })}\n\n`,
@@ -154,8 +152,8 @@ function releaseStream(key: string): void {
   else activeStreams.set(key, current - 1);
 }
 
-function publicEvents(auditId: string, after: number) {
-  return getAuditEvents(auditId, after).map((row) => ({
+async function publicEvents(auditId: string, after: number) {
+  return (await getAuditEvents(auditId, after)).map((row) => ({
     id: row.id,
     event: row.event,
     payload: publicEventPayload(safeJsonParse(row.payloadJson)),
@@ -187,7 +185,7 @@ function safeEventName(value: string): string {
   return /^[a-z0-9:_-]{1,80}$/iu.test(value) ? value : "progress";
 }
 
-function publicSnapshot(audit: NonNullable<ReturnType<typeof getAuditByToken>>) {
+function publicSnapshot(audit: AuditRow) {
   return {
     status: audit.status,
     pagesChecked: audit.pagesChecked,
