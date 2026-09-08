@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
 import { database } from "@/src/db/client";
+import { updateAdminEntityMetadataOn } from "@/src/db/admin-entity-metadata";
 import { apiError, jsonReadError, noStoreJson, readJson, validUuid } from "../../_lib/http";
 import { zodError } from "../../_lib/submission";
 import { adminMutationGuard } from "./guard";
@@ -13,7 +14,9 @@ const statusSchema = z.enum(["new", "contacted", "clarification", "proposal_sent
 const patchSchema = z.object({
   status: statusSchema.optional(),
   note: z.string().trim().min(1).max(3000).optional(),
-}).refine((value) => value.status !== undefined || value.note !== undefined, "Нет изменений");
+  qaLabel: z.union([z.string().trim().min(2).max(80), z.null()]).optional(),
+  archived: z.boolean().optional(),
+}).refine((value) => value.status !== undefined || value.note !== undefined || value.qaLabel !== undefined || value.archived !== undefined, "Нет изменений");
 
 const deleteSchema = z.object({
   id: z.string().uuid(),
@@ -51,6 +54,12 @@ export async function patchSubmission(request: Request, id: string, entity: Subm
           args: [randomUUID(), selected.notesType, id, parsed.data.note, Date.now()],
         });
       }
+      if (parsed.data.qaLabel !== undefined || parsed.data.archived !== undefined) {
+        await updateAdminEntityMetadataOn(transaction, selected.notesType, id, {
+          qaLabel: parsed.data.qaLabel,
+          archived: parsed.data.archived,
+        });
+      }
       return true;
     });
     return changed
@@ -83,6 +92,7 @@ export async function deleteSubmission(request: Request, id: string, entity: Sub
       if (entity === "lead") await transaction.execute({ sql: "DELETE FROM calculator_requests WHERE lead_id=?", args: [id] });
       await transaction.execute({ sql: "DELETE FROM admin_notes WHERE entity_type=? AND entity_id=?", args: [selected.notesType, id] });
       await transaction.execute({ sql: "DELETE FROM notification_events WHERE entity_type=? AND entity_id=?", args: [selected.notesType, id] });
+      await transaction.execute({ sql: "DELETE FROM admin_entity_metadata WHERE entity_type=? AND entity_id=?", args: [selected.notesType, id] });
       await transaction.execute({ sql: `DELETE FROM ${selected.table} WHERE id=?`, args: [id] });
       return true;
     });

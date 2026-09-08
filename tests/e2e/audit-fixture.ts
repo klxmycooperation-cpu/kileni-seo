@@ -1,6 +1,8 @@
 import { createAuditRecord, appendAuditEvent, completeAuditRecord, type AuditRow, type AuditStatus } from "../../src/db/queries";
-import { runAudit, toPublicAuditResult, type AuditEvent, type AuditFetcher } from "../../src/lib/audit";
+import { finalizeAuditResultV4, runPublicAudit, type AuditEvent, type AuditFetcher } from "../../src/lib/audit";
 import { auditSiteFixtures, completePerformance, createFixtureFetcher } from "../fixtures/audit-sites";
+import { auditClientReportSnapshot } from "../unit/fixtures/audit-client-report-snapshot";
+import { toAuditProgressTransition } from "../../src/lib/audit/progress-event";
 
 export async function createQueuedFixtureAudit(): Promise<AuditRow> {
   return createAuditRecord({
@@ -17,7 +19,7 @@ export async function createQueuedFixtureAudit(): Promise<AuditRow> {
   });
 }
 
-export async function completeFixtureAudit(audit: AuditRow, delayMs = 60): Promise<void> {
+export async function completeFixtureAudit(audit: AuditRow, delayMs = 60, visibleStageDelayMs = 0): Promise<void> {
   const baseFetcher = createFixtureFetcher(auditSiteFixtures.correct);
   const fetcher: AuditFetcher = async (input, options) => {
     if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -27,31 +29,62 @@ export async function completeFixtureAudit(audit: AuditRow, delayMs = 60): Promi
     await appendAuditEvent(audit.id, next, payload);
   };
   await transition("validating_target");
-  const result = await runAudit(audit.originalUrl, {
+  const result = await runPublicAudit(audit.originalUrl, {
     fetcher,
     performance: completePerformance,
-    onEvent: (event) => fixtureEvent(event, transition),
+    onEvent: (event) => fixtureEvent(event, transition, visibleStageDelayMs),
   });
-  await transition("analyzing_structure", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
-  await transition("running_performance", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
-  await transition("calculating_score", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
-  await completeAuditRecord(audit.id, {
-    publicResult: toPublicAuditResult(result, audit.locale) as unknown as Record<string, unknown>,
-    fullResult: result as unknown as Record<string, unknown>,
-    score: result.score.total,
-    grade: result.grade,
-    partial: result.partial,
-    pagesDiscovered: result.pagesDiscovered,
+  const completedSample = {
     pagesChecked: result.pagesChecked,
-    pages: result.pages.map((page) => ({ ...page, depth: page.transport?.depth ?? 0 } as unknown as Record<string, unknown>)),
-    issues: result.issues.map((issue) => ({ ...issue, evidence: issue.description } as unknown as Record<string, unknown>)),
+    pagesDiscovered: result.pagesDiscovered,
+    pagesSelected: result.selectedPages.length,
+    selectedPages: result.selectedPages.map(({ url, pageType, selectionReason }) => ({ url, pageType, selectionReason })),
+    selectionComplete: true,
+  };
+  await transition("analyzing_structure", { ...completedSample, eventKind: "structure_checked" });
+  if (visibleStageDelayMs > 0) await delay(visibleStageDelayMs);
+  await transition("running_performance", { ...completedSample, eventKind: "performance_started" });
+  if (visibleStageDelayMs > 0) await delay(visibleStageDelayMs);
+  await transition("finalizing_report", { ...completedSample, eventKind: "report_building" });
+  if (visibleStageDelayMs > 0) await delay(visibleStageDelayMs);
+  const finalized = finalizeAuditResultV4({
+    auditId: audit.publicToken,
+    createdAt: new Date(audit.createdAt).toISOString(),
+    result,
+    performance: completePerformance,
+  });
+  await completeAuditRecord(audit.id, {
+    publicResult: finalized.publicResult as unknown as Record<string, unknown>,
+    fullResult: finalized.fullResult as unknown as Record<string, unknown>,
+    score: null,
+    grade: null,
+    partial: finalized.partial,
+    pagesDiscovered: finalized.publicResult.pagesDiscovered,
+    pagesChecked: finalized.publicResult.pagesChecked,
   });
 }
 
-async function fixtureEvent(event: AuditEvent, transition: (status: AuditStatus, payload?: Record<string, unknown>) => Promise<void>): Promise<void> {
-  if (event.type === "audit:start") await transition("connecting");
-  if (event.type === "discovery:start") await transition("checking_robots");
-  if (event.type === "discovery:robots_complete") await transition("checking_sitemaps");
-  if (event.type === "discovery:sitemaps_complete") await transition("discovering_pages");
-  if (event.type === "crawl:page" || event.type === "crawl:progress") await transition("crawling_pages", { pagesChecked: event.pagesChecked, pagesDiscovered: event.pagesDiscovered });
+export async function completeClientReportFixtureAudit(audit: AuditRow): Promise<void> {
+  const publicResult = auditClientReportSnapshot();
+  await completeAuditRecord(audit.id, {
+    publicResult: publicResult as unknown as Record<string, unknown>,
+    fullResult: { resultVersion: 4, contractVersion: 3, publicResult } as unknown as Record<string, unknown>,
+    score: null,
+    grade: null,
+    partial: false,
+    pagesDiscovered: publicResult.pagesDiscovered,
+    pagesChecked: publicResult.pagesChecked,
+  });
+}
+
+async function fixtureEvent(event: AuditEvent, transition: (status: AuditStatus, payload?: Record<string, unknown>) => Promise<void>, visibleStageDelayMs = 0): Promise<void> {
+  const mapped = toAuditProgressTransition(event);
+  if (mapped) {
+    await transition(mapped.status, { ...mapped.payload });
+    if (event.type === "selection:start" && visibleStageDelayMs > 0) await delay(visibleStageDelayMs);
+  }
+}
+
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }

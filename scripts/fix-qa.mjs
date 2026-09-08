@@ -95,7 +95,9 @@ await capturePage({
   file: "pricing-seo-audit-200.png",
   prepare: async (page) => {
     const offer = page.locator('[data-offer-id="seo-audit-200"]');
-    await offer.getByRole("button", { name: "Выбрать", exact: true }).click();
+    if (await offer.getAttribute("data-selected") !== "true") {
+      await offer.getByRole("button", { name: "Выбрать", exact: true }).click();
+    }
     record("pricing: seo-audit-200 selected", await offer.getAttribute("data-selected") === "true");
   },
 });

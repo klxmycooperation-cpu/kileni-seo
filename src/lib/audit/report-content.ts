@@ -35,6 +35,91 @@ export type AuditIssueCopy = {
   readonly acceptance: string;
 };
 
+export type AuditCheckCopyInput = {
+  readonly checkId: string;
+  readonly status: "pass" | "warning" | "fail" | "not_applicable" | "not_run" | "insufficient_data";
+  readonly value?: unknown;
+  readonly title?: string;
+  readonly expected?: string;
+  readonly explanation?: string;
+  readonly automationLimit?: string;
+  readonly urlEvidence?: readonly { readonly url?: string; readonly observation?: string }[];
+};
+
+export type AuditCheckCopy = {
+  readonly title: string;
+  readonly expected: string;
+  readonly explanation: string;
+  readonly automationLimit: string;
+};
+
+type AuditCheckLabel = Readonly<Record<AuditReportLocale, {
+  readonly title: string;
+  readonly expected: string;
+}>>;
+
+const CHECK_LABELS: Readonly<Record<string, AuditCheckLabel>> = {
+  status: checkLabel("Открываются ли страницы", "Каждая выбранная страница открывается без ошибки сервера (код ответа от 200 до 299).", "Do the pages open", "Every selected page opens without a server error (response code 200 to 299)."),
+  indexable: checkLabel("Нет ли запрета на показ в поиске", "В коде страниц нет команды noindex, которая запрещает добавлять страницу в результаты поиска.", "No block from search results", "The pages do not contain a noindex instruction that blocks them from search results."),
+  canonical: checkLabel("Правильно ли указан основной адрес", "На каждой странице указан её рабочий основной адрес (canonical), без ссылки на другую версию.", "Is the preferred address correct", "Every page declares its working preferred address (canonical) without pointing to another version."),
+  "robots-access": checkLabel("Разрешена ли загрузка сайта поисковым роботом", "Файл robots.txt с правилами для поисковых роботов не запрещает загрузку главной страницы.", "Can search crawlers load the site", "The robots.txt crawler-rules file does not block the home page."),
+  "robots-file": checkLabel("Есть ли файл с правилами для поисковых роботов", "Файл robots.txt открывается без ошибки и его правила можно прочитать.", "Is the crawler-rules file available", "The robots.txt file opens without an error and its rules can be read."),
+  sitemap: checkLabel("Есть ли список страниц для поисковика", "Файл sitemap.xml открывается и содержит адреса страниц сайта.", "Is there a page list for search engines", "The sitemap.xml file opens and contains website page addresses."),
+  charset: checkLabel("Правильно ли указан формат текста", "На каждой странице явно указана кодировка текста, обычно UTF-8.", "Is the text encoding declared", "Every page explicitly declares its text encoding, usually UTF-8."),
+  titles: checkLabel("Понятны ли заголовки в поиске", "У каждой страницы есть отдельный заголовок для поисковой выдачи длиной примерно 30–60 символов.", "Are search-result titles clear", "Every page has a distinct search-result title of roughly 30–60 characters."),
+  "title-uniqueness": checkLabel("Не повторяются ли заголовки в поиске", "У выбранных страниц разные заголовки для поисковой выдачи.", "Are search-result titles unique", "The selected pages use different search-result titles."),
+  h1: checkLabel("Есть ли один главный заголовок", "На каждой странице есть один видимый главный заголовок (H1).", "Is there one main heading", "Every page has one visible main heading (H1)."),
+  "heading-hierarchy": checkLabel("Логично ли расположены подзаголовки", "После главного заголовка разделы и подразделы идут последовательно, без пропуска уровней.", "Are subheadings ordered logically", "Sections and subsections follow the main heading without skipped levels."),
+  "internal-links": checkLabel("Есть ли переходы в другие разделы", "На странице есть полезные ссылки на другие части сайта.", "Are there links to other sections", "The page contains useful links to other parts of the site."),
+  "broken-internal-links": checkLabel("Работают ли ссылки внутри сайта", "Проверенные ссылки внутри сайта открывают существующие страницы без ошибки.", "Do internal links work", "The checked internal links open existing pages without an error."),
+  language: checkLabel("Указан ли язык страницы", "В коде каждой страницы указан язык текста, чтобы браузер и программы чтения произносили его правильно.", "Is the page language declared", "Every page declares its language so browsers and screen readers can process it correctly."),
+  performance: checkLabel("Общая скорость страницы на телефоне", "Автоматический тест Google Lighthouse показывает не меньше 90 баллов из 100.", "Overall mobile page speed", "The automated Google Lighthouse test scores at least 90 out of 100."),
+  lighthouse: checkLabel("Общая скорость страницы на телефоне", "Автоматический тест Google Lighthouse завершён и показывает измеренное значение.", "Overall mobile page speed", "The automated Google Lighthouse test completed and produced a measured value."),
+  fcp: checkLabel("Когда появляется первое содержимое", "В тесте скорости первый текст или изображение появляется не позже чем через 1,8 секунды.", "When the first content appears", "In the speed test, the first text or image appears within 1.8 seconds."),
+  lcp: checkLabel("Когда появляется основное содержимое", "В тесте скорости главный видимый блок появляется не позже чем через 2,5 секунды.", "When the main content appears", "In the speed test, the main visible content appears within 2.5 seconds."),
+  cls: checkLabel("Не скачет ли страница при загрузке", "Элементы почти не сдвигаются во время загрузки: показатель сдвига не выше 0,1.", "Does the page stay stable while loading", "Elements barely move while loading: the layout-shift score is no higher than 0.1."),
+  tbt: checkLabel("Не зависает ли интерфейс при загрузке", "В тесте скорости страница занята тяжёлыми задачами не дольше 200 миллисекунд.", "Does the interface stay responsive while loading", "In the speed test, long tasks block the page for no more than 200 milliseconds."),
+  accessibility: checkLabel("Удобно ли пользоваться страницей разными способами", "Автоматический тест доступности Google Lighthouse показывает не меньше 90 баллов из 100.", "Can the page be used in different ways", "The automated Google Lighthouse accessibility test scores at least 90 out of 100."),
+  viewport: checkLabel("Настроено ли отображение на телефоне", "На каждой странице есть настройка, которая подгоняет ширину сайта под экран телефона.", "Is mobile display configured", "Every page includes the setting that fits the site to a phone screen."),
+  https: checkLabel("Защищено ли соединение", "Адрес сайта начинается с https://, поэтому данные между браузером и сайтом передаются по защищённому соединению.", "Is the connection secure", "The site address starts with https://, so data travels over an encrypted connection."),
+  "mixed-content": checkLabel("Все ли ресурсы загружаются безопасно", "Страницы с https:// не подключают изображения, стили или скрипты по незащищённому http://.", "Do all resources load securely", "HTTPS pages do not load images, styles or scripts over insecure HTTP."),
+  "security-headers": checkLabel("Передаёт ли сервер базовые настройки защиты", "Сервер передаёт браузеру шесть базовых правил, которые ограничивают небезопасную загрузку и встраивание страницы.", "Does the server send basic protection rules", "The server sends six basic browser rules that limit unsafe loading and page embedding."),
+  "json-ld": checkLabel("Понимает ли поисковик тип страницы", "На странице есть корректный блок структурированных данных (JSON-LD), если он нужен для этого типа страницы.", "Can search engines identify the page type", "The page includes a valid structured-data block (JSON-LD) when appropriate for its type."),
+  "open-graph": checkLabel("Красиво ли выглядит ссылка в мессенджере", "Для превью ссылки заполнены название, описание, изображение и адрес страницы.", "Does a shared link have a complete preview", "The link preview includes a title, description, image and page address."),
+  descriptions: checkLabel("Есть ли понятное описание в поиске", "У каждой страницы есть отдельное описание для поисковой выдачи длиной примерно 70–160 символов.", "Is the search-result description clear", "Every page has a distinct search-result description of roughly 70–160 characters."),
+  "content-depth": checkLabel("Достаточно ли полезного текста", "На странице достаточно видимого текста, чтобы объяснить её основную задачу.", "Is there enough useful text", "The page contains enough visible text to explain its main purpose."),
+  "image-alt": checkLabel("Есть ли текстовые описания изображений", "У каждого смыслового изображения есть короткое текстовое описание для поиска и программ чтения с экрана.", "Do meaningful images have text descriptions", "Every meaningful image has a concise text description for search and screen readers."),
+  "image-dimensions": checkLabel("Не сдвигается ли текст из-за изображений", "Для изображений заранее зарезервировано место, поэтому текст не прыгает во время загрузки.", "Do images avoid shifting the page", "Space is reserved for images so text does not jump while they load."),
+};
+
+/**
+ * Presentation copy for both new and already saved Audit Contract snapshots.
+ * Stored raw measurements stay immutable; only their explanation becomes
+ * clearer and consistent between the web page and the printable report.
+ */
+export function auditCheckCopy(locale: AuditReportLocale, check: AuditCheckCopyInput): AuditCheckCopy {
+  const label = CHECK_LABELS[check.checkId]?.[locale];
+  return {
+    title: label?.title ?? check.title?.trim() ?? (locale === "ru" ? "Проверка" : "Check"),
+    expected: label?.expected ?? check.expected?.trim() ?? (locale === "ru" ? "Ожидаемое состояние не сохранено." : "The expected state was not saved."),
+    explanation: plainCheckExplanation(locale, check),
+    automationLimit: plainCheckLimit(locale, check),
+  };
+}
+
+export function auditObservationCopy(locale: AuditReportLocale, value: string): string {
+  const text = value.trim();
+  if (!text) return locale === "ru" ? "Значение не сохранено." : "The value was not saved.";
+  if (/^HTTP\s+2\d\d$/iu.test(text)) return locale === "ru" ? `Код ответа ${text.replace(/^HTTP\s+/iu, "")}: страница открылась без ошибки.` : `Response code ${text.replace(/^HTTP\s+/iu, "")}: the page opened without an error.`;
+  if (/^HTTP\s+\d{3}$/iu.test(text)) return locale === "ru" ? `Код ответа сервера: ${text.replace(/^HTTP\s+/iu, "")}.` : `Server response code: ${text.replace(/^HTTP\s+/iu, "")}.`;
+  return text
+    .replace(/^Title:/iu, locale === "ru" ? "Заголовок для поиска:" : "Search-result title:")
+    .replace(/^Description:/iu, locale === "ru" ? "Описание для поиска:" : "Search-result description:")
+    .replace(/^Canonical:/iu, locale === "ru" ? "Основной адрес страницы:" : "Preferred page address:")
+    .replace(/^H1 отсутствует$/iu, locale === "ru" ? "Главный заголовок страницы не найден" : "The main page heading was not found")
+    .replace(/^H1:\s*/iu, locale === "ru" ? "Главных заголовков: " : "Main headings: ");
+}
+
 type LocalizedCopy = Readonly<Record<AuditReportLocale, {
   readonly title: string;
   readonly why: string;
@@ -53,7 +138,7 @@ const ISSUE_COPY: Readonly<Record<string, LocalizedCopy>> = {
   TITLE_LENGTH: copy(
     "Заголовок для поисковой выдачи слишком короткий или длинный",
     "В выдаче такой заголовок может быть непонятен или обрезан.",
-    "Перепишите заголовок: ориентир — 30–60 символов без повторов и общих фраз.",
+    "Перепишите заголовок: рекомендуемая длина — 30–60 символов без повторов и общих фраз.",
     "Search-result title is too short or too long",
     "The title can be unclear or truncated in search results.",
     "Rewrite it to roughly 30–60 characters without repetition or filler.",
@@ -77,7 +162,7 @@ const ISSUE_COPY: Readonly<Record<string, LocalizedCopy>> = {
   DESCRIPTION_LENGTH: copy(
     "Описание для поисковой выдачи слишком короткое или длинное",
     "Слишком короткая подпись мало объясняет, а длинная может быть обрезана.",
-    "Перепишите описание: ориентир — 70–160 символов с пользой страницы.",
+    "Перепишите описание: рекомендуемая длина — 70–160 символов с пользой страницы.",
     "Search-result description is too short or too long",
     "A short snippet explains too little, while a long one can be truncated.",
     "Rewrite it to roughly 70–160 characters and state the page value clearly.",
@@ -422,14 +507,14 @@ export function auditPageFindings(locale: AuditReportLocale, page: AuditReportPa
   if (redirects > 0) findings.push(ru ? `До конечной страницы происходит перенаправлений: ${redirects}.` : `Redirects before the final page: ${redirects}.`);
 
   if (!title.present) findings.push(ru ? "Не задан заголовок для поисковой выдачи (title)." : "The search-result title is missing (title).");
-  else if (title.optimal === false && typeof title.length === "number") findings.push(ru ? `Длина заголовка для выдачи — ${title.length} символов; ориентир — 30–60.` : `The search-result title is ${title.length} characters; the guideline is 30–60.`);
+  else if (title.optimal === false && typeof title.length === "number") findings.push(ru ? `Длина заголовка для выдачи — ${title.length} символов; рекомендуемая длина — 30–60.` : `The search-result title is ${title.length} characters; the guideline is 30–60.`);
 
-  if (!description.present) findings.push(ru ? "Не задано описание для поисковой выдачи (meta description)." : "The search-result description is missing (meta description).");
-  else if (description.optimal === false && typeof description.length === "number") findings.push(ru ? `Длина описания для выдачи — ${description.length} символов; ориентир — 70–160.` : `The search-result description is ${description.length} characters; the guideline is 70–160.`);
+  if (!description.present) findings.push(ru ? "Не заполнено описание страницы для поисковой выдачи." : "The page has no search-result description.");
+  else if (description.optimal === false && typeof description.length === "number") findings.push(ru ? `Длина описания для выдачи — ${description.length} символов; рекомендуемая длина — 70–160.` : `The search-result description is ${description.length} characters; the guideline is 70–160.`);
 
-  if (h1Count === 0) findings.push(ru ? "Нет видимого главного заголовка страницы (H1)." : "The visible main page heading is missing (H1).");
+  if (h1Count === 0) findings.push(ru ? "Нет видимого главного заголовка страницы." : "The visible main page heading is missing.");
   else if (typeof h1Count === "number" && h1Count > 1) findings.push(ru ? `Главных заголовков H1 несколько: ${h1Count}.` : `There are several H1 main headings: ${h1Count}.`);
-  if (page.noindex) findings.push(ru ? "Страница закрыта от появления в поиске правилом noindex." : "The page is blocked from search by a noindex rule.");
+  if (page.noindex) findings.push(ru ? "В коде страницы есть команда noindex — запрет показывать её в результатах поиска." : "The page contains a noindex instruction that blocks it from search results.");
   if (!canonical.url) findings.push(ru ? "Не указан основной адрес страницы (canonical)." : "The preferred page address is missing (canonical).");
   else if (canonical.valid === false) findings.push(ru ? "Основной адрес страницы (canonical) записан с ошибкой." : "The preferred page address (canonical) is invalid.");
   if (sitemap?.status === "checked" && sitemap.included === false) findings.push(ru ? "Страница не указана в файле со списком страниц (sitemap.xml)." : "The page is not listed in the page-list file (sitemap.xml).");
@@ -443,22 +528,142 @@ export function auditTermDefinitions(locale: AuditReportLocale): readonly { read
   return locale === "ru" ? [
     { term: "URL", meaning: "адрес конкретной страницы сайта" },
     { term: "HTTP-код", meaning: "ответ сервера: 200 означает обычную успешную загрузку, 404 — страница не найдена, 500 — ошибка сервера" },
+    { term: "robots.txt", meaning: "публичный файл с правилами: какие разделы поисковый робот может загружать, а какие не должен" },
+    { term: "Google Lighthouse", meaning: "автоматический тест страницы в браузере; он измеряет скорость и доступность в лабораторных условиях, но не заменяет реальные данные посетителей" },
     { term: "Title", meaning: "заголовок страницы, который обычно показывается во вкладке браузера и в поисковой выдаче" },
     { term: "Meta description", meaning: "короткое описание страницы, из которого поисковик может собрать подпись в выдаче" },
     { term: "H1", meaning: "видимый главный заголовок страницы" },
     { term: "Canonical", meaning: "указание поисковику, какой адрес считать основной версией страницы" },
     { term: "Sitemap.xml", meaning: "файл со списком основных страниц, который помогает поисковику их обнаружить" },
     { term: "Noindex", meaning: "явный запрет добавлять страницу в поисковую выдачу" },
+    { term: "Уверенность классификации", meaning: "доля от 0 до 100%, которая показывает, насколько однозначно сохранённые признаки соответствуют выбранному типу страницы; это не оценка качества страницы" },
   ] : [
     { term: "URL", meaning: "the address of a specific website page" },
     { term: "HTTP code", meaning: "the server response: 200 is a normal success, 404 means not found, and 500 means a server error" },
+    { term: "robots.txt", meaning: "the public rules file that says which sections a search crawler may load" },
+    { term: "Google Lighthouse", meaning: "an automated browser test for laboratory speed and accessibility measurements; it does not replace real-user data" },
     { term: "Title", meaning: "the page title usually shown in the browser tab and search results" },
     { term: "Meta description", meaning: "a short page description that may be used as the search-result snippet" },
     { term: "H1", meaning: "the visible main page heading" },
     { term: "Canonical", meaning: "a signal telling search engines which address is the preferred version of a page" },
     { term: "Sitemap.xml", meaning: "a file listing important pages to help search engines discover them" },
     { term: "Noindex", meaning: "an explicit instruction not to include a page in search results" },
+    { term: "Classification confidence", meaning: "a value from 0 to 100% showing how clearly the saved signals match the selected page type; it is not a page-quality score" },
   ];
+}
+
+function checkLabel(ruTitle: string, ruExpected: string, enTitle: string, enExpected: string): AuditCheckLabel {
+  return {
+    ru: { title: ruTitle, expected: ruExpected },
+    en: { title: enTitle, expected: enExpected },
+  };
+}
+
+function plainCheckExplanation(locale: AuditReportLocale, check: AuditCheckCopyInput): string {
+  const ru = locale === "ru";
+  const record = objectRecord(check.value);
+  const passing = numberValue(record?.passing);
+  const checked = numberValue(record?.checked);
+  const evidence = check.urlEvidence?.find((item) => item.observation?.trim())?.observation;
+  const evidenceText = evidence ? auditObservationCopy(locale, evidence) : "";
+  const stored = check.explanation?.trim();
+
+  if (check.status === "not_applicable") {
+    return stored || (ru
+      ? "Эта проверка не относится к выбранному типу страницы или ресурса. Она не считается ни успешной, ни ошибочной."
+      : "This check does not apply to the selected page or resource type. It is counted as neither passed nor failed.");
+  }
+  if (check.status === "not_run") {
+    return ru
+      ? "Этот замер не выполнялся. Пункт не отмечен как успешный и не влияет на выводы по выполненным проверкам."
+      : "This measurement was not run. It is not marked as passed and does not affect the completed-check findings.";
+  }
+  if (check.status === "insufficient_data") {
+    if (stored && !isGenericCheckExplanation(stored)) return plainStoredCheckExplanation(locale, stored);
+    return ru
+      ? "Сайт не отдал данные, необходимые для этой проверки. Пункт не отмечен как успешный."
+      : "The site did not provide the data required for this check. It is not marked as passed.";
+  }
+
+  if (typeof passing === "number" && typeof checked === "number" && checked > 0) {
+    const affected = Math.max(0, checked - passing);
+    if (check.status === "pass") {
+      return ru
+        ? `Проверено страниц: ${checked}. На всех ${passing} страницах условие выполнено.`
+        : `${checked} pages were checked. All ${passing} pages met the condition.`;
+    }
+    return ru
+      ? `Проверено страниц: ${checked}. На ${affected} ${pageWord(affected)} найдено отличие от нормы.${evidenceText ? ` Пример: ${evidenceText}` : ""}`
+      : `${checked} pages were checked. ${affected} ${affected === 1 ? "page differs" : "pages differ"} from the expected state.${evidenceText ? ` Example: ${evidenceText}` : ""}`;
+  }
+
+  if (typeof check.value === "number" && Number.isFinite(check.value)) {
+    const value = Math.round(check.value * 10) / 10;
+    return ru
+      ? `Результат автоматического замера: ${value}.${check.status === "pass" ? " Значение соответствует ориентиру." : " Значение отличается от ориентира, указанного ниже."}`
+      : `Automated measurement: ${value}.${check.status === "pass" ? " It meets the guideline." : " It differs from the guideline shown below."}`;
+  }
+
+  if (stored && !isGenericCheckExplanation(stored)) return plainStoredCheckExplanation(locale, stored);
+  if (evidenceText) {
+    return ru
+      ? `${check.status === "pass" ? "Проверка пройдена" : "Найдено замечание"}: ${evidenceText}`
+      : `${check.status === "pass" ? "Check passed" : "Finding recorded"}: ${evidenceText}`;
+  }
+  return check.status === "pass"
+    ? (ru ? "Проверка выполнена: результат соответствует указанной ниже норме." : "The check was completed and meets the expected state shown below.")
+    : (ru ? "Проверка выполнена: результат отличается от указанной ниже нормы." : "The check was completed and differs from the expected state shown below.");
+}
+
+function plainStoredCheckExplanation(locale: AuditReportLocale, value: string): string {
+  if (locale === "en") return value;
+  return value
+    .replace(/^Для сравнения title нужны минимум две страницы\.$/iu, "Чтобы сравнить заголовки для поисковой выдачи, нужны минимум две страницы.")
+    .replace(/^Не на всех страницах есть title для сравнения\.$/iu, "Не на всех страницах заполнен заголовок для поисковой выдачи (title), поэтому сравнение невозможно.")
+    .replace(/\bLighthouse\b/giu, "автоматический тест Google Lighthouse")
+    .replace(/\btitle\b/giu, "заголовок для поисковой выдачи (title)")
+    .replace(/\bCanonical\b/giu, "основной адрес страницы (canonical)")
+    .replace(/\bViewport\b/giu, "настройка ширины страницы для телефона")
+    .replace(/\bHTTP\s+2xx\b/giu, "код ответа от 200 до 299 — страница открывается без ошибки сервера");
+}
+
+function plainCheckLimit(locale: AuditReportLocale, check: AuditCheckCopyInput): string {
+  const ru = locale === "ru";
+  if (check.checkId === "performance" || check.checkId === "fcp" || check.checkId === "lcp" || check.checkId === "cls" || check.checkId === "tbt" || check.checkId === "accessibility") {
+    return ru
+      ? "Это лабораторный замер Google Lighthouse для одной выбранной страницы. Он не показывает скорость у всех реальных посетителей."
+      : "This is a Google Lighthouse laboratory measurement for one selected page. It does not represent every real visitor.";
+  }
+  if (check.checkId === "robots-access" || check.checkId === "robots-file" || check.checkId === "sitemap") {
+    return ru
+      ? "Проверен только открытый файл сайта. Фактическое добавление страниц в поиск можно подтвердить в кабинете Яндекс Вебмастера или Google Search Console."
+      : "Only the public site file was checked. Actual search inclusion can be confirmed in Yandex Webmaster or Google Search Console.";
+  }
+  const stored = check.automationLimit?.trim();
+  if (stored && !/публичн|выбранн|метрик|lighthouse|автомат/iu.test(stored)) return stored;
+  return ru
+    ? "Вывод относится только к выбранным страницам, которые удалось открыть во время этой проверки."
+    : "This finding applies only to selected pages that opened during this check.";
+}
+
+function objectRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function isGenericCheckExplanation(value: string): boolean {
+  return /соответствуют ожидаемому|есть отклонение|конкретное несоответствие|проверка обнаружила|(?:публичных данных )?недостаточно (?:для достоверного|для уверенного) вывода|эта проверка lighthouse не запускалась|проверка не запускалась/iu.test(value);
+}
+
+function pageWord(value: number): string {
+  const mod100 = value % 100;
+  const mod10 = value % 10;
+  if (mod100 >= 11 && mod100 <= 14) return "страницах";
+  if (mod10 === 1) return "странице";
+  return "страницах";
 }
 
 function copy(

@@ -6,7 +6,7 @@ import { getMarketplaceResultExample } from "../../src/content/marketplace-resul
 import { marketplaceName, marketplacePlatforms } from "../../src/content/marketplaces";
 import { additionalServices } from "../../src/content/service-additions";
 
-const ids = ["wildberries", "ozon", "yandex-market", "megamarket"] as const;
+const ids = ["wildberries", "ozon", "yandex-market"] as const;
 
 describe("marketplace commercial journey", () => {
   it("publishes three bounded offers for every supported platform", () => {
@@ -26,12 +26,54 @@ describe("marketplace commercial journey", () => {
     }
   });
 
-  it("carries all four platforms into the short brief", () => {
+  it("carries only the three supported platforms into the short brief", () => {
     const platformQuestion = serviceQuestions.marketplaces.find((question) => question.key === "platform");
     const values = platformQuestion?.options?.map((option) => option.value) ?? [];
     for (const id of ids) expect(values).toContain(id);
     expect(values).toContain("multiple");
+    expect(values).not.toContain("megamarket");
     expect(values).not.toContain("both");
+  });
+
+  it("keeps marketplace detail optional fields concise and meaningful", () => {
+    const requiredKeys = new Set(["platform", "cards"]);
+    const optionalQuestions = serviceQuestions.marketplaces.filter((question) => !requiredKeys.has(question.key));
+
+    expect(optionalQuestions.length).toBeLessThanOrEqual(7);
+    expect(serviceQuestions.marketplaces.map((question) => question.key)).toEqual([
+      "platform",
+      "cards",
+      "cardCount",
+      "scope",
+      "materials",
+      "publishingSupport",
+    ]);
+  });
+
+  it("gives English buyers concrete inputs, deliverables and boundaries", () => {
+    const expected = {
+      wildberries: {
+        input: /card link, SKU and source product data/iu,
+        result: /issue list for the source card/iu,
+      },
+      ozon: {
+        input: /card link and source product data/iu,
+        result: /specific errors in the source card/iu,
+      },
+      "yandex-market": {
+        input: /product link or catalogue export/iu,
+        result: /required and completed fields/iu,
+      },
+    } as const;
+
+    for (const platform of marketplacePlatforms) {
+      expect(platform.en.work[0], platform.id).toMatch(expected[platform.id].input);
+      expect(platform.en.result[0], platform.id).toMatch(expected[platform.id].result);
+      expect(platform.en.access, platform.id).toMatch(/access|export|account/iu);
+      expect(platform.en.price, platform.id).toMatch(/before|fixed|quote|scope/iu);
+      expect(platform.en.result).toHaveLength(platform.ru.result.length);
+      expect(platform.en.acceptance).toHaveLength(platform.ru.acceptance.length);
+    }
   });
 
   it("shows a concrete result example for each platform in both languages", () => {

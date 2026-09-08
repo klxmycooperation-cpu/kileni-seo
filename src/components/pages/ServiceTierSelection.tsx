@@ -40,17 +40,28 @@ export function ServiceTierSelector({ locale, tiers }: { locale: Locale; tiers: 
         const selected = selectedTier?.id === tier.id;
         return (
           <article className={tier.featured ? "featured" : ""} data-offer-id={tier.id} data-selected={selected || undefined} key={tier.id}>
-            {tier.featured && <span className="svc-package-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
-            <div><span className="svc-tier-label">{tier.tierLabel}</span><span>{tier.duration}</span><h3>{tier.name}</h3><p>{tier.description}</p></div>
-            <p className="svc-package-limit"><span>{ru ? "Предел" : "Limit"}</span><b>{tier.limit}</b></p>
-            <strong>{tier.current}</strong>
-            {tier.note && <small>{tier.note}</small>}
+            <div className="svc-package-badge-slot">
+              {tier.featured && <span className="svc-package-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
+            </div>
+            <div className="svc-package-head">
+              <div className="svc-package-meta"><span className="svc-tier-label">{tier.tierLabel}</span><span>{tier.duration}</span></div>
+              <h3>{tier.name}</h3>
+              <p>{tier.description}</p>
+            </div>
+            <p className="svc-package-limit"><span>{ru ? "Объём тарифа" : "Package scope"}</span><b>{tier.limit}</b></p>
+            <strong className="svc-package-price">{tier.current}</strong>
+            <small className="svc-package-note">{tier.note ?? ""}</small>
             <div className="svc-package-included">
               <span>{ru ? "Что получите" : "What you receive"}</span>
               <ul>{tier.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
             </div>
-            <button type="button" aria-pressed={selected} onClick={() => selectTier({ id: tier.id, label: tier.name })}>{selected ? (ru ? "Выбрано" : "Selected") : (ru ? "Выбрать" : "Select")}</button>
-            {selected && <Link href={tier.briefHref}>{ru ? "Продолжить с этим вариантом" : "Continue with this option"}<span aria-hidden="true">↘</span></Link>}
+            <div className="svc-package-actions">
+              {selected ? (
+                <Link href={tier.briefHref}>{ru ? "Продолжить с этим вариантом" : "Continue with this option"}<span aria-hidden="true">↘</span></Link>
+              ) : (
+                <button type="button" onClick={() => selectTier({ id: tier.id, label: tier.name })}>{ru ? "Выбрать" : "Select"}</button>
+              )}
+            </div>
           </article>
         );
       })}

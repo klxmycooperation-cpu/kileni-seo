@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { createQueuedFixtureAudit } from "./audit-fixture";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem("kileni-cookie-preferences:v2", JSON.stringify({
@@ -62,7 +63,7 @@ test("uses the dark hero and leads from the task to proof before prices", async 
   await expect(caseExplorer.locator(".home-case-explorer__surface")).toContainText("Задача");
   await expect(caseExplorer.locator(".home-case-explorer__surface")).toContainText("509 / 509");
   await expect(caseExplorer.locator(".home-case-explorer__identity img")).toBeVisible();
-  await expect(page.locator(".home-deliverables")).toContainText("Понятный маршрут исправления");
+  await expect(page.locator(".home-deliverables")).toContainText("Как замечание превращается в проверенное исправление");
   await expect(page.locator(".home-deliverables")).toContainText("Показываем проблему на конкретной странице");
 });
 
@@ -72,8 +73,8 @@ test("uses the site palette and the approved typographic first-visit brand revea
 
   const intro = page.locator(".brand-intro");
   await expect(intro).toBeVisible();
-  await expect(intro).toHaveCSS("background-color", "rgb(243, 245, 248)");
-  await expect(intro).toHaveCSS("color", "rgb(11, 19, 43)");
+  await expect.poll(async () => intro.evaluate((element) => getComputedStyle(element).backgroundImage)).toContain("rgb(247, 248, 250)");
+  await expect(intro).toHaveCSS("color", "rgb(10, 16, 32)");
   await expect(intro.locator(".brand-intro-v9__kil")).toHaveText("KIL");
   await expect(intro.locator(".brand-intro-v9__ni")).toHaveText("NI");
   await expect(intro.locator(".brand-intro-v9__e")).toHaveText("E");
@@ -81,11 +82,24 @@ test("uses the site palette and the approved typographic first-visit brand revea
   await expect(intro.locator(".brand-intro-v9__o")).toHaveText("O");
 });
 
+test("keeps the scope and request sections on the pricing page compact and readable", async ({ page }) => {
+  await page.goto("/pricing");
+
+  const exclusions = page.locator(".cp-extras-section");
+  await expect(exclusions).toHaveCSS("background-color", "rgb(237, 241, 247)");
+  await expect(exclusions.getByRole("heading", { level: 2 })).toBeVisible();
+  await expect(exclusions.locator("li")).toHaveCount(4);
+
+  const request = page.locator(".cp-request-section");
+  await expect(request).toHaveCSS("background-color", "rgb(237, 241, 247)");
+});
+
 test("shows a staged, accessible audit scan without changing the brand intro", async ({ page }) => {
-  await page.route("**/api/audits/demo/events", async (route) => {
+  const audit = await createQueuedFixtureAudit();
+  await page.route(`**/api/audits/${audit.publicToken}/events`, async (route) => {
     await route.fulfill({ status: 200, contentType: "text/event-stream", body: "" });
   });
-  await page.route("**/api/audits/demo", async (route) => {
+  await page.route(`**/api/audits/${audit.publicToken}`, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -99,17 +113,17 @@ test("shows a staged, accessible audit scan without changing the brand intro", a
     });
   });
 
-  await page.goto("/audit/demo");
+  await page.goto(`/audit/${audit.publicToken}`);
 
-  await expect(page.getByRole("progressbar", { name: "Ход проверки сайта" })).toHaveAttribute("aria-valuenow", "43");
-  await expect(page.getByText("Проверено страниц")).toBeVisible();
-  await expect(page.getByText("4 / 10")).toBeVisible();
-  await expect(page.locator(".audit-live__activity")).toContainText("Проверяем найденные страницы");
-  await expect(page.locator(".audit-live__stage")).toHaveCount(7);
-  await expect(page.locator(".audit-live__stage[aria-current='step']")).toContainText("Проверка страниц");
+  await expect(page.getByRole("progressbar", { name: "Ход проверки сайта" })).not.toHaveAttribute("aria-valuenow");
+  await expect(page.getByText("Выбрано", { exact: true })).toBeVisible();
+  await expect(page.getByText("Ещё не выбраны.")).toBeVisible();
+  await expect(page.locator(".audit-live__activity")).toContainText("Берём разные типы страниц");
+  await expect(page.locator(".audit-live__stages li")).toHaveCount(5);
+  await expect(page.locator(".audit-live__stages li[aria-current='step']")).toContainText("Выбор страниц");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".audit-live__activity span")).toHaveCSS("animation-name", "none");
+  await expect(page.locator(".audit-live__progress > span")).toHaveCSS("animation-name", "none");
 
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);

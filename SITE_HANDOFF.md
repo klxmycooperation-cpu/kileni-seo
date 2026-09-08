@@ -1,313 +1,39 @@
 # SITE HANDOFF — KILENI
 
-> Снимок подготовлен 2026-08-27 для безопасной передачи исходников в SEO Machine. Production при подготовке не изменялся, сервисы не останавливались, deployment не выполнялся.
+Снимок актуализирован 7 сентября 2026 года. Production работает из release `/opt/kileni-seo-releases/20260907-final-integration-rc3/runtime` со сборкой `SENFDQRfLN1EzZQY-cqkc`; web healthy, worker запущен, внешний `/api/health` возвращает `status=ok`, `database=ok`, `worker=ok`. RC3 опубликован после server-side preflight, backup и post-switch smoke. Реальные данные и secrets в пакет не копируются.
 
 ## Идентификация
 
 - Публичный URL: `https://kileni-seo.ru`
 - Настоящий исходный Git-репозиторий: `/Users/klmxy/Documents/zing-PROJECT`
-- Git branch: `fix/kileni-release-ready`
-- Commit SHA: `628cfc1c2b3d43fc57da22bc6dbb11b8131ef832`
-- Git remote URL: не настроен (`git remote` не возвращает ни одного remote).
-- Важно: рабочее дерево содержит значительный объём незакоммиченных изменений. Текущий production был собран из выбранной части этого рабочего дерева, поэтому один SHA не воспроизводит опубликованную версию. Передаваемый ZIP содержит безопасную копию актуальных исходников рабочего дерева по белому списку.
+- Git branch: `release/final-handoff-qa`
+- Текущий commit SHA: `b9bd48745191b4f685f343a6bcba34ef53a3a258`
+- Git remote URL: не настроен; `git remote -v` не возвращает remote.
+- Репозиторий является источником текущей разработки. Deployed web root на сервере не использовался как замена исходникам.
 
-## Git status --short
+## Состояние Git
 
-Снимок ниже зафиксирован после добавления этого файла. Untracked-каталоги показаны Git в сокращённом виде; они не включаются в ZIP автоматически.
+`git status --short` показывает грязное рабочее дерево. Это важно: текущий SHA является базовой точкой, но не содержит незакоммиченные изменения. Точный кандидат RC3 зафиксирован build ID и полными manifests runtime; актуальный перечень незакоммиченных путей сохранён вместе с evidence. Release-пакет не содержит `.git`, secrets и пользовательские данные.
 
-```text
- M .dockerignore
- M Dockerfile
- M RELEASE_CHECKLIST.md
- M app/[...slug]/page.tsx
- M app/about/page.tsx
- M app/admin/_lib/data.ts
- M app/admin/admin.css
- M app/admin/audits/[id]/page.tsx
- M app/admin/audits/page.tsx
- M app/admin/briefs/[id]/page.tsx
- M app/admin/briefs/page.tsx
- M app/admin/leads/[id]/page.tsx
- M app/admin/leads/page.tsx
- M app/api/_lib/audit-public.ts
- M app/api/_lib/submission.ts
- M app/api/admin/_lib/entities.ts
- M app/api/admin/attachments/[id]/route.ts
- M app/api/admin/audits/[id]/export/route.ts
- M app/api/admin/audits/[id]/route.ts
- M app/api/admin/briefs/[id]/route.ts
- M app/api/admin/session/route.ts
- M app/api/audit/health/route.ts
- M app/api/audits/[token]/events/route.ts
- M app/api/audits/[token]/report.pdf/route.ts
- M app/api/audits/[token]/route.ts
- M app/api/audits/route.ts
- M app/api/briefs/route.ts
- M app/api/calculator/route.ts
- M app/api/health/route.ts
- M app/api/leads/route.ts
- M app/api/public-metrics/free-audits/route.ts
- M app/architecture-10.css
- M app/audit-progress-refinement.css
- M app/brand-intro.css
- M app/consent/page.tsx
- M app/contacts/page.tsx
- M app/editorial.css
- M app/en/[...slug]/page.tsx
- M app/en/page.tsx
- M app/error.tsx
- M app/home-10.css
- M app/kileni-10.css
- M app/layout.tsx
- M app/not-found.tsx
- M app/page.tsx
- M app/privacy/page.tsx
- M app/robots.ts
- M app/service-pricing-brief-10.css
- M app/sitemap.ts
- M app/theme.css
- M docker-compose.yml
- M docs/audit-scoring.md
- M docs/redesign-screenshots/after/about-desktop.png
- M docs/redesign-screenshots/after/article-desktop.png
- M docs/redesign-screenshots/after/brief-desktop.png
- M docs/redesign-screenshots/after/brief-mobile.png
- M docs/redesign-screenshots/after/case-eco-santeh.png
- M docs/redesign-screenshots/after/case-zasorservice.png
- M docs/redesign-screenshots/after/cases-desktop.png
- M docs/redesign-screenshots/after/free-audit.png
- M docs/redesign-screenshots/after/hero-desktop.png
- M docs/redesign-screenshots/after/home-desktop.png
- M docs/redesign-screenshots/after/home-en.png
- M docs/redesign-screenshots/after/home-mobile.png
- M docs/redesign-screenshots/after/menu-desktop.png
- M docs/redesign-screenshots/after/pricing-desktop.png
- M docs/redesign-screenshots/after/visual-qa.json
- M next.config.ts
- M package.json
- M playwright.config.ts
- M pnpm-lock.yaml
- M public/brand/kileni-og.png
- M public/brand/kileni-og.svg
- M public/contact-icons/phone.svg
- M public/downloads/generated/en-audit-brief.docx
- M public/downloads/generated/en-audit-brief.pdf
- M public/downloads/generated/en-development-brief.docx
- M public/downloads/generated/en-development-brief.pdf
- M public/downloads/generated/en-marketplaces-brief.docx
- M public/downloads/generated/en-marketplaces-brief.pdf
- M public/downloads/generated/en-seo-brief.docx
- M public/downloads/generated/en-seo-brief.pdf
- M public/downloads/generated/ru-audit-brief.docx
- M public/downloads/generated/ru-audit-brief.pdf
- M public/downloads/generated/ru-development-brief.docx
- M public/downloads/generated/ru-development-brief.pdf
- M public/downloads/generated/ru-marketplaces-brief.docx
- M public/downloads/generated/ru-marketplaces-brief.pdf
- M public/downloads/generated/ru-seo-brief.docx
- M public/downloads/generated/ru-seo-brief.pdf
- M scripts/db-check.ts
- M scripts/generate-briefs.mjs
- M scripts/migrate.ts
- M scripts/start.mjs
- M scripts/validate-launch.mjs
- M scripts/visual-qa.mjs
- M src/components/analytics/AnalyticsVisuals.tsx
- M src/components/brand/Logo.tsx
- M src/components/contact/PublicContactLinks.tsx
- M src/components/forms/AuditForm.tsx
- M src/components/forms/BriefWizard.tsx
- M src/components/forms/Calculator.tsx
- M src/components/forms/FreeAuditUsageCounter.tsx
- M src/components/forms/LeadForm.tsx
- M src/components/forms/TurnstileField.tsx
- M src/components/forms/useCsrf.ts
- M src/components/home/BrandIntro.tsx
- M src/components/home/HeroFreeAuditUsageCounter.tsx
- M src/components/home/HeroScan.tsx
- M src/components/home/HomeCaseExplorer.tsx
- M src/components/home/HomeDecisionRoute.tsx
- M src/components/home/HomePage.tsx
- M src/components/home/HomeProcessSteps.tsx
- M src/components/home/brand-intro-config.ts
- M src/components/layout/Breadcrumbs.tsx
- M src/components/layout/CookieManager.tsx
- M src/components/layout/PublicShell.tsx
- M src/components/layout/SiteFooter.tsx
- M src/components/layout/SiteHeader.tsx
- M src/components/layout/ThemeToggle.tsx
- M src/components/pages/ArticlesPage.tsx
- M src/components/pages/AuditProgressPage.tsx
- M src/components/pages/CasesPage.tsx
- M src/components/pages/FreeAuditPage.tsx
- M src/components/pages/GlossaryPage.tsx
- M src/components/pages/InlineGlossaryTerms.tsx
- M src/components/pages/MarketplaceOfferSelector.tsx
- M src/components/pages/MarketplacePage.tsx
- M src/components/pages/PricingCategorySelector.tsx
- M src/components/pages/PricingPage.tsx
- M src/components/pages/PublicRoute.tsx
- M src/components/pages/ServicePage.tsx
- M src/components/pages/ServiceTierSelection.tsx
- M src/components/pages/ServiceVisual.tsx
- M src/components/pages/StaticPages.tsx
- M src/config/calculator.ts
- M src/config/price-labels.ts
- M src/config/prices.ts
- M src/config/public-audit.ts
- M src/config/site.ts
- M src/content/articles-expansion.ts
- M src/content/articles.ts
- M src/content/brief.ts
- M src/content/dictionary.ts
- M src/content/glossary.ts
- M src/content/marketplaces.ts
- M src/content/services.ts
- M src/db/client.ts
- M src/db/migrations.ts
- M src/db/public-metrics.ts
- M src/db/queries.ts
- M src/db/submissions.ts
- M src/lib/attribution.ts
- M src/lib/audit/crawler.ts
- M src/lib/audit/engine.ts
- M src/lib/audit/index.ts
- M src/lib/audit/lead-handoff.ts
- M src/lib/audit/scoring.ts
- M src/lib/audit/types.ts
- M src/lib/notifications/telegram.ts
- M src/lib/public-contacts.ts
- M src/lib/reports/audit-pdf.ts
- M src/lib/security/inputs.ts
- M src/lib/security/rate-limit.ts
- M src/lib/security/turnstile.ts
- M tests/e2e/analytics-visuals.spec.ts
- M tests/e2e/articles-10.spec.ts
- M tests/e2e/audit-fixture.ts
- M tests/e2e/audit-progress-themes.spec.ts
- M tests/e2e/brand-completion.spec.ts
- M tests/e2e/cases-brief-refinement.spec.ts
- M tests/e2e/cookie-manager-10.spec.ts
- M tests/e2e/free-audit-social-proof.spec.ts
- M tests/e2e/home-10.spec.ts
- M tests/e2e/internal-themes.spec.ts
- M tests/e2e/marketplace-commerce.spec.ts
- M tests/e2e/public-contacts.spec.ts
- M tests/e2e/public-pages.spec.ts
- M tests/e2e/refinement.spec.ts
- M tests/integration/audit-public-token-authority.test.ts
- M tests/integration/audit-vercel-stream.test.ts
- M tests/integration/free-audit-usage.test.ts
- M tests/integration/sqlite-security.test.ts
- M tests/unit/articles-editorial.test.ts
- M tests/unit/audit-engine.test.ts
- M tests/unit/audit-health-route.test.ts
- M tests/unit/audit-lead-handoff.test.ts
- M tests/unit/audit-scoring.test.ts
- M tests/unit/calculator.test.ts
- M tests/unit/contact-inputs.test.ts
- M tests/unit/forms-enabled-gate.test.ts
- M tests/unit/free-audit-metric-route.test.ts
- M tests/unit/health-route.test.ts
- M tests/unit/legal-config.test.ts
- M tests/unit/prices.test.ts
- M tests/unit/public-contacts.test.ts
- M tests/unit/site-config-audit.test.ts
- M tests/unit/turnstile.test.ts
- M tests/unit/validate-launch.test.ts
- M worker/index.ts
-?? .openai/
-?? .serena/
-?? .superpowers/
-?? Invoke-Task6SqlSetup-v6.ps1
-?? New-Task6PreSetupV6.ps1
-?? New-Task6ValidateOnlySealV6.ps1
-?? SITE_HANDOFF.md
-?? app/admin/_lib/audit-view.ts
-?? app/admin/audits/_components/
-?? app/brand-intro-v9.css
-?? app/compact-redesign.css
-?? current-desktop-audit-2.png
-?? current-desktop-audit.png
-?? current-desktop-chz.png
-?? deployment/
-?? docs/redesign-screenshots/after/blog-desktop.png
-?? docs/redesign-screenshots/after/matrix/
-?? docs/research/
-?? docs/superpowers/plans/2026-08-23-kileni-brand-intro-video.md
-?? docs/superpowers/specs/2026-08-23-kileni-brand-intro-motion-design.md
-?? meeting-analysis-2026-08-03/
-?? meeting-analysis-2026-08-04-IMG_0405/
-?? meeting-analysis-2026-08-15-Fg-Pakeyging-ZAO-5/
-?? output/
-?? public/brand/kileni-intro-foley-v9.m4a
-?? public/brand/kileni-logo-current.svg
-?? public/editorial/indexing-path-v2.png
-?? public/editorial/marketplace-card-production-v2.png
-?? public/editorial/seo-audit-workflow-v2.png
-?? public/editorial/seo-ecommerce-promotion-v2.png
-?? public/editorial/seo-promotion-cost-v2.png
-?? public/editorial/seo-vs-yandex-ads-v2.png
-?? public/editorial/website-speed-loading-v2.png
-?? public/marketplaces/SOURCES.md
-?? public/marketplaces/megamarket.svg
-?? public/marketplaces/ozon.svg
-?? public/marketplaces/wildberries.svg
-?? public/marketplaces/yandex-market.svg
-?? rad-studio-handoff.png
-?? runtime-gui-audit-final.png
-?? runtime-gui-audit.png
-?? runtime-xmlupd-smoke-2026-08-04.png
-?? src/components/forms/ConsentNotice.tsx
-?? src/components/home/HomeArticleCarousel.tsx
-?? src/components/pages/AuditChecksPage.tsx
-?? src/components/pages/AuditResultReport.tsx
-?? src/components/pages/GlossaryTermPage.tsx
-?? src/config/legal-defaults.json
-?? src/config/seo-metadata.ts
-?? src/content/audit-checks.ts
-?? src/lib/audit/version.ts
-?? src/lib/seo/
-?? test-results-final-mobile/
-?? test-results-final-targeted/
-?? test-results-form-focus-debug/
-?? test-results-form-focus-layout/
-?? test-results-form-focus-mousedown/
-?? test-results-form-invalid-effect/
-?? test-results-form-invalid-focus/
-?? test-results-form-invalid/
-?? test-results-form-url/
-?? test-results/
-?? tests/unit/admin-audit-view.test.ts
-?? tests/unit/attribution.test.ts
-?? tests/unit/audit-checks-content.test.ts
-?? tests/unit/audit-consent-notice.test.ts
-?? tests/unit/audit-public-result.test.ts
-?? tests/unit/glossary-details.test.ts
-?? tests/unit/public-audit-config.test.ts
-?? tests/unit/public-navigation-seo.test.ts
-?? tests/unit/public-seo-metadata.test.ts
-?? tmp/
-?? xmlupd-smoke-debug.png
-?? xmlupd-smoke-failed.png
-?? xmlupd-smoke-final.png
-?? "\320\236\321\202\321\207\320\265\321\202_\320\277\321\200\320\276\320\262\320\265\321\200\320\272\320\260_\320\247\320\227_2026-08-03.docx"
+Основные группы изменений: приложение `app/`, исходники `src/`, worker, тесты, deployment-конфигурация, публичные assets и документация. В рабочем дереве также есть посторонние пользовательские материалы, screenshots, отчёты и временные каталоги; они не включаются в пакет.
+
+Для получения точного актуального списка в исходном репозитории используется:
+
+```bash
+git status --short
 ```
 
 ## Стек и архитектура
 
-- Framework: Next.js App Router `16.3.1` (package constraint `^16.2.12`).
+- Framework: Next.js App Router `16.3.1` (зависимость в `package.json`: `^16.2.12`).
 - UI runtime: React / ReactDOM `19.2.6`.
-- Язык и компилятор: TypeScript `5.9.3`.
-- Runtime production image: Node.js `22.14.0`; проект требует Node.js `>=22.13.0`.
-- Менеджер зависимостей: pnpm `10.33.0`; канонический lock-файл — `pnpm-lock.yaml`.
-- CMS: отсутствует. Контент хранится в TypeScript-файлах `src/content/`.
-- Данные: SQLite в WAL-режиме и Drizzle; схема и миграции без данных находятся в `src/db/schema.ts` и `src/db/migrations.ts`.
-- Фоновые задачи: отдельный Node.js worker для SEO-аудитов.
-
-Устаревший `package-lock.json` относится к другому Vite/Vinext-контуру и не является источником зависимостей этого сайта. В безопасный ZIP он не включён.
-
-В `app/` и `src/` также остаются tracked legacy-маршруты и компоненты каталога ароматов. Они включены в ZIP вместе с требуемыми статическими assets, потому что участвуют в текущей Next.js-сборке; SEO Machine следует отдельно определить, должны ли эти публичные маршруты оставаться индексируемыми. Старый Vite build-plugin и его lock-файл в текущем Next/pnpm-контуре не используются и в пакет не включены.
+- Язык: TypeScript `5.9.3`.
+- Требуемый Node.js: `>=22.13.0`; production image использует Node.js 22.
+- Менеджер зависимостей: pnpm `10.33.0`; lock-файл — `pnpm-lock.yaml`.
+- CMS отсутствует. Контент хранится в `src/content/` и конфигурационных TypeScript-файлах.
+- Основное production-хранилище: удалённая Turso/libSQL. Локальная SQLite используется для preview, разработки и тестов; миграции без пользовательских данных находятся в `src/db/`.
+- SEO-аудиты выполняет отдельный Node.js worker.
+- Приложение не является IIS, статическим hosting или готовой CMS.
 
 ## Установка и локальный запуск
 
@@ -315,21 +41,19 @@
 corepack enable
 corepack prepare pnpm@10.33.0 --activate
 pnpm install --frozen-lockfile
-cp .env.example .env
+cp .env.example .env.local
 pnpm db:migrate
 pnpm dev
 ```
 
-Локальный web по умолчанию: `http://localhost:3000`. Команда `pnpm dev` запускает web и worker вместе.
-
-Раздельный запуск:
+`pnpm dev` запускает web и worker. Раздельно:
 
 ```bash
 pnpm dev:web
-pnpm worker
+pnpm dev:worker
 ```
 
-## Проверки и сборка
+## Проверки, build и запуск
 
 ```bash
 pnpm lint
@@ -339,58 +63,80 @@ pnpm test:unit
 pnpm test:integration
 pnpm test:e2e
 pnpm build
-```
-
-Запуск уже собранных процессов:
-
-```bash
 pnpm start
 pnpm worker:start
 ```
 
+`pnpm build` собирает Next.js standalone, помещает `public` и `_next/static` внутрь standalone-пакета и собирает `dist-worker/worker.js`. Это обязательно: standalone-сервер ищет клиентские ресурсы внутри собственного каталога.
+
 ## Текущий production deployment
 
-- Площадка: один Linux-host в Timeweb Cloud.
-- Способ запуска: Docker Engine + Docker Compose v2.
-- Сервисы приложения: `web` (Next.js standalone/Node.js) и `worker` (Node.js).
-- Данные и приватные вложения: общий persistent volume `kileni_data`; они не входят в пакет.
-- Публичный HTTPS: внешний Caddy reverse proxy; приложение не является IIS, CMS, статическим hosting или обычным web-root.
-- Текущий checkout на сервере: `/opt/kileni-seo`.
-- Compose project: `kileni-seo`.
-- Обновление сейчас выполняется вручную: выборочная синхронизация исходников, сборка image `web` и `worker`, затем пересоздание только этих двух сервисов с `--no-deps`; общий Caddy не пересоздаётся.
-- В репозитории есть базовый `docker-compose.yml` и безопасный project-specific `deployment/Caddyfile.standalone`. Используемый на сервере overlay `deployment/standalone.compose.yml` в Git-репозитории отсутствует — это пробел воспроизводимости, который нужно закрыть до следующего независимого deployment.
+- Площадка: Linux-сервер Timeweb Cloud, IP `72.56.249.36`.
+- Checkout: `/opt/kileni-seo`.
+- Запуск: Docker Engine + Docker Compose v2, project `kileni-seo`.
+- Контейнеры: `kileni-seo-web-1`, `kileni-seo-worker-1`, `kileni-seo-caddy-1`.
+- Web: Next.js standalone в Node.js container.
+- Worker: отдельный Node.js container.
+- HTTPS: Caddy reverse proxy.
+- Production storage: Docker volume `kileni_data`; в исходный ZIP он не входит.
+- Текущий release: `/opt/kileni-seo-releases/20260907-final-integration-rc3` (build `SENFDQRfLN1EzZQY-cqkc`), опубликован 7 сентября 2026 года пересозданием только web/worker.
+- Непосредственный production rollback: `/opt/kileni-seo-releases/20260906-hmrs-final` (build `hMRsJgZvOWXEvY7S6UUSe`). Более ранний проверенный release также сохранён в `/opt/kileni-seo-releases/20260904T002637Z-prefetch-final`.
+- Проверенный Next.js/worker runtime подключён read-only через `deployment/runtime-mount.compose.yml`; изменяемый Next cache хранится в отдельном Docker volume.
+- Deployment выполняется вручную: backup, подготовка отдельного release-каталога, проверка Compose-конфигурации, затем пересоздание только web/worker. Общий Caddy изменяется только при необходимости маршрута или сертификата.
+- В репозитории есть `docker-compose.yml` и файлы `deployment/`. Рабочие Compose-файлы и `.env` хранятся внутри каталога каждого server release; значения `.env` между релизами копируются только на сервере и не выгружаются локально.
 
-Документированный общий сценарий обновления:
+Текущий сценарий запуска подготовленного runtime выполняется из каталога конкретного release. `.env` и `deployment/standalone.compose.yml` являются server-private файлами: перед проверкой нового release их копируют на сервере из действующего release, не выгружая значения локально.
 
 ```bash
-docker compose exec web node /app/scripts/backup.mjs
-docker compose build --pull
-docker compose up -d
+cd /opt/kileni-seo-releases/<release>
+# Backup — отдельный обязательный gate по docs/backup-and-restore.md.
+# Текущий standalone-container не содержит /app/scripts/backup.mjs.
+export KILENI_RUNTIME_DIR="$PWD/runtime"
+docker compose \
+  -p kileni-seo \
+  -f docker-compose.yml \
+  -f deployment/standalone.compose.yml \
+  -f deployment/runtime-mount.compose.yml \
+  up -d --no-build --force-recreate web worker
 docker compose ps
 ```
 
-Эти команды приведены для handoff и при подготовке пакета не запускались.
+Сценарий полной пересборки images по-прежнему доступен через `docker compose build --pull`, но для текущего runtime-релиза не применялся, чтобы не расходовать память и диск сервера повторной сборкой.
 
 ## Staging
 
-Отдельный staging-домен, staging Compose-конфигурация и CI workflow в исходниках отсутствуют. Локальная папка `.vercel` указывает на исторически связанный Vercel-проект, но активный preview/staging сейчас не подтверждён и `.vercel` в ZIP не включается.
+Постоянного staging pipeline в Git/CI нет. 31 августа 2026 года для финальной проверки запущен отдельный QA-preview: `https://kileni-preview.72-56-249-36.sslip.io`.
+
+Preview работает в отдельных web/worker containers, использует отдельную SQLite-базу и отдельный маршрут. Caddy отдаёт для него `X-Robots-Tag: noindex, nofollow, noarchive`. 6 сентября runtime каталога `/opt/kileni-preview/releases/20260905T1155MSK-isolated-final` обновлён до build `hMRsJgZvOWXEvY7S6UUSe`; перед обновлением сохранена копия `/opt/kileni-preview/releases/rollback-before-hmrs-0906`. Web healthy, worker с Chromium запущен, `/api/health` подтверждает базу и worker.
+
+Во время финального gate обнаружено, что более ранняя конфигурация preview наследовала production Turso и внешние интеграции. Production runtime не переключался, однако ранние QA-аудиты могли создать записи в production-базе. Ничего из production не удалялось; точечная очистка допустима только после отдельного решения владельца и идентификации конкретных audit ID.
 
 ## Возврат предыдущего релиза
 
-Автоматического rollback pipeline в репозитории нет. Для последнего выпуска были сохранены:
+Автоматического rollback pipeline нет. Перед переключением на release `20260903T132024Z` создан локальный SQLite/uploads backup `/data/backups/kileni-backup-20260903T132355326Z-c4ce9d`. Он относится только к локальному Docker volume и не является копией основной Turso-базы. Ранее созданный полный SQL snapshot production Turso остаётся на сервере: `/data/backups/kileni-turso-backup-20260831T114927026Z-39b67c` (`database.sql`, SHA-256 `10a4b7658afb66b99ca2bfe02ef167bf176059267349a6b446a32c5702c83ebe`). Snapshot содержит персональные данные и остаётся только в закрытом server storage; в исходный ZIP он не входит.
 
-- Docker image `kileni-web:rollback-20260826T174754Z`;
-- Docker image `kileni-worker:rollback-20260826T174754Z`;
-- архив исходников `/opt/kileni-seo-backups/source-20260826T174754Z.tar.gz`;
-- согласованный backup данных `/data/backups/kileni-backup-20260826T174814095Z-22ba6f`.
+После публикации RC3 откат кода выполняется переключением `KILENI_RUNTIME_DIR` на `/opt/kileni-seo-releases/20260906-hmrs-final/runtime` и пересозданием только web/worker, затем проверяются `/api/health`, контейнеры, статические файлы и логи. Caddy и другие домены при таком откате не меняются. Текущие миграции добавочные, поэтому обычный откат runtime не требует отката Turso. Восстановление данных из Turso snapshot — отдельная потенциально разрушительная ручная операция, допустимая только при повреждении данных и после отдельного подтверждения владельца; автоматического downgrade миграций нет.
 
-Код возвращается переключением Compose на сохранённые image и пересозданием только `web`/`worker`, после чего обязательно проверяются health endpoint и логи. Восстановление базы — отдельная, потенциально разрушительная операция через `scripts/restore.mjs ... --confirm`; она нужна только при несовместимости данных и выполняется после отдельного подтверждения владельца. Автоматического downgrade миграций нет.
+Команда отката runtime выполняется из каталога предыдущего release:
 
-## Переменные окружения
+```bash
+cd /opt/kileni-seo-releases/20260906-hmrs-final
+export KILENI_RUNTIME_DIR="$PWD/runtime"
+docker compose \
+  -p kileni-seo \
+  -f docker-compose.yml \
+  -f deployment/standalone.compose.yml \
+  -f deployment/runtime-mount.compose.yml \
+  up -d --no-build --force-recreate web worker
+docker compose ps
+curl --fail --silent --show-error https://kileni-seo.ru/api/health
+```
 
-В ZIP нет значений secrets. Безопасный `.env.example` в пакете содержит только пустые значения или локальные defaults.
+## Необходимые переменные окружения
 
-Основные runtime/storage:
+В этом документе и ZIP нет значений secrets. Разрешённый `.env.example` содержит только пустые значения или безопасные локальные defaults.
+
+Runtime и storage:
 
 `NODE_ENV`, `APP_BASE_URL`, `ADMIN_BASE_URL`, `DATABASE_PATH`, `PRIVATE_UPLOADS_PATH`, `BACKUP_PATH`, `MIGRATION_SQL_PATH`, `PORT`, `BIND_ADDRESS`, `HEALTH_REQUIRE_WORKER`.
 
@@ -398,32 +144,28 @@ docker compose ps
 
 `IP_HASH_SALT`, `ADMIN_LOGIN`, `ADMIN_PASSWORD_HASH`, `ADMIN_SESSION_SECRET`, `ADMIN_SESSION_HOURS`, `ADMIN_PDF_FONT_PATH`, `ADMIN_PDF_FONT_BOLD_PATH`, `AUDIT_RESTORE_SECRET`.
 
-Публичные контакты и юридические данные:
+Публичные и юридические данные:
 
-`PUBLIC_PHONE`, `PUBLIC_EMAIL`, `PUBLIC_TELEGRAM`, `PUBLIC_MAX`, `PUBLIC_MAX_URL`, `PUBLIC_WHATSAPP`, `LEGAL_NAME`, `LEGAL_SHORT_NAME`, `LEGAL_ADDRESS`, `LEGAL_EMAIL`, `LEGAL_INN`, `LEGAL_OGRNIP`, `LEGAL_REGISTRATION_AUTHORITY`, `LEGAL_REGISTRATION_DATE`, `LEGAL_POLICY_VERSION`, `LEGAL_POLICY_URL`, `LEGAL_CONSENT_URL`.
+`PUBLIC_PHONE`, `PUBLIC_MAX`, `PUBLIC_MAX_URL`, `LEGAL_NAME`, `LEGAL_SHORT_NAME`, `LEGAL_ADDRESS`, `LEGAL_EMAIL`, `LEGAL_EMAIL_VERIFIED`, `LEGAL_INN`, `LEGAL_OGRNIP`, `LEGAL_REGISTRATION_AUTHORITY`, `LEGAL_REGISTRATION_DATE`, `LEGAL_POLICY_VERSION`, `LEGAL_POLICY_URL`, `LEGAL_CONSENT_URL`.
 
 Формы, аудит и worker:
 
 `PRELAUNCH_MODE`, `FORMS_ENABLED`, `AUDIT_ENABLED`, `AUDIT_PAGE_LIMIT`, `AUDIT_TIMEOUT_MS`, `AUDIT_RESULT_RETENTION_DAYS`, `AUDIT_USER_AGENT`, `WORKER_POLL_MS`, `WORKER_POLL_INTERVAL_MS`, `LIGHTHOUSE_ENABLED`, `LIGHTHOUSE_CHROME_PATH`, `LIGHTHOUSE_NO_SANDBOX`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
 
-Необязательные уведомления:
+Почта и необязательные уведомления:
 
 `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
 
-Необязательные/альтернативные:
+Альтернативные интеграции и тесты:
 
-`NEXT_PUBLIC_EN_PRICE_CURRENCY`, `NEXT_PUBLIC_EN_PRICE_RATE`, `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `VERCEL`, `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL`, `BRIEF_FONT_REGULAR`, `BRIEF_FONT_BOLD`, `NODE_VERSION`.
-
-Только для тестов:
-
-`CI`, `E2E_PORT`, `E2E_RUN_ID`, `E2E_EXTERNAL_SERVER`, `KILENI_BASE_URL`.
+`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `NEXT_PUBLIC_EN_PRICE_CURRENCY`, `NEXT_PUBLIC_EN_PRICE_RATE`, `VERCEL`, `VERCEL_URL`, `CI`, `E2E_PORT`, `E2E_RUN_ID`, `E2E_EXTERNAL_SERVER`, `E2E_PRODUCTION_SERVER`, `KILENI_BASE_URL`.
 
 ## Состав безопасного пакета
 
-Включены исходники приложения, worker, scripts, tests, pnpm lock-файл, Next/TypeScript/ESLint/PostCSS/Playwright/Vitest/Docker-конфигурация, миграции без данных, необходимые статические assets, выбранная техническая документация, README и этот файл.
+В пакет включаются исходники `app/`, `src/`, `worker/`, scripts, tests, миграции без данных, lock-файл, project/build-конфигурация, Docker/deployment templates (включая `runtime-mount.compose.yml`), безопасные public assets, README, `IMPLEMENTATION_CHECKLIST.md` и этот файл.
 
-Не включены `.git`, `.vercel`, все реальные env-файлы, secrets/keys/certificates, базы и dumps, backups, логи, пользовательские uploads, analytics/Lighthouse exports, сгенерированные отчёты и брифы, screenshots/research/meeting artifacts, caches, временные каталоги, `node_modules`, `.next`, `dist`, `dist-worker`, `build`, `out`, `.venv`, `bin`, `obj`.
+При упаковке в копии заменяются на placeholders публичный телефон, прямая ссылка MAX и персональные реквизиты ИП. Рабочий репозиторий и production этой санитарной обработкой не изменяются. Реальные утверждённые значения должны передаваться только через защищённые runtime-переменные окружения.
 
-Только в staging-копии ZIP реальные контактные/юридические fallback-значения обезличены. Оригинальный репозиторий и production из-за этого не изменялись.
+Исключаются `.git`, `.vercel`, реальные env-файлы, secrets, keys, certificates, базы и dumps, backups, логи, пользовательские uploads, analytics exports, screenshots, research/meeting materials, сгенерированные отчёты, caches, `node_modules`, `.next`, `dist`, `dist-worker`, `build`, `out`, `.venv`, `bin`, `obj` и временные каталоги.
 
-CI-конфигурация в проекте отсутствует; добавлять выдуманный workflow в handoff не стали.
+CI workflow в проекте отсутствует; выдуманный workflow в пакет не добавляется.

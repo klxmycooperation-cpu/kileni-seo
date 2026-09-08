@@ -31,7 +31,7 @@ export function getGlossaryDetailMetadata(
   const canonical = glossaryDetailPath(locale, term.slug);
   const russian = glossaryDetailPath("ru", term.slug);
   const english = glossaryDetailPath("en", term.slug);
-  const description = compactDescription(`${copy.term}: ${copy.definition} ${copy.why}`);
+  const description = `${copy.term}: ${copy.definition}`;
   const title = locale === "ru"
     ? `${copy.term}: что означает термин в digital`
     : `${copy.term}: plain-language digital definition`;
@@ -54,12 +54,4 @@ export function getGlossaryDetailMetadata(
       images: [{ url: "/brand/kileni-og.png", width: 1200, height: 630, alt: "KILENI" }],
     },
   };
-}
-
-function compactDescription(value: string): string {
-  const normalized = value.replace(/\s+/gu, " ").trim();
-  if (normalized.length <= 160) return normalized;
-  const shortened = normalized.slice(0, 157);
-  const wordBoundary = shortened.lastIndexOf(" ");
-  return `${shortened.slice(0, wordBoundary > 90 ? wordBoundary : 157).trimEnd()}…`;
 }

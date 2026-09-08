@@ -2,6 +2,10 @@ import { spawn } from "node:child_process";
 import { access, cp, lstat, mkdir, readlink, readdir, realpath, rm, symlink } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
 
+import { assertIsolatedPreviewEnvironment } from "./runtime-isolation.mjs";
+
+assertIsolatedPreviewEnvironment();
+
 const root = process.cwd();
 const standalone = resolve(root, ".next/standalone");
 const server = resolve(standalone, "server.js");
@@ -88,9 +92,15 @@ async function restorePnpmLink(relativePath) {
 
 await restorePnpmLink("@libsql/client");
 
+const standaloneStatic = resolve(standalone, ".next/static");
+const standalonePublic = resolve(standalone, "public");
 await Promise.all([
-  cp(resolve(root, ".next/static"), resolve(standalone, ".next/static"), { recursive: true, force: true }),
-  cp(resolve(root, "public"), resolve(standalone, "public"), { recursive: true, force: true }),
+  rm(standaloneStatic, { recursive: true, force: true }),
+  rm(standalonePublic, { recursive: true, force: true }),
+]);
+await Promise.all([
+  cp(resolve(root, ".next/static"), standaloneStatic, { recursive: true, force: true }),
+  cp(resolve(root, "public"), standalonePublic, { recursive: true, force: true }),
 ]);
 
 const child = spawn(process.execPath, [server], {

@@ -18,11 +18,14 @@ test("presents one featured guide and filters the local editorial library", asyn
     images.map((image) => decodeURIComponent(image.getAttribute("src") ?? "")),
   );
   expect(imageSources).toHaveLength(7);
-  expect(imageSources.every((source) => /\/editorial\/[a-z0-9-]+-v2\.png/u.test(source))).toBe(true);
+  expect(imageSources.every((source) => /\/editorial\/[a-z0-9-]+-v2\.webp/u.test(source))).toBe(true);
   expect(new Set(imageSources).size).toBe(7);
-  await expect.poll(() => page.locator(".article-index-grid .article-card-image img").evaluateAll((images) =>
-    images.every((image) => (image as HTMLImageElement).naturalWidth > 0),
-  )).toBe(true);
+  for (const image of await page.locator(".article-index-grid .article-card-image img").all()) {
+    // WebKit correctly defers off-screen `loading=lazy` images. Bring each card
+    // into view before asserting that its real editorial asset decoded.
+    await image.scrollIntoViewIfNeeded();
+    await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  }
 
   await page.getByRole("button", { name: "Разработка", exact: true }).click();
   await expect(page.locator(".article-index-grid .article-card")).toHaveCount(1);
@@ -30,6 +33,19 @@ test("presents one featured guide and filters the local editorial library", asyn
 
   await page.getByRole("button", { name: "Все материалы", exact: true }).click();
   await expect(page.locator(".article-index-grid .article-card")).toHaveCount(7);
+});
+
+test("keeps non-featured blog previews lazy and compact", async ({ page }) => {
+  await page.goto("/blog");
+
+  const previews = page.locator(".article-index-grid .article-card-image img");
+  await expect(previews).toHaveCount(7);
+  await expect(previews.nth(0)).toHaveAttribute("src", /[?&]q=60(?:&|$)/u);
+
+  for (let index = 1; index < 7; index += 1) {
+    await expect(previews.nth(index)).toHaveAttribute("loading", "lazy");
+    await expect(previews.nth(index)).toHaveAttribute("src", /[?&]q=60(?:&|$)/u);
+  }
 });
 
 test("keeps the article library finite and readable at 320px", async ({ page }) => {
@@ -50,13 +66,18 @@ test("publishes the KILENI article illustration and its licence in Article JSON-
   await page.goto("/blog/seo-audit-when-you-need-it");
 
   await expect(page.locator(".article-hero-image img")).toHaveAttribute("alt", /карта SEO-аудита/iu);
+  await expect(page.locator(".article-hero-image img")).toHaveAttribute("src", /[?&]q=60(?:&|$)/u);
+  await expect(page.locator(".article-hero-image img")).toHaveAttribute("fetchpriority", "high");
+  await expect(page.locator(".article-hero-image img")).toHaveAttribute("loading", "eager");
+  await expect(page.locator(".article-related-grid .article-card-image img").first()).toHaveAttribute("src", /[?&]q=60(?:&|$)/u);
+  await expect(page.locator(".article-related-grid .article-card-image img").first()).toHaveAttribute("loading", "lazy");
   await expect(page.locator(".article-hero-image figcaption")).toContainText("Иллюстрация: KILENI");
   await expect(page.locator(".article-hero-image figcaption a")).toHaveCount(0);
 
   const schema = await page.locator('.article-page > script[type="application/ld+json"]').evaluate((script) => JSON.parse(script.textContent ?? "{}"));
   const article = schema["@graph"].find((item: { "@type"?: string }) => item["@type"] === "Article");
   expect(article.image["@type"]).toBe("ImageObject");
-  expect(article.image.url).toContain("/editorial/seo-audit-workflow-v2.png");
+  expect(article.image.url).toContain("/editorial/seo-audit-workflow-v2.webp");
   expect(article.image.caption).toContain("Карта SEO-аудита");
   expect(article.image.license).toBe("KILENI editorial");
 });

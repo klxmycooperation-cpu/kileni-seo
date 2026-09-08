@@ -75,6 +75,10 @@ async function auditPage(url: string, proxyUrl: string, timeoutMs: number, signa
       lcpMs: metric(lhr.audits["largest-contentful-paint"]?.numericValue),
       cls: metric(lhr.audits["cumulative-layout-shift"]?.numericValue),
       tbtMs: metric(lhr.audits["total-blocking-time"]?.numericValue),
+      profile: "mobile",
+      capturedAt: new Date().toISOString(),
+      lighthouseVersion: typeof lhr.lighthouseVersion === "string" ? lhr.lighthouseVersion : undefined,
+      runCount: 1,
     };
   } finally {
     await chrome.kill();
@@ -102,6 +106,10 @@ function aggregate(observations: readonly PerformanceAuditInput[]): PerformanceA
     lcpMs: median(observations.map((item) => item.lcpMs)),
     cls: median(observations.map((item) => item.cls)),
     tbtMs: median(observations.map((item) => item.tbtMs)),
+    profile: observations.every((item) => item.profile === observations[0]?.profile) ? observations[0]?.profile : undefined,
+    capturedAt: observations.map((item) => item.capturedAt).filter((value): value is string => Boolean(value)).sort().at(-1),
+    lighthouseVersion: observations.every((item) => item.lighthouseVersion === observations[0]?.lighthouseVersion) ? observations[0]?.lighthouseVersion : undefined,
+    runCount: observations.reduce((sum, item) => sum + Math.max(1, item.runCount ?? 1), 0),
   };
 }
 

@@ -59,6 +59,23 @@ describe("public audit methodology", () => {
     expect(getAuditCheckMetadata("en", "missing")).toBeNull();
   });
 
+  it("uses each check's complete summary instead of mechanically cut descriptions", () => {
+    const descriptions = new Set<string>();
+    for (const check of auditChecks) {
+      for (const locale of ["ru", "en"] as const) {
+        const description = getAuditCheckMetadata(locale, check.slug)?.description;
+
+        expect(description).toBe(check[locale].summary);
+        expect(description).not.toContain("…");
+        expect(description).toMatch(/[.!?]$/u);
+        expect(description?.length).toBeGreaterThanOrEqual(70);
+        expect(description?.length).toBeLessThanOrEqual(160);
+        expect(descriptions.has(check[locale].summary)).toBe(false);
+        descriptions.add(check[locale].summary);
+      }
+    }
+  });
+
   it("gives every localized detail page a distinct search title", () => {
     const titles = new Set<string>();
     for (const check of auditChecks) {

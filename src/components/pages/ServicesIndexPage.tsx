@@ -48,7 +48,7 @@ function ServicesHeroJourney({ locale }: { locale: Locale }) {
   return (
     <div className="services-hub__trajectory" role="img" aria-label={stages.join(" — ")}>
       <div className="services-hub__trajectory-heading">
-        <span>{ru ? "Один понятный маршрут" : "One clear route"}</span>
+        <span>{ru ? "Как переходим от задачи к проверенному результату" : "How we move from the task to a verified result"}</span>
         <b>{ru ? "От вопроса к проверке" : "From question to verification"}</b>
       </div>
       <svg aria-hidden="true" className="services-hero__journey" viewBox="0 0 720 270">

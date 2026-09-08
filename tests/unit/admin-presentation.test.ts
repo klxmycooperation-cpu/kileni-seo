@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   briefAnswerEntries,
   contactAction,
+  notificationLabel,
   serviceLabel,
   sourceLabel,
   submissionStatusLabel,
@@ -24,6 +25,10 @@ describe("понятное представление заявок в админ
     expect(submissionStatusLabel("proposal_sent")).toBe("Предложение отправлено");
     expect(serviceLabel("web-development")).toBe("Разработка сайта");
     expect(sourceLabel("service-form")).toBe("Форма на странице услуги");
+  });
+
+  it("не выдаёт передачу письма SMTP-серверу за подтверждённую доставку", () => {
+    expect(notificationLabel("sent")).toBe("Передано почтовому серверу");
   });
 
   it("показывает ответы брифа с вопросами и расшифровывает варианты", () => {

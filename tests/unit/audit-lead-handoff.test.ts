@@ -11,6 +11,11 @@ class MemoryStorage implements Storage {
   setItem(key: string, value: string) { this.values.set(key, value); }
 }
 
+class UnavailableStorage extends MemoryStorage {
+  override getItem(key: string): string | null { void key; throw new Error("Storage access is blocked"); }
+  override removeItem(key: string): void { void key; throw new Error("Storage access is blocked"); }
+}
+
 describe("audit lead handoff", () => {
   it("normalizes both complete URLs and bare domains", () => {
     expect(normalizeAuditDomain("https://www.Example.com/path")).toBe("example.com");
@@ -47,5 +52,9 @@ describe("audit lead handoff", () => {
 
     storage.setItem("kileni:audit-lead:bad", "not-json");
     expect(readAuditLeadHandoff(storage, "bad", 2_000)).toBeNull();
+  });
+
+  it("does not interrupt an audit or brief when session storage is blocked", () => {
+    expect(readAuditLeadHandoff(new UnavailableStorage(), "a".repeat(43))).toBeNull();
   });
 });

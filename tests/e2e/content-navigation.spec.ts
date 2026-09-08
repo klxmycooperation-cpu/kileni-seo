@@ -18,6 +18,12 @@ test("filters the glossary, highlights the match and restores the full alphabet"
 
   await expect(search).toBeVisible();
   await expect(alphabet).toBeVisible();
+  const russianLetters = alphabet.locator('[data-script="cyrillic"]');
+  const latinLetters = alphabet.locator('[data-script="latin"]');
+  await expect(russianLetters.getByText("Русские термины", { exact: true })).toBeVisible();
+  await expect(latinLetters.getByText("Термины на латинице", { exact: true })).toBeVisible();
+  await expect(russianLetters.getByRole("link").first()).toHaveText(/^\p{Script=Cyrillic}$/u);
+  await expect(latinLetters.getByRole("link").first()).toHaveText(/^[A-Z]$/u);
   expect(await results.locator(".glossary-item").count()).toBeGreaterThan(10);
 
   await search.fill("Системная проверка сайта");
@@ -52,7 +58,7 @@ test("adds the same compact sticky navigation to checks and marketplace guides",
   const marketplaceToc = page.getByRole("navigation", { name: "Разделы страницы" });
   await expect(marketplaceToc).toBeVisible();
   await expect(marketplaceToc).toHaveCSS("position", "sticky");
-  await expect(marketplaceToc.getByRole("link", { name: "Логика карточки" })).toHaveAttribute("href", "#marketplace-journey");
+  await expect(marketplaceToc.getByRole("link", { name: "Этапы подготовки" })).toHaveAttribute("href", "#marketplace-journey");
   await expect(marketplaceToc.getByRole("link", { name: "Состав карточки" })).toHaveAttribute("href", "#marketplace-scope");
   await expect(marketplaceToc.getByRole("link", { name: "Пример результата" })).toHaveAttribute("href", "#marketplace-result");
   await expect(marketplaceToc.getByRole("link", { name: "Варианты" })).toHaveAttribute("href", "#marketplace-offers");

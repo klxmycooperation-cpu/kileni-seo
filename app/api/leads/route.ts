@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { publicFormsAreEnabled } from "@/src/config/site";
 import { createLead } from "@/src/db/submissions";
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     return apiError(500, "LEAD_CREATE_FAILED", "Не удалось сохранить заявку");
   }
 
-  await notifyTelegram({
+  after(() => notifyTelegram({
     entityType: "lead",
     entityId: id,
     text: [
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       `Источник: ${sanitizeLogValue(parsed.data.source)}`,
       `Admin: ${adminUrl(id)}`,
     ].join("\n"),
-  }).catch(() => undefined);
+  }).catch(() => undefined));
 
   return NextResponse.json({ ok: true }, { status: 201, headers: { "cache-control": "no-store" } });
 }

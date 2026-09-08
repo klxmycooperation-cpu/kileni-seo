@@ -124,6 +124,8 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 .kileni-site .svc-variants { padding-block: clamp(3rem, 5vw, 5rem); background: var(--svc-soft); color: var(--svc-ink); }
 .kileni-site .svc-variants .svc-section-heading { grid-template-columns: minmax(12rem, .45fr) minmax(0, 1fr); gap: 3rem; margin-bottom: 2rem; }
 .kileni-site .svc-variants .svc-section-heading h2 { max-width: 24ch; font-size: clamp(2rem, 3.5vw, 3.5rem); }
+.kileni-site .svc-variants .svc-section-heading__copy { min-width: 0; }
+.kileni-site .svc-variants .svc-section-heading__copy > p { max-width: 48rem; margin: .8rem 0 0; color: var(--svc-muted); line-height: 1.55; overflow-wrap: normal; word-break: normal; }
 .kileni-site .svc-package-grid { gap: 1rem; }
 .kileni-site .svc-package-grid > article { min-height: 0; }
 .kileni-site .svc-package-included,
@@ -167,24 +169,26 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 .kileni-site .svc-request-section { padding-block: clamp(3rem, 5vw, 5rem); }
 .kileni-site .svc-request-grid h2 { font-size: clamp(2rem, 3.5vw, 3.5rem); }
 
-/* Pricing: all three levels visible; no hover-only comparison and no reversed white-on-white fields. */
+/* Pricing: one stable surface, compact choices and one dynamic detail panel. */
 .kileni-site .pricing-10 .cp-hero-grid { padding-block: clamp(3rem, 5vw, 5rem); }
 .kileni-site .pricing-10 .cp-hero h1 { max-width: 16ch; font-size: clamp(2.5rem, 4.5vw, 4.5rem); }
 .kileni-site .pricing-10 .cp-pricing-section { padding-block: clamp(3rem, 5vw, 5rem); background: var(--svc-paper); color: var(--svc-ink); }
 .kileni-site .pricing-10 .cp-section-intro { margin-bottom: 2rem; }
 .kileni-site .pricing-10 .cp-section-intro h2 { font-size: clamp(2rem, 3.6vw, 3.6rem); }
 .kileni-site .cp-category-selector { grid-template-columns: minmax(11rem, .32fr) minmax(0, 1.68fr); gap: clamp(1.5rem, 4vw, 4rem); }
-.kileni-site .cp-package-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+.kileni-site .cp-package-list { display: block; margin-top: 1rem; border: 1px solid var(--svc-line); background: var(--svc-paper); }
+.kileni-site .cp-package-list .cp-tier-switch { margin: 0; border: 0; border-bottom: 1px solid var(--svc-line); border-radius: 0; }
 .kileni-site .pricing-10 .cp-package {
   display: flex;
-  min-height: 31rem;
+  min-height: 34rem;
   flex-direction: column;
-  padding: 1.2rem;
-  border: 1px solid var(--svc-line);
-  border-radius: 1rem;
+  padding: clamp(1.3rem, 3vw, 2.25rem);
+  border: 0;
+  border-radius: 0;
   background: var(--svc-paper);
   color: var(--svc-ink);
 }
+.kileni-site .pricing-10 .cp-package-detail { min-height: 47rem; }
 .kileni-site .pricing-10 .cp-package[data-featured] { background: color-mix(in srgb, var(--svc-accent) 9%, var(--svc-paper)); }
 .kileni-site .cp-package-topline { display: flex; min-height: 1.8rem; justify-content: space-between; gap: .5rem; align-items: center; }
 .kileni-site .cp-package-topline .cp-package-badge { margin: 0; }
@@ -193,9 +197,11 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 .kileni-site .pricing-10 .cp-package-price { display: grid; gap: .2rem; margin-top: .8rem; color: var(--svc-ink); text-align: left; }
 .kileni-site .pricing-10 .cp-package-price strong { color: var(--svc-ink); font-size: 1.55rem; }
 .kileni-site .pricing-10 .cp-package-price small { color: var(--svc-muted); }
-.kileni-site .cp-package-facts { grid-template-columns: 1fr; margin-top: .9rem; border: 0; }
+.kileni-site .cp-package-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: .9rem; border: 0; }
 .kileni-site .cp-package-facts > div { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: .5rem; padding: .55rem 0; border-right: 0; border-bottom: 1px solid var(--svc-line); }
+.kileni-site .cp-package-detail .cp-package-facts > div { min-height: 4.75rem; }
 .kileni-site .cp-package-facts dd { margin: 0; font-size: .82rem; }
+.kileni-site .cp-package-detail .cp-package-included { min-height: 12rem; }
 .kileni-site .cp-package-details { margin-top: .7rem; }
 .kileni-site .cp-package-select { margin-top: auto; color: var(--svc-ink); border-color: var(--svc-ink); }
 .kileni-site .cp-package-select[aria-pressed="true"] { background: var(--svc-ink); color: var(--svc-paper); }
@@ -205,8 +211,15 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 
 /* Home: replace the large table with a compact four-step handoff. */
 .kileni-site .home-deliverables { padding-block: clamp(3.5rem, 6vw, 6rem); }
-.kileni-site .signal-hero .scan-keywords span { grid-template-columns: 2rem minmax(0, 1fr); align-items: center; }
-.kileni-site .signal-hero .scan-keywords span > b { display: block; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .75rem; align-items: start; min-width: 0; padding: 1rem .85rem; border-top: 1px solid var(--warm-line); color: var(--warm-ink); text-decoration: none; transition: background .2s ease, padding-inline .2s ease; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link:hover,
+.kileni-site .signal-hero .scan-keywords .hero-check-link:focus-visible { padding-inline: 1rem .7rem; background: color-mix(in srgb, var(--home-blue, #4164ff) 9%, transparent); outline: none; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link:focus-visible { box-shadow: inset 0 0 0 2px var(--home-blue, #4164ff); }
+.kileni-site .signal-hero .scan-keywords .hero-check-link > b { display: block; padding-top: .16rem; color: var(--warm-muted); font: 700 .7rem var(--mono); }
+.kileni-site .signal-hero .scan-keywords .hero-check-link > span { position: static; display: grid; min-width: 0; min-height: 0; grid-template-columns: 1fr; align-items: start; gap: .3rem; padding: 0; color: inherit; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link > span::before { display: none; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link small { color: var(--warm-muted); font-size: .72rem; line-height: 1.4; overflow-wrap: anywhere; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link > i { align-self: center; font-style: normal; }
 .kileni-site .signal-hero .scan-keywords em { min-width: 0; font-style: normal; overflow-wrap: normal; word-break: normal; }
 .kileni-site .home-deliverables-grid { align-items: center; }
 .kileni-site .home-deliverables .home-section-heading h2 { max-width: 12ch; font-size: clamp(2.1rem, 4vw, 4rem); }
@@ -247,6 +260,7 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 .kileni-site .about-acceptance-grid li { min-height: 11rem; }
 .kileni-site .about-acceptance-grid h3 { margin-top: 2rem; }
 .kileni-site .marketplace-detail-hero { padding-block: clamp(2.5rem, 4vw, 4rem); }
+.kileni-site .marketplace-detail-hero h1 { max-width: 17ch; font-size: clamp(2.7rem, 6vw, 5.6rem); line-height: .94; overflow-wrap: normal; word-break: normal; }
 .kileni-site .marketplace-detail-row { min-height: 0; padding-block: 1.5rem; }
 .kileni-site .marketplace-result-example,
 .kileni-site .marketplace-offers { padding-block: clamp(3rem, 5vw, 5rem); }
@@ -262,6 +276,7 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 /* Marketplace content follows the buyer's route instead of filling the page with equal tiles. */
 .kileni-site .marketplace-page { --marketplace-accent: var(--brand, #4164ff); }
 .kileni-site .marketplace-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   padding: 1px;
   border: 0;
@@ -299,7 +314,7 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 .kileni-site .marketplace-card h2 { margin-bottom: .65rem; font-size: clamp(1.8rem, 3vw, 3.15rem); }
 .kileni-site .marketplace-card p { max-width: 34ch; }
 .kileni-site .marketplace-card > span:last-child { display: flex; align-items: center; justify-content: space-between; padding-top: .85rem; border-top: 1px solid var(--theme-line); }
-.kileni-site .marketplace-platform-switch a[aria-current="page"] { border-color: var(--marketplace-accent); background: var(--marketplace-accent); color: var(--brand-contrast, #fff) !important; }
+.kileni-site .marketplace-platform-switch a[aria-current="page"] { border-color: var(--marketplace-accent); background: var(--marketplace-accent); color: var(--marketplace-on-accent, #fff) !important; }
 
 .kileni-site .marketplace-card-journey { padding-block: clamp(3.5rem, 7vw, 6.5rem); }
 .kileni-site .marketplace-card-journey > header { display: grid; grid-template-columns: minmax(12rem, .45fr) minmax(0, 1.15fr); gap: .9rem 3rem; align-items: end; margin-bottom: 2rem; }
@@ -309,24 +324,39 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 .kileni-site .marketplace-card-journey ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin: 0; padding: 1px; overflow: hidden; border-radius: 1.35rem; background: var(--theme-line); list-style: none; }
 .kileni-site .marketplace-card-journey li { position: relative; min-height: 14.5rem; padding: 1.35rem; background: var(--theme-bg); }
 .kileni-site .marketplace-card-journey li:not(:last-child)::after { position: absolute; z-index: 1; top: 2.35rem; right: -.75rem; width: 1.5rem; height: 1.5rem; border: 1px solid var(--theme-line); border-left: 0; border-bottom: 0; background: var(--theme-bg); content: ""; transform: rotate(45deg); }
-.kileni-site .marketplace-card-journey li > span { color: var(--marketplace-accent); font: 750 .68rem var(--mono); letter-spacing: .07em; }
+.kileni-site .marketplace-card-journey li > span { color: var(--theme-muted); font: 750 .68rem var(--mono); letter-spacing: .07em; }
 .kileni-site .marketplace-card-journey li > div { display: grid; align-content: end; min-height: 9.7rem; padding-top: 2.1rem; }
 .kileni-site .marketplace-card-journey h3 { margin: 0 0 .8rem; font-size: clamp(1.2rem, 1.8vw, 1.65rem); line-height: 1.1; }
 .kileni-site .marketplace-card-journey li p { margin: 0; color: var(--theme-muted); font-size: .88rem; line-height: 1.55; }
 
 .kileni-site .marketplace-detail-row { position: relative; padding-left: 1rem; border-left: 1px solid transparent; transition: border-color .2s ease, background .2s ease; }
 .kileni-site .marketplace-detail-row:hover { border-left-color: var(--marketplace-accent); background: color-mix(in srgb, var(--marketplace-accent) 5%, transparent); }
-.kileni-site .marketplace-detail-row > span { color: var(--marketplace-accent); }
+.kileni-site .marketplace-detail-row > span { color: var(--theme-muted); }
 .kileni-site .marketplace-offer-grid { gap: 1px; padding: 1px; overflow: hidden; border-radius: 1.35rem; background: var(--theme-line); }
 .kileni-site .marketplace-offer { min-height: 0; padding: clamp(1.25rem, 2.6vw, 1.85rem); border: 0; background: var(--theme-bg); transition: transform .25s cubic-bezier(.22, 1, .36, 1), background .25s ease; }
 .kileni-site .marketplace-offer[data-selected] { box-shadow: inset 0 4px 0 var(--marketplace-accent); }
 .kileni-site .marketplace-offer:hover { background: var(--theme-panel); transform: translateY(-.2rem); }
-.kileni-site .marketplace-offer-badge { margin: -1.85rem -1.85rem 1.3rem; padding: .55rem .8rem; background: var(--marketplace-accent); }
+.kileni-site .marketplace-offer-badge { margin: -1.85rem -1.85rem 1.3rem; padding: .55rem .8rem; background: var(--marketplace-accent); color: var(--marketplace-on-accent, #fff); }
 .kileni-site .marketplace-offer > button { border-radius: .7rem; transition: background .2s ease, color .2s ease, transform .2s ease; }
 .kileni-site .marketplace-offer > button:hover:not([aria-pressed="true"]),
 .kileni-site .marketplace-offer > button:focus-visible { background: color-mix(in srgb, var(--marketplace-accent) 12%, transparent); outline: 2px solid var(--marketplace-accent); outline-offset: 2px; transform: translateY(-.1rem); }
 .kileni-site .marketplace-offer > button[aria-pressed="true"],
-.kileni-site .marketplace-offer > a { background: var(--marketplace-accent); color: var(--brand-contrast, #fff); }
+.kileni-site .marketplace-offer > a { background: var(--marketplace-accent); color: var(--marketplace-on-accent, #fff); }
+
+html[data-kileni-theme="dark"] .kileni-site .marketplace-page,
+html[data-kileni-theme="signal"] .kileni-site .marketplace-page { --marketplace-on-accent: #07111f; }
+
+/* A custom task is a decision path, not a lonely one-card tariff table. */
+.kileni-site .svc-custom-path { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--svc-line); border-radius: 1.25rem; background: var(--svc-line); }
+.kileni-site .svc-custom-path__intro { display: grid; grid-template-columns: minmax(10rem, .42fr) minmax(0, 1fr); gap: 1.25rem 3rem; padding: clamp(1.4rem, 3vw, 2.4rem); background: var(--svc-ink); color: var(--svc-paper); }
+.kileni-site .svc-custom-path__intro > span { color: color-mix(in srgb, var(--svc-paper) 68%, transparent); font: 700 .68rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.kileni-site .svc-custom-path__intro > p { max-width: 46rem; margin: 0; color: inherit; font-size: clamp(1.2rem, 2vw, 1.75rem); line-height: 1.35; overflow-wrap: normal; word-break: normal; }
+.kileni-site .svc-custom-path > ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 0; padding: 0; list-style: none; }
+.kileni-site .svc-custom-path > ol > li { display: grid; grid-template-rows: auto 1fr; gap: 2.5rem; min-width: 0; min-height: 14rem; padding: clamp(1.2rem, 2.5vw, 1.8rem); background: var(--svc-paper); }
+.kileni-site .svc-custom-path > ol > li > span { color: var(--svc-muted); font: 700 .7rem var(--mono); }
+.kileni-site .svc-custom-path h3 { margin: 0 0 .7rem; font-size: clamp(1.2rem, 2vw, 1.7rem); line-height: 1.15; overflow-wrap: normal; word-break: normal; }
+.kileni-site .svc-custom-path li p { margin: 0; color: var(--svc-muted); line-height: 1.5; overflow-wrap: normal; word-break: normal; }
+.kileni-site .svc-custom-path > .button { justify-self: stretch; min-height: 4rem; border-radius: 0; }
 
 @media (prefers-reduced-motion: no-preference) {
   .kileni-site .marketplace-card-journey li { animation: marketplace-route-enter .45s cubic-bezier(.22, 1, .36, 1) both; }
@@ -346,19 +376,21 @@ html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-overview,.svc-varia
 html[data-kileni-theme="signal"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(h1,h2,h3,h4,strong,dd,a) { color: var(--svc-ink); }
 html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(p,li,small,dt),
 html[data-kileni-theme="signal"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(p,li,small,dt) { color: var(--svc-muted); }
+.kileni-site .pricing-10 .cp-tier-switch button[data-preview] :is(span,small,b) { color: var(--svc-paper); }
 .kileni-site .svc-assurance :is(h2,h3,a),
 .kileni-site .svc-detail-hero :is(h1,h2,h3,a) { color: #f4f7fb !important; }
 .kileni-site .svc-assurance :is(p,li,small),
 .kileni-site .svc-detail-hero :is(p,li,small) { color: #aab6c8; }
-.kileni-site .button-primary,
 .kileni-site :is(.cp-package-brief,.svc-package-grid article > button + a) { color: #fff !important; }
+html[data-kileni-theme="signal"] .kileni-site .cp-package-brief { color: #10231a !important; }
 
 @media (max-width: 1024px) {
   .kileni-site .cp-category-selector { grid-template-columns: 1fr; }
   .kileni-site .cp-category-tabs { display: flex; overflow-x: auto; }
   .kileni-site .cp-category-tabs button { min-width: 11rem; }
-  .kileni-site .cp-package-list { grid-template-columns: 1fr; }
-  .kileni-site .pricing-10 .cp-package { min-height: 0; }
+  .kileni-site .pricing-10 .cp-package { min-height: 39rem; }
+  .kileni-site .pricing-10 .cp-package-detail { min-height: 50rem; }
+  .kileni-site .cp-package-facts { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -380,8 +412,12 @@ html[data-kileni-theme="signal"] .kileni-site :is(.svc-compact-overview,.svc-var
   .kileni-site .platform-mark { width: min(11rem, 72%); height: 4rem; }
   .kileni-site .svc-assurance-footer { align-items: flex-start; flex-direction: column; }
   .kileni-site .svc-context-links .shell { grid-template-columns: 1fr; }
+  .kileni-site .svc-custom-path__intro,
+  .kileni-site .svc-custom-path > ol { grid-template-columns: 1fr; }
+  .kileni-site .svc-custom-path > ol > li { min-height: 0; gap: 1.25rem; }
+  .kileni-site .marketplace-grid { grid-template-columns: 1fr; }
   .kileni-site .marketplace-card { min-height: 0; }
-  .kileni-site :is(.svc-detail-copy h1,.svc-index-hero h1,.pricing-10 .cp-hero h1,.about-hero h1,.marketplace-hero h1) { font-size: clamp(2.2rem, 11vw, 3.35rem); }
+  .kileni-site :is(.svc-detail-copy h1,.svc-index-hero h1,.pricing-10 .cp-hero h1,.about-hero h1,.marketplace-hero h1,.marketplace-detail-hero h1) { font-size: clamp(2.2rem, 11vw, 3.35rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -389,10 +425,6 @@ html[data-kileni-theme="signal"] .kileni-site :is(.svc-compact-overview,.svc-var
 }
 
 /* Contrast lock: theme changes must never turn content into decoration. */
-.kileni-site .button-primary,
-.kileni-site .button-small { background: #2448d8; color: #fff; }
-.kileni-site .button-primary:hover,
-.kileni-site .button-small:hover { background: #1837b5; color: #fff; }
 .kileni-site .button-light { background: #fff; color: #070b18; }
 .kileni-site .button-light:hover { background: #eef2ff; color: #070b18; }
 
@@ -418,8 +450,6 @@ html[data-kileni-theme="dark"] .kileni-site .analytics-delta,
 html[data-kileni-theme="signal"] .kileni-site .analytics-delta { background: #10382f; color: #66ecb0; }
 html[data-kileni-theme="dark"] .kileni-site input::placeholder,
 html[data-kileni-theme="signal"] .kileni-site input::placeholder { color: #93a2b7; opacity: 1; }
-.kileni-site .signal-hero .audit-form .button-primary:disabled { background: #35466f; color: #fff; opacity: 1; }
-
 html[data-kileni-theme="dark"] .kileni-site .editorial-page {
   --article-paper: #07111f;
   --article-ink: #f7f8fc;
@@ -487,10 +517,6 @@ html[data-kileni-theme="signal"] .kileni-site .home-decision__panel { background
 .kileni-site .home-decision__panel { animation: none !important; }
 .kileni-site .home-section-heading--light > span { color: #d5ddec !important; }
 
-.kileni-site :is(.button-primary, .button-small) { background: #2448d8 !important; color: #fff !important; }
-.kileni-site :is(.button-primary, .button-small):hover { background: #1837b5 !important; color: #fff !important; }
-.kileni-site .svc-detail-hero .button-primary { background: #2448d8 !important; color: #fff !important; }
-
 .kileni-site .about-10 :is(.about-action-list, .about-start-route, .about-roles-grid ul, .about-deliverable-flow, .about-acceptance-grid) li > span {
   color: #2441b7 !important;
   opacity: 1 !important;
@@ -521,8 +547,8 @@ html[data-kileni-theme="light"] .kileni-site .analytics-visibility-detail__chips
 .kileni-site .home-deliverable-list li > div > small { color: #b8c5d6 !important; }
 
 /* Signal is a distinct verification mode: high-contrast green signals, not another blue dark theme. */
-.theme-toggle[data-theme="signal"] .theme-toggle__icon { border-color: #b7f44a; border-radius: .45rem; color: #b7f44a; }
-.theme-toggle[data-theme="signal"] .theme-toggle__icon::before { width: 3px; height: 8px; border-radius: 99px; transform: translateX(-5px); box-shadow: 5px -3px 0 currentColor, 10px -7px 0 currentColor; }
+.theme-toggle[data-theme="signal"] .theme-toggle__icon { overflow: hidden; border-color: #b7f44a; border-radius: .45rem; color: #b7f44a; }
+.theme-toggle[data-theme="signal"] .theme-toggle__icon::before { inset: 4px; width: auto; height: auto; border-radius: 0; background: linear-gradient(currentColor 0 0) left bottom / 3px 7px no-repeat, linear-gradient(currentColor 0 0) center bottom / 3px 12px no-repeat, linear-gradient(currentColor 0 0) right bottom / 3px 9px no-repeat; box-shadow: none; transform: none; }
 .theme-toggle[data-theme="signal"] .theme-toggle__icon::after { display: none; }
 
 html[data-kileni-theme="signal"] .kileni-site {
@@ -560,9 +586,6 @@ html[data-kileni-theme="signal"] .kileni-site :is(.site-header, .site-header[dat
 html[data-kileni-theme="signal"] .kileni-site :is(.services-menu, .mobile-menu) { border-color: #315642; background: #10231a; color: #f3fff6; }
 html[data-kileni-theme="signal"] .kileni-site .home-10 { --warm-ink: #f3fff6; --warm-muted: #a6c1af; --warm-paper: #08150f; --warm-paper-bright: #10231a; --warm-line: #315642; --home-blue: #b7f44a; }
 html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pricing-10, .about-10, .marketplace-page) { --svc-ink: #f3fff6; --svc-paper: #08150f; --svc-soft: #10231a; --svc-line: rgba(183,244,74,.23); --svc-muted: #a6c1af; --svc-accent: #b7f44a; --theme-bg: var(--svc-paper); --theme-ink: var(--svc-ink); --theme-muted: var(--svc-muted); --theme-line: var(--svc-line); }
-html[data-kileni-theme="signal"] .kileni-site :is(.button-primary, .button-small),
-html[data-kileni-theme="signal"] .kileni-site .svc-detail-hero .button-primary { background: #b7f44a !important; color: #07110b !important; }
-html[data-kileni-theme="signal"] .kileni-site :is(.button-primary, .button-small):hover { background: #d4ff91 !important; color: #07110b !important; }
 html[data-kileni-theme="signal"] .kileni-site .warm-final-cta { background: #07110b; color: #f3fff6; }
 html[data-kileni-theme="signal"] .kileni-site .warm-final-cta :is(h2, p) { color: #f3fff6; }
 

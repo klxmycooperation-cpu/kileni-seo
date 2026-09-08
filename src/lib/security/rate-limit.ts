@@ -33,6 +33,19 @@ export async function purgeExpiredRateLimits(maxAgeMs = 7 * 24 * 60 * 60 * 1_000
   return result.rowsAffected;
 }
 
+export async function clearRateLimits(keys: readonly string[]): Promise<number> {
+  const uniqueKeys = [...new Set(keys.map((key) => key.trim()).filter(Boolean))];
+  if (uniqueKeys.length === 0) return 0;
+  return database.transaction(async (transaction) => {
+    let removed = 0;
+    for (const key of uniqueKeys) {
+      const result = await transaction.execute({ sql: "DELETE FROM rate_limits WHERE key=?", args: [key] });
+      removed += result.rowsAffected;
+    }
+    return removed;
+  });
+}
+
 async function currentRateLimit(transaction: Transaction, key: string): Promise<RateLimitRow | null> {
   const result = await transaction.execute({ sql: "SELECT window_start AS windowStart, count FROM rate_limits WHERE key = ?", args: [key] });
   return (result.rows[0] as unknown as RateLimitRow | undefined) ?? null;

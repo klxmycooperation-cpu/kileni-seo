@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { CaseStudy } from "../../content/cases";
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
@@ -84,6 +84,7 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
   const [metricsRun, setMetricsRun] = useState(0);
   const [interactive, setInteractive] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const baseId = useId().replace(/:/g, "");
   const item = cases[active];
   const isEco = item.slug === "eco-santeh";
   const logo = `/case-sites/${item.slug}.ico`;
@@ -102,6 +103,14 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
     ? ru ? ["Шаблоны", "Адреса", "Заголовки и описания", "Контрольная проверка"] : ["Templates", "URLs", "Metadata", "Recheck"]
     : ru ? ["Проверка", "Первый экран", "Данные для поиска", "Контрольная проверка"] : ["Diagnostics", "First screen", "JSON-LD", "Recheck"];
   const chartPoints = isEco ? "24,129 156,118 262,97 382,84 505,58 628,34" : "24,142 156,113 262,93 382,77 505,62 628,44";
+  const tabId = (index: number) => `${baseId}-case-tab-${index}`;
+  const panelId = `${baseId}-case-panel`;
+
+  function moveCase(index: number, focusTab = false) {
+    const next = (index + cases.length) % cases.length;
+    setActive(next);
+    if (focusTab) window.requestAnimationFrame(() => document.getElementById(tabId(next))?.focus());
+  }
 
   useEffect(() => {
     setInteractive(true);
@@ -140,17 +149,55 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
 
       <div className="home-case-explorer__switch" role="tablist" aria-label={ru ? "Выбор кейса" : "Choose a case"}>
         {cases.map((study, index) => (
-          <button key={study.slug} type="button" role="tab" aria-selected={active === index} onClick={() => setActive(index)} disabled={!interactive}>
+          <button
+            id={tabId(index)}
+            key={study.slug}
+            type="button"
+            role="tab"
+            aria-selected={active === index}
+            aria-controls={panelId}
+            tabIndex={active === index ? 0 : -1}
+            onClick={() => setActive(index)}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                event.preventDefault();
+                moveCase(index + 1, true);
+              } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                event.preventDefault();
+                moveCase(index - 1, true);
+              } else if (event.key === "Home") {
+                event.preventDefault();
+                moveCase(0, true);
+              } else if (event.key === "End") {
+                event.preventDefault();
+                moveCase(cases.length - 1, true);
+              }
+            }}
+            disabled={!interactive}
+          >
             <span>{String(index + 1).padStart(2, "0")}</span>
-            <Image src={`/case-sites/${study.slug}.ico`} width={42} height={42} alt="" unoptimized loading="eager" />
+            <Image src={`/case-sites/${study.slug}.ico`} width={42} height={42} alt="" unoptimized loading="lazy" />
             <strong>{study.domain}</strong>
           </button>
         ))}
       </div>
 
-      <article key={item.slug} className="home-case-explorer__surface" data-case={item.slug}>
+      <div className="home-case-explorer__mobile-controls" aria-label={ru ? "Переключение кейсов" : "Switch cases"} data-mobile-case-controls>
+        <button type="button" onClick={() => moveCase(active - 1)} aria-label={ru ? "Предыдущий кейс" : "Previous case"}>←</button>
+        <span aria-live="polite">{String(active + 1).padStart(2, "0")} / {String(cases.length).padStart(2, "0")}</span>
+        <button type="button" onClick={() => moveCase(active + 1)} aria-label={ru ? "Следующий кейс" : "Next case"}>→</button>
+      </div>
+
+      <article
+        id={panelId}
+        key={item.slug}
+        className="home-case-explorer__surface"
+        role="tabpanel"
+        aria-labelledby={tabId(active)}
+        data-case={item.slug}
+      >
         <div className="home-case-explorer__identity">
-          <Image src={logo} width={64} height={64} alt="" unoptimized loading="eager" />
+          <Image src={logo} width={64} height={64} alt="" unoptimized loading="lazy" />
           <div>
             <p>{ru ? "Кейс" : "Case"} {String(active + 1).padStart(2, "0")} · {item.period}</p>
             <h3>{item.domain}</h3>

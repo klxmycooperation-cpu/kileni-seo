@@ -1,8 +1,9 @@
 import { PUBLIC_AUDIT_PAGE_LIMIT } from "./public-audit";
 import legalDefaults from "./legal-defaults.json";
 
-const defaultPublicPhone = "+7 929 590-09-00";
-const publicPhone = process.env.PUBLIC_PHONE?.trim() || defaultPublicPhone;
+const approvedPublicPhone = "+7 925 225-60-20";
+const approvedMaxUrl = "https://max.ru/u/f9LHodD0cOIfT31Quztlpr8xf0bVdj-qQCiQRjSIDPYk9DG40xt2pmMbtcg";
+const forbiddenLegacyLegalEmails = new Set(["k-trans-dir@mail.ru"]);
 export const siteConfig = {
   name: "KILENI",
   descriptor: "SEO",
@@ -19,18 +20,15 @@ export const siteConfig = {
     retentionDays: configuredNumber(process.env.AUDIT_RESULT_RETENTION_DAYS, 90, 90, 3_650),
   },
   publicContacts: {
-    phone: publicPhone,
-    email: process.env.PUBLIC_EMAIL?.trim() || legalDefaults.email,
-    telegram: process.env.PUBLIC_TELEGRAM?.trim() || "@kmdozz",
-    whatsapp: process.env.PUBLIC_WHATSAPP?.trim() ?? "",
-    maxPhone: process.env.PUBLIC_MAX?.trim() || publicPhone,
-    maxUrl: process.env.PUBLIC_MAX_URL?.trim() || "https://web.max.ru/",
+    phone: approvedPublicPhone,
+    maxPhone: approvedPublicPhone,
+    maxUrl: approvedMaxUrl,
   },
   legal: {
     name: process.env.LEGAL_NAME?.trim() || legalDefaults.name,
     shortName: process.env.LEGAL_SHORT_NAME?.trim() || legalDefaults.shortName,
     address: process.env.LEGAL_ADDRESS?.trim() || legalDefaults.address,
-    email: process.env.LEGAL_EMAIL?.trim() || legalDefaults.email,
+    email: verifiedLegalEmail(),
     inn: process.env.LEGAL_INN?.trim() || legalDefaults.inn,
     ogrnip: process.env.LEGAL_OGRNIP?.trim() || legalDefaults.ogrnip,
     registrationAuthority: process.env.LEGAL_REGISTRATION_AUTHORITY?.trim() || legalDefaults.registrationAuthority,
@@ -56,18 +54,26 @@ function configuredNumber(raw: string | undefined, fallback: number, minimum: nu
   return Number.isFinite(value) ? Math.max(minimum, Math.min(maximum, Math.floor(value))) : fallback;
 }
 
+function verifiedLegalEmail(): string {
+  const email = process.env.LEGAL_EMAIL?.trim() || legalDefaults.email.trim();
+  if (process.env.LEGAL_EMAIL_VERIFIED !== "true") return "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email)) return "";
+  if (forbiddenLegacyLegalEmails.has(email.toLocaleLowerCase("en-US"))) return "";
+  return email;
+}
+
 export type Locale = "ru" | "en";
 
 export const publicRoutes = [
   "",
   "services",
+  "seo",
   "seo-audit",
   "seo-promotion",
   "marketplaces",
   "marketplaces/wildberries",
   "marketplaces/ozon",
   "marketplaces/yandex-market",
-  "marketplaces/megamarket",
   "web-development",
   "yandex-ads",
   "content-materials",
@@ -111,7 +117,6 @@ function legalEnvironmentIsComplete(): boolean {
   const values = [
     process.env.LEGAL_NAME?.trim() || legalDefaults.name,
     process.env.LEGAL_ADDRESS?.trim() || legalDefaults.address,
-    process.env.LEGAL_EMAIL?.trim() || legalDefaults.email,
     process.env.LEGAL_INN?.trim() || legalDefaults.inn,
     process.env.LEGAL_OGRNIP?.trim() || legalDefaults.ogrnip,
     process.env.LEGAL_POLICY_VERSION?.trim() || legalDefaults.version,
@@ -139,16 +144,18 @@ export function prelaunchRobotsMetadata(): { index: false; follow: false; nocach
 
 export function legalDocumentsAreComplete(): boolean {
   const legal = siteConfig.legal;
-  return [legal.name, legal.address, legal.email, legal.inn, legal.ogrnip, legal.version, legal.policyUrl, legal.consentUrl]
+  return [legal.name, legal.address, legal.inn, legal.ogrnip, legal.version, legal.policyUrl, legal.consentUrl]
     .every((value) => value.trim().length > 0);
 }
 
 export function legalOperatorSummary(locale: Locale): string | null {
   if (!legalDocumentsAreComplete()) return null;
   const legal = siteConfig.legal;
-  return locale === "ru"
-    ? `${legal.name} · ИНН ${legal.inn} · ОГРНИП ${legal.ogrnip} · ${legal.address} · ${legal.email}`
-    : `${legal.name} · Tax ID ${legal.inn} · Sole proprietor registration ${legal.ogrnip} · ${legal.address} · ${legal.email}`;
+  const parts = locale === "ru"
+    ? [legal.name, `ИНН ${legal.inn}`, `ОГРНИП ${legal.ogrnip}`, legal.address]
+    : [legal.name, `Tax ID ${legal.inn}`, `Sole proprietor registration ${legal.ogrnip}`, legal.address];
+  if (legal.email) parts.push(legal.email);
+  return parts.join(" · ");
 }
 
 let legalWarningShown = false;
@@ -157,7 +164,7 @@ let integrationWarningShown = false;
 export function warnIfProductionLegalConfigIsIncomplete(): void {
   if (legalWarningShown || process.env.NODE_ENV !== "production" || !publicFormsAreEnabled()) return;
   const missing = Object.entries(siteConfig.legal)
-    .filter(([key, value]) => key !== "prelaunch" && key !== "version" && typeof value === "string" && !value.trim())
+    .filter(([key, value]) => key !== "prelaunch" && key !== "version" && key !== "email" && typeof value === "string" && !value.trim())
     .map(([key]) => key);
   if (!missing.length) return;
   legalWarningShown = true;

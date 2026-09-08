@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { calculateEstimate } from "@/src/config/calculator";
 import { publicFormsAreEnabled } from "@/src/config/site";
 import { createCalculatorRequest, createLead } from "@/src/db/submissions";
+import { database } from "@/src/db/client";
 import { notifyTelegram } from "@/src/lib/notifications/telegram";
 import { calculatorRequestSchema } from "@/src/lib/security/inputs";
 import { clientIp, privateHash, sanitizeLogValue } from "@/src/lib/security/request";
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
   const estimate = calculateEstimate(parsed.data.kind, parsed.data.answers, parsed.data.locale);
   let ids: { leadId: string; calculatorId: string };
   try {
+    ids = await database.transaction(async (transaction) => {
     const leadId = await createLead({
         name: parsed.data.name,
         contact: parsed.data.contact,
@@ -58,20 +60,21 @@ export async function POST(request: Request) {
         pageUrl: parsed.data.pageUrl,
         source: parsed.data.source,
         utm: parsed.data.utm,
-    }, ipHash);
+    }, ipHash, transaction);
     const calculatorId = await createCalculatorRequest({
         leadId,
         kind: parsed.data.kind,
         answers: parsed.data.answers,
         min: estimate.min,
         max: estimate.max,
+    }, transaction);
+    return { leadId, calculatorId };
     });
-    ids = { leadId, calculatorId };
   } catch {
     return apiError(500, "CALCULATOR_CREATE_FAILED", "Не удалось сохранить расчёт");
   }
 
-  await notifyTelegram({
+  after(() => notifyTelegram({
     entityType: "calculator",
     entityId: ids.calculatorId,
     text: [
@@ -84,7 +87,7 @@ export async function POST(request: Request) {
       `Источник: ${sanitizeLogValue(parsed.data.source)}`,
       `Admin: ${adminUrl(ids.leadId)}`,
     ].join("\n"),
-  }).catch(() => undefined);
+  }).catch(() => undefined));
 
   return NextResponse.json(
     { ok: true, estimate },

@@ -1,10 +1,10 @@
 import type { AuditRow } from "@/src/db/queries";
 import { AdminDate } from "@/src/components/admin/AdminUi";
 
-import { auditStatusLabel, formatAuditDuration, type AuditIssueView } from "../../_lib/audit-view";
+import { auditStatusLabel, formatAuditDuration, type AdminAuditContractView, type AuditIssueView } from "../../_lib/audit-view";
 import { AdminContactActions } from "../../_components/EntityUi";
 
-export function AuditOverview({ audit, issues, queue }: { audit: AuditRow; issues: readonly AuditIssueView[]; queue: unknown }) {
+export function AuditOverview({ audit, issues, queue, contract }: { audit: AuditRow; issues: readonly AuditIssueView[]; queue: unknown; contract?: AdminAuditContractView | null }) {
   const criticalCount = issues.filter((issue) => issue.severity === "critical").length;
   const highCount = issues.filter((issue) => issue.severity === "high").length;
   const worker = queueView(queue);
@@ -13,10 +13,14 @@ export function AuditOverview({ audit, issues, queue }: { audit: AuditRow; issue
     <section className="admin-section" id="overview">
       <header className="admin-section__heading"><div><p className="admin-kicker">Обзор</p><h2>Состояние проверки</h2></div><p>Основные показатели, заявка и состояние обработчика.</p></header>
       <div className="admin-metric-grid">
-        <article className="admin-metric"><span>Оценка</span><strong>{audit.overallScore ?? "—"}</strong><small>{audit.grade ? `Уровень ${audit.grade}` : "Пока не рассчитана"}</small></article>
-        <article className="admin-metric"><span>Найдено / подробно</span><strong>{audit.pagesDiscovered || "—"} / {audit.pagesChecked}</strong><small>Лимит подробной проверки: {audit.pageLimit}</small></article>
-        <article className="admin-metric"><span>Критические / высокие</span><strong>{criticalCount} / {highCount}</strong><small>{issues.length} проблем всего</small></article>
-        <article className="admin-metric"><span>Длительность</span><strong>{formatAuditDuration(audit)}</strong><small>{audit.partial ? "Частичная проверка" : "Полная в рамках лимита"}</small></article>
+        {contract
+          ? <article className="admin-metric"><span>Проверки с результатом</span><strong>{contract.statusCounts.completed} / {contract.statusCounts.total}</strong><small>{contract.engineVersion}</small></article>
+          : <article className="admin-metric"><span>Старая версия</span><strong>{audit.pagesChecked}</strong><small>Показаны только сохранённые факты по страницам</small></article>}
+        <article className="admin-metric"><span>Найдено / выбрано / проверено</span><strong>{contract ? `${contract.pagesDiscovered} / ${contract.pagesSelected} / ${contract.pagesChecked}` : `${audit.pagesDiscovered || "—"} / — / ${audit.pagesChecked}`}</strong><small>Лимит подробной проверки: {audit.pageLimit}</small></article>
+        {contract
+          ? <article className="admin-metric"><span>Ошибки / замечания</span><strong>{contract.statusCounts.fail} / {contract.statusCounts.warning}</strong><small>Без данных: {contract.statusCounts.notRun + contract.statusCounts.insufficientData}</small></article>
+          : <article className="admin-metric"><span>Критические / высокие</span><strong>{criticalCount} / {highCount}</strong><small>{issues.length} проблем всего</small></article>}
+        <article className="admin-metric"><span>Длительность</span><strong>{formatAuditDuration(audit)}</strong><small>{contract ? contract.coverageLabel : audit.partial ? "Частичная проверка" : "Полная в рамках лимита"}</small></article>
       </div>
       <div className="admin-grid admin-grid--summary">
         <article className="admin-card"><h3>Заявка</h3><dl className="admin-dl"><div><dt>Имя</dt><dd>{audit.name}</dd></div><div><dt>Контакт</dt><dd><AdminContactActions contact={audit.contact} contactType={audit.contactType}/></dd></div><div><dt>Тип контакта</dt><dd>{contactTypeLabel(audit.contactType)}</dd></div><div><dt>Язык отчёта</dt><dd>{audit.locale === "en" ? "Английский" : "Русский"}</dd></div></dl></article>

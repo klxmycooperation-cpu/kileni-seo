@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import type { Locale } from "../../config/site";
+import { INTRO_FINISHED_EVENT } from "../home/brand-intro-config";
 
 type Point = {
   label: string;
@@ -25,10 +26,11 @@ const baselineTechnicalScore: TechnicalScoreValues = {
   recommendations: 81,
 };
 
-function useVisualReveal(immediate = false) {
+function useVisualReveal(waitForIntro = false) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [ready, setReady] = useState(immediate);
+  const [ready, setReady] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [inViewport, setInViewport] = useState(false);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -44,52 +46,81 @@ function useVisualReveal(immediate = false) {
     sync();
     subscribe();
 
-    if (immediate || media.matches) {
-      const frame = window.requestAnimationFrame(() => setReady(true));
-      return () => {
-        window.cancelAnimationFrame(frame);
-        unsubscribe();
-      };
-    }
-
     const node = ref.current;
     if (!node) return unsubscribe;
 
-    // A tall card may never occupy 24% of a short landscape viewport. Start
-    // slightly before it enters the screen and keep a timeout fallback so a
-    // browser without IntersectionObserver never leaves the chart invisible.
-    const fallback = window.setTimeout(() => setReady(true), 1_400);
+    let introReady = !waitForIntro
+      || !document.documentElement.dataset.kileniIntro
+      || document.documentElement.dataset.kileniIntro === "done";
+    let visible = false;
+    let fallback: number | undefined;
+    let introObserver: MutationObserver | undefined;
+
+    const revealWhenReady = () => {
+      if (!introReady) return;
+      if (media.matches || visible) setReady(true);
+    };
+    const onIntroFinished = () => {
+      introReady = true;
+      window.removeEventListener(INTRO_FINISHED_EVENT, onIntroFinished);
+      introObserver?.disconnect();
+      introObserver = undefined;
+      revealWhenReady();
+    };
+
+    if (!introReady) {
+      window.addEventListener(INTRO_FINISHED_EVENT, onIntroFinished, { once: true });
+      introObserver = new MutationObserver(() => {
+        if (document.documentElement.dataset.kileniIntro === "done") onIntroFinished();
+      });
+      introObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-kileni-intro"] });
+    }
+
+    // A 1% threshold also works for short landscape screens. The hero keeps
+    // observing after its single reveal so its finite motion can pause when a
+    // visitor scrolls away before the run has finished.
     const observer = typeof IntersectionObserver === "function"
       ? new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) {
-            setReady(true);
-            observer?.disconnect();
-          }
+          visible = entry.isIntersecting;
+          setInViewport(visible);
+          revealWhenReady();
+          if (!waitForIntro && visible) observer?.disconnect();
         },
         { threshold: 0.01, rootMargin: "160px 0px" },
       )
       : null;
-    observer?.observe(node);
+
+    if (observer) observer.observe(node);
+    else {
+      visible = true;
+      setInViewport(true);
+      fallback = window.setTimeout(revealWhenReady, 0);
+    }
+
     return () => {
       window.clearTimeout(fallback);
       observer?.disconnect();
+      introObserver?.disconnect();
+      window.removeEventListener(INTRO_FINISHED_EVENT, onIntroFinished);
       unsubscribe();
     };
-  }, [immediate]);
+  }, [waitForIntro]);
 
-  return { ref, ready, reducedMotion };
+  return { ref, ready, reducedMotion, inViewport };
 }
 
 function useCountUp(value: number, ready: boolean, reducedMotion: boolean, duration = 1250) {
-  const [display, setDisplay] = useState(ready && reducedMotion ? value : 0);
+  const [display, setDisplay] = useState(value);
 
   useEffect(() => {
-    if (!ready || reducedMotion) {
-      setDisplay(ready ? value : 0);
+    if (!ready) return;
+    if (reducedMotion) {
+      setDisplay(value);
       return;
     }
 
+    setDisplay(0);
     const startedAt = performance.now();
     let frame = 0;
     const render = (now: number) => {
@@ -286,7 +317,7 @@ function DetailedTrendChart({
 }
 
 function VisibilityChart({ locale }: { locale: Locale }) {
-  const { ref, ready, reducedMotion } = useVisualReveal(true);
+  const { ref, ready, reducedMotion, inViewport } = useVisualReveal(true);
   const chartId = useId().replace(/:/g, "");
   const ru = locale === "ru";
   const [hovered, setHovered] = useState<number | null>(null);
@@ -298,7 +329,7 @@ function VisibilityChart({ locale }: { locale: Locale }) {
       { label: "Июн", value: 54, detail: "Добавили полезные материалы" }, { label: "", value: 56, detail: "Обновили названия и описания" },
       { label: "", value: 55, detail: "Обычное колебание" }, { label: "Июл", value: 61, detail: "Сайт чаще появляется в поиске" },
       { label: "", value: 66, detail: "Точнее ответили на запросы" }, { label: "", value: 64, detail: "Небольшое снижение" },
-      { label: "Авг", value: 68, detail: "Текущий ориентир" },
+      { label: "Авг", value: 68, detail: "Текущее значение" },
     ]
     : [
       { label: "Mar", value: 34, detail: "Starting point" }, { label: "", value: 37, detail: "First fixes" },
@@ -333,7 +364,7 @@ function VisibilityChart({ locale }: { locale: Locale }) {
     .join("; ");
 
   return (
-    <div className="analytics-hero-chart" ref={ref} data-testid="hero-search-visibility" data-ready={ready ? "true" : "false"}>
+    <div className="analytics-hero-chart" ref={ref} data-testid="hero-search-visibility" data-ready={ready ? "true" : "false"} data-in-viewport={inViewport ? "true" : "false"}>
       <header className="analytics-hero-chart__header">
         <p>{ru ? "Поисковая видимость" : "Search visibility"}</p>
       </header>
@@ -349,7 +380,7 @@ function VisibilityChart({ locale }: { locale: Locale }) {
             </linearGradient>
           </defs>
           <rect className="analytics-visibility-detail__target-zone" x={frame.left} y={pointAt(75, 0).y} width={frame.width} height={pointAt(60, 0).y - pointAt(75, 0).y} rx="5" />
-          <text className="analytics-visibility-detail__target-label" x={frame.left + 8} y={pointAt(75, 0).y + 13}>{ru ? "ориентир" : "target"}</text>
+          <text className="analytics-visibility-detail__target-label" x={frame.left + 8} y={pointAt(75, 0).y + 13}>{ru ? "целевой диапазон" : "target range"}</text>
           {[100, 75, 50, 25, 0].map((value) => (
             <g key={value}>
               <line className="analytics-visibility-detail__grid" x1={frame.left} x2={frame.left + frame.width} y1={pointAt(value, 0).y} y2={pointAt(value, 0).y} />
@@ -367,20 +398,9 @@ function VisibilityChart({ locale }: { locale: Locale }) {
             <g
               className="analytics-visibility-detail__point-wrap"
               key={`${point.label}-${index}`}
-              tabIndex={0}
-              role="button"
-              aria-label={`${spokenMonths[index]}: ${point.value}%. ${point.detail}`}
-              onFocus={() => setHovered(index)}
-              onBlur={() => setHovered(null)}
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered(null)}
               onPointerDown={() => setHovered(index)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  setHovered((current) => current === index ? null : index);
-                }
-              }}
               style={{ "--point-delay": `${520 + index * 76}ms` } as CSSProperties}
             >
               <circle className="analytics-visibility-detail__hit" cx={point.x} cy={point.y} r="10" />
@@ -407,42 +427,15 @@ function VisibilityChart({ locale }: { locale: Locale }) {
 
 export function HeroSearchVisibilityVisual({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
-  const [run, setRun] = useState(0);
-
-  useEffect(() => {
-    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let timer: number | undefined;
-
-    const syncLoop = () => {
-      if (timer) {
-        window.clearInterval(timer);
-        timer = undefined;
-      }
-      if (!motionPreference.matches) {
-        // Keep the chart readable. It restarts only once every fifteen seconds.
-        timer = window.setInterval(() => setRun((value) => value + 1), 15_000);
-      }
-    };
-
-    syncLoop();
-    if (typeof motionPreference.addEventListener === "function") motionPreference.addEventListener("change", syncLoop);
-    else motionPreference.addListener(syncLoop);
-    return () => {
-      if (timer) window.clearInterval(timer);
-      if (typeof motionPreference.removeEventListener === "function") motionPreference.removeEventListener("change", syncLoop);
-      else motionPreference.removeListener(syncLoop);
-    };
-  }, []);
 
   return (
-    <figure className="hero-audit-visual analytics-card analytics-card--hero" aria-label={ru ? "Поисковая видимость" : "Search visibility"} data-visualisation-run={run}>
-      <VisibilityChart key={run} locale={locale} />
+    <figure className="hero-audit-visual analytics-card analytics-card--hero" aria-label={ru ? "Поисковая видимость" : "Search visibility"} data-visualisation-run="0">
+      <VisibilityChart locale={locale} />
       <figcaption className="analytics-demo-caption">
-        {ru ? "Пример визуализации динамики — не результат конкретного сайта" : "Example trend visualisation — not the result of a specific website"}
+        {ru
+          ? "График показывает, как может меняться видимость сайта после исправлений. Это пример, а не результат клиента."
+          : "The chart shows how a website's search visibility can change after improvements. This is an example, not a client result."}
       </figcaption>
-      <button className="analytics-replay" type="button" onClick={() => setRun((value) => value + 1)}>
-        {ru ? "Повторить анимацию" : "Replay animation"}<span aria-hidden="true">↻</span>
-      </button>
     </figure>
   );
 }
@@ -482,7 +475,7 @@ export function SeoAuditScoreVisual({ locale, values }: { locale: Locale; values
   return (
     <section className="svc-decision-section service-analytics-section service-analytics-section--audit" aria-labelledby="technical-score-title">
       <div className="shell service-analytics-layout">
-        <header><p className="svc-kicker">{ru ? "Технический ориентир" : "Technical reference"}</p><h2 id="technical-score-title">{ru ? "Сначала видим общую картину, затем разбираем причины" : "First see the overall picture, then investigate the causes"}</h2><p>{ru ? "В полном аудите показатели рассчитываются по проверенному сайту и помогают определить порядок работ." : "In a full audit, the metrics are calculated from the checked website and help prioritise the work."}</p></header>
+        <header><p className="svc-kicker">{ru ? "Как читать показатели аудита" : "How to read the audit metrics"}</p><h2 id="technical-score-title">{ru ? "Сначала видим общую картину, затем разбираем причины" : "First see the overall picture, then investigate the causes"}</h2><p>{ru ? "В полном аудите показатели рассчитываются по проверенному сайту и помогают определить порядок работ." : "In a full audit, the metrics are calculated from the checked website and help prioritise the work."}</p></header>
         <TechScoreCard locale={locale} values={values} />
       </div>
     </section>
@@ -520,7 +513,7 @@ function TrafficCard({ locale }: { locale: Locale }) {
         ready={ready}
         ariaLabel={ru ? "Динамика органического трафика" : "Organic traffic trend"}
         yTicks={[{ label: "30K", value: 30000 }, { label: "20K", value: 20000 }, { label: "10K", value: 10000 }, { label: "0", value: 0 }]}
-        target={{ from: 20000, to: 25000, label: ru ? "ориентир" : "target" }}
+        target={{ from: 20000, to: 25000, label: ru ? "целевой диапазон" : "target range" }}
         stages={[{ index: 3, label: ru ? "основа" : "foundation" }, { index: 8, label: ru ? "контент" : "content" }]}
         chips={ru ? [{ label: "Видимость", value: "+17%", success: true }, { label: "Переходы", value: "+28,4%", success: true }, { label: "CTR", value: "4,7%" }, { label: "Страницы", value: "92/100" }] : [{ label: "Visibility", value: "+17%", success: true }, { label: "Visits", value: "+28.4%", success: true }, { label: "CTR", value: "4.7%" }, { label: "Pages", value: "92/100" }]}
         statuses={ru ? ["Видимость ↑", "Переходы ↑", "CTR ↑"] : ["Visibility ↑", "Visits ↑", "CTR ↑"]}
@@ -564,7 +557,7 @@ function CtrCard({ locale }: { locale: Locale }) {
         ready={ready}
         ariaLabel={ru ? "Динамика CTR в поиске" : "Search CTR trend"}
         yTicks={[{ label: "6%", value: 6 }, { label: "4%", value: 4 }, { label: "2%", value: 2 }, { label: "0%", value: 0 }]}
-        target={{ from: 4, to: 5, label: ru ? "ориентир" : "target" }}
+        target={{ from: 4, to: 5, label: ru ? "целевой диапазон" : "target range" }}
         stages={[{ index: 3, label: ru ? "вид в поиске" : "snippets" }, { index: 8, label: ru ? "проверка" : "review" }]}
         chips={ru ? [{ label: "Показы", value: "+17%", success: true }, { label: "CTR", value: "4,7%", success: true }, { label: "Вид в поиске", value: "обновлён" }, { label: "Переходы", value: "+28,4%", success: true }] : [{ label: "Impressions", value: "+17%", success: true }, { label: "CTR", value: "4.7%", success: true }, { label: "Snippets", value: "refined" }, { label: "Visits", value: "+28.4%", success: true }]}
         statuses={ru ? ["Показы ↑", "CTR ↑", "Переходы ↑"] : ["Impressions ↑", "CTR ↑", "Visits ↑"]}
@@ -579,7 +572,7 @@ export function SeoPromotionMetricsVisual({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
   return (
     <section className="svc-decision-section service-analytics-section service-analytics-section--promotion" aria-labelledby="promotion-metrics-title">
-      <div className="shell"><header className="service-analytics-heading"><p className="svc-kicker">{ru ? "Что отслеживаем каждый месяц" : "What we monitor every month"}</p><h2 id="promotion-metrics-title">{ru ? "Не один график, а связку сигналов" : "Not one graph, but a set of related signals"}</h2><p>{ru ? "Показываем динамику, объясняем колебания и сверяемся с тем, что реально изменили на сайте." : "We show the trend, explain fluctuations and compare them with the actual changes made on the site."}</p></header><div className="analytics-time-grid"><TrafficCard locale={locale} /><CtrCard locale={locale} /></div></div>
+      <div className="shell"><header className="service-analytics-heading"><p className="svc-kicker">{ru ? "Что отслеживаем каждый месяц" : "What we monitor every month"}</p><h2 id="promotion-metrics-title">{ru ? "Сравниваем динамику нескольких показателей" : "We compare trends across several metrics"}</h2><p>{ru ? "Показываем динамику, объясняем колебания и сверяемся с тем, что реально изменили на сайте." : "We show the trend, explain fluctuations and compare them with the actual changes made on the site."}</p></header><div className="analytics-time-grid"><TrafficCard locale={locale} /><CtrCard locale={locale} /></div></div>
     </section>
   );
 }

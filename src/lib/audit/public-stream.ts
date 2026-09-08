@@ -14,6 +14,23 @@ export type PublicAuditProgressEvent = {
   readonly pagesChecked: number;
   readonly pagesDiscovered: number;
   readonly pageLimit: typeof PUBLIC_AUDIT_PAGE_LIMIT;
+  readonly pagesEligible?: number;
+  readonly pagesSelected?: number;
+  readonly selectedPages?: readonly {
+    readonly url: string;
+    readonly pageType: string;
+    readonly selectionReason: string;
+  }[];
+  readonly checkedUrls?: readonly string[];
+  readonly failedUrls?: readonly string[];
+  readonly selectionComplete?: boolean;
+  readonly technicalFilesChecked?: number;
+  readonly currentUrl?: string;
+  readonly currentPageType?: string;
+  readonly eventKind?: string;
+  readonly eventCreatedAt?: string;
+  readonly robotsStatus?: "found" | "missing" | "error";
+  readonly sitemapStatus?: "found" | "missing" | "error";
 };
 
 export type PublicAuditCompletedEvent = {
@@ -168,7 +185,8 @@ function parsePublicAuditStreamEvent(line: string): PublicAuditStreamEvent {
   }
   if (
     value.type === "progress" && typeof value.status === "string" &&
-    isCount(value.pagesChecked) && isCount(value.pagesDiscovered) && value.pageLimit === PUBLIC_AUDIT_PAGE_LIMIT
+    isCount(value.pagesChecked) && isCount(value.pagesDiscovered) && value.pageLimit === PUBLIC_AUDIT_PAGE_LIMIT &&
+    validOptionalProgressFields(value)
   ) {
     return value as PublicAuditProgressEvent;
   }
@@ -182,6 +200,52 @@ function parsePublicAuditStreamEvent(line: string): PublicAuditStreamEvent {
     return value as PublicAuditFailedEvent;
   }
   throw new PublicAuditStreamError("Сервер вернул некорректный ход проверки.");
+}
+
+function validOptionalProgressFields(value: Record<string, unknown>): boolean {
+  if (value.pagesEligible !== undefined && !isCount(value.pagesEligible)) return false;
+  if (value.pagesSelected !== undefined && !isCount(value.pagesSelected)) return false;
+  if (value.technicalFilesChecked !== undefined && !isCount(value.technicalFilesChecked)) return false;
+  if (value.selectionComplete !== undefined && typeof value.selectionComplete !== "boolean") return false;
+  if (value.eventKind !== undefined && (typeof value.eventKind !== "string" || !/^[a-z_]{2,60}$/u.test(value.eventKind))) return false;
+  if (value.eventCreatedAt !== undefined && (typeof value.eventCreatedAt !== "string" || Number.isNaN(Date.parse(value.eventCreatedAt)))) return false;
+  if (value.currentPageType !== undefined && (typeof value.currentPageType !== "string" || !/^[a-z_]{2,40}$/u.test(value.currentPageType))) return false;
+  if (value.currentUrl !== undefined && !isSafeProgressUrl(value.currentUrl)) return false;
+  if (value.robotsStatus !== undefined && !["found", "missing", "error"].includes(String(value.robotsStatus))) return false;
+  if (value.sitemapStatus !== undefined && !["found", "missing", "error"].includes(String(value.sitemapStatus))) return false;
+  const checkedUrls = progressUrlArray(value.checkedUrls);
+  const failedUrls = progressUrlArray(value.failedUrls);
+  if (checkedUrls === null || failedUrls === null || checkedUrls.length + failedUrls.length > PUBLIC_AUDIT_PAGE_LIMIT) return false;
+  if (checkedUrls.some((url) => failedUrls.includes(url))) return false;
+  if (value.selectedPages !== undefined) {
+    if (!Array.isArray(value.selectedPages) || value.selectedPages.length > PUBLIC_AUDIT_PAGE_LIMIT) return false;
+    if (!value.selectedPages.every((item) => isRecord(item) && isSafeProgressUrl(item.url) &&
+      typeof item.pageType === "string" && /^[a-z_]{2,40}$/u.test(item.pageType) &&
+      typeof item.selectionReason === "string" && /^[a-z_]{2,60}$/u.test(item.selectionReason))) return false;
+  }
+  return true;
+}
+
+function progressUrlArray(value: unknown): string[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > PUBLIC_AUDIT_PAGE_LIMIT || !value.every(isSafeProgressUrl)) return null;
+  const normalized = value.map((item) => {
+    const url = new URL(item as string);
+    url.search = "";
+    url.hash = "";
+    return url.href;
+  });
+  return new Set(normalized).size === normalized.length ? normalized : null;
+}
+
+function isSafeProgressUrl(value: unknown): boolean {
+  if (typeof value !== "string" || value.length > 2_048) return false;
+  try {
+    const url = new URL(value);
+    return (url.protocol === "http:" || url.protocol === "https:") && !url.username && !url.password;
+  } catch {
+    return false;
+  }
 }
 
 function isCount(value: unknown): value is number {

@@ -59,7 +59,8 @@ export function readAuditLeadHandoff(storage: Storage, token: string, now = Date
     }
     return value as AuditLeadHandoff;
   } catch {
-    storage.removeItem(key);
+    // Storage policies may block both reading and cleanup. Handoff data is
+    // optional, so this must never prevent the audit or the brief from working.
     return null;
   }
 }

@@ -17,7 +17,7 @@ function formatDate(locale: Locale, value: string) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-function ArticleCard({ locale, slug, index }: { locale: Locale; slug: string; index?: number }) {
+function ArticleCard({ locale, slug }: { locale: Locale; slug: string }) {
   const article = getArticle(locale, slug);
   if (!article) return null;
   const ru = locale === "ru";
@@ -30,12 +30,12 @@ function ArticleCard({ locale, slug, index }: { locale: Locale; slug: string; in
           width={2000}
           height={1250}
           sizes="(max-width: 820px) 100vw, 36vw"
-          preload={index === 0}
+          quality={60}
+          loading="lazy"
         />
       </figure>
       <div className="article-card-copy">
         <div className="article-card-meta">
-          {typeof index === "number" ? <span>{String(index + 1).padStart(2, "0")}</span> : null}
           <span>{article.searchIntent.label}</span>
           <span>{article.readingMinutes} {ru ? "мин" : "min"}</span>
         </div>
@@ -118,7 +118,16 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
           </header>
         </div>
         <figure className="shell article-hero-image">
-          <Image src={article.hero.src} alt={article.hero.alt} width={2000} height={1250} sizes="(max-width: 1560px) 94vw, 1440px" preload/>
+          <Image
+            src={article.hero.src}
+            alt={article.hero.alt}
+            width={2000}
+            height={1250}
+            sizes="(max-width: 1560px) 94vw, 1440px"
+            quality={60}
+            loading="eager"
+            fetchPriority="high"
+          />
           <figcaption>
             {article.hero.sourceUrl ? <a href={article.hero.sourceUrl} target="_blank" rel="noreferrer noopener">{article.hero.credit}</a> : <span>{article.hero.credit}</span>}
             <span aria-hidden="true"> · </span>

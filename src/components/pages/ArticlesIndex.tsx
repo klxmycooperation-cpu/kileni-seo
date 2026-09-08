@@ -24,14 +24,14 @@ export function ArticlesIndex({ articles, locale }: { articles: readonly Article
 
       <div className="article-index-grid" aria-live="polite">
         {visible.map((article, index) => (
-          <ArticleIndexCard article={article} eager={index < 2} featured={index === 0} key={article.slug} locale={locale} />
+          <ArticleIndexCard article={article} featured={index === 0} key={article.slug} locale={locale} />
         ))}
       </div>
     </div>
   );
 }
 
-function ArticleIndexCard({ article, eager, featured, locale }: { article: Article; eager: boolean; featured: boolean; locale: Locale }) {
+function ArticleIndexCard({ article, featured, locale }: { article: Article; featured: boolean; locale: Locale }) {
   const ru = locale === "ru";
   const articleHref = localizedPath(locale, `blog/${article.slug}`);
   const service = articleService(article.slug, locale);
@@ -45,8 +45,9 @@ function ArticleIndexCard({ article, eager, featured, locale }: { article: Artic
             width={1600}
             height={900}
             sizes={featured ? "(max-width: 820px) 100vw, 52vw" : "(max-width: 820px) 100vw, 38vw"}
+            quality={60}
             preload={featured}
-            loading={eager && !featured ? "eager" : undefined}
+            loading={featured ? undefined : "lazy"}
           />
           <figcaption aria-hidden="true">{article.hero.credit}</figcaption>
         </figure>

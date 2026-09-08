@@ -132,6 +132,29 @@ describe("calculateEstimate", () => {
     });
   });
 
+  it("uses calculator additions from the canonical offer registry", () => {
+    expect(calculateEstimate("marketplaces", {
+      items: 2,
+      package: "audit",
+      video: true,
+      analytics: true,
+    })).toEqual({
+      min: 41_000,
+      max: 57_000,
+      factors: ["2 артикулов", "видео", "регулярная аналитика"],
+    });
+
+    expect(calculateEstimate("development", {
+      siteType: "landing",
+      account: true,
+      integrations: true,
+    })).toEqual({
+      min: 235_000,
+      max: 325_000,
+      factors: ["лендинг", "личный кабинет", "интеграции"],
+    });
+  });
+
   it("returns English explanations for the English calculator", () => {
     expect(calculateEstimate("seo", {
       scale: "base",

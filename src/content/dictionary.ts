@@ -4,7 +4,7 @@ export type Dictionary = typeof dictionaries.ru;
 
 export const dictionaries = {
   ru: {
-    nav: { services: "Услуги", audit: "Бесплатная проверка", pricing: "Цены", cases: "Кейсы", articles: "Блог", brief: "Бриф", cta: "Проверить сайт" },
+    nav: { services: "Услуги", audit: "Бесплатная проверка", pricing: "Цены", cases: "Кейсы", articles: "Блог", brief: "Бриф", cta: "Узнать, что мешает сайту" },
     hero: {
       eyebrow: "Бесплатная SEO-проверка до 10 страниц",
       title: "Сайт есть. Пора сделать так, чтобы его находили.",
@@ -13,7 +13,7 @@ export const dictionaries = {
     },
     auditForm: {
       title: "Бесплатная предварительная проверка",
-      url: "Адрес сайта", name: "Ваше имя", contact: "Telegram или e-mail",
+      url: "Адрес сайта", name: "Ваше имя", contact: "Email (необязательно)",
       consent: "Согласен на обработку данных и получение ответа.",
       authority: "Я имею отношение к сайту или вправе запросить проверку его публичной части.",
       submit: "Проверить сайт бесплатно", details: "Что именно проверяется?", pending: "Отправляем сайт на проверку…",
@@ -38,7 +38,7 @@ export const dictionaries = {
     },
   },
   en: {
-    nav: { services: "Services", audit: "Free check", pricing: "Prices", cases: "Cases", articles: "Blog", brief: "Brief", cta: "Check a website" },
+    nav: { services: "Services", audit: "Free check", pricing: "Prices", cases: "Cases", articles: "Blog", brief: "Brief", cta: "See what blocks the website" },
     hero: {
       eyebrow: "Free SEO check for up to 10 pages",
       title: "Your website is live. Now make it discoverable.",
@@ -46,7 +46,7 @@ export const dictionaries = {
       scanWords: ["Indexing", "Structure", "Speed", "Optimisation"],
     },
     auditForm: {
-      title: "Free preliminary website check", url: "Website address", name: "Your name", contact: "Telegram or email",
+      title: "Free preliminary website check", url: "Website address", name: "Your name", contact: "Email (optional)",
       consent: "I agree to personal data processing and receiving a response.",
       authority: "I am associated with this website or authorized to request a check of its public pages.",
       submit: "Check my website", details: "What is checked?", pending: "Sending the website for review…",

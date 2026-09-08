@@ -3,7 +3,11 @@ import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-import { migrationSql } from "./migrations";
+import { assertIsolatedPreviewEnvironment } from "../../scripts/runtime-isolation.mjs";
+import { migrateLibsqlDatabase, migrateSqliteDatabase } from "./migrations";
+import { createDatabaseFetch } from "./transport";
+
+assertIsolatedPreviewEnvironment();
 
 const defaultPath = process.env.VERCEL === "1" ? "/tmp/kileni.sqlite" : "./data/kileni.sqlite";
 const databasePath = resolve(process.env.DATABASE_PATH ?? defaultPath);
@@ -16,49 +20,62 @@ export const databaseConfigurationError = (tursoDatabaseUrl || tursoAuthToken) &
   ? "TURSO_DATABASE_URL и TURSO_AUTH_TOKEN должны быть заданы вместе"
   : null;
 
-if (databaseMode === "local" || databaseMode === "ephemeral") mkdirSync(dirname(databasePath), { recursive: true });
-
 const globalDatabase = globalThis as typeof globalThis & {
   __kileniSqlite?: { path: string; connection: Database.Database };
   __kileniLibsql?: { key: string; client: Client };
   __kileniDatabaseReady?: { key: string; promise: Promise<void> };
 };
 
-// Синхронное соединение оставлено для локальных обслуживающих скриптов и старых
-// тестовых фикстур. Код приложения использует `database` ниже: на Vercel он
-// всегда выполняет запросы через постоянную Turso, а не через /tmp.
-const existingSqlite = globalDatabase.__kileniSqlite;
-export const sqlite = existingSqlite?.path === databasePath ? existingSqlite.connection : new Database(databasePath);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-sqlite.pragma("busy_timeout = 5000");
-sqlite.exec(migrationSql);
-globalDatabase.__kileniSqlite = { path: databasePath, connection: sqlite };
+// Старые обслуживающие скрипты используют синхронный `sqlite`. Proxy сохраняет
+// этот API, но не открывает локальный файл, пока к соединению не обратятся.
+export const sqlite = new Proxy({} as Database.Database, {
+  get(_target, property) {
+    const connection = getLocalSqlite();
+    const value = Reflect.get(connection, property, connection) as unknown;
+    return typeof value === "function" ? value.bind(connection) : value;
+  },
+  set(_target, property, value) {
+    return Reflect.set(getLocalSqlite(), property, value);
+  },
+});
 
 const clientKey = `${tursoDatabaseUrl}\n${tursoAuthToken}`;
 const existingClient = globalDatabase.__kileniLibsql;
 const remoteClient = databaseMode === "turso"
   ? existingClient?.key === clientKey
     ? existingClient.client
-    : createClient({ url: tursoDatabaseUrl, authToken: tursoAuthToken })
+    : createClient({ url: tursoDatabaseUrl, authToken: tursoAuthToken, fetch: createDatabaseFetch() })
   : null;
 if (remoteClient) globalDatabase.__kileniLibsql = { key: clientKey, client: remoteClient };
 
 let localOperationTail: Promise<void> = Promise.resolve();
+let localConnectionReady: Database.Database | null = null;
 
 async function ensureDatabaseReady(): Promise<void> {
   if (databaseConfigurationError) throw new Error(databaseConfigurationError);
   if (databaseMode === "ephemeral" && process.env.NODE_ENV === "production") {
     throw new Error("На Vercel требуется постоянная Turso database; /tmp не подходит для заявок и аудитов");
   }
-  if (databaseMode === "local" || databaseMode === "ephemeral") return;
+  if (databaseMode === "local" || databaseMode === "ephemeral") {
+    getLocalSqlite();
+    return;
+  }
 
   const existingReady = globalDatabase.__kileniDatabaseReady;
   const ready = existingReady?.key === clientKey
     ? existingReady.promise
-    : remoteClient?.executeMultiple(migrationSql) ?? Promise.reject(new Error("Turso client is unavailable"));
+    : remoteClient ? migrateLibsqlDatabase(remoteClient).then(() => undefined) : Promise.reject(new Error("Turso client is unavailable"));
   globalDatabase.__kileniDatabaseReady = { key: clientKey, promise: ready };
-  await ready;
+  try {
+    await ready;
+  } catch (error) {
+    // A transient transport failure must not poison every later request until
+    // a process restart. Only the next request retries initialization, not SQL.
+    if (globalDatabase.__kileniDatabaseReady?.promise === ready) {
+      delete globalDatabase.__kileniDatabaseReady;
+    }
+    throw error;
+  }
 }
 
 export type SqlClient = Pick<Client, "execute" | "batch" | "transaction">;
@@ -111,8 +128,10 @@ export async function closeDatabaseConnections(): Promise<void> {
     remoteClient.close();
     delete globalDatabase.__kileniLibsql;
   }
-  if (globalDatabase.__kileniSqlite?.connection === sqlite) {
-    if (sqlite.open) sqlite.close();
+  const local = globalDatabase.__kileniSqlite;
+  if (local?.path === databasePath) {
+    if (local.connection.open) local.connection.close();
+    if (localConnectionReady === local.connection) localConnectionReady = null;
     delete globalDatabase.__kileniSqlite;
   }
   if (globalDatabase.__kileniDatabaseReady?.key === clientKey) {
@@ -127,6 +146,7 @@ function enqueueLocal<T>(operation: () => Promise<T> | T): Promise<T> {
 }
 
 function executeLocal(statement: InStatement | string, explicitArgs?: InArgs): ResultSet {
+  const sqlite = getLocalSqlite();
   const sql = typeof statement === "string" ? statement : statement.sql;
   const args = normalizeArgs(typeof statement === "string" ? explicitArgs : statement.args);
   const prepared = sqlite.prepare(sql);
@@ -160,6 +180,7 @@ async function executeLocalTransaction<T>(
   callback: (transaction: Transaction) => Promise<T>,
   mode: "read" | "write" | "deferred" = "write",
 ): Promise<T> {
+  const sqlite = getLocalSqlite();
   sqlite.exec(mode === "write" ? "BEGIN IMMEDIATE" : "BEGIN DEFERRED");
   let closed = false;
   const transaction = {
@@ -191,6 +212,38 @@ async function executeLocalTransaction<T>(
   } finally {
     transaction.close();
   }
+}
+
+function getLocalSqlite(): Database.Database {
+  if (databaseConfigurationError) throw new Error(databaseConfigurationError);
+  if (databaseMode === "turso") throw new Error("Локальный SQLite недоступен в режиме Turso");
+  if (databaseMode === "ephemeral" && process.env.NODE_ENV === "production") {
+    throw new Error("На Vercel требуется постоянная Turso database; /tmp не подходит для заявок и аудитов");
+  }
+
+  const existing = globalDatabase.__kileniSqlite;
+  if (existing?.path === databasePath && existing.connection.open) {
+    if (localConnectionReady !== existing.connection) {
+      migrateSqliteDatabase(existing.connection);
+      localConnectionReady = existing.connection;
+    }
+    return existing.connection;
+  }
+
+  mkdirSync(dirname(databasePath), { recursive: true });
+  const connection = new Database(databasePath);
+  try {
+    connection.pragma("journal_mode = WAL");
+    connection.pragma("foreign_keys = ON");
+    connection.pragma("busy_timeout = 5000");
+    migrateSqliteDatabase(connection);
+  } catch (error) {
+    connection.close();
+    throw error;
+  }
+  globalDatabase.__kileniSqlite = { path: databasePath, connection };
+  localConnectionReady = connection;
+  return connection;
 }
 
 function normalizeArgs(args: InArgs | undefined): unknown[] | Record<string, unknown> | undefined {

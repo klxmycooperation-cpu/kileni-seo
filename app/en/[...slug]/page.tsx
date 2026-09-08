@@ -42,15 +42,16 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
 
 export default async function Page({ params }: RouteParams) {
   const { slug } = await params;
+  if (slug.length === 2 && slug[0] === "marketplaces" && slug[1] === "megamarket") {
+    permanentRedirect("/en/marketplaces");
+  }
   if (slug[0] === "articles") {
     permanentRedirect(`/en/blog${slug[1] ? `/${slug[1]}` : ""}`);
   }
-  if (slug.length === 1 && slug[0] === "seo") permanentRedirect("/en/seo-promotion");
   return <PublicRoute locale="en" parts={slug}/>;
 }
 
 function canonicalParts(parts: string[]): string[] {
   if (parts[0] === "articles") return ["blog", ...parts.slice(1)];
-  if (parts.length === 1 && parts[0] === "seo") return ["seo-promotion"];
   return parts;
 }

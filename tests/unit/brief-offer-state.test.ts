@@ -49,4 +49,27 @@ describe("brief offer state", () => {
     const state = resolveBriefOfferState("", { ...oldDraft, offerId: "missing-offer" });
     expect(state.offerId).toBeUndefined();
   });
+
+  it("keeps the canonical custom-task service after a stale draft and reload", () => {
+    const firstVisit = resolveBriefOfferState("?service=custom-task", {
+      ...oldDraft,
+      service: "seo",
+      offerId: undefined,
+    });
+    expect(firstVisit).toMatchObject({
+      service: "custom",
+      answers: expect.objectContaining({ sourceService: "custom-task" }),
+    });
+
+    const reloaded = resolveBriefOfferState("?service=custom-task", {
+      version: 2,
+      service: firstVisit.service,
+      answers: firstVisit.answers,
+      step: firstVisit.step,
+    });
+    expect(reloaded).toMatchObject({
+      service: "custom",
+      answers: expect.objectContaining({ sourceService: "custom-task" }),
+    });
+  });
 });

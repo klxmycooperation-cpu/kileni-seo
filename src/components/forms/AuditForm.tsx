@@ -90,14 +90,55 @@ function pause(milliseconds: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
+type AuditSubmissionResponse = {
+  token?: string;
+  restore?: string;
+  status?: string;
+  message?: string;
+};
+
+function auditServiceUnavailableMessage(ru: boolean): string {
+  return ru
+    ? "Сервис проверки временно недоступен. Повторите попытку через минуту."
+    : "The audit service is temporarily unavailable. Please try again in a minute.";
+}
+
+async function readAuditSubmissionResponse(response: Response, ru: boolean): Promise<AuditSubmissionResponse> {
+  const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+  if (!contentType.includes("json")) return { message: auditServiceUnavailableMessage(ru) };
+  try {
+    const payload = await response.json() as unknown;
+    if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+      return { message: auditServiceUnavailableMessage(ru) };
+    }
+    return payload as AuditSubmissionResponse;
+  } catch {
+    return { message: auditServiceUnavailableMessage(ru) };
+  }
+}
+
+function auditRequestErrorMessage(error: unknown, ru: boolean): string {
+  if (error instanceof PublicAuditStreamError) return error.message;
+  if (error instanceof Error && error.name === "AbortError") {
+    return ru
+      ? "Сервер проверки не успел ответить. Повторите попытку через минуту."
+      : "The audit server did not respond in time. Please try again in a minute.";
+  }
+  return ru
+    ? "Не удалось получить ответ от сервера. Проверьте подключение и попробуйте ещё раз."
+    : "Could not get a response from the server. Check your connection and try again.";
+}
+
 export function AuditForm({
   locale,
   compact = false,
+  submitLabel,
   onAuditStart,
   onAuditError,
 }: {
   locale: Locale;
   compact?: boolean;
+  submitLabel?: string;
   onAuditStart?: () => void;
   onAuditError?: () => void;
 }) {
@@ -110,6 +151,7 @@ export function AuditForm({
   const [serverError, setServerError] = useState("");
   const [activeAudit, setActiveAudit] = useState<ActiveAudit | null>(null);
   const [urlValue, setUrlValue] = useState("");
+  const [forceFresh, setForceFresh] = useState(false);
   const [urlError, setUrlError] = useState("");
   const [urlFocusRequest, setUrlFocusRequest] = useState(0);
   const [emailValue, setEmailValue] = useState("");
@@ -119,10 +161,14 @@ export function AuditForm({
   const formRef = useRef<HTMLFormElement>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const value = new URLSearchParams(window.location.search).get("url")?.trim();
+  useLayoutEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const enteredBeforeHydration = urlInputRef.current?.value.trim();
+    const value = enteredBeforeHydration || params.get("url")?.trim();
+    setForceFresh(params.get("fresh") === "1");
     if (!value || value.length > 2048) return;
     setUrlValue(value);
+    if (urlInputRef.current) urlInputRef.current.value = value;
   }, []);
 
   useEffect(() => {
@@ -136,7 +182,43 @@ export function AuditForm({
 
   function updateActiveAudit(update: Partial<ActiveAudit> | null) {
     setActiveAudit((current) => {
-      const next = update === null ? null : { ...(current ?? {}), ...update } as ActiveAudit;
+      if (update === null) {
+        storeActiveAudit(null);
+        return null;
+      }
+      const recentEvents = [...(current?.recentEvents ?? [])];
+      if (update.eventKind) {
+        const path = update.currentUrl ? auditProgressPath(update.currentUrl) : undefined;
+        const event = {
+          kind: update.eventKind,
+          ...(path ? { path } : {}),
+          ...(update.currentPageType ? { pageType: update.currentPageType } : {}),
+          ...(update.eventCreatedAt ? { createdAt: update.eventCreatedAt } : {}),
+        };
+        const existingIndex = recentEvents.findIndex((item) =>
+          item.kind === event.kind
+          && item.path === event.path
+          && item.pageType === event.pageType
+        );
+        const previous = existingIndex >= 0 ? recentEvents.splice(existingIndex, 1)[0] : undefined;
+        recentEvents.push({
+          ...previous,
+          ...event,
+          ...(event.createdAt ?? previous?.createdAt ? { createdAt: event.createdAt ?? previous?.createdAt } : {}),
+        });
+      }
+      const next = {
+        ...(current ?? {}),
+        ...update,
+        ...(recentEvents.length > 0 ? { recentEvents: recentEvents.slice(-3) } : {}),
+        ...(typeof current?.pagesChecked === "number" && typeof update.pagesChecked === "number" ? { pagesChecked: Math.max(current.pagesChecked, update.pagesChecked) } : {}),
+        ...(typeof current?.pagesDiscovered === "number" && typeof update.pagesDiscovered === "number" ? { pagesDiscovered: Math.max(current.pagesDiscovered, update.pagesDiscovered) } : {}),
+      } as ActiveAudit;
+      const checkedUrls = mergeAuditProgressUrls(current?.checkedUrls, update.checkedUrls);
+      const failedUrls = mergeAuditProgressUrls(current?.failedUrls, update.failedUrls)
+        .filter((url) => !checkedUrls.includes(url));
+      if (current?.checkedUrls !== undefined || update.checkedUrls !== undefined) next.checkedUrls = checkedUrls;
+      if (current?.failedUrls !== undefined || update.failedUrls !== undefined) next.failedUrls = failedUrls;
       storeActiveAudit(next);
       return next;
     });
@@ -163,14 +245,16 @@ export function AuditForm({
     return () => { cancelled = true; };
   }, [locale, router]);
 
-  function advanceFromUrl() {
-    const error = auditUrlError(urlValue, ru);
+  function advanceFromUrl(value = urlInputRef.current?.value ?? urlValue) {
+    const error = auditUrlError(value, ru);
     if (error) {
       setUrlError(error);
       setUrlFocusRequest((value) => value + 1);
       return;
     }
-    setUrlValue(normalizeAuditUrl(urlValue));
+    const normalized = normalizeAuditUrl(value);
+    setUrlValue(normalized);
+    if (urlInputRef.current) urlInputRef.current.value = normalized;
     setUrlError("");
     setServerError("");
     setStep(2);
@@ -183,7 +267,7 @@ export function AuditForm({
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    const normalizedUrl = normalizeAuditUrl(urlValue);
+    const normalizedUrl = normalizeAuditUrl(urlInputRef.current?.value ?? urlValue);
     const nextUrlError = auditUrlError(normalizedUrl, ru);
     if (nextUrlError) {
       setUrlError(nextUrlError);
@@ -238,23 +322,20 @@ export function AuditForm({
           utm,
           turnstileToken,
           locale,
+          forceFresh,
           source: compact ? "free-audit-page" : "home-hero",
         }),
       });
-      let data: { token?: string; restore?: string; message?: string };
+      let data: AuditSubmissionResponse;
       if (response.ok && isPublicAuditStreamResponse(response)) {
         const completed = await consumePublicAuditStream(response, (streamEvent: PublicAuditStreamEvent) => {
           if (streamEvent.type === "accepted") {
             acceptedToken = streamEvent.token;
             updateActiveAudit({ token: streamEvent.token, status: "connecting", pageLimit: streamEvent.pageLimit });
           } else if (streamEvent.type === "progress") {
-            updateActiveAudit({
-              token: streamEvent.token,
-              status: streamEvent.status,
-              pagesChecked: streamEvent.pagesChecked,
-              pagesDiscovered: streamEvent.pagesDiscovered,
-              pageLimit: streamEvent.pageLimit,
-            });
+            const { type, ...progress } = streamEvent;
+            if (type !== "progress") return;
+            updateActiveAudit(progress);
           } else if (streamEvent.type === "completed") {
             acceptedToken = streamEvent.token;
             acceptedRestore = streamEvent.restore;
@@ -263,7 +344,7 @@ export function AuditForm({
         });
         data = { token: completed.token, restore: completed.restore };
       } else {
-        data = await response.json() as { token?: string; restore?: string; message?: string };
+        data = await readAuditSubmissionResponse(response, ru);
       }
       if (!response.ok || !data.token) {
         updateActiveAudit(null);
@@ -278,9 +359,13 @@ export function AuditForm({
         contact: String(fields.get("email") ?? ""),
         domain: normalizeAuditDomain(normalizedUrl),
       });
-      updateActiveAudit({ token: data.token, status: "completed", restore: data.restore, completedAt: Date.now() });
-      await pause(500);
-      updateActiveAudit(null);
+      updateActiveAudit({
+        token: data.token,
+        status: data.status ?? (data.restore ? "completed" : "queued"),
+        restore: data.restore,
+        ...(data.restore ? { completedAt: Date.now() } : {}),
+      });
+      await pause(data.restore ? 560 : 80);
       router.push(withAuditRestore(localizedPath(locale, `audit/${data.token}`), data.restore));
     } catch (error) {
       if (acceptedToken) {
@@ -295,9 +380,7 @@ export function AuditForm({
         return;
       }
       updateActiveAudit(null);
-      setServerError(error instanceof PublicAuditStreamError
-        ? error.message
-        : ru ? "Не удалось связаться с сервером. Попробуйте ещё раз." : "Could not reach the server. Please try again.");
+      setServerError(auditRequestErrorMessage(error, ru));
       setTurnstileReset((value) => value + 1);
       onAuditError?.();
     } finally {
@@ -326,7 +409,7 @@ export function AuditForm({
           id="audit-url"
           ref={urlInputRef}
           name="url"
-          type="url"
+          type="text"
           inputMode="url"
           autoComplete="url"
           placeholder="example.ru"
@@ -334,21 +417,26 @@ export function AuditForm({
           maxLength={2048}
           aria-invalid={urlError ? "true" : undefined}
           aria-describedby={urlError ? "audit-url-error" : undefined}
-          value={urlValue}
-          onChange={(event) => {
+          defaultValue=""
+          onInput={(event) => {
             setUrlValue(event.currentTarget.value);
             if (urlError) setUrlError("");
           }}
           onKeyDown={(event) => {
             if (event.key !== "Enter") return;
             event.preventDefault();
-            advanceFromUrl();
+            advanceFromUrl(event.currentTarget.value);
           }}
-          onBlur={() => {
-            if (!urlValue.trim()) return;
-            const error = auditUrlError(urlValue, ru);
+          onBlur={(event) => {
+            const value = event.currentTarget.value;
+            if (!value.trim()) return;
+            const error = auditUrlError(value, ru);
             setUrlError(error);
-            if (!error) setUrlValue(normalizeAuditUrl(urlValue));
+            if (!error) {
+              const normalized = normalizeAuditUrl(value);
+              setUrlValue(normalized);
+              event.currentTarget.value = normalized;
+            }
           }}
         />
       </label>
@@ -360,11 +448,11 @@ export function AuditForm({
             className="button button-primary"
             type="button"
             onMouseDown={(event) => {
-              if (auditUrlError(urlValue, ru)) event.preventDefault();
+              if (auditUrlError(urlInputRef.current?.value ?? urlValue, ru)) event.preventDefault();
             }}
             onClick={advance}
           >
-            <span>{d.submit}</span><span aria-hidden="true">→</span>
+            <span>{submitLabel ?? d.submit}</span><span aria-hidden="true">→</span>
           </button>
           <Link className="text-link" href={localizedPath(locale, "free-audit")}>{d.details}</Link>
         </div>
@@ -418,4 +506,16 @@ export function AuditForm({
     </form>
     </>
   );
+}
+
+function mergeAuditProgressUrls(current: readonly string[] | undefined, next: readonly string[] | undefined): string[] {
+  return [...new Set([...(current ?? []), ...(next ?? [])])];
+}
+
+function auditProgressPath(value: string): string | undefined {
+  try {
+    return new URL(value).pathname || "/";
+  } catch {
+    return undefined;
+  }
 }

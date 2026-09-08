@@ -26,6 +26,31 @@ export default async function AdminPage() {
         <DashboardCard href="/admin/audits" title="Аудиты" total={data.audits.total} active={data.audits.active} newCount={data.audits.newCount}/>
       </section>
 
+      <section className="admin-dashboard-charts" aria-label="Статистика">
+        <DashboardChart
+          title="Обращения за 7 дней"
+          description={`${data.activity.total} сохранено: заявки, брифы и запуски аудита без тестовых записей.`}
+          points={data.activity.daily}
+        />
+        <div className="admin-card admin-dashboard-chart">
+          <header className="admin-card__heading">
+            <div><p className="admin-kicker">Реальные данные</p><h2>Просмотры за 7 дней</h2></div>
+            <strong className="admin-dashboard-chart__total">{data.pageViews.daily.reduce((sum, point) => sum + point.count, 0)}</strong>
+          </header>
+          {data.pageViews.startedAt ? (
+            <>
+              <p className="admin-card__intro">Считаются только публичные страницы. Начало сбора: <AdminDate value={data.pageViews.startedAt}/>. Без cookies, IP, параметров ссылок и идентификаторов посетителя.</p>
+              <DashboardBars points={data.pageViews.daily}/>
+              {data.pageViews.topPaths.length > 0 && <ol className="admin-top-paths" aria-label="Самые просматриваемые страницы за 7 дней">
+                {data.pageViews.topPaths.map((item) => <li key={item.path}><code>{item.path}</code><strong>{item.views}</strong></li>)}
+              </ol>}
+            </>
+          ) : (
+            <AdminEmpty>Просмотры ещё не собирались. Счётчик начнёт наполняться после публикации этой версии.</AdminEmpty>
+          )}
+        </div>
+      </section>
+
       <div className="admin-grid admin-grid--dashboard">
         <section className="admin-card">
           <header className="admin-card__heading"><div><p className="admin-kicker">Последние</p><h2>Заявки</h2></div><Link href="/admin/leads">Все заявки →</Link></header>
@@ -48,6 +73,28 @@ export default async function AdminPage() {
       </div>
     </>
   );
+}
+
+function DashboardChart({ title, description, points }: { title: string; description: string; points: Array<{ day: string; label: string; count: number }> }) {
+  return (
+    <div className="admin-card admin-dashboard-chart">
+      <header className="admin-card__heading">
+        <div><p className="admin-kicker">Реальные данные</p><h2>{title}</h2></div>
+        <strong className="admin-dashboard-chart__total">{points.reduce((sum, point) => sum + point.count, 0)}</strong>
+      </header>
+      <p className="admin-card__intro">{description}</p>
+      <DashboardBars points={points}/>
+    </div>
+  );
+}
+
+function DashboardBars({ points }: { points: Array<{ day: string; label: string; count: number }> }) {
+  const maximum = Math.max(1, ...points.map((point) => point.count));
+  return <ol className="admin-dashboard-bars">{points.map((point) => <li key={point.day}>
+    <time dateTime={point.day}>{point.label}</time>
+    <progress max={maximum} value={point.count} aria-label={`${point.label}: ${point.count}`}/>
+    <strong>{point.count}</strong>
+  </li>)}</ol>;
 }
 
 function DashboardCard({ href, title, total, active, newCount }: { href: string; title: string; total: number; active: number; newCount: number }) {

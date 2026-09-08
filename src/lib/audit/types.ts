@@ -1,3 +1,6 @@
+import type { SelectedAuditUrl } from "./sample-selector";
+import type { ClassifiedAuditObject } from "./classification";
+
 export type AuditCategory =
   | "technicalIndexing"
   | "structureOnPage"
@@ -51,6 +54,11 @@ export interface PageAnalysis {
     readonly present: boolean;
     readonly value: string | null;
   };
+  readonly hreflang?: readonly {
+    readonly language: string;
+    readonly url: string;
+  }[];
+  readonly templateSignature?: string;
   readonly viewport: boolean;
   readonly charset: string | null;
   readonly links: {
@@ -86,6 +94,8 @@ export interface PageAnalysis {
   readonly content?: {
     readonly wordCount: number;
     readonly thin: boolean;
+    /** Stable fingerprint of normalized visible body text for exact-duplicate checks. */
+    readonly fingerprint?: string;
   };
   readonly favicon?: boolean;
   readonly mixedContent?: {
@@ -97,6 +107,8 @@ export interface PageAnalysis {
     readonly controls: number;
     readonly labeledControls: number;
     readonly visibleConsent: boolean;
+    readonly passwordInputCount?: number;
+    readonly loginForm?: boolean;
   };
   readonly transport?: {
     readonly requestedUrl: string;
@@ -104,6 +116,7 @@ export interface PageAnalysis {
     readonly redirects: readonly string[];
     readonly responseTimeMs: number | null;
     readonly depth: number;
+    readonly contentType?: string | null;
   };
   readonly issues: readonly AuditIssue[];
 }
@@ -111,13 +124,58 @@ export interface PageAnalysis {
 export type AuditEvent =
   | { readonly type: "audit:start" }
   | { readonly type: "discovery:start" }
-  | { readonly type: "discovery:robots_complete" }
-  | { readonly type: "discovery:sitemaps_complete" }
+  | {
+      readonly type: "discovery:robots_complete";
+      readonly status: RobotsInfo["status"];
+      readonly url: string;
+    }
+  | {
+      readonly type: "discovery:sitemaps_complete";
+      readonly status: SitemapInfo["status"];
+      readonly technicalFilesChecked: number;
+    }
   | { readonly type: "discovery:complete" }
+  | {
+      readonly type: "discovery:progress";
+      readonly pagesDiscovered: number;
+    }
+  | {
+      readonly type: "selection:start";
+      readonly pagesDiscovered: number;
+      readonly pagesEligible: number;
+      readonly technicalFilesChecked: number;
+    }
+  | {
+      readonly type: "selection:complete";
+      readonly pagesDiscovered: number;
+      readonly pagesEligible: number;
+      readonly pagesSelected: number;
+      readonly selectedPages: readonly Pick<SelectedAuditUrl, "url" | "pageType" | "selectionReason">[];
+      readonly technicalFilesChecked: number;
+    }
+  | {
+      readonly type: "crawl:page_start" | "crawl:page_failed";
+      readonly pagesChecked: number;
+      readonly pagesDiscovered: number;
+      readonly pagesEligible: number;
+      readonly pagesSelected: number;
+      readonly currentUrl: string;
+      readonly currentPageType: SelectedAuditUrl["pageType"];
+      readonly technicalFilesChecked: number;
+      readonly checkedUrls: readonly string[];
+      readonly failedUrls: readonly string[];
+    }
   | {
       readonly type: "crawl:page";
       readonly pagesChecked: number;
       readonly pagesDiscovered: number;
+      readonly pagesEligible?: number;
+      readonly pagesSelected?: number;
+      readonly currentUrl?: string;
+      readonly currentPageType?: SelectedAuditUrl["pageType"];
+      readonly technicalFilesChecked?: number;
+      readonly checkedUrls?: readonly string[];
+      readonly failedUrls?: readonly string[];
     }
   | {
       readonly type: "crawl:progress";
@@ -130,7 +188,7 @@ export type AuditEvent =
   | { readonly type: "warning"; readonly code: string }
   | {
       readonly type: "audit:complete";
-      readonly score: number;
+      readonly score?: number;
       readonly pages: number;
       readonly pagesChecked: number;
       readonly pagesDiscovered: number;
@@ -143,6 +201,8 @@ export interface RobotsInfo {
   readonly httpStatus: number | null;
   readonly allowedRoot: boolean | null;
   readonly sitemapUrls: readonly string[];
+  readonly contentType?: string | null;
+  readonly sizeBytes?: number;
   readonly body?: string;
   readonly error?: string;
 }
@@ -152,6 +212,16 @@ export interface SitemapInfo {
   readonly filesVisited: number;
   readonly urls: readonly string[];
   readonly errors: readonly string[];
+  readonly duplicateUrls?: readonly string[];
+  readonly foreignUrls?: readonly string[];
+  readonly invalidUrls?: readonly string[];
+  readonly files?: readonly {
+    readonly url: string;
+    readonly statusCode: number | null;
+    readonly contentType: string | null;
+    readonly sizeBytes: number;
+    readonly kind: "index" | "urlset" | null;
+  }[];
 }
 
 /** Optional Lighthouse/PageSpeed observations for the audited landing page. */
@@ -168,6 +238,14 @@ export interface PerformanceAuditInput {
   readonly tbtMs?: number | null;
   /** Lighthouse Accessibility score, accepted as 0..1 or 0..100. */
   readonly accessibility?: number | null;
+  /** Laboratory profile used for this observation. */
+  readonly profile?: "mobile" | "desktop";
+  /** ISO timestamp recorded when Lighthouse produced the observation. */
+  readonly capturedAt?: string;
+  /** Exact Lighthouse version reported by the run. */
+  readonly lighthouseVersion?: string;
+  /** Number of real runs represented by the values. */
+  readonly runCount?: number;
 }
 
 export interface CategoryScore {
@@ -331,7 +409,11 @@ export interface FullAuditResult {
   readonly coverage: number;
   readonly issueCounts: Readonly<Record<AuditIssueSeverity, number>>;
   readonly pages: readonly PageAnalysis[];
+  /** Stable representative URLs chosen before the detailed page fetches. */
+  readonly selectedPages: readonly SelectedAuditUrl[];
   readonly discoveredUrls: readonly string[];
+  /** Classified inventory used by the score-free v4 snapshot. */
+  readonly inventory?: readonly ClassifiedAuditObject[];
   readonly issues: readonly AuditIssue[];
   readonly robots: RobotsInfo;
   readonly sitemap: SitemapInfo;

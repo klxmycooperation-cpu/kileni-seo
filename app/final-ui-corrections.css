@@ -1,0 +1,577 @@
+/* Verified corrections from the annotated handoff screenshots. */
+
+/* Service offer cards share one reading rhythm and expose one action at a time. */
+.kileni-site .svc-package-grid > article {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto 1fr auto;
+  align-content: start;
+}
+
+.kileni-site .svc-package-badge-slot,
+.kileni-site .marketplace-offer-badge-slot {
+  display: flex;
+  min-height: 2.3rem;
+  align-items: flex-start;
+}
+
+.kileni-site .svc-package-badge-slot .svc-package-badge,
+.kileni-site .marketplace-offer-badge-slot .marketplace-offer-badge {
+  margin: 0;
+}
+
+.kileni-site .svc-package-head {
+  display: grid;
+  grid-template-rows: minmax(1.5rem, auto) minmax(4.25rem, auto) minmax(5.2rem, auto);
+  align-content: start;
+}
+
+.kileni-site .svc-package-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem .75rem;
+  align-items: baseline;
+}
+
+.kileni-site .svc-package-head h3,
+.kileni-site .svc-package-head p {
+  margin: 0;
+}
+
+.kileni-site .svc-package-head h3 {
+  padding-top: .55rem;
+}
+
+.kileni-site .svc-package-head p {
+  padding-top: .55rem;
+  line-height: 1.5;
+}
+
+.kileni-site .svc-package-limit {
+  min-height: 5.25rem;
+  margin: 0 0 1rem;
+  align-content: start;
+}
+
+.kileni-site .svc-package-price {
+  margin: 0;
+}
+
+.kileni-site .svc-package-note,
+.kileni-site .marketplace-offer-note {
+  display: block;
+  min-height: 1.35rem;
+  margin-top: .35rem;
+}
+
+.kileni-site .svc-package-included {
+  align-self: start;
+}
+
+.kileni-site .svc-package-grid li {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.kileni-site .svc-package-grid li::before {
+  position: absolute;
+  left: 0;
+  margin: 0;
+  content: "✓";
+  font-weight: 800;
+}
+
+.kileni-site .svc-package-actions,
+.kileni-site .marketplace-offer-actions {
+  display: grid;
+  align-self: end;
+  margin-top: 1rem;
+}
+
+.kileni-site .svc-package-actions > :is(button, a),
+.kileni-site .marketplace-offer-actions > :is(button, a) {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: .85rem 1rem;
+  border: 1px solid currentColor;
+  border-radius: .75rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.kileni-site .svc-package-actions > a,
+.kileni-site .marketplace-offer-actions > a {
+  border-color: var(--svc-accent, var(--marketplace-accent, #4568ff));
+  background: var(--svc-accent, var(--marketplace-accent, #4568ff));
+  color: #fff;
+}
+
+html[data-kileni-theme] .kileni-site .marketplace-offer-actions > a,
+html[data-kileni-theme] .kileni-site .cp-package-brief {
+  border-color: var(--cta-primary-bg);
+  background: var(--cta-primary-bg);
+  color: var(--cta-primary-text) !important;
+}
+
+.kileni-site .service-10-web-development .svc-detail-copy h1 {
+  max-width: 17ch;
+  font-size: clamp(3rem, 5vw, 4.8rem);
+  line-height: .98;
+  text-wrap: balance;
+}
+
+.kileni-site .svc-assurance-grid ol li {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  gap: .75rem;
+}
+
+.kileni-site .svc-assurance-grid ol li > span {
+  color: #aab6c8;
+  font-family: var(--mono);
+  font-size: .72rem;
+}
+
+/* Marketplace offers align their titles, prices, facts and actions. */
+.kileni-site .marketplace-offer {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto 1fr auto;
+  align-content: start;
+}
+
+.kileni-site .marketplace-offer-head {
+  display: grid;
+  grid-template-rows: minmax(5.1rem, auto) minmax(5rem, auto);
+  align-content: start;
+}
+
+.kileni-site .marketplace-offer-head h3,
+.kileni-site .marketplace-offer-head p {
+  margin: 0;
+}
+
+.kileni-site .marketplace-offer-head h3 {
+  padding-top: .75rem;
+}
+
+.kileni-site .marketplace-offer-head p {
+  min-height: 0;
+  padding-top: .55rem;
+  color: var(--theme-muted, #59657d);
+  line-height: 1.5;
+}
+
+.kileni-site .marketplace-offer-price {
+  margin: 0;
+}
+
+.kileni-site .marketplace-result-example > header,
+.kileni-site .marketplace-offers > header {
+  grid-template-columns: 1fr;
+  gap: .65rem;
+  align-items: start;
+}
+
+.kileni-site .marketplace-result-example > header .section-kicker,
+.kileni-site .marketplace-offers > header .section-kicker {
+  grid-row: auto;
+}
+
+.kileni-site .marketplace-result-example > header h2,
+.kileni-site .marketplace-offers > header h2 {
+  max-width: 24ch;
+  font-size: clamp(2.25rem, 4vw, 4.25rem);
+  text-wrap: balance;
+}
+
+.kileni-site .marketplace-result-example > header > p:last-child,
+.kileni-site .marketplace-offers > header > p:last-child {
+  max-width: 58rem;
+}
+
+.kileni-site .marketplace-result-states,
+.kileni-site .marketplace-result-files {
+  overflow: clip;
+  border-radius: 1.25rem;
+}
+
+.kileni-site .marketplace-docs,
+.kileni-site .marketplace-cta {
+  min-height: 18rem;
+  align-items: center;
+  padding: clamp(2rem, 4vw, 3.25rem);
+  overflow: clip;
+  border-radius: 1.25rem;
+}
+
+.kileni-site .marketplace-docs > div:last-child,
+.kileni-site .marketplace-cta .button {
+  align-self: center;
+}
+
+/* Large headings keep readable lines instead of dominating the whole viewport. */
+.kileni-site .seo-hub__hero h1 {
+  max-width: 20ch;
+  font-size: clamp(2.8rem, 5.2vw, 5.25rem);
+  line-height: .98;
+  text-wrap: balance;
+}
+
+.kileni-site .seo-hub__section-heading h2,
+.kileni-site .seo-hub__direction h2 {
+  font-size: clamp(2rem, 3.25vw, 3.35rem);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+/* Home page: complete four-step handoff and a stable carousel origin. */
+.kileni-site .home-deliverable-list {
+  align-self: stretch;
+}
+
+.kileni-site .home-deliverable-list li {
+  min-height: 9.5rem;
+}
+
+.kileni-site .home-article-carousel__viewport {
+  scroll-padding-inline: 0;
+}
+
+.kileni-site .home-article-carousel__card {
+  scroll-snap-stop: always;
+}
+
+/* The author-level grid rule must not override the semantic hidden state. */
+.kileni-site .home-decision__panel[hidden] {
+  display: none;
+}
+
+/* Case evidence reads as complete cards; stages no longer restart numbering inside a numbered section. */
+.kileni-site .cases-redesign .cp-case-detail-title .cp-fact-strip > div,
+.kileni-site .cases-redesign .cp-story-pair,
+.kileni-site .cases-redesign .cp-evidence-list,
+.kileni-site .cases-redesign .cp-narrative-case,
+.kileni-site .cases-redesign .cp-narrative-result {
+  overflow: clip;
+  border-radius: 1.25rem;
+}
+
+.kileni-site .cases-redesign .cp-story-pair {
+  border: 1px solid var(--cp-line);
+}
+
+.kileni-site .cases-redesign .cp-evidence-list {
+  border: 1px solid rgba(253, 253, 253, .28);
+}
+
+.kileni-site .cases-redesign .cp-narrative-case {
+  border: 1px solid var(--cp-line);
+}
+
+.kileni-site .cases-redesign .cp-narrative-result {
+  margin: 0 1.25rem;
+}
+
+.kileni-site .cases-redesign .cp-action-list li {
+  position: relative;
+  display: block;
+  padding: 1.3rem 0 1.3rem 1.5rem;
+}
+
+.kileni-site .cases-redesign .cp-action-list li::before {
+  position: absolute;
+  left: 0;
+  color: var(--cp-accent, #4665ff);
+  content: "—";
+}
+
+/* The brief explains its output directly and keeps mobile text intact. */
+.kileni-site .brief-refinement .brief-hero-note {
+  padding: clamp(1.4rem, 2.6vw, 2rem);
+  overflow: clip;
+  border-radius: 1.25rem;
+}
+
+.kileni-site .brief-refinement .brief-hero-note > p {
+  margin: .7rem 0 1.4rem;
+  color: var(--brief-paper);
+  font-size: .88rem;
+  line-height: 1.55;
+  opacity: .78;
+}
+
+.kileni-site .brief-refinement .brief-offer-preview {
+  overflow: clip;
+  border: 1px solid color-mix(in srgb, var(--brief-paper) 25%, transparent);
+  border-radius: 1rem;
+}
+
+.kileni-site .brief-refinement .brief-offer-preview > div {
+  padding-inline: .85rem;
+}
+
+.kileni-site .brief-refinement .brief-service-summary > strong,
+.kileni-site .svc-custom-path__intro > p {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+/* Price details are grouped, rounded and animate only when motion is allowed. */
+.kileni-site .pricing-10 .cp-package-exclusions {
+  margin-top: 1.25rem;
+  overflow: clip;
+  border: 1px solid var(--svc-line);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--svc-paper) 64%, var(--svc-soft));
+}
+
+.kileni-site .pricing-10 .cp-package-exclusions summary,
+.kileni-site .pricing-10 .cp-package-exclusions > p,
+.kileni-site .pricing-10 .cp-package-exclusions > ul {
+  padding-inline: 1rem;
+}
+
+.kileni-site .pricing-10 .cp-package-exclusions li {
+  position: relative;
+  padding: .65rem .25rem .65rem 1.2rem;
+  transform: none;
+}
+
+.kileni-site .pricing-10 .cp-package-exclusions li::before {
+  position: absolute;
+  left: 0;
+  content: "—";
+}
+
+.kileni-site .about-boundaries .about-section-heading {
+  grid-template-columns: 1fr;
+  gap: .75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kileni-site .pricing-10 .cp-package-detail {
+    animation: kileni-package-detail-enter .28s cubic-bezier(.22, 1, .36, 1) both;
+  }
+}
+
+@keyframes kileni-package-detail-enter {
+  from { opacity: 1; transform: translateY(.6rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* The five-section marketplace index uses the available width on desktop. */
+@media (min-width: 721px) {
+  .kileni-site .compact-page-toc ol {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .25rem;
+    overflow: visible;
+  }
+
+  .kileni-site .compact-page-toc li {
+    min-width: 0;
+  }
+
+  .kileni-site .compact-page-toc a {
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .kileni-site .svc-package-head,
+  .kileni-site .marketplace-offer-head {
+    grid-template-rows: auto;
+  }
+
+  .kileni-site .svc-package-head h3,
+  .kileni-site .svc-package-head p,
+  .kileni-site .marketplace-offer-head h3,
+  .kileni-site .marketplace-offer-head p,
+  .kileni-site .svc-package-limit {
+    min-height: 0;
+  }
+
+  .kileni-site .service-10-web-development .svc-detail-copy h1 {
+    max-width: 14ch;
+    font-size: clamp(2.5rem, 11vw, 3.6rem);
+  }
+
+  .kileni-site .marketplace-docs,
+  .kileni-site .marketplace-cta {
+    min-height: 0;
+  }
+
+  .kileni-site .cases-redesign .cp-narrative-result {
+    margin-inline: .8rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .kileni-site .service-10 .svc-detail-copy h1 {
+    font-size: var(--h1-role-size);
+  }
+}
+
+@media (max-width: 680px) {
+  .kileni-site .brief-refinement .brief-service-guide > .brief-service-summary,
+  .kileni-site .brief-refinement .brief-service-summary {
+    grid-template-columns: 1fr !important;
+    gap: .35rem;
+  }
+
+  .kileni-site .brief-refinement .brief-service-summary > strong {
+    font-size: .9rem;
+  }
+
+  .kileni-site .brief-refinement .brief-service-summary > span {
+    font-size: .7rem;
+    text-align: left;
+  }
+
+  .kileni-site .brief-refinement .brief-hero-note > p {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site .pricing-10 .cp-package-detail {
+    animation: none;
+  }
+}
+
+/* Review 13:37: make the service, case and pricing sections read as one system. */
+.kileni-site .svc-detail-hero-grid { align-items: center; }
+.kileni-site .svc-visual { overflow: hidden; border-radius: 1.25rem; box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.18); }
+.kileni-site .svc-visual-heading,
+.kileni-site .svc-visual-result,
+.kileni-site .svc-visual-note { padding-inline: clamp(1rem, 2vw, 1.5rem); }
+.kileni-site .svc-visual-result { padding-block: 1.25rem; background: rgba(255, 255, 255, 0.06); }
+.kileni-site .svc-visual-result strong { max-width: 24ch; font-size: clamp(1.35rem, 2vw, 2rem); line-height: 1.08; }
+.kileni-site .svc-visual-deliverables { gap: 0; padding: .75rem clamp(1rem, 2vw, 1.5rem); }
+.kileni-site .svc-visual-deliverables li { min-height: 3.2rem; align-items: center; padding-block: .65rem; }
+
+.kileni-site .svc-compact-overview { padding-block: clamp(3rem, 6vw, 5.5rem); background: #f3f6fa; }
+.kileni-site .svc-compact-heading { grid-template-columns: minmax(12rem, .32fr) minmax(0, 1fr); gap: 1rem clamp(2rem, 5vw, 6rem); margin-bottom: 2.5rem; }
+.kileni-site .svc-compact-heading h2 { max-width: 19ch; font-size: clamp(2.15rem, 3.5vw, 3.75rem); }
+.kileni-site .svc-compact-heading > p:last-child { align-self: end; max-width: 42rem; }
+.kileni-site .svc-compact-grid { gap: clamp(.9rem, 1.7vw, 1.4rem); overflow: visible; border: 0; border-radius: 0; background: transparent; }
+.kileni-site .svc-compact-grid article { min-height: 18rem; padding: clamp(1.25rem, 2.3vw, 1.85rem); border: 1px solid rgba(11, 19, 43, .16); border-radius: 1rem; background: #fff; box-shadow: 0 .75rem 1.8rem rgba(11, 19, 43, .05); }
+.kileni-site .svc-compact-grid article:nth-child(2) { background: #0b132b; color: #fff; }
+.kileni-site .svc-compact-grid article:nth-child(2) li { color: rgba(255, 255, 255, .74); }
+
+.kileni-site .home-deliverables { background: var(--background-elevated, #f3f6fa); }
+.kileni-site .home-deliverables-grid { align-items: center; }
+.kileni-site .home-deliverable-list { gap: .8rem; overflow: visible; border: 0; border-radius: 0; background: transparent; }
+.kileni-site .home-deliverable-list li { min-height: 8.75rem; padding: 1.15rem; border: 1px solid rgba(11, 19, 43, .14); border-radius: 1rem; background: #fff; color: #0b132b; box-shadow: 0 .7rem 1.5rem rgba(11, 19, 43, .05); }
+.kileni-site .home-deliverable-list li:nth-child(4) { background: #0b132b; color: #fff; }
+.kileni-site .home-deliverable-list li > div > strong { color: inherit !important; }
+.kileni-site .home-deliverable-list li > div > small { color: #596179 !important; }
+.kileni-site .home-deliverable-list li:nth-child(4) > div > small { color: rgba(255, 255, 255, .74) !important; }
+
+.kileni-site .pricing-redesign .cp-hero-note { padding: 0 0 0 1.25rem; border-left: .2rem solid #3158ee; border-radius: 0; background: transparent; color: inherit; box-shadow: none; }
+.kileni-site .pricing-redesign .cp-hero-note strong { font-size: 1.05rem; }
+.kileni-site .pricing-redesign .cp-extras-section,
+.kileni-site .pricing-redesign .cp-request-section { padding-block: clamp(3.5rem, 6vw, 5.5rem); border-color: rgba(11, 19, 43, .15); background: #edf1f7; color: #0b132b; }
+.kileni-site .pricing-redesign .cp-extras-grid,
+.kileni-site .pricing-redesign .cp-request-grid { grid-template-columns: minmax(15rem, .7fr) minmax(22rem, 1.3fr); align-items: center; gap: clamp(2rem, 6vw, 6rem); }
+.kileni-site .pricing-redesign .cp-extras-grid h2,
+.kileni-site .pricing-redesign .cp-request-grid h2 { max-width: 11ch; font-size: clamp(2.25rem, 4vw, 4rem); }
+.kileni-site .pricing-redesign .cp-extras-grid ul { border-top-color: rgba(11, 19, 43, .18); }
+.kileni-site .pricing-redesign .cp-extras-grid li { display: grid; grid-template-columns: 1.75rem 1fr; gap: .75rem; padding-block: 1rem; border-bottom-color: rgba(11, 19, 43, .18); }
+.kileni-site .pricing-redesign .cp-extras-grid li::before { color: #3158ee; font-weight: 800; content: "—"; }
+.kileni-site .pricing-redesign .cp-request-grid .lead-form { border: 1px solid rgba(11, 19, 43, .12); border-radius: 1.25rem; box-shadow: 0 1rem 2.5rem rgba(11, 19, 43, .09); }
+
+.kileni-site .cases-redesign .cp-narrative-case { border-radius: 1.25rem; box-shadow: 0 1rem 2.4rem rgba(11, 19, 43, .06); }
+.kileni-site .cases-redesign .cp-narrative-footer { align-items: center; }
+.kileni-site :is(.svc-package-actions button, .svc-package-actions a, .cp-package-brief) { border-radius: 999px; }
+
+@media (min-width: 981px) {
+  .kileni-site .cases-redesign .cp-narrative-header { height: 18rem; }
+  .kileni-site .cases-redesign .cp-narrative-result { height: 24rem; }
+}
+
+html[data-kileni-theme] .kileni-site .pricing-redesign :is(.cp-extras-section, .cp-request-section) { background: #edf1f7; color: #0b132b; }
+html[data-kileni-theme] .kileni-site .pricing-redesign .cp-extras-section :is(h2, li, .cp-kicker),
+html[data-kileni-theme] .kileni-site .pricing-redesign .cp-request-section :is(h2, .cp-kicker) { color: #0b132b; }
+
+@media (max-width: 900px) {
+  .kileni-site .svc-compact-heading,
+  .kileni-site .pricing-redesign :is(.cp-extras-grid, .cp-request-grid) { grid-template-columns: 1fr; }
+  .kileni-site .svc-compact-heading .svc-kicker { grid-row: auto; }
+  .kileni-site .svc-compact-grid { grid-template-columns: 1fr; }
+  .kileni-site .svc-compact-grid article { min-height: 0; }
+  .kileni-site .home-deliverable-list { grid-template-columns: 1fr; }
+  .kileni-site .pricing-redesign .cp-extras-grid h2,
+  .kileni-site .pricing-redesign .cp-request-grid h2 { max-width: 16ch; }
+}
+
+/* The compact card treatment above is light-theme artwork. Keep its structure,
+   but resolve the surface and copy tokens again when a dark theme is active. */
+html[data-kileni-theme="dark"] .kileni-site .home-deliverables,
+html[data-kileni-theme="signal"] .kileni-site .home-deliverables {
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .svc-compact-overview,
+html[data-kileni-theme="signal"] .kileni-site .svc-compact-overview {
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .svc-compact-grid article,
+html[data-kileni-theme="signal"] .kileni-site .svc-compact-grid article {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .svc-compact-grid article:nth-child(2),
+html[data-kileni-theme="signal"] .kileni-site .svc-compact-grid article:nth-child(2) {
+  background: var(--background-elevated);
+  color: var(--text-primary);
+}
+
+html[data-kileni-theme="light"] .kileni-site .svc-compact-grid article:nth-child(2) > span {
+  color: #9fb4ff;
+}
+
+html[data-kileni-theme="dark"] .kileni-site .pricing-redesign .cp-request-grid .lead-form :is(h2, label > span),
+html[data-kileni-theme="signal"] .kileni-site .pricing-redesign .cp-request-grid .lead-form :is(h2, label > span) {
+  color: var(--text-primary);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .home-deliverable-list li,
+html[data-kileni-theme="signal"] .kileni-site .home-deliverable-list li {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: 0 .7rem 1.5rem rgba(0, 0, 0, .18);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .home-deliverable-list li:nth-child(4),
+html[data-kileni-theme="signal"] .kileni-site .home-deliverable-list li:nth-child(4) {
+  background: var(--background-elevated);
+  color: var(--text-primary);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .home-deliverable-list li > span,
+html[data-kileni-theme="signal"] .kileni-site .home-deliverable-list li > span {
+  color: var(--brand);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .home-deliverable-list li > div > small,
+html[data-kileni-theme="signal"] .kileni-site .home-deliverable-list li > div > small,
+html[data-kileni-theme="dark"] .kileni-site .home-deliverable-list li:nth-child(4) > div > small,
+html[data-kileni-theme="signal"] .kileni-site .home-deliverable-list li:nth-child(4) > div > small {
+  color: var(--text-secondary) !important;
+}

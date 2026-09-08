@@ -32,4 +32,63 @@ describe("public audit NDJSON consumer", () => {
 
     await expect(consumePublicAuditStream(response, () => undefined)).rejects.toThrow("Сайт не ответил");
   });
+
+  it("keeps the real selection and current page in a validated progress event", async () => {
+    const progress = {
+      type: "progress",
+      token: "token",
+      status: "crawling_pages",
+      pagesChecked: 3,
+      pagesDiscovered: 100,
+      pagesEligible: 98,
+      pagesSelected: 10,
+      selectedPages: [{ url: "https://example.com/pricing", pageType: "pricing", selectionReason: "conversion_support" }],
+      checkedUrls: ["https://example.com/", "https://example.com/about"],
+      failedUrls: ["https://example.com/contact"],
+      selectionComplete: true,
+      technicalFilesChecked: 2,
+      currentUrl: "https://example.com/pricing",
+      currentPageType: "pricing",
+      eventKind: "page_started",
+      eventCreatedAt: "2026-09-02T10:00:00.000Z",
+      robotsStatus: "found",
+      sitemapStatus: "found",
+      pageLimit: 10,
+    } as const;
+    const response = new Response(`${JSON.stringify(progress)}\n${JSON.stringify({ type: "completed", token: "token", status: "completed", restore: "payload.signature" })}\n`);
+    const observed: unknown[] = [];
+
+    await consumePublicAuditStream(response, (event) => observed.push(event));
+
+    expect(observed[0]).toEqual(progress);
+  });
+
+  it("rejects malformed page URLs and unknown progress values", async () => {
+    const response = new Response(`${JSON.stringify({
+      type: "progress",
+      token: "token",
+      status: "crawling_pages",
+      pagesChecked: 0,
+      pagesDiscovered: 1,
+      pageLimit: 10,
+      currentUrl: "javascript:alert(1)",
+    })}\n`);
+
+    await expect(consumePublicAuditStream(response, () => undefined)).rejects.toThrow("некорректный ход проверки");
+  });
+
+  it("rejects contradictory or oversized page outcome lists", async () => {
+    const response = new Response(`${JSON.stringify({
+      type: "progress",
+      token: "token",
+      status: "crawling_pages",
+      pagesChecked: 1,
+      pagesDiscovered: 2,
+      pageLimit: 10,
+      checkedUrls: ["https://example.com/pricing"],
+      failedUrls: ["https://example.com/pricing"],
+    })}\n`);
+
+    await expect(consumePublicAuditStream(response, () => undefined)).rejects.toThrow("некорректный ход проверки");
+  });
 });

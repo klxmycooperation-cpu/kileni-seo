@@ -29,6 +29,8 @@ export async function discoverRobots(
         httpStatus: response.status,
         allowedRoot: true,
         sitemapUrls: [],
+        contentType: headerValue(response.headers, "content-type"),
+        sizeBytes: response.body.byteLength,
       };
     }
     if (!response.ok) {
@@ -38,6 +40,8 @@ export async function discoverRobots(
         httpStatus: response.status,
         allowedRoot: null,
         sitemapUrls: [],
+        contentType: headerValue(response.headers, "content-type"),
+        sizeBytes: response.body.byteLength,
         error: `robots.txt вернул HTTP ${response.status}`,
       };
     }
@@ -54,6 +58,8 @@ export async function discoverRobots(
       allowedRoot:
         parsed.isAllowed(new URL("/", siteUrl).href, AUDIT_USER_AGENT) !== false,
       sitemapUrls: [...new Set(sitemapUrls)],
+      contentType: headerValue(response.headers, "content-type"),
+      sizeBytes: response.body.byteLength,
       body: response.text,
     };
   } catch (error) {
@@ -85,6 +91,10 @@ export async function discoverSitemaps(
   const queued = new Set(queue.map((item) => item.url));
   const visited = new Set<string>();
   const pageUrls = new Set<string>();
+  const duplicateUrls = new Set<string>();
+  const foreignUrls = new Set<string>();
+  const invalidUrls = new Set<string>();
+  const files: NonNullable<SitemapInfo["files"]>[number][] = [];
   const errors: string[] = [];
   let successfulFiles = 0;
   let missingFiles = 0;
@@ -101,28 +111,56 @@ export async function discoverSitemaps(
         signal,
       });
       if (response.status === 404 || response.status === 410) {
+        files.push(sitemapFile(item.url, response, null));
         missingFiles += 1;
         continue;
       }
       if (!response.ok) {
+        files.push(sitemapFile(item.url, response, null));
         errors.push(`${item.url}: HTTP ${response.status}`);
         continue;
       }
-      successfulFiles += 1;
       const parsed = parseSitemap(response.text);
+      files.push(sitemapFile(item.url, response, parsed.kind));
+      if (parsed.kind === null) {
+        errors.push(`${item.url}: ответ не распознан как sitemap XML`);
+        continue;
+      }
+      successfulFiles += 1;
       if (parsed.kind === "index") {
         if (item.depth >= MAX_SITEMAP_DEPTH) continue;
         for (const rawUrl of parsed.urls) {
-          const url = safeSameHostUrl(rawUrl, siteUrl);
-          if (!url || queued.has(url)) continue;
+          const candidate = classifySitemapUrl(rawUrl, siteUrl);
+          if (candidate.kind === "invalid") {
+            invalidUrls.add(rawUrl);
+            continue;
+          }
+          if (candidate.kind === "foreign") {
+            foreignUrls.add(candidate.url);
+            continue;
+          }
+          const url = candidate.url;
+          if (queued.has(url)) {
+            duplicateUrls.add(url);
+            continue;
+          }
           queued.add(url);
           queue.push({ url, depth: item.depth + 1 });
         }
       } else {
         for (const rawUrl of parsed.urls) {
           if (pageUrls.size >= MAX_SITEMAP_URLS) break;
-          const url = safeSameHostUrl(rawUrl, siteUrl);
-          if (url) pageUrls.add(url);
+          const candidate = classifySitemapUrl(rawUrl, siteUrl);
+          if (candidate.kind === "invalid") {
+            invalidUrls.add(rawUrl);
+            continue;
+          }
+          if (candidate.kind === "foreign") {
+            foreignUrls.add(candidate.url);
+            continue;
+          }
+          if (pageUrls.has(candidate.url)) duplicateUrls.add(candidate.url);
+          pageUrls.add(candidate.url);
         }
       }
     } catch (error) {
@@ -143,6 +181,10 @@ export async function discoverSitemaps(
     filesVisited: visited.size,
     urls: [...pageUrls],
     errors,
+    duplicateUrls: [...duplicateUrls],
+    foreignUrls: [...foreignUrls],
+    invalidUrls: [...invalidUrls],
+    files,
   };
 }
 
@@ -153,10 +195,11 @@ export function isAllowedByRobots(url: string | URL, robots: RobotsInfo): boolea
 }
 
 function parseSitemap(xml: string): {
-  readonly kind: "index" | "urlset";
+  readonly kind: "index" | "urlset" | null;
   readonly urls: readonly string[];
 } {
   const isIndex = /<(?:[\w.-]+:)?sitemapindex\b/i.test(xml);
+  const isUrlset = /<(?:[\w.-]+:)?urlset\b/i.test(xml);
   const urls: string[] = [];
   const locPattern = /<(?:[\w.-]+:)?loc\b[^>]*>([\s\S]*?)<\/(?:[\w.-]+:)?loc\s*>/gi;
   for (const match of xml.matchAll(locPattern)) {
@@ -165,7 +208,41 @@ function parseSitemap(xml: string): {
     const value = decodeXmlEntities(unwrapped).trim();
     if (value) urls.push(value);
   }
-  return { kind: isIndex ? "index" : "urlset", urls };
+  return { kind: isIndex ? "index" : isUrlset ? "urlset" : null, urls };
+}
+
+function classifySitemapUrl(
+  rawUrl: string,
+  siteUrl: URL,
+): { readonly kind: "same"; readonly url: string } | { readonly kind: "foreign"; readonly url: string } | { readonly kind: "invalid" } {
+  try {
+    const trimmed = rawUrl.trim();
+    if (!/^https?:\/\//iu.test(trimmed)) return { kind: "invalid" };
+    const url = normalizeTargetUrl(trimmed);
+    return url.hostname === siteUrl.hostname
+      ? { kind: "same", url: url.href }
+      : { kind: "foreign", url: url.href };
+  } catch {
+    return { kind: "invalid" };
+  }
+}
+
+function sitemapFile(
+  url: string,
+  response: Awaited<ReturnType<AuditFetcher>>,
+  kind: "index" | "urlset" | null,
+): NonNullable<SitemapInfo["files"]>[number] {
+  return {
+    url,
+    statusCode: response.status,
+    contentType: headerValue(response.headers, "content-type"),
+    sizeBytes: response.body.byteLength,
+    kind,
+  };
+}
+
+function headerValue(headers: Readonly<Record<string, string>>, name: string): string | null {
+  return Object.entries(headers).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1] ?? null;
 }
 
 function decodeXmlEntities(value: string): string {

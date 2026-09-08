@@ -1,8 +1,11 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { PDFDocument } from "pdf-lib";
 
 import { completeFixtureAudit, createQueuedFixtureAudit } from "./audit-fixture";
 import { database } from "../../src/db/client";
+import { buildAuditClientPresentation } from "../../src/lib/audit/client-presentation";
+import type { AuditResultContractV3 } from "../../src/lib/audit/contract-v3";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -64,7 +67,7 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   await header.locator(".theme-toggle:not(.theme-toggle--mobile)").click();
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
   await expect(header.locator(".theme-toggle:not(.theme-toggle--mobile)")).toHaveAccessibleName("Включить тёмную тему");
-  await expect(header.getByRole("link", { name: "Проверить сайт", exact: true })).toHaveCount(1);
+  await expect(header.getByRole("link", { name: "Узнать, что мешает сайту", exact: true })).toHaveCount(1);
   await expect(header).toHaveCSS("position", "fixed");
   await expect(header).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
@@ -74,7 +77,7 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   const servicesMenu = page.getByRole("menu", { name: "Услуги" });
   await expect(servicesMenu).toBeVisible();
   await expect(servicesMenu.getByRole("menuitem")).toHaveCount(4);
-  await expect(servicesMenu.getByRole("menuitem", { name: "SEO", exact: true })).toHaveAttribute("href", "/services");
+  await expect(servicesMenu.getByRole("menuitem", { name: "SEO", exact: true })).toHaveAttribute("href", "/seo");
   await expect(servicesMenu.getByRole("menuitem", { name: "Нестандартные задачи", exact: true })).toHaveAttribute("href", "/custom-task");
   await expect(servicesMenu.getByRole("menuitem", { name: "SEO", exact: true })).toBeFocused();
 
@@ -99,9 +102,11 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   await page.evaluate(() => window.scrollTo(0, 240));
   await expect(header).toHaveAttribute("data-scrolled", "true");
   await expect(header).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-  const scrolledHeaderHeight = await header.evaluate((element) => element.getBoundingClientRect().height);
+  await expect.poll(
+    () => header.evaluate((element) => element.getBoundingClientRect().height),
+    { message: "header finishes its compact scroll transition" },
+  ).toBeLessThan(initialHeaderHeight);
   const scrolledMainTop = await page.locator("#main-content").evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
-  expect(scrolledHeaderHeight).toBeLessThan(initialHeaderHeight);
   expect(Math.abs(scrolledMainTop - initialMainTop)).toBeLessThanOrEqual(1);
 });
 
@@ -136,11 +141,13 @@ test("covers the complete company story without invented biographies or promises
   const roles = page.locator(".about-roles");
   await expect(roles.getByRole("listitem").filter({ hasText: "Маркетплейсы" })).toBeVisible();
   await expect(roles.getByRole("listitem").filter({ hasText: "Реклама" })).toBeVisible();
+  await expect(page.locator(".about-boundaries details")).toHaveAttribute("open", "");
   await expect(page.locator(".about-boundaries").getByRole("listitem").filter({ hasText: "Топ-1" })).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/en/about");
   await expect(page.getByText("What the client receives", { exact: true })).toBeVisible();
+  await page.getByText("Show accountability boundaries", { exact: true }).click();
   await expect(page.getByText("We do not guarantee", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
@@ -157,12 +164,12 @@ test("recalculates the marketplace estimate at the ten-SKU package boundary", as
 test("advances the brief and restores its browser draft after reload", async ({ page }) => {
   await page.goto("/brief");
   await page.getByRole("button", { name: /^Далее/u }).click();
-  await expect(page.getByRole("heading", { level: 2, name: "Контекст задачи" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "О задаче" })).toBeVisible();
   await page.getByLabel("Компания или проект").fill("KILENI fixture");
 
   await page.reload();
 
-  await expect(page.getByRole("heading", { level: 2, name: "Контекст задачи" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "О задаче" })).toBeVisible();
   await expect(page.getByLabel("Компания или проект")).toHaveValue("KILENI fixture");
 });
 
@@ -187,7 +194,7 @@ test("opens the keyboard-labelled navigation without overflow at 320 and 360 pix
     await expect(page.getByRole("button", { name: "Закрыть меню" })).toHaveAttribute("aria-expanded", "true");
     const mobileNavigation = page.getByRole("navigation", { name: "Мобильная навигация" });
     await expect(mobileNavigation).toBeVisible();
-    const mobileCta = mobileNavigation.getByRole("link", { name: "Проверить сайт", exact: true });
+    const mobileCta = mobileNavigation.getByRole("link", { name: "Узнать, что мешает сайту", exact: true });
     await expect(mobileCta).toBeVisible();
     await expect(mobileCta).toHaveAttribute("href", "/free-audit");
     const mobileCtaBox = await mobileCta.boundingBox();
@@ -300,6 +307,30 @@ test("finishes the approved SVG brand reveal at its natural pace", async ({ page
   expect(layout.overflow).toBe(false);
 });
 
+test("keeps the mobile intro opaque above the page until it has finished", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/?intro=1", { waitUntil: "domcontentloaded" });
+
+  const intro = page.locator(".brand-intro-v9");
+  await expect(intro).toBeVisible();
+  const coverage = await intro.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return {
+      zIndex: Number.parseInt(style.zIndex, 10),
+      alpha: Number.parseFloat(style.opacity),
+      top: rect.top,
+      bottom: rect.bottom,
+      viewportHeight: window.innerHeight,
+    };
+  });
+
+  expect(coverage.zIndex).toBeGreaterThanOrEqual(10_000);
+  expect(coverage.alpha).toBe(1);
+  expect(coverage.top).toBeLessThanOrEqual(0);
+  expect(coverage.bottom).toBeGreaterThanOrEqual(coverage.viewportHeight - 1);
+});
+
 test("shows the intro once per browser session and keeps an explicit replay route", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Пропустить заставку" }).click();
@@ -368,6 +399,12 @@ test("keeps the home layout within 390, 768, 1024 and 1440 pixels", async ({ pag
 });
 
 test("dismisses the intro on pointer, keyboard and wheel without swallowing the action", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "kileni-cookie-preferences:v2",
+      JSON.stringify({ essential: true, analytics: false, marketing: false, version: "2026-08-23.2" }),
+    );
+  });
   await page.goto("/");
   await page.evaluate(() => window.sessionStorage.removeItem("kileni:intro:v9"));
   await page.reload({ waitUntil: "domcontentloaded" });
@@ -398,9 +435,11 @@ test("dismisses the intro on pointer, keyboard and wheel without swallowing the 
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
 });
 
-test("submits the free-audit form and preserves the quota after repeated active-domain requests", async ({ page }) => {
+test("submits the free-audit form and preserves the quota after repeated active-domain requests", async ({ page, browserName }) => {
+  const activeDomain = browserName === "webkit" ? "example.net" : "example.com";
+  const nextDomain = browserName === "webkit" ? "example.edu" : "example.org";
   await page.goto("/free-audit");
-  await page.getByLabel("Адрес сайта").fill("https://example.com/a-page");
+  await page.getByLabel("Адрес сайта").fill(`https://${activeDomain}/a-page`);
   await expect(page.getByLabel("Сколько страниц проверить")).toHaveCount(0);
   await page.getByRole("button", { name: /Проверить сайт бесплатно/u }).click();
   await expect(page.getByText("Результат откроется сразу. Email — по желанию")).toBeVisible();
@@ -409,7 +448,8 @@ test("submits the free-audit form and preserves the quota after repeated active-
   await page.getByLabel(/Я имею отношение к сайту/u).check();
   await page.getByRole("button", { name: /Запустить проверку/u }).click();
   await expect(page).toHaveURL(/\/audit\/[A-Za-z0-9_-]{43}$/u);
-  await expect(page.locator("main h1")).toContainText(/Проводим SEO-проверку сайта|Сайт требует|Сайт готов/u);
+  await expect(page.getByRole("dialog", { name: "Ход SEO-проверки" })).toBeVisible();
+  await expect(page.locator("#audit-live-heading")).toBeVisible();
   const created = await page.request.get(new URL(page.url()).pathname.replace("/audit/", "/api/audits/"));
   expect((await created.json() as { pageLimit: number }).pageLimit).toBe(10);
 
@@ -418,7 +458,7 @@ test("submits the free-audit form and preserves the quota after repeated active-
   const requestOrigin = process.env.APP_BASE_URL ?? "http://127.0.0.1:3107";
   const duplicate = () => page.request.post("/api/audits", {
     headers: { "content-type": "application/json", "x-csrf-token": token, origin: requestOrigin },
-    data: { url: "https://www.example.com/another-page", email: "", consent: false, authority: true, honeypot: "", turnstileToken: "turnstile-disabled", locale: "ru", source: "playwright" },
+    data: { url: `https://www.${activeDomain}/another-page`, email: "", consent: false, authority: true, honeypot: "", turnstileToken: "turnstile-disabled", locale: "ru", source: "playwright" },
   });
   for (const repeated of [await duplicate(), await duplicate()]) {
     const repeatedBody = await repeated.json() as { error?: string; ok?: boolean; cached?: boolean };
@@ -432,7 +472,7 @@ test("submits the free-audit form and preserves the quota after repeated active-
 
   const newDomain = await page.request.post("/api/audits", {
     headers: { "content-type": "application/json", "x-csrf-token": token, origin: requestOrigin },
-    data: { url: "https://example.org/new-page", email: "", consent: false, authority: true, honeypot: "", turnstileToken: "turnstile-disabled", locale: "ru", source: "playwright" },
+    data: { url: `https://${nextDomain}/new-page`, email: "", consent: false, authority: true, honeypot: "", turnstileToken: "turnstile-disabled", locale: "ru", source: "playwright" },
   });
   expect([200, 202]).toContain(newDomain.status());
   if (newDomain.status() === 200) {
@@ -443,44 +483,43 @@ test("submits the free-audit form and preserves the quota after repeated active-
 test("streams observed fixture crawl progress, completes, and reopens the result", async ({ page }) => {
   const audit = await createQueuedFixtureAudit();
   await page.goto(`/audit/${audit.publicToken}`);
-  await expect(page.getByRole("heading", { name: "Проводим SEO-проверку сайта" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Подключение" })).toBeVisible();
   await expect(page.getByRole("progressbar", { name: "Ход проверки сайта" })).toBeVisible();
 
   const work = completeFixtureAudit(audit);
   await expect(page.locator(".audit-complete")).toBeVisible({ timeout: 20_000 });
   await work;
-  await expect(page.locator(".final-score strong")).toHaveText("100");
-  await expect(page.locator(".audit-result-domain")).toHaveText(/correct\.test/u);
-  await expect(page.locator(".audit-result-domain")).toHaveAttribute("href", "https://correct.test/");
-  await expect(page.getByText("Обнаружено 2 URL. Подробно проверено 2 из максимум 10 страниц.")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Что найдено на correct.test" })).toBeVisible();
-  await expect(page.getByText("Что вошло в проверку")).toBeVisible();
-  await expect(page.getByText(/согласие зафиксировано/u)).toBeVisible();
+  await expect(page.locator(".final-score")).toHaveCount(0);
+  await expect(page.getByText("/100", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Краткий итог для correct.test" })).toBeVisible();
+  await expect(page.locator(".audit-client-stats").getByText("Найдено HTML-страниц", { exact: true })).toBeVisible();
+  await expect(page.locator(".audit-client-stats").getByText("Подробно проверено страниц", { exact: true })).toBeVisible();
+  await expect(page.locator(".audit-client-issues").getByRole("heading", { name: "Что стоит проверить" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Что уже в порядке" }).first()).toBeVisible();
   await expect(page.locator(".audit-complete h1")).toHaveCSS("font-family", /Manrope/u);
   await expect(page.getByText("Полный аудит стоит", { exact: false })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Скачать PDF-отчёт" })).toHaveAttribute("href", `/api/audits/${audit.publicToken}/report.pdf`);
+  await expect(page.getByRole("link", { name: "Скачать PDF" })).toHaveAttribute("href", `/api/audits/${audit.publicToken}/report.pdf`);
   const publicPdf = await page.request.get(`/api/audits/${audit.publicToken}/report.pdf`);
   expect(publicPdf.status()).toBe(200);
   expect(publicPdf.headers()["content-type"]).toContain("application/pdf");
   expect((await publicPdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
 
   await page.reload();
-  await expect(page.locator(".final-score strong")).toHaveText("100");
-  await expect(page.locator(".audit-result-domain")).toHaveAttribute("href", "https://correct.test/");
-  await expect(page.getByRole("heading", { name: "Что найдено на correct.test" })).toBeVisible();
+  await expect(page.locator(".final-score")).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Краткий итог для correct.test" })).toBeVisible();
 });
 
 test("shows an explicit error for an unknown audit link", async ({ page }) => {
   await page.goto(`/audit/${"A".repeat(43)}`);
 
   await expect(page.getByRole("heading", { name: "Проверка не найдена" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Запустить новую проверку" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Новая проверка" })).toBeVisible();
 });
 
 test("submits the short form and calculator lead", async ({ page }) => {
   await page.goto("/contacts");
   await page.getByLabel("Имя").fill("E2E Lead");
-  await page.getByLabel("Telegram или e-mail").fill("lead-e2e@example.com");
+  await page.getByLabel("Телефон или e-mail").fill("lead-e2e@example.com");
   await page.getByLabel(/согласие на обработку персональных данных/iu).check();
   await page.getByRole("button", { name: "Отправить заявку" }).click();
   await expect(page.getByText(/Заявка сохранена/u)).toBeVisible();
@@ -493,8 +532,10 @@ test("submits the short form and calculator lead", async ({ page }) => {
   await expect(page.getByText(/Расчёт сохранён/u)).toBeVisible();
 });
 
-test("submits the detailed brief with a validated private PNG attachment", async ({ page, request }) => {
+test("submits the detailed brief with a validated private PNG attachment", async ({ page, request, browserName }) => {
+  const briefName = `E2E Brief User ${browserName}`;
   await page.goto("/brief");
+  await page.waitForFunction(() => window.localStorage.getItem("kileni-brief:v2") !== null);
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Компания или проект").fill("E2E Brief");
   await page.getByLabel("Что сейчас не устраивает?").fill("Посетители не находят нужные услуги в поиске.");
@@ -503,8 +544,8 @@ test("submits the detailed brief with a validated private PNG attachment", async
   await page.getByLabel("Ссылка на сайт").fill("https://example.com");
   await page.getByLabel("Приоритетные услуги").fill("SEO-аудит и продвижение.");
   await page.getByRole("button", { name: /^Далее/u }).click();
-  await page.getByLabel("Имя").fill("E2E Brief User");
-  await page.getByLabel("Telegram или e-mail").fill("brief-e2e@example.com");
+  await page.getByLabel("Имя").fill(briefName);
+  await page.getByLabel("Телефон или e-mail").fill("brief-e2e@example.com");
   await page.getByLabel(/согласие на обработку персональных данных/iu).check();
   await page.locator('input[type="file"]').setInputFiles("public/brand/kileni-og.png");
   await expect(page.getByText(/kileni-og\.png/u)).toBeVisible();
@@ -513,7 +554,7 @@ test("submits the detailed brief with a validated private PNG attachment", async
 
   const savedBrief = (await database.execute({
     sql: "SELECT id FROM brief_submissions WHERE name=? ORDER BY created_at DESC LIMIT 1",
-    args: ["E2E Brief User"],
+    args: [briefName],
   })).rows[0] as { id?: string } | undefined;
   expect(savedBrief?.id).toEqual(expect.any(String));
   const briefId = savedBrief!.id!;
@@ -528,6 +569,27 @@ test("submits the detailed brief with a validated private PNG attachment", async
   await page.getByLabel("Логин").fill("e2e-admin");
   await page.getByLabel("Пароль").fill("Kileni-e2e-password");
   await page.getByRole("button", { name: "Войти" }).click();
+  await expect(page).toHaveURL(/\/admin$/u);
+
+  await page.goto(`/admin/briefs/${briefId}`);
+  await expect(page.getByRole("heading", { name: briefName })).toBeVisible();
+  await page.getByLabel("Статус").selectOption("contacted");
+  await page.getByLabel("Новая заметка").fill("QA: бриф открыт, контакт проверен");
+  await page.getByLabel("Тестовая запись (QA)").check();
+  await page.getByLabel("Метка QA").fill("Playwright · путь брифа");
+  await page.getByRole("button", { name: "Сохранить" }).click();
+  await expect(page.getByText("QA: бриф открыт, контакт проверен")).toBeVisible();
+  await expect(page.getByText("Playwright · путь брифа")).toBeVisible();
+
+  const briefExport = await page.request.get(`/api/admin/briefs/${briefId}/export`);
+  expect(briefExport.status()).toBe(200);
+  expect(briefExport.headers()["content-disposition"]).toContain(`brief-${briefId}.json`);
+  expect(await briefExport.json()).toMatchObject({
+    kind: "brief",
+    record: { id: briefId, status: "contacted" },
+    metadata: { qaLabel: "Playwright · путь брифа" },
+    notes: [{ note: "QA: бриф открыт, контакт проверен" }],
+  });
 
   const anonymousDownload = await request.get(attachmentHref);
   expect(anonymousDownload.status()).toBe(401);
@@ -536,37 +598,104 @@ test("submits the detailed brief with a validated private PNG attachment", async
   expect(privateDownload.headers()["content-type"]).toContain("image/png");
   expect(privateDownload.headers()["cache-control"]).toContain("private");
   expect((await privateDownload.body()).subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+
+  await page.getByLabel("Запись в архиве").check();
+  await Promise.all([
+    page.waitForResponse((response) => response.url().endsWith(`/api/admin/briefs/${briefId}`) && response.request().method() === "PATCH"),
+    page.getByRole("button", { name: "Сохранить" }).click(),
+  ]);
+  await expect(page.getByText("В архиве", { exact: true })).toBeVisible();
+  const briefRowLink = page.locator(`a.admin-record-link[href="/admin/briefs/${briefId}"]`);
+  await page.goto("/admin/briefs");
+  await expect(briefRowLink).toHaveCount(0);
+  await page.getByLabel("Записи").selectOption("archived");
+  await page.getByRole("button", { name: "Применить" }).click();
+  await expect(briefRowLink).toBeVisible();
 });
 
-test("authenticates admin, opens a full audit, exports JSON/PDF, and deletes it", async ({ page }) => {
+test("keeps one audit snapshot consistent across public result, PDF and admin lifecycle", async ({ page }) => {
   const audit = await createQueuedFixtureAudit();
   await completeFixtureAudit(audit, 0);
+
+  await page.goto(`/audit/${audit.publicToken}`);
+  const publicResponse = await page.request.get(`/api/audits/${audit.publicToken}`);
+  expect(publicResponse.status()).toBe(200);
+  const publicPayload = await publicResponse.json() as {
+    result: {
+      resultVersion: number;
+      contractVersion: number;
+      engineVersion: string;
+      selectedPages: Array<{ url: string }>;
+      checkedPages: Array<{ url: string }>;
+      pagesNotCheckedTotal: number;
+    };
+  };
+  expect(publicPayload.result).toMatchObject({ resultVersion: 4, contractVersion: 3 });
+  const publicClient = buildAuditClientPresentation(publicPayload.result, "ru");
+  await expect(page.locator(".audit-client-stats")).toBeVisible();
+  await expect(page.locator(".audit-page-card")).toHaveCount(publicPayload.result.checkedPages.length);
+
+  const publicPdfResponse = await page.request.get(`/api/audits/${audit.publicToken}/report.pdf`);
+  expect(publicPdfResponse.status()).toBe(200);
+  const publicPdf = await PDFDocument.load(await publicPdfResponse.body());
+  expect(publicPdf.getPageCount()).toBeGreaterThanOrEqual(1);
+  expect(publicPdf.getPageCount()).toBeLessThanOrEqual(3);
+
   await page.goto("/admin/login");
   await page.getByLabel("Логин").fill("e2e-admin");
   await page.getByLabel("Пароль").fill("Kileni-e2e-password");
   await page.getByRole("button", { name: "Войти" }).click();
-  await expect(page).toHaveURL(/\/admin\/audits$/u);
+  await expect(page).toHaveURL(/\/admin$/u);
+  const json = await page.request.get(`/api/admin/audits/${audit.id}/export`);
+  expect(json.status()).toBe(200);
+  const exported = await json.json() as {
+    audit: { id: string; publicResult: AuditResultContractV3 };
+    metadata: { qaLabel: string | null; archivedAt: number | null };
+    notes: Array<{ note: string }>;
+  };
+  expect(buildAuditClientPresentation(exported.audit.publicResult, "ru")).toEqual(publicClient);
+  await page.goto("/admin/audits");
   await page.getByRole("link", { name: "correct.test" }).first().click();
   await expect(page.getByRole("heading", { name: "correct.test" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: `Почему выбраны эти страницы · ${publicPayload.result.selectedPages.length}` })).toBeVisible();
+  await expect(page.getByRole("heading", { name: `Статусы и доказательства · ${exported.audit.publicResult.checks.length}` })).toBeVisible();
+  await expect(page.getByText(publicPayload.result.engineVersion, { exact: true }).first()).toBeVisible();
   const rawData = page.locator("details.admin-card").filter({ has: page.locator("summary", { hasText: "Служебные данные и полный JSON" }) });
   await expect(rawData).toHaveJSProperty("open", false);
   await rawData.locator("summary").click();
   await expect(rawData).toHaveJSProperty("open", true);
   await expect(rawData.getByRole("heading", { name: "Полный результат" })).toBeVisible();
 
-  const json = await page.request.get(`/api/admin/audits/${audit.id}/export`);
-  expect(json.status()).toBe(200);
-  expect(await json.json()).toMatchObject({ audit: { id: audit.id, overallScore: 100 } });
+  expect(exported.audit).toMatchObject({ id: audit.id, publicResult: { resultVersion: 4, contractVersion: 3 } });
+  expect(exported.audit.publicResult.selectedPages.map((item) => item.url)).toEqual(publicPayload.result.selectedPages.map((item) => item.url));
+  expect(exported.audit.publicResult.pagesNotCheckedTotal).toBe(publicPayload.result.pagesNotCheckedTotal);
   const pdf = await page.request.get(`/api/admin/audits/${audit.id}/export?format=pdf`);
   expect(pdf.status()).toBe(200);
   expect(pdf.headers()["content-type"]).toContain("application/pdf");
   expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
 
-  page.once("dialog", (dialog) => dialog.accept("DELETE"));
-  await page.getByRole("button", { name: "Удалить" }).click();
-  await expect(page).toHaveURL(/\/admin\/audits$/u);
-  const removed = await page.request.get(`/api/audits/${audit.publicToken}`);
-  expect(removed.status()).toBe(404);
+  await page.getByLabel("Новая заметка").fill("QA: публичный результат, PDF и карточка сверены");
+  await page.getByLabel("Тестовая запись (QA)").check();
+  await page.getByLabel("Метка QA").fill("Playwright · parity");
+  await page.getByLabel("Запись в архиве").check();
+  await page.getByRole("button", { name: "Сохранить" }).click();
+  await expect(page.getByText("QA: публичный результат, PDF и карточка сверены")).toBeVisible();
+  await expect(page.getByText("QA · Playwright · parity", { exact: true })).toBeVisible();
+  await expect(page.getByText("В архиве", { exact: true })).toBeVisible();
+
+  const lifecycleExport = await page.request.get(`/api/admin/audits/${audit.id}/export`);
+  const lifecycle = await lifecycleExport.json() as typeof exported;
+  expect(lifecycle.metadata).toMatchObject({ qaLabel: "Playwright · parity", archivedAt: expect.any(Number) });
+  expect(lifecycle.notes).toEqual(expect.arrayContaining([
+    expect.objectContaining({ note: "QA: публичный результат, PDF и карточка сверены" }),
+  ]));
+
+  await page.goto("/admin/audits");
+  await expect(page.locator(`a[href="/admin/audits/${audit.id}"]`)).toHaveCount(0);
+  await page.getByLabel("Записи").selectOption("archived");
+  await page.getByLabel("QA").selectOption("qa");
+  await page.getByRole("button", { name: "Применить" }).click();
+  await expect(page.locator(`a[href="/admin/audits/${audit.id}"]`).first()).toBeVisible();
 });
 
 test("has no serious automated accessibility violations on key public pages", async ({ page }) => {

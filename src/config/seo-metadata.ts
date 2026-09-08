@@ -24,6 +24,10 @@ const publicSeoCopy = {
       title: "Услуги SEO, разработки и рекламы — KILENI",
       description: "Выберите задачу: SEO-аудит, продвижение, разработка сайта, Яндекс Реклама, контент или отдельный проверяемый этап для нестандартного проекта.",
     },
+    seo: {
+      title: "SEO-услуги: аудит или продвижение — KILENI",
+      description: "Сравните SEO-аудит и регулярное продвижение: от бесплатной проверки до исправлений и ежемесячной работы с сайтом.",
+    },
     "seo-audit": {
       title: "SEO-аудит сайта с планом работ — KILENI",
       description: "Проверим техническое состояние, индексирование, структуру и страницы сайта, расставим проблемы по приоритету и дадим критерии приёмки исправлений.",
@@ -34,7 +38,7 @@ const publicSeoCopy = {
     },
     marketplaces: {
       title: "Карточки товаров для маркетплейсов — KILENI",
-      description: "Готовим карточки товаров отдельно для Wildberries, Ozon, Яндекс Маркета и Мегамаркета: характеристики, названия, тексты и план медиа.",
+      description: "Готовим карточки товаров отдельно для Wildberries, Ozon и Яндекс Маркета: характеристики, названия, тексты и план медиа.",
     },
     "marketplaces/wildberries": {
       title: "Оформление карточек Wildberries — KILENI",
@@ -47,10 +51,6 @@ const publicSeoCopy = {
     "marketplaces/yandex-market": {
       title: "Карточки для Яндекс Маркета — KILENI",
       description: "Приведём предложение к структуре Яндекс Маркета, заполним важные характеристики и подготовим данные, которые участвуют в фильтрах и сравнении товаров.",
-    },
-    "marketplaces/megamarket": {
-      title: "Карточки товаров для Мегамаркета — KILENI",
-      description: "Подготовим полную карточку товара для Мегамаркета и проверим категории, характеристики, тексты и медиа до передачи ассортимента на площадку.",
     },
     "web-development": {
       title: "Разработка сайтов для поиска и рекламы — KILENI",
@@ -105,8 +105,8 @@ const publicSeoCopy = {
       description: "Информация о KILENI, принципах работы, проверке результата и владельце сайта. Здесь собраны подход компании, контакты и обязательные реквизиты.",
     },
     contacts: {
-      title: "Контакты KILENI: Telegram, телефон и e-mail",
-      description: "Свяжитесь с KILENI удобным способом, чтобы обсудить SEO, разработку сайта, рекламу или карточки товаров и согласовать следующий шаг.",
+      title: "Контакты KILENI: телефон и MAX",
+      description: "Позвоните в KILENI или напишите в MAX, чтобы обсудить SEO, разработку сайта, рекламу или карточки товаров и согласовать следующий шаг.",
     },
     privacy: {
       title: "Политика обработки персональных данных KILENI",
@@ -118,7 +118,7 @@ const publicSeoCopy = {
     },
     "free-audit": {
       title: "Бесплатная SEO-проверка сайта — KILENI",
-      description: "Запустите бесплатную SEO-проверку до 10 публичных страниц: получите общую оценку, основные зоны риска и ссылку на результат без доступа к админке.",
+      description: "Запустите бесплатную SEO-проверку до 10 публичных страниц: получите статусы проверок, конкретные замечания по URL и ссылку на результат.",
     },
   },
   en: {
@@ -130,6 +130,10 @@ const publicSeoCopy = {
       title: "SEO, web and advertising services — KILENI",
       description: "Choose a clear task: SEO audit, ongoing growth, website development, Yandex Ads, content production, or a scoped first stage for a custom project.",
     },
+    seo: {
+      title: "SEO audits and ongoing growth — KILENI",
+      description: "Compare a one-time SEO audit with ongoing search growth, from a free check to implementation and monthly website improvements.",
+    },
     "seo-audit": {
       title: "Website SEO audit with an action plan — KILENI",
       description: "We review technical access, indexing, structure and key pages, rank findings by impact, and define practical acceptance checks for every fix.",
@@ -140,7 +144,7 @@ const publicSeoCopy = {
     },
     marketplaces: {
       title: "Product listings for marketplaces — KILENI",
-      description: "We prepare platform-specific product listings for Wildberries, Ozon, Yandex Market and Megamarket, including attributes, copy and a media plan.",
+      description: "We prepare platform-specific product listings for Wildberries, Ozon and Yandex Market, including attributes, copy and a media plan.",
     },
     "marketplaces/wildberries": {
       title: "Wildberries product listing services — KILENI",
@@ -153,10 +157,6 @@ const publicSeoCopy = {
     "marketplaces/yandex-market": {
       title: "Yandex Market product listings — KILENI",
       description: "We adapt product data to Yandex Market, complete the attributes used in filters and comparison, and check the listing before catalogue delivery.",
-    },
-    "marketplaces/megamarket": {
-      title: "Megamarket product listing services — KILENI",
-      description: "We prepare complete Megamarket product listings and verify categories, attributes, copy and media before the assortment is delivered to the platform.",
     },
     "web-development": {
       title: "Web development for search and ads — KILENI",
@@ -211,8 +211,8 @@ const publicSeoCopy = {
       description: "Learn how KILENI scopes work, verifies delivery and records limitations, and find the company owner details, required legal information and contacts.",
     },
     contacts: {
-      title: "Contact KILENI: Telegram, phone and email",
-      description: "Contact KILENI to discuss SEO, website development, advertising or marketplace product listings and agree a practical next step for your project.",
+      title: "Contact KILENI by phone or MAX",
+      description: "Call KILENI or use MAX to discuss SEO, website development, advertising or marketplace product listings and agree a practical next step.",
     },
     privacy: {
       title: "KILENI personal data processing policy",
@@ -224,7 +224,7 @@ const publicSeoCopy = {
     },
     "free-audit": {
       title: "Free website SEO check for 10 pages — KILENI",
-      description: "Run a free SEO check of up to 10 public pages and receive an overall score, the main risk areas and a shareable result without providing admin access.",
+      description: "Run a free SEO check of up to 10 public pages and receive check statuses, URL-specific findings and a shareable result without admin access.",
     },
   },
 } satisfies Record<Locale, Record<PublicRoutePath, SeoCopy>>;
@@ -257,13 +257,13 @@ const ARTICLE_SEO_TITLES: Record<Locale, Record<string, string>> = {
 const PUBLIC_ROUTE_LAST_MODIFIED = {
   "": "2026-08-24",
   services: "2026-08-24",
+  seo: "2026-08-30",
   "seo-audit": "2026-08-24",
   "seo-promotion": "2026-08-24",
   marketplaces: "2026-08-24",
   "marketplaces/wildberries": "2026-08-24",
   "marketplaces/ozon": "2026-08-24",
   "marketplaces/yandex-market": "2026-08-24",
-  "marketplaces/megamarket": "2026-08-24",
   "web-development": "2026-08-24",
   "yandex-ads": "2026-08-24",
   "content-materials": "2026-08-24",

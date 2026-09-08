@@ -4,7 +4,7 @@ export const INTRO_DURATION_MS = 4_200;
 export const INTRO_SCENE_DURATION_MS = 7_000;
 /** Absolute safety cap, including font measurement and hydration readiness. */
 export const INTRO_MAX_BLOCK_MS = 5_000;
-export const INTRO_FINISH_MS = 0;
+export const INTRO_FINISH_MS = 240;
 /** A final static frame for visitors who enabled reduced motion. */
 export const INTRO_REDUCED_MS = 300;
 /** Completion is remembered for the current tab; `?intro=1` is the replay route. */
@@ -53,13 +53,28 @@ export const INTRO_BOOTSTRAP = `(() => {
   const complete = () => {
     if (done) return;
     done = true;
+    const restoreFirstTabFocus = root.dataset.kileniIntroFocus === "tab";
     window.clearTimeout(timer);
     window.clearTimeout(readinessTimer);
     removeListeners();
     try { window.sessionStorage.setItem("${INTRO_SESSION_KEY}", "1"); } catch {}
+    root.dataset.kileniIntroLastCompletedAt = String(performance.now());
     root.dataset.kileniIntro = "done";
     delete root.dataset.kileniIntroStartedAt;
     window.dispatchEvent(new Event("${INTRO_FINISHED_EVENT}"));
+    if (restoreFirstTabFocus) {
+      window.requestAnimationFrame(() => document.querySelector(".skip-link")?.focus({ preventScroll: true }));
+    }
+  };
+
+  const beginControlledFinish = () => {
+    if (done || root.dataset.kileniIntro === "finishing") return;
+    window.clearTimeout(timer);
+    window.clearTimeout(readinessTimer);
+    removeListeners();
+    root.dataset.kileniIntroLastFinishStartedAt = String(performance.now());
+    root.dataset.kileniIntro = "finishing";
+    timer = window.setTimeout(complete, ${INTRO_FINISH_MS});
   };
 
   const controlledFinish = (event) => {
@@ -67,11 +82,11 @@ export const INTRO_BOOTSTRAP = `(() => {
     if (event?.target instanceof Element && event.target.closest("[data-kileni-intro-sound]")) return;
     if (event?.target instanceof Element && event.target.closest("[data-kileni-intro-skip]") && event.type !== "click") return;
     if (event?.type === "keydown" && !event.isTrusted) return;
-    // Do not replace the browser's first Tab destination with a programmatic
-    // focus move. The default action must still land on the skip link.
+    // Safari may skip an off-screen skip-link and jump into the page. Record
+    // the intent so completion can restore the expected first Tab target.
     if (event?.type === "keydown" && event.key === "Tab") root.dataset.kileniIntroFocus = "tab";
     else delete root.dataset.kileniIntroFocus;
-    complete();
+    beginControlledFinish();
   };
 
   const start = () => {
@@ -80,15 +95,33 @@ export const INTRO_BOOTSTRAP = `(() => {
 
     done = false;
     delete root.dataset.kileniIntroFocus;
+    delete root.dataset.kileniIntroLastCompletedAt;
+    delete root.dataset.kileniIntroLastFinishStartedAt;
+    delete root.dataset.kileniIntroEHoldReached;
+    delete root.dataset.kileniIntroSeoFormingReached;
+    delete root.dataset.kileniIntroEHoldTransform;
+    delete root.dataset.kileniIntroEHoldSOpacity;
+    delete root.dataset.kileniIntroSeoFormingTransform;
+    delete root.dataset.kileniIntroSeoFormingSOpacity;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const effectiveType = connection?.effectiveType || "";
+    const constrained = connection?.saveData === true
+      || effectiveType === "slow-2g"
+      || effectiveType === "2g"
+      || (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 2)
+      || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 2);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // Reduced-motion visitors still see the KILENI identity, but only as a
     // short static final frame instead of the seven-second motion sequence.
-    if (reduced) {
+    if (reduced || constrained) {
       if (!window.__kileniBrandIntroReady) return;
+      if (constrained) root.dataset.kileniIntroMode = "lite";
+      else delete root.dataset.kileniIntroMode;
       root.dataset.kileniIntro = "reduced";
       timer = window.setTimeout(complete, ${INTRO_REDUCED_MS});
       return;
     }
+    delete root.dataset.kileniIntroMode;
     if (!window.__kileniBrandIntroReady) return;
     if (seenThisSession()) {
       complete();
@@ -103,7 +136,7 @@ export const INTRO_BOOTSTRAP = `(() => {
   };
 
   window.__kileniStartBrandIntro = start;
-  window.__kileniFinishBrandIntro = complete;
+  window.__kileniFinishBrandIntro = beginControlledFinish;
   // Never leave the page locked if fonts, SVG measurements or hydration fail.
   if (root.dataset.kileniIntro === "pending") {
     addListeners();

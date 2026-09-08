@@ -1,5 +1,4 @@
-import { briefAnswerLabel, type BriefService } from "@/src/content/brief";
-import type { Locale } from "@/src/config/site";
+import { briefPresentationEntries, briefServiceName } from "@/src/lib/brief/presentation";
 
 const submissionStatusLabels: Readonly<Record<string, string>> = {
   new: "Новая",
@@ -57,7 +56,7 @@ export function submissionStatusLabel(value: unknown): string {
 
 export function serviceLabel(value: unknown): string {
   const service = String(value ?? "").trim();
-  return serviceLabels[service] ?? (service || "Не указано");
+  return serviceLabels[service] ?? briefServiceName(service, "ru");
 }
 
 export function localeLabel(value: unknown): string {
@@ -110,16 +109,7 @@ export function briefAnswerEntries(
   serviceValue: unknown,
   localeValue: unknown,
 ): Array<{ key: string; label: string; value: string }> {
-  if (!answers || typeof answers !== "object" || Array.isArray(answers)) return [];
-  const service = validBriefService(serviceValue);
-  const locale: Locale = localeValue === "en" ? "en" : "ru";
-  return Object.entries(answers as Record<string, unknown>)
-    .filter(([key, value]) => !["name", "contact", "consent"].includes(key) && hasReadableValue(value))
-    .map(([key, value]) => ({
-      key,
-      label: service ? briefAnswerLabel(service, key, locale) : fallbackFieldLabel(key),
-      value: formatAnswerValue(value),
-    }));
+  return briefPresentationEntries(answers, serviceValue, localeValue);
 }
 
 export function readableEntries(value: unknown): Array<{ key: string; label: string; value: string }> {
@@ -132,7 +122,7 @@ export function readableEntries(value: unknown): Array<{ key: string; label: str
 export function notificationLabel(value: unknown): string {
   const status = String(value ?? "").trim();
   const labels: Readonly<Record<string, string>> = {
-    sent: "Отправлено",
+    sent: "Передано почтовому серверу",
     failed: "Ошибка отправки",
     skipped: "Не отправлялось",
     queued: "Ожидает отправки",
@@ -146,11 +136,6 @@ export function channelLabel(value: unknown): string {
   if (channel === "email") return "Email";
   if (channel === "telegram") return "Telegram";
   return channel || "Канал не указан";
-}
-
-function validBriefService(value: unknown): BriefService | null {
-  const service = String(value ?? "") as BriefService;
-  return ["seo", "audit", "marketplaces", "development", "ads", "custom"].includes(service) ? service : null;
 }
 
 function telegramUsername(value: string, declaredType: string): string | null {

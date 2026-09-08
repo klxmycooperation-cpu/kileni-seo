@@ -40,10 +40,10 @@ export function CookieManager({ locale }: { locale: Locale }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const persistedPreferencesRef = useRef<Preferences>(defaults);
   const dismissOnEscapeRef = useRef(false);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let revealTimer: number | undefined;
-    let safetyTimer: number | undefined;
     let introObserver: MutationObserver | undefined;
 
     const stopWaitingForIntro = () => {
@@ -55,7 +55,6 @@ export function CookieManager({ locale }: { locale: Locale }) {
     const revealAfterIntro = () => {
       stopWaitingForIntro();
       window.clearTimeout(revealTimer);
-      window.clearTimeout(safetyTimer);
       revealTimer = window.setTimeout(() => {
         dismissOnEscapeRef.current = false;
         setOpen(true);
@@ -74,7 +73,6 @@ export function CookieManager({ locale }: { locale: Locale }) {
         if (document.documentElement.dataset.kileniIntro === "done") revealAfterIntro();
       });
       introObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-kileni-intro"] });
-      safetyTimer = window.setTimeout(revealAfterIntro, 10_000);
     };
 
     try {
@@ -90,10 +88,16 @@ export function CookieManager({ locale }: { locale: Locale }) {
     } catch {
       revealWhenPageIsReady();
     }
-    const show = () => {
+    const show = (event: Event) => {
+      const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const opener = event instanceof CustomEvent && event.detail instanceof HTMLElement ? event.detail : null;
+      returnFocusRef.current = opener ?? (
+        activeElement && activeElement !== document.body && activeElement !== document.documentElement
+          ? activeElement
+          : null
+      );
       stopWaitingForIntro();
       window.clearTimeout(revealTimer);
-      window.clearTimeout(safetyTimer);
       dismissOnEscapeRef.current = true;
       setConfiguring(true);
       setOpen(true);
@@ -102,7 +106,6 @@ export function CookieManager({ locale }: { locale: Locale }) {
     return () => {
       stopWaitingForIntro();
       window.clearTimeout(revealTimer);
-      window.clearTimeout(safetyTimer);
       window.removeEventListener(OPEN_EVENT, show);
     };
   }, []);
@@ -115,9 +118,11 @@ export function CookieManager({ locale }: { locale: Locale }) {
     if (!layer || !dialog) return;
 
     const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const returnTarget = activeElement && activeElement !== document.body && activeElement !== document.documentElement
-      ? activeElement
-      : document.getElementById("main-content");
+    const returnTarget = returnFocusRef.current ?? (
+      activeElement && activeElement !== document.body && activeElement !== document.documentElement
+        ? activeElement
+        : document.getElementById("main-content")
+    );
 
     titleRef.current?.focus({ preventScroll: true });
 
@@ -175,7 +180,12 @@ export function CookieManager({ locale }: { locale: Locale }) {
         if (ariaHidden === null) element.removeAttribute("aria-hidden");
         else element.setAttribute("aria-hidden", ariaHidden);
       }
-      if (returnTarget?.isConnected) returnTarget.focus({ preventScroll: true });
+      window.requestAnimationFrame(() => {
+        if (returnTarget?.isConnected && !returnTarget.closest("[inert]")) {
+          returnTarget.focus({ preventScroll: true });
+        }
+        if (returnFocusRef.current === returnTarget) returnFocusRef.current = null;
+      });
     };
   }, [open]);
 
@@ -295,5 +305,13 @@ function StorageInventory({ locale }: { locale: Locale }) {
 }
 
 export function CookieSettingsButton({ locale }: { locale: Locale }) {
-  return <button type="button" className="footer-cookie-button" onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}>{locale === "ru" ? "Настройки cookies" : "Cookie settings"}</button>;
+  return (
+    <button
+      type="button"
+      className="footer-cookie-button"
+      onClick={(event) => window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: event.currentTarget }))}
+    >
+      {locale === "ru" ? "Настройки cookies" : "Cookie settings"}
+    </button>
+  );
 }

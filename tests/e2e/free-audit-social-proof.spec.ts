@@ -57,7 +57,8 @@ test("keeps the free-audit form, counter and actions physically inside 320–430
   await page.getByRole("button", { name: "Проверить сайт бесплатно" }).click();
 
   await expect(page.getByText("Шаг 2 из 2")).toBeVisible();
-  await expect(page.getByLabel("Адрес сайта")).toHaveAttribute("type", "url");
+  await expect(page.getByLabel("Адрес сайта")).toHaveAttribute("type", "text");
+  await expect(page.getByLabel("Адрес сайта")).toHaveAttribute("inputmode", "url");
   await expect(page.getByLabel("Адрес сайта")).toHaveValue("https://example.com");
   await expect(page.getByLabel("Ваше имя")).toHaveCount(0);
   await expect(page.getByLabel("Email (необязательно)")).toBeVisible();
@@ -137,8 +138,9 @@ test("shows the real audit stages in a fixed, minimizable panel while the reques
 
   const scan = page.locator(".audit-live-overlay");
   await expect(scan).toBeVisible();
-  await expect(scan).toContainText("Проводим SEO-проверку сайта");
-  await expect(scan).toContainText("Проверяем адрес сайта");
+  await expect(scan).toContainText("Бесплатная SEO-проверка");
+  await expect(scan).toContainText("Подключение");
+  await expect(scan).toContainText("Подключаемся к сайту и проверяем, отвечает ли сервер.");
   await expect(scan).toHaveCSS("position", "fixed");
   const scanBounds = await scan.boundingBox();
   expect(scanBounds?.width).toBeGreaterThanOrEqual(300);
@@ -176,5 +178,5 @@ test("prefills the paid brief only from a matching same-browser audit handoff", 
   await page.getByLabel("Что беспокоит?").fill("Страницы плохо находятся");
   await page.getByRole("button", { name: "Далее" }).click();
   await expect(page.getByLabel("Имя")).toHaveValue("Анна");
-  await expect(page.getByLabel("Telegram или e-mail")).toHaveValue("anna@example.com");
+  await expect(page.getByLabel("Телефон или e-mail")).toHaveValue("anna@example.com");
 });

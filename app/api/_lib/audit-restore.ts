@@ -1,14 +1,20 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { deflateRawSync, inflateRawSync } from "node:zlib";
 
 import { normalizeAuditDomain } from "@/src/lib/audit";
+import { derivePublicAuditCoverage } from "@/src/lib/audit/public-coverage";
+import { PUBLIC_AUDIT_PAGE_LIMIT } from "@/src/config/public-audit";
 import { sanitizePublicAuditResult } from "./audit-public";
 import { validOpaqueToken } from "./http";
 
-const VERSION = 1;
+const LEGACY_VERSION = 1 as const;
+const CONTRACT_V3_VERSION = 2 as const;
+const CONTRACT_V4_VERSION = 3 as const;
 const SIGNING_CONTEXT = "kileni:audit-restore:v1\0";
 const DEFAULT_TTL_MS = 7 * 24 * 60 * 60 * 1_000;
 const MAX_TTL_MS = 90 * 24 * 60 * 60 * 1_000;
 const MAX_ENVELOPE_LENGTH = 20_000;
+const MAX_DECOMPRESSED_LENGTH = 256_000;
 const EXAMPLE_SECRET = "replace-with-at-least-32-random-characters";
 
 type TerminalStatus = "completed" | "partial";
@@ -24,17 +30,15 @@ export type AuditRestoreInput = {
 };
 
 export type AuditRestorePublicResult = Record<string, unknown> & {
-  readonly score: number;
-  readonly grade: "A" | "B" | "C" | "D" | "E";
-  readonly interpretation: string;
+  readonly resultVersion: number;
   readonly pagesChecked: number;
   readonly pagesDiscovered: number;
-  readonly partial: boolean;
-  readonly categories: unknown[];
+  readonly pagesSelected: number;
+  readonly coverageStatus: "sample_complete" | "sample_partial";
 };
 
 export type AuditRestoreSnapshot = AuditRestoreInput & {
-  readonly version: 1;
+  readonly version: typeof LEGACY_VERSION | typeof CONTRACT_V3_VERSION | typeof CONTRACT_V4_VERSION;
   readonly expiresAt: number;
   readonly result: AuditRestorePublicResult;
 };
@@ -61,11 +65,15 @@ export function createAuditRestoreEnvelope(
   if (now === null || ttlMs === null) return null;
   const snapshot = sanitizeSnapshot({
     ...input,
-    version: VERSION,
+    version: restoreVersionForResult(input.result),
     expiresAt: now + ttlMs,
   });
   if (!snapshot) return null;
-  const payload = Buffer.from(JSON.stringify(snapshot), "utf8").toString("base64url");
+  const serialized = Buffer.from(JSON.stringify(snapshot), "utf8");
+  if (serialized.byteLength > MAX_DECOMPRESSED_LENGTH) return null;
+  const payload = snapshot.version === LEGACY_VERSION
+    ? serialized.toString("base64url")
+    : `z${deflateRawSync(serialized).toString("base64url")}`;
   const signature = sign(payload, secret);
   const envelope = `${payload}.${signature}`;
   return envelope.length <= MAX_ENVELOPE_LENGTH ? envelope : null;
@@ -89,7 +97,11 @@ export function verifyAuditRestoreEnvelope(
 
   let decoded: unknown;
   try {
-    decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as unknown;
+    const bytes = payload.startsWith("z")
+      ? inflateRawSync(Buffer.from(payload.slice(1), "base64url"), { maxOutputLength: MAX_DECOMPRESSED_LENGTH })
+      : Buffer.from(payload, "base64url");
+    if (bytes.byteLength > MAX_DECOMPRESSED_LENGTH) return null;
+    decoded = JSON.parse(bytes.toString("utf8")) as unknown;
   } catch {
     return null;
   }
@@ -104,7 +116,7 @@ export function auditRestoreIsConfigured(): boolean {
 }
 
 function sanitizeSnapshot(value: unknown): AuditRestoreSnapshot | null {
-  if (!isRecord(value) || value.version !== VERSION) return null;
+  if (!isRecord(value) || (value.version !== LEGACY_VERSION && value.version !== CONTRACT_V3_VERSION && value.version !== CONTRACT_V4_VERSION)) return null;
   if (typeof value.token !== "string" || !validOpaqueToken(value.token)) return null;
   if (value.locale !== "ru" && value.locale !== "en") return null;
   if (value.status !== "completed" && value.status !== "partial") return null;
@@ -115,13 +127,14 @@ function sanitizeSnapshot(value: unknown): AuditRestoreSnapshot | null {
   const result = sanitizePublicAuditResult(value.result);
   if (!domain || createdAt === null || completedAt === null || expiresAt === null || !result) return null;
   if (completedAt < createdAt || expiresAt <= completedAt || !isCompletePublicResult(result)) return null;
-  if ((value.status === "partial") !== result.partial) return null;
+  if (value.version !== restoreVersionForResult(result)) return null;
+  const coverage = derivePublicAuditCoverage({ result, pageLimit: PUBLIC_AUDIT_PAGE_LIMIT });
   return {
-    version: VERSION,
+    version: value.version,
     token: value.token,
     locale: value.locale,
     normalizedDomain: domain,
-    status: value.status,
+    status: coverage.coverageStatus === "sample_partial" ? "partial" : "completed",
     createdAt,
     completedAt,
     expiresAt,
@@ -130,14 +143,60 @@ function sanitizeSnapshot(value: unknown): AuditRestoreSnapshot | null {
 }
 
 function isCompletePublicResult(value: Record<string, unknown>): value is AuditRestorePublicResult {
-  return typeof value.score === "number" &&
-    typeof value.grade === "string" && /^[A-E]$/u.test(value.grade) &&
-    typeof value.interpretation === "string" &&
+  if (isResultV4(value)) {
+    return typeof value.pagesChecked === "number" &&
+      typeof value.pagesSelected === "number" &&
+      typeof value.pagesEligible === "number" &&
+      typeof value.pagesDiscovered === "number" &&
+      (value.coverageStatus === "sample_complete" || value.coverageStatus === "sample_partial") &&
+      value.pagesChecked <= value.pagesSelected &&
+      value.pagesSelected <= value.pagesEligible &&
+      value.pagesEligible <= value.pagesDiscovered;
+  }
+  if (isResultV3(value)) {
+    return typeof value.pagesChecked === "number" &&
+      typeof value.pagesSelected === "number" &&
+      typeof value.pagesDiscovered === "number" &&
+      (value.coverageStatus === "sample_complete" || value.coverageStatus === "sample_partial") &&
+      value.pagesChecked <= value.pagesSelected &&
+      value.pagesSelected <= value.pagesDiscovered;
+  }
+  return typeof value.resultVersion === "number" && value.resultVersion < 3 &&
     typeof value.pagesChecked === "number" &&
     typeof value.pagesDiscovered === "number" &&
-    typeof value.partial === "boolean" &&
-    Array.isArray(value.categories) &&
-    value.pagesChecked <= value.pagesDiscovered;
+    typeof value.pagesSelected === "number" &&
+    (value.coverageStatus === "sample_complete" || value.coverageStatus === "sample_partial") &&
+    value.pagesChecked <= value.pagesSelected &&
+    value.pagesSelected <= value.pagesDiscovered;
+}
+
+function isResultV4(value: unknown): value is Record<string, unknown> & {
+  readonly resultVersion: 4;
+  readonly contractVersion: 3;
+  readonly pagesChecked: number;
+  readonly pagesSelected: number;
+  readonly pagesEligible: number;
+  readonly pagesDiscovered: number;
+  readonly coverageStatus: "sample_complete" | "sample_partial";
+} {
+  return isRecord(value) && value.resultVersion === 4 && value.contractVersion === 3;
+}
+
+function isResultV3(value: unknown): value is Record<string, unknown> & {
+  readonly resultVersion: 3;
+  readonly contractVersion: 2;
+  readonly pagesChecked: number;
+  readonly pagesSelected: number;
+  readonly pagesDiscovered: number;
+  readonly coverageStatus: "sample_complete" | "sample_partial";
+} {
+  return isRecord(value) && value.resultVersion === 3 && value.contractVersion === 2;
+}
+
+function restoreVersionForResult(value: unknown): AuditRestoreSnapshot["version"] {
+  if (isResultV4(value)) return CONTRACT_V4_VERSION;
+  if (isResultV3(value)) return CONTRACT_V3_VERSION;
+  return LEGACY_VERSION;
 }
 
 function sanitizeDomain(value: unknown): string | null {

@@ -13,7 +13,9 @@ describe("brand intro lifecycle contract", () => {
     expect(INTRO_DURATION_MS + INTRO_FINISH_MS).toBeLessThanOrEqual(5_000);
     expect(INTRO_MAX_BLOCK_MS).toBeLessThanOrEqual(5_000);
     expect(INTRO_BOOTSTRAP).toContain(`readinessTimer = window.setTimeout(complete, ${INTRO_MAX_BLOCK_MS})`);
-    expect(INTRO_BOOTSTRAP.match(/clearTimeout\(readinessTimer\)/gu)).toHaveLength(1);
+    // Both a natural completion and an early controlled exit must cancel the
+    // emergency readiness timer so it cannot fire after the intro is gone.
+    expect(INTRO_BOOTSTRAP.match(/clearTimeout\(readinessTimer\)/gu)).toHaveLength(2);
   });
 
   it("persists completion for every visitor rather than only automated browsers", () => {

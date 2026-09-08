@@ -2,17 +2,17 @@ import type { Article } from "./articles";
 
 const covers = {
   speed: [
-    "/editorial/website-speed-loading-v2.png",
+    "/editorial/website-speed-loading-v2.webp",
     "Диагностика загрузки страницы: этапы, найденное узкое место, оптимизация и повторная проверка",
     "Page-load diagnosis showing stages, a confirmed bottleneck, optimisation and repeat verification",
   ],
   ecommerce: [
-    "/editorial/seo-ecommerce-promotion-v2.png",
+    "/editorial/seo-ecommerce-promotion-v2.webp",
     "Структура интернет-магазина: категории, полезные фильтры, карточки товаров и исключённые дубли",
     "Ecommerce structure with categories, useful filters, product cards and excluded duplicate paths",
   ],
   price: [
-    "/editorial/seo-promotion-cost-v2.png",
+    "/editorial/seo-promotion-cost-v2.webp",
     "Прозрачный состав SEO-работ: аудит, исправления, материалы, внедрение и контроль результата",
     "Transparent SEO scope covering audit, fixes, content, implementation and result verification",
   ],
@@ -35,7 +35,7 @@ export const additionalRuArticles: Article[] = [
     description: "Разбираем, какие измерения нужны, как отличить симптом от причины и что проверять после релиза.",
     readerOutcome: "Соберёте короткий план проверки скорости без гонки за одной красивой цифрой.",
     date: "2026-08-15",
-    author: "KILENI",
+    author: "Редакция KILENI",
     readingMinutes: 9,
     searchIntent: {
       label: "Скорость сайта",
@@ -98,11 +98,11 @@ export const additionalRuArticles: Article[] = [
       },
     ],
     faq: [
-      { question: "Нужен ли максимальный балл PageSpeed?", answer: "Нет. Нужны быстрый первый экран, стабильная вёрстка и работающий сценарий на важных страницах. Балл — диагностический сигнал, а не цель сам по себе." },
+      { question: "Нужен ли максимальный балл PageSpeed?", answer: "Нет. Нужны быстрый первый экран, стабильная вёрстка и работающие важные страницы. Балл помогает найти проблему, но сам по себе не является целью." },
       { question: "Почему мобильный тест хуже десктопного?", answer: "Мобильные устройства и сети обычно слабее. Тяжёлые изображения, скрипты и нестабильные блоки проявляются на них сильнее." },
       { question: "Можно ли проверить скорость бесплатно?", answer: "Да. Бесплатные инструменты покажут симптомы; для исправления обычно нужно сопоставить их с шаблонами, кодом и бизнес-сценарием страницы." },
     ],
-    cta: { title: "Проверить важные страницы", text: "Бесплатная проверка покажет, какие сигналы удаётся подтвердить на публичной части сайта.", label: "Проверить сайт", href: "/free-audit" },
+    cta: { title: "Проверить важные страницы", text: "Бесплатная проверка покажет, какие проблемы можно подтвердить по открытым страницам сайта.", label: "Проверить сайт", href: "/free-audit" },
     related: ["seo-audit-when-you-need-it", "why-website-is-not-in-search", "seo-ecommerce-promotion"],
     sources: [
       { title: "Google: About PageSpeed Insights", url: "https://developers.google.com/speed/docs/insights/v5/about" },
@@ -116,7 +116,7 @@ export const additionalRuArticles: Article[] = [
     description: "Выбираем категории, карточки и фильтры по спросу, а не по числу URL в каталоге.",
     readerOutcome: "Поймёте, какие страницы магазина нужны покупателю и поиску, а какие создают дубли и путаницу.",
     date: "2026-08-15",
-    author: "KILENI",
+    author: "Редакция KILENI",
     readingMinutes: 10,
     searchIntent: {
       label: "Интернет-магазин",
@@ -200,7 +200,7 @@ export const additionalRuArticles: Article[] = [
     description: "Разбираем, что сравнивать в предложениях по SEO, чтобы не купить отчёт вместо работ на сайте.",
     readerOutcome: "Сможете сопоставить объём, границы и способ проверки до того, как согласуете бюджет.",
     date: "2026-08-15",
-    author: "KILENI",
+    author: "Редакция KILENI",
     readingMinutes: 8,
     searchIntent: {
       label: "Стоимость SEO",
@@ -262,7 +262,7 @@ export const additionalRuArticles: Article[] = [
           "Цена становится понятной, когда клиент видит последовательность решений, а не бесконечный список активностей. Если после аудита требуются отдельные исправления, их оценивают по зафиксированной задаче и могут выполнить поэтапно. Это честнее, чем включать неизвестный объём в абонентскую плату.",
           "Перед стартом согласуйте, какие доступы и материалы предоставляет клиент, сколько итераций правок включено и что считается вне рамок. Если задача меняется после обнаружения новых шаблонов или интеграций, сначала обновляют оценку и срок. Это сохраняет управляемый бюджет и не превращает ежемесячную услугу в обязательство без понятного результата. В итоговом отчёте должны оставаться ссылки на опубликованные страницы и контрольные проверки, а не только сводная презентация. Если измерения недоступны, это нужно прямо отметить вместе с причиной, а не заменять данными предположение. Такой формат позволяет клиенту сопоставить цену с выполненной работой, а исполнителю — закрыть этап по понятным критериям, а не по общему количеству проведённых часов в проекте.",
         ],
-        callout: { title: "Перед оплатой", text: "У вас должны быть видны состав, предел, срок, ответственный и способ повторной проверки каждого оплачиваемого этапа.", tone: "action" },
+        callout: { title: "Перед оплатой", text: "До оплаты должны быть понятны состав и ограничения работ, срок, ответственный и способ повторной проверки каждого этапа.", tone: "action" },
       },
     ],
     faq: [
@@ -287,7 +287,7 @@ export const additionalEnArticles: Article[] = [
     description: "A practical way to measure loading, isolate the bottleneck and verify the release without chasing one score.",
     readerOutcome: "Build a short speed-review plan focused on pages that lead to an enquiry or purchase.",
     date: "2026-08-15",
-    author: "KILENI",
+    author: "KILENI Editorial",
     readingMinutes: 9,
     searchIntent: { label: "Website speed", primaryQuery: "website loading speed", relatedQueries: ["website loading speed test", "check website loading speed", "website speed test online", "how to improve website speed", "google page speed test"] },
     hero: hero("speed", "en"),
@@ -309,7 +309,7 @@ export const additionalEnArticles: Article[] = [
     description: "Choose categories, product pages and filters by customer demand instead of publishing every possible URL.",
     readerOutcome: "Know which store pages answer a real search task and which ones create duplicates and confusion.",
     date: "2026-08-15",
-    author: "KILENI",
+    author: "KILENI Editorial",
     readingMinutes: 10,
     searchIntent: { label: "E-commerce", primaryQuery: "e-commerce SEO", relatedQueries: ["e-commerce SEO strategy", "online store SEO", "SEO for product category pages", "e-commerce product page SEO", "online store technical SEO"] },
     hero: hero("ecommerce", "en"),
@@ -331,7 +331,7 @@ export const additionalEnArticles: Article[] = [
     description: "Compare SEO offers by scope, responsibility and verification instead of a monthly figure alone.",
     readerOutcome: "Know how to compare the work limits and acceptance method before agreeing a budget.",
     date: "2026-08-15",
-    author: "KILENI",
+    author: "KILENI Editorial",
     readingMinutes: 8,
     searchIntent: { label: "SEO cost", primaryQuery: "how much does SEO cost", relatedQueries: ["SEO monthly cost", "SEO pricing", "SEO agency pricing", "what is included in SEO", "SEO cost for small business"] },
     hero: hero("price", "en"),

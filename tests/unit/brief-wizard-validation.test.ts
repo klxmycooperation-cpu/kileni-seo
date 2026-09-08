@@ -12,9 +12,10 @@ describe("пошаговая проверка брифа", () => {
     expect(briefStepIssue(2, "custom", { context: "Нужно связать формы с CRM" }, "ru")).toBeNull();
   });
 
-  it("принимает только понятный e-mail или Telegram", () => {
+  it("принимает только понятный e-mail или телефон", () => {
     expect(isValidBriefContact("name@example.ru")).toBe(true);
-    expect(isValidBriefContact("@kileni_team")).toBe(true);
+    expect(isValidBriefContact("+7 925 225-60-20")).toBe(true);
+    expect(isValidBriefContact("@kileni_team")).toBe(false);
     expect(isValidBriefContact("просто текст")).toBe(false);
   });
 

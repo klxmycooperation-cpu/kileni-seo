@@ -70,7 +70,11 @@ export async function runAudit(
   await options.onEvent?.({ type: "audit:start" });
 
   const plannedPages = normalizePageLimit(options.maxPages);
-  const crawl = await crawlSite(target, { ...options, maxPages: plannedPages });
+  const crawl = await crawlSite(target, {
+    ...options,
+    maxPages: plannedPages,
+    sampleStrategy: options.sampleStrategy ?? "representative",
+  });
   const measuredScore = scoreAudit({
     targetUrl: crawl.finalUrl,
     pages: crawl.pages,
@@ -103,7 +107,9 @@ export async function runAudit(
     coverage: score.coverage,
     issueCounts,
     pages: crawl.pages,
+    selectedPages: crawl.selectedPages,
     discoveredUrls: crawl.discoveredUrls,
+    inventory: crawl.inventory,
     issues,
     robots: crawl.robots,
     sitemap: crawl.sitemap,
@@ -219,7 +225,7 @@ function publicRisk(category: CategoryScore): PublicAuditRisk {
 function publicExplanation(risk: PublicAuditRisk, locale: PublicAuditLocale): string {
   const explanations: Readonly<Record<PublicAuditLocale, Readonly<Record<PublicAuditRisk, string>>>> = {
     ru: {
-      low: "Базовые публичные сигналы выглядят устойчиво.",
+      low: "Базовые проверки открытых страниц не выявили серьёзных проблем.",
       medium: "Есть общие зоны риска для расширенной проверки.",
       high: "Направление требует приоритетной углублённой проверки.",
       not_checked: "Проверка не выполнена: доступных измерений недостаточно.",

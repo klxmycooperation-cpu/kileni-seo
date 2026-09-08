@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Manrope } from "next/font/google";
 import { prelaunchRobotsMetadata, siteConfig, warnIfProductionIntegrationConfigIsIncomplete, warnIfProductionLegalConfigIsIncomplete } from "@/src/config/site";
 import { INTRO_BOOTSTRAP } from "@/src/components/home/brand-intro-config";
+import { ThemePreferenceSync } from "@/src/components/layout/ThemePreferenceSync";
 import { THEME_BOOTSTRAP } from "@/src/components/layout/theme-config";
 import "./globals.css";
 import "./editorial.css";
@@ -20,6 +21,20 @@ import "./brand-intro-v9.css";
 import "./compact-redesign.css";
 import "./responsive-foundation.css";
 import "./content-navigation.css";
+import "./glossary-links.css";
+import "./final-ui-corrections.css";
+
+const SKIP_LINK_BOOTSTRAP = `(() => {
+  window.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab" || event.shiftKey || event.defaultPrevented) return;
+    const active = document.activeElement;
+    if (active !== document.body && active !== document.documentElement) return;
+    const skipLink = document.querySelector(".skip-link");
+    if (!(skipLink instanceof HTMLElement)) return;
+    event.preventDefault();
+    skipLink.focus({ preventScroll: true });
+  }, true);
+})();`;
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -70,12 +85,17 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }}
         />
         <script
+          id="kileni-skip-link-bootstrap"
+          dangerouslySetInnerHTML={{ __html: SKIP_LINK_BOOTSTRAP }}
+        />
+        <script
           id="kileni-brand-intro-bootstrap"
           dangerouslySetInnerHTML={{ __html: INTRO_BOOTSTRAP }}
         />
       </head>
       <body className={manrope.className} data-turnstile-site-key={turnstileSiteKey}>
-        <a className="skip-link" href="#main-content">{locale === "ru" ? "Перейти к содержимому" : "Skip to content"}</a>
+        <ThemePreferenceSync />
+        <a className="skip-link" href="#main-content" tabIndex={0}>{locale === "ru" ? "Перейти к содержимому" : "Skip to content"}</a>
         {children}
       </body>
     </html>

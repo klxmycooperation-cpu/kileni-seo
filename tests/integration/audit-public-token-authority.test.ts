@@ -38,6 +38,35 @@ afterAll(async () => {
 });
 
 describe("public audit token authority", () => {
+  it("uses the same 400/404 contract for result, events and PDF endpoints", async () => {
+    const malformed = "not-a-valid-token";
+    const missing = "M".repeat(43);
+    const calls = [
+      (token: string) => publicAuditRoute.GET(
+        new Request(`http://localhost/api/audits/${token}`),
+        { params: Promise.resolve({ token }) },
+      ),
+      (token: string) => publicAuditEventsRoute.GET(
+        new Request(`http://localhost/api/audits/${token}/events?format=json`),
+        { params: Promise.resolve({ token }) },
+      ),
+      (token: string) => publicReportRoute.GET(
+        new Request(`http://localhost/api/audits/${token}/report.pdf`),
+        { params: Promise.resolve({ token }) },
+      ),
+    ];
+
+    for (const call of calls) {
+      const malformedResponse = await call(malformed);
+      expect(malformedResponse.status).toBe(400);
+      expect(await malformedResponse.json()).toMatchObject({ error: "INVALID_TOKEN" });
+
+      const missingResponse = await call(missing);
+      expect(missingResponse.status).toBe(404);
+      expect(await missingResponse.json()).toMatchObject({ error: "AUDIT_NOT_FOUND" });
+    }
+  });
+
   it("restores a signed public summary when the serverless database record is absent", async () => {
     const token = "R".repeat(43);
     const restore = createAuditRestoreEnvelope({
@@ -69,6 +98,8 @@ describe("public audit token authority", () => {
     expect(resultText).toContain("Сайт требует системной доработки");
     expect(resultText).not.toContain("contact");
     expect(resultText).not.toContain("originalUrl");
+    expect(JSON.parse(resultText)).not.toHaveProperty("score");
+    expect(JSON.parse(resultText)).not.toHaveProperty("grade");
 
     const eventsResponse = await publicAuditEventsRoute.GET(
       new Request(`http://localhost/api/audits/${token}/events?format=json&restore=${encodeURIComponent(restore as string)}`),
@@ -211,5 +242,180 @@ describe("public audit token authority", () => {
     expect(text).not.toContain("Секретное имя");
     expect(text).not.toContain("private-problem");
     expect(text).not.toContain("Секретная инструкция");
+  });
+
+  it("normalizes a legacy 10-of-43 record to a completed sample without exposing score or grade", async () => {
+    const queries = await import("../../src/db/queries");
+    const audit = await queries.createAuditRecord({
+      originalUrl: "https://legacy-sample.example/",
+      normalizedDomain: "legacy-sample.example",
+      locale: "ru",
+      name: "",
+      contact: "",
+      contactType: "none",
+      ipHash: "legacy-ip",
+      userAgentHash: "legacy-agent",
+      source: "integration-test",
+      pageLimit: 10,
+      consentVersion: "test-v1",
+    });
+    await queries.completeAuditRecord(audit.id, {
+      publicResult: {
+        resultVersion: 2,
+        score: 62,
+        grade: "C",
+        interpretation: "Сайт требует системной доработки",
+        pagesChecked: 10,
+        pagesDiscovered: 43,
+        partial: true,
+        categories: [],
+      },
+      fullResult: {},
+      score: 62,
+      grade: "C",
+      partial: true,
+      pagesDiscovered: 43,
+      pagesChecked: 10,
+    });
+
+    const resultResponse = await publicAuditRoute.GET(
+      new Request(`http://localhost/api/audits/${audit.publicToken}`),
+      { params: Promise.resolve({ token: audit.publicToken }) },
+    );
+    const resultPayload = await resultResponse.json() as Record<string, unknown>;
+    expect(resultPayload).toMatchObject({
+      status: "completed",
+      terminal: true,
+      pagesChecked: 10,
+      pagesDiscovered: 43,
+      pagesSelected: 10,
+      coverageStatus: "sample_complete",
+      result: {
+        resultVersion: 2,
+        legacyFormat: true,
+        pagesSelected: 10,
+        coverageStatus: "sample_complete",
+      },
+    });
+    expect(resultPayload).not.toHaveProperty("score");
+    expect(resultPayload).not.toHaveProperty("overallScore");
+    expect(resultPayload).not.toHaveProperty("grade");
+    expect(resultPayload).not.toHaveProperty("partial");
+
+    const eventsResponse = await publicAuditEventsRoute.GET(
+      new Request(`http://localhost/api/audits/${audit.publicToken}/events?format=json`),
+      { params: Promise.resolve({ token: audit.publicToken }) },
+    );
+    const eventsPayload = await eventsResponse.json() as Record<string, unknown>;
+    expect(eventsPayload).toMatchObject({
+      status: "completed",
+      terminal: true,
+      pagesChecked: 10,
+      pagesDiscovered: 43,
+      pagesSelected: 10,
+      coverageStatus: "sample_complete",
+    });
+    expect(eventsPayload).not.toHaveProperty("overallScore");
+    expect(eventsPayload).not.toHaveProperty("grade");
+    expect(eventsPayload).not.toHaveProperty("partial");
+  });
+
+  it("serves the score-free v3 snapshot and coverage through result and events APIs", async () => {
+    const queries = await import("../../src/db/queries");
+    const audit = await queries.createAuditRecord({
+      originalUrl: "https://contract-v3.example/",
+      normalizedDomain: "contract-v3.example",
+      locale: "ru",
+      name: "Без контакта",
+      contact: "",
+      contactType: "none",
+      ipHash: "v3-ip",
+      userAgentHash: "v3-agent",
+      source: "integration-test",
+      pageLimit: 10,
+      consentVersion: "test-v1",
+    });
+    const publicResult = {
+      resultVersion: 3,
+      contractVersion: 2,
+      engineVersion: "audit-contract-v2.0.0",
+      auditId: audit.publicToken,
+      createdAt: "2026-08-30T10:00:00.000Z",
+      target: "https://contract-v3.example/",
+      pagesDiscovered: 1,
+      pagesSelected: 1,
+      pagesChecked: 1,
+      pagesNotCheckedTotal: 0,
+      pagesNotCheckedReturned: 0,
+      pagesNotCheckedTruncated: false,
+      pagesNotCheckedUrls: [],
+      coverageStatus: "sample_complete",
+      selectedPages: [{
+        url: "https://contract-v3.example/",
+        pageType: "homepage",
+        selectionReason: "homepage",
+        templateFamily: "homepage",
+        locale: null,
+      }],
+      checks: [],
+      categorySummary: [],
+      resultSummary: {
+        headline: "Проверена вся выбранная страница",
+        totalChecks: 0,
+        completedChecks: 0,
+        pass: 0,
+        warning: 0,
+        fail: 0,
+        not_run: 0,
+        insufficient_data: 0,
+      },
+    };
+    await queries.completeAuditRecord(audit.id, {
+      publicResult,
+      fullResult: { resultVersion: 3, contractVersion: 2, publicResult },
+      // Legacy database columns remain populated during the migration, but
+      // v3 public endpoints must never expose them as a contract score.
+      score: 99,
+      grade: "A",
+      partial: false,
+      pagesDiscovered: 1,
+      pagesChecked: 1,
+    });
+
+    const resultResponse = await publicAuditRoute.GET(
+      new Request(`http://localhost/api/audits/${audit.publicToken}`),
+      { params: Promise.resolve({ token: audit.publicToken }) },
+    );
+    const resultPayload = await resultResponse.json() as Record<string, unknown>;
+    expect(resultResponse.status).toBe(200);
+    expect(resultPayload).toMatchObject({
+      status: "completed",
+      coverageStatus: "sample_complete",
+      result: {
+        resultVersion: 3,
+        contractVersion: 2,
+        coverageStatus: "sample_complete",
+      },
+    });
+    expect(resultPayload).not.toHaveProperty("score");
+    expect(resultPayload).not.toHaveProperty("overallScore");
+    expect(resultPayload).not.toHaveProperty("grade");
+    expect(resultPayload).not.toHaveProperty("partial");
+
+    const eventsResponse = await publicAuditEventsRoute.GET(
+      new Request(`http://localhost/api/audits/${audit.publicToken}/events?format=json`),
+      { params: Promise.resolve({ token: audit.publicToken }) },
+    );
+    const eventsPayload = await eventsResponse.json() as Record<string, unknown>;
+    expect(eventsPayload).toMatchObject({
+      status: "completed",
+      terminal: true,
+      coverageStatus: "sample_complete",
+      pagesChecked: 1,
+      pagesDiscovered: 1,
+    });
+    expect(eventsPayload).not.toHaveProperty("overallScore");
+    expect(eventsPayload).not.toHaveProperty("grade");
+    expect(eventsPayload).not.toHaveProperty("partial");
   });
 });

@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 const port = Number(process.env.E2E_PORT ?? 3_107);
 const runId = process.env.E2E_RUN_ID ?? `${Date.now()}-${process.pid}`;
 const externalServer = process.env.E2E_EXTERNAL_SERVER === "1";
+const productionServer = process.env.E2E_PRODUCTION_SERVER === "1";
 const testHost = externalServer ? "localhost" : "127.0.0.1";
 process.env.E2E_RUN_ID = runId;
 process.env.E2E_PORT = String(port);
@@ -47,11 +48,15 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+    },
   ],
   webServer: externalServer ? undefined : {
     command: "pnpm exec tsx scripts/e2e-server.ts",
     url: `http://127.0.0.1:${port}`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI && !productionServer,
     timeout: 120_000,
   },
 });

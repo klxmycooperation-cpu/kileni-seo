@@ -10,7 +10,7 @@ export function ServiceVisual({ visual, locale, items, outcome }: { visual: Serv
         <b>{visual.summary}</b>
       </div>
       <div className="svc-visual-result">
-        <span>{ru ? "Главный результат" : "Main result"}</span>
+        <span>{ru ? "Что передадим" : "What we deliver"}</span>
         <strong>{outcome}</strong>
       </div>
       <ul className="svc-visual-deliverables">

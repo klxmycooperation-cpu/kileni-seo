@@ -2,6 +2,10 @@ import Database from "better-sqlite3";
 import { mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
+import { assertIsolatedPreviewEnvironment } from "./runtime-isolation.mjs";
+
+assertIsolatedPreviewEnvironment();
+
 const databasePath = resolve(process.env.DATABASE_PATH ?? "/data/kileni.sqlite");
 const migrationPath = resolve(process.env.MIGRATION_SQL_PATH ?? "/app/runtime/migration.sql");
 mkdirSync(dirname(databasePath), { recursive: true, mode: 0o700 });

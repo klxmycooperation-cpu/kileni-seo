@@ -13,13 +13,16 @@ const { migrationSql } = await import("../src/db/migrations");
 sqlite.exec(migrationSql);
 sqlite.close();
 
-const child = spawn(process.platform === "win32" ? "pnpm.cmd" : "pnpm", [
-  "dev:web",
-  "--hostname",
-  "127.0.0.1",
-  "--port",
-  process.env.E2E_PORT ?? "3107",
-], { env: process.env, stdio: "inherit" });
+const productionServer = process.env.E2E_PRODUCTION_SERVER === "1";
+const port = process.env.E2E_PORT ?? "3107";
+const child = spawn(process.platform === "win32" ? "pnpm.cmd" : "pnpm", productionServer
+  ? ["start"]
+  : ["dev:web", "--hostname", "127.0.0.1", "--port", port], {
+  env: productionServer
+    ? { ...process.env, HOSTNAME: "127.0.0.1", PORT: port }
+    : process.env,
+  stdio: "inherit",
+});
 
 const stop = () => child.kill("SIGTERM");
 process.once("SIGTERM", stop);

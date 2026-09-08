@@ -1,0 +1,28 @@
+services:
+  cache-init:
+    image: kileni-web:local
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["mkdir -p /cache/images && chown -R 1000:1000 /cache"]
+    volumes:
+      - kileni_next_cache:/cache
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    depends_on:
+      cache-init:
+        condition: service_completed_successfully
+    volumes:
+      - kileni_data:/data
+      - ${KILENI_RUNTIME_DIR:?KILENI_RUNTIME_DIR is required}:/app:ro
+      - kileni_next_cache:/app/.next/cache
+
+  worker:
+    volumes:
+      - kileni_data:/data
+      - ${KILENI_RUNTIME_DIR:?KILENI_RUNTIME_DIR is required}/dist-worker/worker.js:/app/dist-worker/worker.js:ro
+
+volumes:
+  kileni_next_cache:

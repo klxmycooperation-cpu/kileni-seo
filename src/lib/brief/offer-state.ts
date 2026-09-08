@@ -111,8 +111,8 @@ function clampStep(step: number): number {
   return Math.max(0, Math.min(Math.floor(step), 3));
 }
 
-function isPlatform(value: string): value is "wildberries" | "ozon" | "yandex-market" | "megamarket" | "multiple" {
-  return ["wildberries", "ozon", "yandex-market", "megamarket", "multiple"].includes(value);
+function isPlatform(value: string): value is "wildberries" | "ozon" | "yandex-market" | "multiple" {
+  return ["wildberries", "ozon", "yandex-market", "multiple"].includes(value);
 }
 
 function briefServiceForRoute(route: string): BriefService | undefined {
@@ -124,6 +124,7 @@ function briefServiceForRoute(route: string): BriefService | undefined {
     "yandex-ads": "ads",
     "content-materials": "custom",
     "custom-task": "custom",
+    custom: "custom",
   };
   return map[route];
 }

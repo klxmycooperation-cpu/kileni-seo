@@ -1,0 +1,176 @@
+.kileni-site .glossary-inline-term {
+  position: relative;
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: color-mix(in srgb, currentColor 58%, transparent);
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.kileni-site .glossary-inline-term:hover,
+.kileni-site .glossary-inline-term:focus-visible {
+  color: var(--theme-accent, #3658ff);
+  text-decoration-color: currentColor;
+}
+
+.kileni-site .glossary-inline-term:focus-visible {
+  border-radius: 0.15rem;
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.kileni-site .glossary-inline-term::after {
+  position: absolute;
+  z-index: 1000;
+  bottom: calc(100% + 0.55rem);
+  left: 0;
+  width: max-content;
+  max-width: min(16rem, calc(100vw - 2rem));
+  padding: 0.45rem 0.6rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.45rem;
+  background: var(--glossary-tooltip-bg, #07101f);
+  box-shadow: 0 0.7rem 1.6rem rgb(7 16 31 / 18%);
+  color: var(--glossary-tooltip-text, #fff);
+  content: attr(data-glossary-tip);
+  font-family: var(--font-manrope), sans-serif;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-align: left;
+  text-decoration: none;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.2rem);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+}
+
+.kileni-site .glossary-inline-term[data-glossary-tooltip-align="right"]::after {
+  right: 0;
+  left: auto;
+}
+
+.kileni-site .glossary-inline-term:hover::after,
+.kileni-site .glossary-inline-term:focus::after,
+.kileni-site .glossary-inline-term:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+[data-glossary-touch-popover="true"] {
+  position: fixed;
+  z-index: 1500;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.55rem;
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 1.5rem));
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.65rem;
+  background: var(--glossary-tooltip-bg, #07101f);
+  box-shadow: 0 0.9rem 2.2rem rgb(7 16 31 / 24%);
+  color: var(--glossary-tooltip-text, #fff);
+  font-family: var(--font-manrope), sans-serif;
+  line-height: 1.25;
+}
+
+[data-glossary-touch-popover="true"] [data-glossary-touch-tip] {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+[data-glossary-touch-popover="true"] a {
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+html[data-kileni-theme="dark"] .kileni-site,
+html[data-kileni-theme="signal"] .kileni-site {
+  --glossary-tooltip-bg: #f7f9ff;
+  --glossary-tooltip-text: #07101f;
+}
+
+html[data-kileni-theme="dark"] [data-glossary-touch-popover="true"],
+html[data-kileni-theme="signal"] [data-glossary-touch-popover="true"] {
+  --glossary-tooltip-bg: #f7f9ff;
+  --glossary-tooltip-text: #07101f;
+}
+
+.kileni-site [id^="glossary-source-"],
+.kileni-site .glossary-page [id] {
+  scroll-margin-top: clamp(6rem, 12vh, 9rem);
+}
+
+.kileni-site [data-glossary-return-anchor="true"] {
+  display: block;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.kileni-site .glossary-return-slot {
+  min-height: 2.75rem;
+  padding-top: clamp(1.4rem, 3vw, 2.5rem);
+  margin-bottom: clamp(-3.5rem, -4vw, -2rem);
+  position: relative;
+  z-index: 2;
+}
+
+.kileni-site .glossary-return-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  color: var(--theme-ink, currentColor);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+}
+
+.kileni-site .glossary-return-link:hover,
+.kileni-site .glossary-return-link:focus-visible {
+  color: var(--theme-accent, #3658ff);
+}
+
+.kileni-site .glossary-return-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+@media (max-width: 520px) {
+  .kileni-site .glossary-inline-term::after {
+    max-width: calc(100vw - 1.5rem);
+    font-size: 0.75rem;
+  }
+
+  .kileni-site .glossary-return-slot {
+    padding-top: 1rem;
+    margin-bottom: -1.25rem;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .kileni-site .glossary-inline-term[data-glossary-touch-open="true"]::after { display: none; }
+}
+
+@media print {
+  .kileni-site .glossary-inline-term::after,
+  .kileni-site .glossary-return-slot,
+  [data-glossary-touch-popover="true"] {
+    display: none !important;
+  }
+}

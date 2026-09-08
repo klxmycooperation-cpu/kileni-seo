@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { auditIssueCopy, auditPageFindings, auditTermDefinitions } from "../../src/lib/audit/report-content";
+import {
+  auditCheckCopy,
+  auditIssueCopy,
+  auditObservationCopy,
+  auditPageFindings,
+  auditTermDefinitions,
+} from "../../src/lib/audit/report-content";
 
 describe("audit report content", () => {
   it("turns a technical issue into a concrete plain-language instruction", () => {
@@ -36,9 +42,9 @@ describe("audit report content", () => {
     expect(findings).toContain("Страница отвечает кодом 404, а не обычным успешным кодом 200.");
     expect(findings).toContain("До конечной страницы происходит перенаправлений: 1.");
     expect(findings).toContain("Не задан заголовок для поисковой выдачи (title).");
-    expect(findings).toContain("Не задано описание для поисковой выдачи (meta description).");
-    expect(findings).toContain("Нет видимого главного заголовка страницы (H1).");
-    expect(findings).toContain("Страница закрыта от появления в поиске правилом noindex.");
+    expect(findings).toContain("Не заполнено описание страницы для поисковой выдачи.");
+    expect(findings).toContain("Нет видимого главного заголовка страницы.");
+    expect(findings).toContain("В коде страницы есть команда noindex — запрет показывать её в результатах поиска.");
     expect(findings).toContain("Не указан основной адрес страницы (canonical).");
     expect(findings).toContain("Страница не указана в файле со списком страниц (sitemap.xml).");
     expect(findings).toContain("Среди проверенных страниц не найдена ссылка на этот адрес.");
@@ -59,6 +65,40 @@ describe("audit report content", () => {
 
   it("defines every specialist term shown in the report", () => {
     const terms = auditTermDefinitions("ru").map((item) => item.term);
-    expect(terms).toEqual(expect.arrayContaining(["URL", "HTTP-код", "Title", "Meta description", "H1", "Canonical", "Sitemap.xml", "Noindex"]));
+    expect(terms).toEqual(expect.arrayContaining(["URL", "HTTP-код", "robots.txt", "Google Lighthouse", "Title", "Meta description", "H1", "Canonical", "Sitemap.xml", "Noindex", "Уверенность классификации"]));
+  });
+
+  it("replaces a generic warning with a concrete page count and plain wording", () => {
+    const result = auditCheckCopy("ru", {
+      checkId: "status",
+      status: "warning",
+      value: { passing: 8, checked: 10 },
+      title: "Ответы страниц",
+      expected: "Каждая выбранная страница отвечает HTTP 2xx.",
+      explanation: "Есть отклонение, которое стоит проверить, но оно не подтверждает критическую ошибку.",
+      urlEvidence: [{ url: "https://example.com/broken", observation: "HTTP 302" }],
+    });
+
+    expect(result.title).toBe("Открываются ли страницы");
+    expect(result.expected).toContain("код ответа от 200 до 299");
+    expect(result.explanation).toContain("На 2 страницах найдено отличие от нормы");
+    expect(result.explanation).not.toContain("стоит проверить");
+    expect(auditObservationCopy("ru", "HTTP 200")).toBe("Код ответа 200: страница открылась без ошибки.");
+  });
+
+  it("does not repeat an uncertain saved explanation when a measurement has no result", () => {
+    const result = auditCheckCopy("ru", {
+      checkId: "performance",
+      status: "insufficient_data",
+      value: null,
+      title: "Оценка скорости Lighthouse",
+      expected: "Нужна оценка скорости.",
+      explanation: "Публичных данных недостаточно для уверенного вывода.",
+      urlEvidence: [],
+    });
+
+    expect(result.title).toBe("Общая скорость страницы на телефоне");
+    expect(result.explanation).toContain("Сайт не отдал данные");
+    expect(result.explanation).not.toContain("для уверенного вывода");
   });
 });

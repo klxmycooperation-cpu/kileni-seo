@@ -6,11 +6,20 @@ import { contactAction, serviceLabel } from "../_lib/presentation";
 import { requireAdmin } from "../_lib/auth";
 import { adminBriefList } from "../_lib/data";
 
-export default async function AdminBriefsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+type FilterValue = string | string[] | undefined;
+type BriefFilters = { q?: FilterValue; status?: FilterValue; records?: FilterValue; qa?: FilterValue };
+
+export default async function AdminBriefsPage({ searchParams }: { searchParams: Promise<BriefFilters> }) {
   await requireAdmin();
-  const filters = await searchParams;
-  const briefs = await adminBriefList(filters.q, filters.status);
-  const hasFilters = Boolean(filters.q || filters.status);
+  const rawFilters = await searchParams;
+  const filters = {
+    q: singleFilter(rawFilters.q),
+    status: singleFilter(rawFilters.status),
+    records: archiveFilter(rawFilters.records),
+    qa: qaFilter(rawFilters.qa),
+  };
+  const briefs = await adminBriefList(filters.q, filters.status, filters.records, filters.qa);
+  const hasFilters = Boolean(rawFilters.q || rawFilters.status || rawFilters.records || rawFilters.qa);
 
   return (
     <>
@@ -22,9 +31,11 @@ export default async function AdminBriefsPage({ searchParams }: { searchParams: 
         </div>
         <span>{briefs.length} записей</span>
       </div>
-      <form className="admin-filters" aria-label="Фильтры брифов">
+      <form className="admin-filters admin-filters--records" aria-label="Фильтры брифов">
         <label className="admin-field"><span>Поиск</span><input name="q" defaultValue={filters.q} placeholder="Имя, контакт или направление" maxLength={120}/></label>
         <label className="admin-field"><span>Статус</span><select name="status" defaultValue={filters.status ?? ""}><option value="">Все статусы</option>{submissionStatuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+        <label className="admin-field"><span>Записи</span><select name="records" defaultValue={filters.records}><option value="active">Рабочие</option><option value="archived">Архив</option><option value="all">Рабочие и архив</option></select></label>
+        <label className="admin-field"><span>QA</span><select name="qa" defaultValue={filters.qa}><option value="all">Все</option><option value="real">Без тестовых</option><option value="qa">Только тестовые</option></select></label>
         <div className="admin-filter-actions"><button type="submit">Применить</button>{hasFilters && <Link href="/admin/briefs">Сбросить</Link>}</div>
       </form>
       {briefs.length === 0 ? (
@@ -38,7 +49,7 @@ export default async function AdminBriefsPage({ searchParams }: { searchParams: 
               return (
                 <tr key={brief.id}>
                   <td data-label="Создан"><AdminDate value={brief.createdAt}/></td>
-                  <td data-label="Клиент"><Link className="admin-record-link" href={`/admin/briefs/${brief.id}`}>{String(brief.name)}</Link></td>
+                  <td data-label="Клиент"><Link className="admin-record-link" href={`/admin/briefs/${brief.id}`}>{String(brief.name)}</Link><RecordFlags qaLabel={typeof brief.qaLabel === "string" ? brief.qaLabel : null} archived={Boolean(brief.archivedAt)}/></td>
                   <td data-label="Контакт"><span className="admin-break">{contact.display}</span><small>{contact.kind === "unknown" ? "тип не определён" : contact.kind}</small></td>
                   <td data-label="Направление"><b>{serviceLabel(brief.service)}</b></td>
                   <td data-label="Файлы">{Number(brief.attachmentCount) ? `${brief.attachmentCount} шт.` : "Нет"}</td>
@@ -52,4 +63,25 @@ export default async function AdminBriefsPage({ searchParams }: { searchParams: 
       )}
     </>
   );
+}
+
+function singleFilter(value: FilterValue): string | undefined {
+  const selected = Array.isArray(value) ? value[0] : value;
+  const cleaned = selected?.trim().slice(0, 120);
+  return cleaned || undefined;
+}
+
+function archiveFilter(value: FilterValue): "active" | "archived" | "all" {
+  const selected = singleFilter(value);
+  return selected === "archived" || selected === "all" ? selected : "active";
+}
+
+function qaFilter(value: FilterValue): "all" | "qa" | "real" {
+  const selected = singleFilter(value);
+  return selected === "qa" || selected === "real" ? selected : "all";
+}
+
+function RecordFlags({ qaLabel, archived }: { qaLabel: string | null; archived: boolean }) {
+  if (!qaLabel && !archived) return null;
+  return <span className="admin-record-badges">{qaLabel && <span className="admin-badge admin-badge--qa">QA · {qaLabel}</span>}{archived && <span className="admin-badge admin-badge--muted">Архив</span>}</span>;
 }

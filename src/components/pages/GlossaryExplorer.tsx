@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 import type { Locale } from "../../config/site";
 import type { GlossaryTerm } from "../../content/glossary";
@@ -13,6 +13,8 @@ type GlossaryGroup = {
   terms: readonly GlossaryTerm[];
 };
 
+type GlossaryScript = "cyrillic" | "latin" | "other";
+
 export function GlossaryExplorer({
   locale,
   terms,
@@ -22,12 +24,18 @@ export function GlossaryExplorer({
 }) {
   const ru = locale === "ru";
   const [query, setQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const valueEnteredBeforeHydration = searchInputRef.current?.value ?? "";
+    if (valueEnteredBeforeHydration) setQuery(valueEnteredBeforeHydration);
+  }, []);
   const normalizedQuery = normalizeSearchText(query, locale);
   const groups = useMemo(
     () => groupTerms(terms.filter((term) => termMatches(term, locale, normalizedQuery)), locale),
     [locale, normalizedQuery, terms],
   );
   const resultCount = groups.reduce((total, group) => total + group.terms.length, 0);
+  const alphabetSections = groupAlphabet(groups, locale);
 
   return (
     <section className="glossary-explorer shell" aria-labelledby="glossary-explorer-title">
@@ -40,15 +48,20 @@ export function GlossaryExplorer({
           <label htmlFor="glossary-search-input">{ru ? "Найти термин" : "Find a term"}</label>
           <div>
             <input
+              ref={searchInputRef}
               id="glossary-search-input"
               type="search"
-              value={query}
+              defaultValue=""
               onChange={(event) => setQuery(event.target.value)}
               placeholder={ru ? "Например: индексация" : "For example: indexing"}
               aria-controls="glossary-results"
             />
             {query ? (
-              <button type="button" onClick={() => setQuery("")}>
+              <button type="button" onClick={() => {
+                if (searchInputRef.current) searchInputRef.current.value = "";
+                setQuery("");
+                searchInputRef.current?.focus();
+              }}>
                 {ru ? "Очистить поиск" : "Clear search"}
               </button>
             ) : null}
@@ -62,7 +75,14 @@ export function GlossaryExplorer({
       </div>
 
       <nav className="glossary-alphabet" aria-label={ru ? "Быстрый переход по буквам" : "Quick jump by letter"}>
-        {groups.map((group) => <a href={`#${group.id}`} key={group.id}>{group.letter}</a>)}
+        {alphabetSections.map((section) => (
+          <div className="glossary-alphabet__group" data-script={section.script} key={section.script}>
+            <strong>{section.label}</strong>
+            <span className="glossary-alphabet__links">
+              {section.groups.map((group) => <a href={`#${group.id}`} key={group.id}>{group.letter}</a>)}
+            </span>
+          </div>
+        ))}
       </nav>
 
       <div className="glossary-results" id="glossary-results">
@@ -98,6 +118,34 @@ export function GlossaryExplorer({
       </div>
     </section>
   );
+}
+
+function groupAlphabet(groups: readonly GlossaryGroup[], locale: Locale) {
+  const byScript = new Map<GlossaryScript, GlossaryGroup[]>();
+  for (const group of groups) {
+    const script = alphabetScript(group.letter);
+    const current = byScript.get(script) ?? [];
+    current.push(group);
+    byScript.set(script, current);
+  }
+
+  const order: GlossaryScript[] = locale === "ru"
+    ? ["cyrillic", "latin", "other"]
+    : ["latin", "cyrillic", "other"];
+  return order.flatMap((script) => {
+    const scriptGroups = byScript.get(script);
+    if (!scriptGroups?.length) return [];
+    const labels = locale === "ru"
+      ? { cyrillic: "Русские термины", latin: "Термины на латинице", other: "Другие термины" }
+      : { cyrillic: "Cyrillic terms", latin: "English terms", other: "Other terms" };
+    return [{ script, label: labels[script], groups: scriptGroups }];
+  });
+}
+
+function alphabetScript(letter: string): GlossaryScript {
+  if (/^\p{Script=Cyrillic}$/u.test(letter)) return "cyrillic";
+  if (/^\p{Script=Latin}$/u.test(letter)) return "latin";
+  return "other";
 }
 
 function groupTerms(terms: readonly GlossaryTerm[], locale: Locale): GlossaryGroup[] {

@@ -5,6 +5,9 @@ test("keeps optional storage off until the visitor makes a choice", async ({ pag
 
   const dialog = page.getByRole("dialog", { name: "Cookies и локальные настройки" });
   await expect(dialog).toHaveCount(0);
+  await page.waitForTimeout(3_600);
+  await expect(page.locator("html")).not.toHaveAttribute("data-kileni-intro", "done");
+  await expect(dialog).toHaveCount(0);
   await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done", { timeout: 12_000 });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Принять все" })).toBeVisible();
@@ -23,6 +26,35 @@ test("keeps optional storage off until the visitor makes a choice", async ({ pag
   await expect.poll(() => page.evaluate(() => JSON.parse(window.localStorage.getItem("kileni-cookie-preferences:v2") ?? "null"))).toMatchObject(
     { essential: true, analytics: false, marketing: false, version: "2026-08-23.2" },
   );
+});
+
+test("does not block a deep link with the home intro and may show cookies there immediately", async ({ page }) => {
+  await page.goto("/services", { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator(".brand-intro-v9")).toHaveCount(0);
+  await expect(page.locator("html")).not.toHaveAttribute("data-kileni-intro", /^(pending|play|reduced|finishing)$/u);
+  await expect(page.getByRole("dialog", { name: "Cookies и локальные настройки" })).toBeVisible({ timeout: 1_500 });
+});
+
+test("keeps the first-choice cookie notice compact on a 390 pixel phone", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/services", { waitUntil: "domcontentloaded" });
+
+  const dialog = page.getByRole("dialog", { name: "Cookies и локальные настройки" });
+  await expect(dialog).toBeVisible();
+  const layout = await dialog.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      height: rect.height,
+      top: rect.top,
+      viewportHeight: window.innerHeight,
+      scrollHeight: element.scrollHeight,
+    };
+  });
+
+  expect(layout.height).toBeLessThanOrEqual(390);
+  expect(layout.top).toBeGreaterThanOrEqual(0);
+  expect(layout.scrollHeight).toBeLessThanOrEqual(layout.height + 1);
 });
 
 test("shows a static reduced-motion intro before opening cookie settings", async ({ page }) => {

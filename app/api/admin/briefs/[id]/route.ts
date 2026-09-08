@@ -38,6 +38,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
       await transaction.execute({ sql: "DELETE FROM attachments WHERE brief_id=?", args: [id] });
       await transaction.execute({ sql: "DELETE FROM admin_notes WHERE entity_type='brief' AND entity_id=?", args: [id] });
       await transaction.execute({ sql: "DELETE FROM notification_events WHERE entity_type='brief' AND entity_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM admin_entity_metadata WHERE entity_type='brief' AND entity_id=?", args: [id] });
       const result = await transaction.execute({ sql: "DELETE FROM brief_submissions WHERE id=?", args: [id] });
       return result.rowsAffected > 0;
     });

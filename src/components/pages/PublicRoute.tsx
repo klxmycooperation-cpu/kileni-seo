@@ -8,6 +8,7 @@ import { FreeAuditPage } from "./FreeAuditPage";
 import { PricingPage } from "./PricingPage";
 import { ServicePage } from "./ServicePage";
 import { ServicesIndexPage } from "./ServicesIndexPage";
+import { SeoHubPage } from "./SeoHubPage";
 import { AboutPage, ContactsPage, LegalPage } from "./StaticPages";
 import { ArticlePage, ArticlesPage } from "./ArticlesPage";
 import { GlossaryPage } from "./GlossaryPage";
@@ -18,7 +19,7 @@ import { AuditCheckPage, AuditChecksIndexPage } from "./AuditChecksPage";
 export function PublicRoute({ locale, parts }: { locale: Locale; parts: string[] }) {
   const path = parts.join("/");
   if (path === "services") return <ServicesIndexPage locale={locale}/>;
-  if (path === "seo") return <ServicePage locale={locale} slug="seo-promotion"/>;
+  if (path === "seo") return <SeoHubPage locale={locale}/>;
   if (serviceSlugs.includes(path)) return <ServicePage locale={locale} slug={path}/>;
   if (path === "pricing") return <PricingPage locale={locale}/>;
   if (path === "calculator") return <CalculatorPage locale={locale}/>;

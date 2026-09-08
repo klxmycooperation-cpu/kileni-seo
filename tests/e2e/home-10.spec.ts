@@ -15,20 +15,20 @@ test("presents the approved home-page story in a deliberate order", async ({ pag
 
   await expect(page.getByText("Бесплатная SEO-проверка до 10 страниц", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Сайт есть. Пора сделать так, чтобы его находили." })).toBeVisible();
-  await expect(page.getByText("Проверим до 10 публичных страниц: открываются ли они, могут ли попасть в поиск, правильно ли заполнены заголовки и ссылки. Покажем, что исправить в первую очередь. Доступ к сайту не нужен.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Проверим сайт и простыми словами покажем, что мешает ему появляться в поиске и что исправить в первую очередь.", { exact: true })).toBeVisible();
   await expect(page.getByText("Сначала факты. Потом разговор о продвижении.", { exact: true })).toBeVisible();
   await expect(page.locator(".hero-copy").getByText("1 267", { exact: true })).toBeVisible();
   await expect(page.locator(".hero-copy").getByText("страниц прошли бесплатную проверку KILENI", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: /Посмотреть реальные результаты/u })).toBeVisible();
   await expect(page.getByTestId("hero-search-visibility")).toBeVisible();
   await expect(page.locator(".hero-audit-visual")).toHaveAttribute("aria-label", "Поисковая видимость");
-  for (const detail of ["ориентир", "структура", "контент", "Целевые переходы", "Переходы из поиска", "Доступны поиску", "Ошибки сайта"]) {
+  for (const detail of ["целевой диапазон", "структура", "контент", "Целевые переходы", "Переходы из поиска", "Доступны поиску", "Ошибки сайта"]) {
     await expect(page.getByText(detail, { exact: true })).toBeVisible();
   }
   for (const status of ["Показы в поиске ↑", "Переходы ↑", "Ошибки ↓"]) {
     await expect(page.getByText(status, { exact: true })).toBeVisible();
   }
-  await expect(page.getByRole("button", { name: "Повторить анимацию" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Повторить анимацию" })).toHaveCount(0);
 
   const order = await page.locator("#main-content section[id]").evaluateAll((sections) => sections.map((section) => section.id));
   expect(order).toEqual(expect.arrayContaining([
@@ -101,9 +101,9 @@ test.describe("without JavaScript", () => {
 
     await expect(page.locator(".brand-intro")).toBeHidden();
     await expect(page.getByRole("heading", { level: 1, name: "Сайт есть. Пора сделать так, чтобы его находили." })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Проверить сайт бесплатно", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Узнать, что мешает сайту", exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "От бесплатной проверки до контрольного результата" })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 2, name: "Понятный маршрут исправления" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Как замечание превращается в проверенное исправление" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Когда одной проверки недостаточно" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Новые разборы — прямо на главной" })).toBeVisible();
   });

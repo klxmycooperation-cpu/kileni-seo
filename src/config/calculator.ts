@@ -1,4 +1,3 @@
-import { prices } from "./prices";
 import { getOffer } from "./offers";
 import type { Locale } from "./site";
 
@@ -88,14 +87,14 @@ export function calculateEstimate(kind: CalculatorKind, answers: CalculatorAnswe
     }
     minimum = value;
     factors.push(locale === "ru" ? `${items} артикул${items === 1 ? "" : "ов"}` : `${items} SKU${items === 1 ? "" : "s"}`);
-    if (answers.video) { value += items * prices.marketplaces.extras.videoPerItem; factors.push(label("видео", "video")); }
-    if (answers.analytics) { value += prices.marketplaces.extras.analytics; factors.push(label("регулярная аналитика", "recurring analytics")); }
+    if (answers.video) { value += items * offerPrice("marketplace-video-addon"); factors.push(label("видео", "video")); }
+    if (answers.analytics) { value += offerPrice("marketplace-analytics-addon"); factors.push(label("регулярная аналитика", "recurring analytics")); }
   } else {
     value = answers.siteType === "commerce" ? offerPrice("development-max") : answers.siteType === "corporate" ? offerPrice("development-business") : offerPrice("development-start");
     minimum = value;
     factors.push(answers.siteType === "commerce" ? label("каталог или магазин", "catalogue or shop") : answers.siteType === "corporate" ? label("корпоративный сайт", "company website") : label("лендинг", "landing page"));
-    if (answers.account) { value += prices.development.extras.account; factors.push(label("личный кабинет", "user account")); }
-    if (answers.integrations) { value += prices.development.extras.integrations; factors.push(label("интеграции", "integrations")); }
+    if (answers.account) { value += offerPrice("development-account-addon"); factors.push(label("личный кабинет", "user account")); }
+    if (answers.integrations) { value += offerPrice("development-integrations-addon"); factors.push(label("интеграции", "integrations")); }
     if (boundedCount(answers.languages, 1, 10) > 1) { value *= 1.18; factors.push(label("несколько языков", "multiple languages")); }
     if (answers.urgent) { value *= 1.2; factors.push(label("сжатый срок", "compressed timeline")); }
   }

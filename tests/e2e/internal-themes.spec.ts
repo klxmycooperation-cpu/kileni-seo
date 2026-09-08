@@ -63,7 +63,26 @@ test("keeps the light home hero's supporting copy readable", async ({ page }) =>
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
   await expect(page.locator(".hero-free-audit-usage")).toHaveCSS("color", "rgb(75, 89, 112)");
   await expect(page.locator(".hero-free-audit-usage strong")).toHaveCSS("color", "rgb(16, 23, 34)");
-  await expect(page.locator(".analytics-replay")).toHaveCSS("color", "rgb(89, 97, 121)");
+  await expect(page.locator(".analytics-demo-caption")).toHaveCSS("color", "rgb(89, 97, 121)");
+});
+
+test("cycles the public themes in the approved Dark to Signal to Light order", async ({ page }) => {
+  await page.goto("/");
+
+  const toggle = page.locator(".site-header .theme-toggle:not(.theme-toggle--mobile)");
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "dark");
+  await expect(toggle).toHaveAttribute("aria-label", "Включить сигнальную тему");
+
+  await toggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "signal");
+  await expect(toggle).toHaveAttribute("aria-label", "Включить светлую тему");
+
+  await toggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
+  await expect(toggle).toHaveAttribute("aria-label", "Включить тёмную тему");
+
+  await toggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "dark");
 });
 
 test("defines the required semantic tokens in every public palette", async ({ page }) => {

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
 import { database } from "@/src/db/client";
+import { updateAdminEntityMetadataOn } from "@/src/db/admin-entity-metadata";
 import { apiError, jsonReadError, noStoreJson, readJson, validUuid } from "../../../_lib/http";
 import { zodError } from "../../../_lib/submission";
 import { adminMutationGuard } from "../../_lib/guard";
@@ -12,7 +13,9 @@ export const runtime = "nodejs";
 const patchSchema = z.object({
   note: z.string().trim().min(1).max(3000).optional(),
   status: z.enum(["queued", "failed"]).optional(),
-}).refine((value) => value.note !== undefined || value.status !== undefined, "Нет изменений");
+  qaLabel: z.union([z.string().trim().min(2).max(80), z.null()]).optional(),
+  archived: z.boolean().optional(),
+}).refine((value) => value.note !== undefined || value.status !== undefined || value.qaLabel !== undefined || value.archived !== undefined, "Нет изменений");
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const guard = adminMutationGuard(request);
@@ -49,6 +52,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       if (parsed.data.note) {
         await transaction.execute({ sql: "INSERT INTO admin_notes(id,entity_type,entity_id,note,created_at) VALUES (?, 'audit', ?, ?, ?)", args: [randomUUID(), id, parsed.data.note, now] });
       }
+      if (parsed.data.qaLabel !== undefined || parsed.data.archived !== undefined) {
+        await updateAdminEntityMetadataOn(transaction, "audit", id, {
+          qaLabel: parsed.data.qaLabel,
+          archived: parsed.data.archived,
+        });
+      }
       return "ok" as const;
     });
     if (result === "missing") return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
@@ -79,6 +88,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
       if (!existing.rows[0]) return false;
       await transaction.execute({ sql: "DELETE FROM admin_notes WHERE entity_type='audit' AND entity_id=?", args: [id] });
       await transaction.execute({ sql: "DELETE FROM notification_events WHERE entity_type='audit' AND entity_id=?", args: [id] });
+      await transaction.execute({ sql: "DELETE FROM admin_entity_metadata WHERE entity_type='audit' AND entity_id=?", args: [id] });
       await transaction.execute({ sql: "DELETE FROM audit_events WHERE audit_id=?", args: [id] });
       await transaction.execute({ sql: "DELETE FROM audit_pages WHERE audit_id=?", args: [id] });
       await transaction.execute({ sql: "DELETE FROM audit_issues WHERE audit_id=?", args: [id] });

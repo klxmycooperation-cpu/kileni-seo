@@ -68,8 +68,8 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       primaryCta: { label: "Перейти к SEO", path: "seo" },
       secondaryCta: { label: "Бесплатно проверить до 10 страниц", path: "free-audit" },
       visual: {
-        label: "Путь SEO-работы",
-        stages: ["Карта сайта", "Зоны риска", "Исправления", "Динамика"],
+        label: "Как проходит SEO-работа",
+        stages: ["Собираем страницы", "Находим проблемы", "Исправляем", "Проверяем динамику"],
         result: "Страницы готовы к повторной проверке",
       },
     },
@@ -79,7 +79,7 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       title: "Собрать сайт под задачу бизнеса, а не просто набор страниц",
       problem: "Нужен новый сайт, но пока неясно, какие страницы, функции и материалы действительно помогут клиенту сделать выбор.",
       promise: "Сначала соберём структуру и прототип, затем разработаем адаптивный сайт и передадим исходники.",
-      journey: ["Старт", "Бизнес · Рекомендуем", "Максимум"],
+      journey: ["Старт", "Бизнес (рекомендуем)", "Максимум"],
       actions: [
         "Уточняем задачу и путь клиента",
         "Собираем структуру и прототип",
@@ -101,8 +101,8 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       offerId: "development-start",
       primaryCta: { label: "Выбрать формат сайта", path: "web-development" },
       visual: {
-        label: "Путь разработки сайта",
-        stages: ["Структура", "Прототип", "Интерфейс", "Готовый сайт"],
+        label: "Как создаём сайт",
+        stages: ["Собираем структуру", "Готовим прототип", "Проектируем интерфейс", "Передаём готовый сайт"],
         result: "Сайт готов к запуску и передаче",
       },
     },
@@ -134,8 +134,8 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       offerId: "marketplace-wildberries-audit",
       primaryCta: { label: "Выбрать площадку", path: "marketplaces" },
       visual: {
-        label: "Путь подготовки карточки товара",
-        stages: ["Пустая карточка", "Данные", "Изображения", "Готовая карточка"],
+        label: "Как готовим карточку товара",
+        stages: ["Проверяем карточку", "Заполняем данные", "Готовим изображения", "Передаём материалы"],
         result: "Материалы готовы к публикации",
       },
     },
@@ -145,7 +145,7 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       title: "Разобрать задачу, для которой не подходит готовый тариф",
       problem: "Опишите результат, который хотите получить. Мы предложим состав, проверяемый первый этап, срок и стоимость.",
       promise: "Отделим цель от способа решения и предложим первый самостоятельный этап, который можно проверить и принять.",
-      journey: ["Контекст", "Границы", "Первый этап", "Приёмка"],
+      journey: ["Описываем ситуацию", "Определяем состав", "Согласуем первый этап", "Проверяем результат"],
       actions: [
         "Фиксируем текущее и нужное состояние",
         "Проверяем зависимости и ограничения",
@@ -167,8 +167,8 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       offerId: "custom-task-consultation",
       primaryCta: { label: "Разобрать задачу", path: "custom-task" },
       visual: {
-        label: "Путь разбора нестандартной задачи",
-        stages: ["Элементы", "Связи", "Схема", "Первый этап"],
+        label: "Как разбираем нестандартную задачу",
+        stages: ["Уточняем ситуацию", "Проверяем зависимости", "Определяем состав", "Согласуем первый этап"],
         result: "Задачу можно оценить и принять",
       },
     },
@@ -214,7 +214,7 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       title: "Build a website around the business task, not a pile of pages",
       problem: "You need a new website, but the pages, features and content that will help customers choose are not yet clear.",
       promise: "We define the structure and prototype first, then build a responsive website and hand over the source code.",
-      journey: ["Start", "Business · Recommended", "Maximum"],
+      journey: ["Start", "Business (recommended)", "Maximum"],
       actions: [
         "Clarify the task and customer journey",
         "Build the structure and prototype",
@@ -280,7 +280,7 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       title: "Define a task that does not fit a ready-made package",
       problem: "Describe the result you need. We will propose the scope, a verifiable first stage, timing and cost.",
       promise: "We separate the goal from the assumed solution and propose a self-contained first stage that can be checked and accepted.",
-      journey: ["Context", "Boundaries", "First stage", "Acceptance"],
+      journey: ["Describe the task", "Set the scope", "Plan the first deliverable", "Agree the acceptance check"],
       actions: [
         "Record the current and required state",
         "Check dependencies and constraints",
@@ -303,7 +303,7 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       primaryCta: { label: "Define the task", path: "custom-task" },
       visual: {
         label: "Non-standard task definition path",
-        stages: ["Elements", "Links", "Solution map", "First stage"],
+        stages: ["Current situation", "Required result", "Work plan", "First deliverable"],
         result: "The task can now be estimated and accepted",
       },
     },

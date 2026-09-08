@@ -48,7 +48,7 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
   return (
     <PublicShell locale={locale}>
       <ServiceTierProvider>
-      <article className={`service-10 service-10-${service.visual.kind}`}>
+      <article className={`service-10 service-10-${service.visual.kind} service-10-${slug}`}>
         <header className="svc-detail-hero">
           <Breadcrumbs locale={locale} items={[{ label: ru ? "Услуги" : "Services", path: "services" }, { label: service.eyebrow }]} />
           <div className="shell svc-detail-hero-grid">
@@ -78,7 +78,7 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
           <div className="shell">
             <header className="svc-compact-heading">
               <p className="svc-kicker">{ru ? "Как решаем задачу" : "How the task is solved"}</p>
-              <h2 id="svc-overview-title">{ru ? "Только нужное: причина, работа и результат" : "Only what matters: cause, work and result"}</h2>
+              <h2 id="svc-overview-title">{ru ? "Показываем, когда услуга подходит, что делаем и какой результат передаём" : "See when the service fits, what we do and what you receive"}</h2>
               <p>{service.problem}</p>
             </header>
             <div className="svc-compact-grid">
@@ -99,8 +99,10 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
         </section>
 
         <section className="svc-decision-section svc-variants" id="variants" aria-labelledby="svc-variants-title">
-          <div className="shell"><div className="svc-section-heading"><p className="svc-kicker">{ru ? "Варианты" : "Options"}</p><h2 id="svc-variants-title">{variantsCopy.title}</h2><p>{variantsCopy.subtitle}</p></div>
-            <ServiceTierSelector locale={locale} tiers={tierViews} /></div>
+          <div className="shell"><div className="svc-section-heading"><p className="svc-kicker">{ru ? "Варианты" : "Options"}</p><div className="svc-section-heading__copy"><h2 id="svc-variants-title">{variantsCopy.title}</h2><p>{variantsCopy.subtitle}</p></div></div>
+            {slug === "custom-task"
+              ? <CustomTaskPath locale={locale} />
+              : <ServiceTierSelector locale={locale} tiers={tierViews} />}</div>
         </section>
 
         <section className="svc-assurance" id="assurance" aria-labelledby="svc-assurance-title">
@@ -108,7 +110,7 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
             <header><p className="svc-kicker">{ru ? "До старта и после работы" : "Before and after delivery"}</p><h2 id="svc-assurance-title">{ru ? "Границы и приёмка без мелкого шрифта" : "Clear boundaries and acceptance"}</h2><p>{service.duration}</p></header>
             <div className="svc-assurance-grid">
               <article><h3>{ru ? "Не входит" : "Not included"}</h3><ul>{service.exclusions.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ul></article>
-              <article><h3>{ru ? "Как принимаем" : "How we accept delivery"}</h3><ol><li>01 · {ru ? "Фиксируем исходное состояние." : "Record the baseline."}</li><li>02 · {ru ? "Передаём изменения и материалы." : "Hand over changes and materials."}</li><li>03 · {ru ? "Повторяем согласованные проверки." : "Repeat the agreed checks."}</li></ol></article>
+              <article><h3>{ru ? "Как принимаем" : "How we accept delivery"}</h3><ol><li><span>01</span>{ru ? "Фиксируем исходное состояние." : "Record the baseline."}</li><li><span>02</span>{ru ? "Передаём изменения и материалы." : "Hand over changes and materials."}</li><li><span>03</span>{ru ? "Повторяем согласованные проверки." : "Repeat the agreed checks."}</li></ol></article>
             </div>
             <div className="svc-assurance-footer">{service.caseLink && <Link href={localizedPath(locale, service.caseLink)}>{ru ? "Кейс с доказательствами" : "Evidence-based case"}<span aria-hidden="true">↗</span></Link>}<p>{d.common.noGuarantee}</p></div>
           </div>
@@ -127,6 +129,37 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
       </article>
       </ServiceTierProvider>
     </PublicShell>
+  );
+}
+
+function CustomTaskPath({ locale }: { locale: Locale }) {
+  const ru = locale === "ru";
+  const steps = ru
+    ? [
+        ["Расскажите ситуацию", "Что происходит сейчас, какой результат нужен и что уже пробовали."],
+        ["Получите вариант первого этапа", "Вернёмся с границами, входными данными, сроком и ценой — до начала работ."],
+        ["Решите, продолжать ли", "Первый этап должен давать самостоятельный результат. Покупать весь проект не обязательно."],
+      ]
+    : [
+        ["Describe the situation", "Tell us what is happening, what outcome you need and what has already been tried."],
+        ["Receive a first-stage proposal", "We return with boundaries, inputs, timing and price before any work starts."],
+        ["Choose whether to continue", "The first stage must produce a useful standalone result. The full project is optional."],
+      ];
+  return (
+    <div className="svc-custom-path">
+      <div className="svc-custom-path__intro">
+        <span>{ru ? "Сначала уточняем задачу" : "We clarify the task first"}</span>
+        <p>{ru ? "Здесь нельзя честно выбрать типовую карточку. Сначала отделим нужный результат от возможных способов решения." : "A preset card would be misleading here. We first separate the required outcome from possible solutions."}</p>
+      </div>
+      <ol>
+        {steps.map(([title, text], index) => (
+          <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{title}</h3><p>{text}</p></div></li>
+        ))}
+      </ol>
+      <Link className="button button-primary" href={`${localizedPath(locale, "brief")}?service=custom-task`}>
+        {ru ? "Описать задачу в коротком брифе" : "Describe the task in a short brief"}<span aria-hidden="true">↗</span>
+      </Link>
+    </div>
   );
 }
 

@@ -2,7 +2,7 @@ import type { MarketplaceId } from "../content/marketplaces";
 import { formatOfferPrice, localizedOffer, offersForService } from "./offers";
 import type { Locale } from "./site";
 
-const marketplaceIds: readonly MarketplaceId[] = ["wildberries", "ozon", "yandex-market", "megamarket"];
+const marketplaceIds: readonly MarketplaceId[] = ["wildberries", "ozon", "yandex-market"];
 
 /** @deprecated Prefer offersForService("marketplaces", platform). */
 export const marketplaceOffers = Object.fromEntries(

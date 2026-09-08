@@ -45,7 +45,11 @@ describe("article editorial presentation", () => {
           .trim()
           .split(/\s+/u).length;
 
-        expect(article.author).toBe("KILENI");
+        expect(article.author).toBe(locale === "ru" ? "Редакция KILENI" : "KILENI Editorial");
+        expect(article.date).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+        expect(article.sources.length).toBeGreaterThanOrEqual(2);
+        expect(new Set(article.sources.map((source) => source.url)).size).toBe(article.sources.length);
+        for (const source of article.sources) expect(source.url).toMatch(/^https:\/\//u);
         expect(article.sections.length).toBeGreaterThanOrEqual(4);
         expect(article.sections.length).toBeLessThanOrEqual(5);
         expect(wordCount).toBeGreaterThan(450);
@@ -69,20 +73,20 @@ describe("article editorial presentation", () => {
   it("uses a unique, attributed local visual for every article", () => {
     const articles = getArticles("ru");
     const expectedCovers = [
-      "/editorial/seo-audit-workflow-v2.png",
-      "/editorial/marketplace-card-production-v2.png",
-      "/editorial/indexing-path-v2.png",
-      "/editorial/seo-vs-yandex-ads-v2.png",
-      "/editorial/website-speed-loading-v2.png",
-      "/editorial/seo-ecommerce-promotion-v2.png",
-      "/editorial/seo-promotion-cost-v2.png",
+      "/editorial/seo-audit-workflow-v2.webp",
+      "/editorial/marketplace-card-production-v2.webp",
+      "/editorial/indexing-path-v2.webp",
+      "/editorial/seo-vs-yandex-ads-v2.webp",
+      "/editorial/website-speed-loading-v2.webp",
+      "/editorial/seo-ecommerce-promotion-v2.webp",
+      "/editorial/seo-promotion-cost-v2.webp",
     ];
 
     expect(articles).toHaveLength(7);
     expect(articles.map((article) => article.hero.src)).toEqual(expectedCovers);
     expect(new Set(articles.map((article) => article.hero.src)).size).toBe(7);
     for (const article of articles) {
-      expect(article.hero.src).toMatch(/^\/editorial\/(?:photos\/)?[a-z0-9-]+\.(?:jpg|png|svg)$/u);
+      expect(article.hero.src).toMatch(/^\/editorial\/(?:photos\/)?[a-z0-9-]+\.(?:jpg|png|svg|webp)$/u);
       expect(existsSync(join(projectRoot, "public", article.hero.src))).toBe(true);
       expect(article.hero.alt.trim().length).toBeGreaterThan(30);
       expect(article.hero.credit).toBe("Иллюстрация: KILENI");

@@ -38,8 +38,17 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
           <h1>{String(lead.name)}</h1>
           <p className="admin-title__description">Сначала свяжитесь с клиентом, затем обновите статус и запишите итог разговора.</p>
         </div>
-        <SubmissionStatus value={lead.status}/>
+        <div className="admin-title__flags">
+          <SubmissionStatus value={lead.status}/>
+          {detail.metadata.qaLabel && <span className="admin-badge admin-badge--qa">QA · {detail.metadata.qaLabel}</span>}
+          {detail.metadata.archivedAt && <span className="admin-badge admin-badge--muted">В архиве</span>}
+        </div>
       </div>
+
+      <section className="admin-section" aria-labelledby="lead-actions-heading">
+        <header className="admin-section__heading"><div><p className="admin-kicker">Быстрые действия</p><h2 id="lead-actions-heading">Передать или сохранить заявку</h2></div><p>Экспорт содержит ответы, расчёты, статус и историю заметок.</p></header>
+        <div className="admin-action-links"><a href={`/api/admin/leads/${id}/export`}>Скачать JSON</a></div>
+      </section>
 
       <section className="admin-contact-card" aria-labelledby="lead-contact-heading">
         <div><p className="admin-kicker">Основное действие</p><h2 id="lead-contact-heading">Связаться с клиентом</h2></div>
@@ -77,7 +86,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
       <section className="admin-card">
         <h2>Управление заявкой</h2>
         <p className="admin-card__intro">Выберите текущий этап и добавьте заметку с результатом звонка или переписки.</p>
-        <AdminEntityControls endpoint={`/api/admin/leads/${id}`} id={id} currentStatus={String(lead.status)} statusOptions={submissionStatuses}/>
+        <AdminEntityControls endpoint={`/api/admin/leads/${id}`} id={id} currentStatus={String(lead.status)} statusOptions={submissionStatuses} currentArchived={Boolean(detail.metadata.archivedAt)} currentQaLabel={detail.metadata.qaLabel}/>
       </section>
 
       <section className="admin-card">

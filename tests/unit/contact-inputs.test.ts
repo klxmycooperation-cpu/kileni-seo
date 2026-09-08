@@ -19,8 +19,8 @@ const validLead = {
 describe("contact input parsing", () => {
   it.each([
     ["anna@example.com", "email"],
-    ["@kileni_team", "telegram"],
-    ["kileni_team", "telegram"],
+    ["+7 925 225-60-20", "phone"],
+    ["8 (925) 225-60-20", "phone"],
   ] as const)("classifies %s as %s", (value, expected) => {
     expect(detectContactType(value)).toBe(expected);
   });
@@ -34,7 +34,7 @@ describe("contact input parsing", () => {
     expect(parsed.contact).toBe("anna@example.com");
   });
 
-  it.each(["abc", "not a contact", "@bad", "+1"])(
+  it.each(["abc", "not a contact", "@bad", "@kileni_team", "kileni_team", "+1"])(
     "rejects an ambiguous or malformed contact: %s",
     (contact) => {
       expect(leadRequestSchema.safeParse({ ...validLead, contact }).success).toBe(false);
@@ -68,6 +68,29 @@ describe("free audit page limit", () => {
 
   it("assigns the server-controlled 10-page limit without asking the client", () => {
     expect(auditRequestSchema.parse(validAudit).pageLimit).toBe(10);
+    expect(auditRequestSchema.parse(validAudit).forceFresh).toBe(false);
+  });
+
+  it("accepts only an explicit boolean request to bypass a reusable result", () => {
+    expect(auditRequestSchema.parse({ ...validAudit, forceFresh: true }).forceFresh).toBe(true);
+    expect(auditRequestSchema.safeParse({ ...validAudit, forceFresh: "true" }).success).toBe(false);
+  });
+
+  it("accepts at most three optional priority URLs", () => {
+    expect(auditRequestSchema.parse({
+      ...validAudit,
+      priorityUrls: [
+        "https://example.com/services/seo",
+        "https://example.com/pricing",
+      ],
+    }).priorityUrls).toEqual([
+      "https://example.com/services/seo",
+      "https://example.com/pricing",
+    ]);
+    expect(auditRequestSchema.safeParse({
+      ...validAudit,
+      priorityUrls: ["/one", "/two", "/three", "/four"],
+    }).success).toBe(false);
   });
 
   it.each(["1", "10", "30", "100", "1000", "not-a-number"])("ignores a legacy client page limit: %s", (pageLimit) => {

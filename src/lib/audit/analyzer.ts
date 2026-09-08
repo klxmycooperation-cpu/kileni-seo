@@ -45,6 +45,7 @@ export function analyzePage(input: AnalyzePageInput): PageAnalysis {
   );
   const directives = collectRobotsDirectives($, headers);
   const languageValue = normalizeText($("html").attr("lang"));
+  const hreflang = analyzeHreflang($, pageUrl);
   const viewport = $('meta[name="viewport" i]').length > 0;
   const charset = extractCharset($, headers);
   const links = analyzeLinks($, pageUrl);
@@ -56,7 +57,8 @@ export function analyzePage(input: AnalyzePageInput): PageAnalysis {
   const headingLevels = $("h1,h2,h3,h4,h5,h6").toArray().map((element) => Number(element.tagName.slice(1)));
   const contentRoot = $("body").clone();
   contentRoot.find("script,style,noscript,svg,template").remove();
-  const wordCount = normalizeText(contentRoot.text()).match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
+  const normalizedVisibleText = normalizeText(contentRoot.text());
+  const wordCount = normalizedVisibleText.match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
   const favicon = $('link[rel~="icon" i], link[rel="shortcut icon" i]').length > 0;
   const mixedContentCount = pageUrl.protocol === "https:"
     ? $('img[src^="http:" i], script[src^="http:" i], iframe[src^="http:" i], source[src^="http:" i], audio[src^="http:" i], video[src^="http:" i], link[href^="http:" i]').length
@@ -80,6 +82,8 @@ export function analyzePage(input: AnalyzePageInput): PageAnalysis {
       nofollow: directives.has("nofollow") || directives.has("none"),
     },
     language: { present: languageValue.length > 0, value: languageValue || null },
+    hreflang,
+    templateSignature: analyzeTemplateSignature($),
     viewport,
     charset,
     links,
@@ -90,7 +94,11 @@ export function analyzePage(input: AnalyzePageInput): PageAnalysis {
       present: presentSecurityHeaders,
       missing: missingSecurityHeaders,
     },
-    content: { wordCount, thin: wordCount < 100 },
+    content: {
+      wordCount,
+      thin: wordCount < 100,
+      fingerprint: stableTextFingerprint(normalizedVisibleText),
+    },
     favicon,
     mixedContent: { count: mixedContentCount },
     forms,
@@ -100,10 +108,50 @@ export function analyzePage(input: AnalyzePageInput): PageAnalysis {
       redirects: input.redirects ?? [],
       responseTimeMs: input.responseTimeMs ?? null,
       depth: Math.max(0, input.depth ?? 0),
+      contentType: headers.get("content-type") ?? null,
     },
   };
 
   return { ...partial, issues: buildIssues(partial) };
+}
+
+export function stableTextFingerprint(value: string): string {
+  let first = 0x811c9dc5;
+  let second = 0x9e3779b9;
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    first = Math.imul(first ^ code, 0x01000193) >>> 0;
+    second = Math.imul(second ^ (code + index), 0x85ebca6b) >>> 0;
+  }
+  return `${value.length}:${first.toString(16).padStart(8, "0")}${second.toString(16).padStart(8, "0")}`;
+}
+
+function analyzeHreflang(
+  $: ReturnType<typeof load>,
+  pageUrl: URL,
+): NonNullable<PageAnalysis["hreflang"]> {
+  const alternates: Array<{ language: string; url: string }> = [];
+  $('link[rel~="alternate" i][hreflang][href]').each((_index, element) => {
+    const language = normalizeText($(element).attr("hreflang")).toLowerCase();
+    const href = $(element).attr("href")?.trim();
+    if (!language || !href) return;
+    try {
+      alternates.push({ language, url: normalizeTargetUrl(new URL(href, pageUrl)).href });
+    } catch {
+      // Invalid alternate URLs are omitted from the usable hreflang set.
+    }
+  });
+  return alternates;
+}
+
+function analyzeTemplateSignature($: ReturnType<typeof load>): string {
+  const children = $("body").children().toArray().slice(0, 12)
+    .map((element) => element.tagName.toLowerCase())
+    .join(".");
+  const markers = ["nav", "main", "article", "aside", "form", "table"]
+    .map((tag) => `${tag}${$(tag).length}`)
+    .join("-");
+  return `dom-${children || "empty"}-${markers}`;
 }
 
 function analyzeCanonical(
@@ -188,7 +236,28 @@ function analyzeForms($: ReturnType<typeof load>): NonNullable<PageAnalysis["for
     const method = ($(form).attr("method") ?? "get").toLowerCase();
     return method === "get";
   }).length;
-  return { total: $("form").length, getMethodCount, controls: controls.length, labeledControls, visibleConsent };
+  const passwordInputCount = $('form input[type="password" i]').length;
+  const loginForm = $("form").toArray().some((form) => {
+    const element = $(form);
+    if (element.find('input[type="password" i]').length === 0) return false;
+    const signal = normalizeText([
+      element.attr("action"),
+      element.attr("id"),
+      element.attr("class"),
+      element.text(),
+    ].filter(Boolean).join(" "));
+    return /(?:login|log in|sign in|signin|вход|войти|авторизац)/iu.test(signal)
+      || element.find('input[type="email" i], input[name*="email" i], input[name*="user" i], input[autocomplete="username" i]').length > 0;
+  });
+  return {
+    total: $("form").length,
+    getMethodCount,
+    controls: controls.length,
+    labeledControls,
+    visibleConsent,
+    passwordInputCount,
+    loginForm,
+  };
 }
 
 function analyzeStructuredData(

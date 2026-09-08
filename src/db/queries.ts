@@ -3,14 +3,21 @@ import { randomBytes, randomUUID } from "node:crypto";
 import type { Transaction } from "@libsql/client";
 
 import { database } from "./client";
+import {
+  writeAuditCreationMetadata,
+  type AdminListArchive,
+  type AdminListQa,
+  type AdminOfferSnapshot,
+} from "./admin-entity-metadata";
 
-export type AuditStatus = "queued" | "validating_target" | "connecting" | "checking_robots" | "checking_sitemaps" | "discovering_pages" | "crawling_pages" | "analyzing_structure" | "running_performance" | "calculating_score" | "completed" | "partial" | "failed";
+export type AuditStatus = "queued" | "validating_target" | "connecting" | "checking_robots" | "checking_sitemaps" | "discovering_pages" | "crawling_pages" | "analyzing_structure" | "running_performance" | "finalizing_report" | "calculating_score" | "completed" | "partial" | "failed";
 
 export type AuditRow = {
   id: string; publicToken: string; originalUrl: string; normalizedDomain: string; locale: "ru" | "en";
   name: string; contact: string; contactType: string; status: AuditStatus; createdAt: number; startedAt: number | null;
   completedAt: number | null; pagesDiscovered: number; pagesChecked: number; pageLimit: number; overallScore: number | null;
-  grade: string | null; partial: number; errorSummary: string | null; consentVersion: string; publicResultJson: string | null; fullResultJson: string | null;
+  grade: string | null; partial: number; errorSummary: string | null; source: string; priorityUrlsJson: string | null;
+  consentVersion: string; publicResultJson: string | null; fullResultJson: string | null;
 };
 
 type SqlValue = string | number | null;
@@ -19,8 +26,8 @@ type QueryConnection = Pick<Transaction, "execute"> | Pick<typeof database, "exe
 export type CachedAudit = {
   publicResultJson: string;
   fullResultJson: string;
-  overallScore: number;
-  grade: string;
+  overallScore: number | null;
+  grade: string | null;
   pagesDiscovered: number;
   pagesChecked: number;
   partial: boolean;
@@ -30,12 +37,16 @@ export type CreateAuditInput = {
   originalUrl: string; normalizedDomain: string; locale: "ru" | "en"; name: string; contact: string; contactType: string;
   ipHash: string; userAgentHash: string; source: string; pageLimit?: number; utm?: Record<string, string>; consentVersion: string;
   cached?: CachedAudit;
+  priorityUrls?: readonly string[];
+  qaLabel?: string;
+  offerSnapshot?: AdminOfferSnapshot;
 };
 
 const auditSelect = `SELECT id, public_token AS publicToken, original_url AS originalUrl, normalized_domain AS normalizedDomain,
  locale, name, contact, contact_type AS contactType, status, created_at AS createdAt, started_at AS startedAt,
  completed_at AS completedAt, pages_discovered AS pagesDiscovered, pages_checked AS pagesChecked, page_limit AS pageLimit,
- overall_score AS overallScore, grade, partial, error_summary AS errorSummary, consent_version AS consentVersion, public_result_json AS publicResultJson,
+ overall_score AS overallScore, grade, partial, error_summary AS errorSummary, source, priority_urls_json AS priorityUrlsJson,
+ consent_version AS consentVersion, public_result_json AS publicResultJson,
  full_result_json AS fullResultJson FROM audits`;
 
 async function query(connection: QueryConnection, sql: string, args: SqlValue[] = []) {
@@ -55,18 +66,22 @@ async function many<T>(connection: QueryConnection, sql: string, args: SqlValue[
 async function createAuditRecordOn(connection: QueryConnection, input: CreateAuditInput, id = randomUUID()): Promise<AuditRow> {
   const publicToken = randomBytes(32).toString("base64url");
   const now = Date.now();
-  const cached = input.cached;
+  const cached = input.cached ? rebindCurrentCachedAudit(input.cached, publicToken, now) : undefined;
   const source = cached ? `${input.source}:cached` : input.source;
   const status = cached ? (cached.partial ? "partial" : "completed") : "queued";
 
+  // Metadata is inserted before the audit row so completion triggers can
+  // reliably exclude explicitly marked QA fixtures, including cached runs.
+  await writeAuditCreationMetadata(connection, id, input);
+
   await query(connection, `INSERT INTO audits(id, public_token, original_url, normalized_domain, locale, name, contact, contact_type, status,
       created_at, started_at, completed_at, pages_discovered, pages_checked, page_limit, overall_score, grade, partial, ip_hash,
-      user_agent_hash, source, utm_json, public_result_json, full_result_json, consent_version, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+      user_agent_hash, source, priority_urls_json, utm_json, public_result_json, full_result_json, consent_version, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
       id, publicToken, input.originalUrl, input.normalizedDomain, input.locale, input.name, input.contact, input.contactType, status,
       now, cached ? now : null, cached ? now : null, cached?.pagesDiscovered ?? 0, cached?.pagesChecked ?? 0,
       auditPageLimit(input.pageLimit), cached?.overallScore ?? null, cached?.grade ?? null, cached?.partial ? 1 : 0,
-      input.ipHash, input.userAgentHash, source, JSON.stringify(input.utm ?? {}), cached?.publicResultJson ?? null,
+      input.ipHash, input.userAgentHash, source, serializeAuditPriorityUrls(input.priorityUrls), JSON.stringify(input.utm ?? {}), cached?.publicResultJson ?? null,
       cached?.fullResultJson ?? null, input.consentVersion, now,
     ]);
   await appendAuditEventOn(connection, id, status, cached ? { cached: true, pagesChecked: cached.pagesChecked } : { queued: true });
@@ -82,6 +97,101 @@ export async function createAuditRecord(input: CreateAuditInput): Promise<AuditR
 
 function auditPageLimit(value: number | undefined): number {
   return Math.max(1, Math.min(100, Math.floor(value ?? 100)));
+}
+
+export function parseAuditPriorityUrls(value: string | null | undefined): string[] {
+  if (!value) return [];
+  let decoded: unknown;
+  try {
+    decoded = JSON.parse(value) as unknown;
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(decoded)) return [];
+  return normalizeAuditPriorityUrls(decoded);
+}
+
+function serializeAuditPriorityUrls(value: readonly string[] | undefined): string | null {
+  const urls = normalizeAuditPriorityUrls(value ?? []);
+  return urls.length > 0 ? JSON.stringify(urls) : null;
+}
+
+function normalizeAuditPriorityUrls(value: readonly unknown[]): string[] {
+  const urls: string[] = [];
+  for (const candidate of value) {
+    if (typeof candidate !== "string" || candidate.length === 0 || candidate.length > 2_048) continue;
+    try {
+      const url = new URL(candidate);
+      if ((url.protocol !== "http:" && url.protocol !== "https:") || url.username || url.password) continue;
+      url.hash = "";
+      const normalized = url.toString();
+      if (!urls.includes(normalized)) urls.push(normalized);
+      if (urls.length === 3) break;
+    } catch {
+      // Stored audit input is treated as untrusted at the worker boundary.
+    }
+  }
+  return urls;
+}
+
+function rebindCurrentCachedAudit(cached: CachedAudit, publicToken: string, now: number): CachedAudit {
+  const publicResult = parseJsonObject(cached.publicResultJson);
+  const fullResult = parseJsonObject(cached.fullResultJson);
+  if (!isCurrentAuditResult(publicResult) || !isCurrentAuditResult(fullResult)) return cached;
+
+  const createdAt = new Date(now).toISOString();
+  const reboundPublicResult = { ...publicResult, auditId: publicToken, createdAt };
+  const reboundFullResult = {
+    ...fullResult,
+    auditId: publicToken,
+    createdAt,
+    publicResult: reboundPublicResult,
+  };
+  return {
+    ...cached,
+    publicResultJson: JSON.stringify(reboundPublicResult),
+    fullResultJson: JSON.stringify(reboundFullResult),
+  };
+}
+
+function parseJsonObject(value: string): Record<string, unknown> | null {
+  try {
+    const decoded = JSON.parse(value) as unknown;
+    return typeof decoded === "object" && decoded !== null && !Array.isArray(decoded)
+      ? decoded as Record<string, unknown>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function isCurrentAuditResult(value: Record<string, unknown> | null): value is Record<string, unknown> {
+  return value?.resultVersion === 4 && value.contractVersion === 3;
+}
+
+export function auditInputsMatchForCache(
+  recent: AuditRow,
+  input: Pick<CreateAuditInput, "originalUrl" | "priorityUrls">,
+): boolean {
+  return comparableAuditUrl(recent.originalUrl) === comparableAuditUrl(input.originalUrl) &&
+    comparableUrlSet(parseAuditPriorityUrls(recent.priorityUrlsJson)) === comparableUrlSet(normalizeAuditPriorityUrls(input.priorityUrls ?? []));
+}
+
+function comparableAuditUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    url.pathname = url.pathname.replace(/\/+$/u, "") || "/";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function comparableUrlSet(values: readonly string[]): string {
+  return [...new Set(values.map(comparableAuditUrl).filter((value): value is string => value !== null))]
+    .sort()
+    .join("\n");
 }
 
 async function findRecentCompletedAuditOn(connection: QueryConnection, domain: string, maxAgeMs: number): Promise<AuditRow | null> {
@@ -102,12 +212,19 @@ export async function hasActiveDomainAudit(domain: string): Promise<boolean> {
 
 export type DomainAuditCreation = { audit: AuditRow; cached: boolean } | { conflict: true };
 
-export async function createDomainAudit(input: CreateAuditInput, cacheMaxAgeMs: number, getCachedAudit: (audit: AuditRow) => CachedAudit | null): Promise<DomainAuditCreation> {
+export async function createDomainAudit(
+  input: CreateAuditInput,
+  cacheMaxAgeMs: number,
+  getCachedAudit: (audit: AuditRow) => CachedAudit | null,
+  options: { reuseCachedResult?: boolean } = {},
+): Promise<DomainAuditCreation> {
   return database.transaction(async (transaction) => {
     if (await hasActiveDomainAuditOn(transaction, input.normalizedDomain)) return { conflict: true };
 
-    const recent = await findRecentCompletedAuditOn(transaction, input.normalizedDomain, cacheMaxAgeMs);
-    const cached = recent ? getCachedAudit(recent) : null;
+    const recent = options.reuseCachedResult === false
+      ? null
+      : await findRecentCompletedAuditOn(transaction, input.normalizedDomain, cacheMaxAgeMs);
+    const cached = recent && auditInputsMatchForCache(recent, input) ? getCachedAudit(recent) : null;
     if (cached) return { audit: await createAuditRecordOn(transaction, { ...input, cached }), cached: true };
 
     const id = randomUUID();
@@ -129,13 +246,25 @@ export async function getAuditById(id: string): Promise<AuditRow | null> {
   return one<AuditRow>(database, `${auditSelect} WHERE id=? LIMIT 1`, [id]);
 }
 
-export async function listAudits(input: { search?: string; status?: string; from?: number; to?: number; limit?: number } = {}): Promise<AuditRow[]> {
+export async function listAudits(input: {
+  search?: string;
+  status?: string;
+  from?: number;
+  to?: number;
+  limit?: number;
+  archive?: AdminListArchive;
+  qa?: AdminListQa;
+} = {}): Promise<AuditRow[]> {
   const clauses: string[] = [];
   const params: SqlValue[] = [];
   if (input.search) { clauses.push("(normalized_domain LIKE ? OR contact LIKE ?)"); params.push(`%${input.search}%`, `%${input.search}%`); }
   if (input.status) { clauses.push("status=?"); params.push(input.status); }
   if (input.from !== undefined) { clauses.push("created_at>=?"); params.push(input.from); }
   if (input.to !== undefined) { clauses.push("created_at<=?"); params.push(input.to); }
+  if (input.archive === "active") clauses.push("NOT EXISTS (SELECT 1 FROM admin_entity_metadata metadata WHERE metadata.entity_type='audit' AND metadata.entity_id=audits.id AND metadata.archived_at IS NOT NULL)");
+  if (input.archive === "archived") clauses.push("EXISTS (SELECT 1 FROM admin_entity_metadata metadata WHERE metadata.entity_type='audit' AND metadata.entity_id=audits.id AND metadata.archived_at IS NOT NULL)");
+  if (input.qa === "real") clauses.push("NOT EXISTS (SELECT 1 FROM admin_entity_metadata metadata WHERE metadata.entity_type='audit' AND metadata.entity_id=audits.id AND metadata.qa_label IS NOT NULL)");
+  if (input.qa === "qa") clauses.push("EXISTS (SELECT 1 FROM admin_entity_metadata metadata WHERE metadata.entity_type='audit' AND metadata.entity_id=audits.id AND metadata.qa_label IS NOT NULL)");
   params.push(Math.min(200, input.limit ?? 100));
   return many<AuditRow>(database, `${auditSelect}${clauses.length ? ` WHERE ${clauses.join(" AND ")}` : ""} ORDER BY created_at DESC LIMIT ?`, params);
 }
@@ -154,14 +283,18 @@ export async function acquireNextAudit(): Promise<AuditRow | null> {
 
 async function appendAuditEventOn(connection: QueryConnection, auditId: string, event: string, payload: Record<string, unknown>): Promise<void> {
   const now = Date.now();
-  await query(connection, "INSERT INTO audit_events(audit_id, event, payload_json, created_at) VALUES (?, ?, ?, ?)", [auditId, event, JSON.stringify(payload), now]);
-  await query(connection, "UPDATE audits SET status=?, pages_checked=COALESCE(?,pages_checked), pages_discovered=COALESCE(?,pages_discovered), updated_at=? WHERE id=?", [
+  const changed = await query(connection, `UPDATE audits
+    SET status=?, pages_checked=COALESCE(?,pages_checked), pages_discovered=COALESCE(?,pages_discovered), updated_at=?
+    WHERE id=? AND (status NOT IN ('completed','partial','failed') OR status=?)`, [
     event,
     typeof payload.pagesChecked === "number" ? payload.pagesChecked : null,
     typeof payload.pagesDiscovered === "number" ? payload.pagesDiscovered : null,
     now,
     auditId,
+    event,
   ]);
+  if (!changed.rowsAffected) return;
+  await query(connection, "INSERT INTO audit_events(audit_id, event, payload_json, created_at) VALUES (?, ?, ?, ?)", [auditId, event, JSON.stringify(payload), now]);
 }
 
 export async function appendAuditEvent(auditId: string, event: string, payload: Record<string, unknown>): Promise<void> {
@@ -173,12 +306,18 @@ export async function getAuditEvents(auditId: string, after = 0): Promise<Array<
 }
 
 export async function completeAuditRecord(auditId: string, result: {
-  publicResult: Record<string, unknown>; fullResult: Record<string, unknown>; score: number; grade: string;
+  publicResult: Record<string, unknown>; fullResult: Record<string, unknown>; score: number | null; grade: string | null;
   partial: boolean; pagesDiscovered: number; pagesChecked: number; pages?: Array<Record<string, unknown>>; issues?: Array<Record<string, unknown>>;
 }): Promise<void> {
   const status = result.partial ? "partial" : "completed";
   const now = Date.now();
   await database.transaction(async (transaction) => {
+    const changed = await query(transaction, `UPDATE audits SET status=?, completed_at=?, pages_discovered=?, pages_checked=?, overall_score=?, grade=?, partial=?,
+      public_result_json=?, full_result_json=?, updated_at=? WHERE id=? AND status NOT IN ('completed','partial','failed')`, [
+      status, now, result.pagesDiscovered, result.pagesChecked, result.score, result.grade, result.partial ? 1 : 0,
+      JSON.stringify(result.publicResult), JSON.stringify(result.fullResult), now, auditId,
+    ]);
+    if (!changed.rowsAffected) return;
     await query(transaction, "DELETE FROM audit_pages WHERE audit_id=?", [auditId]);
     await query(transaction, "DELETE FROM audit_issues WHERE audit_id=?", [auditId]);
     for (const page of result.pages ?? []) {
@@ -192,13 +331,8 @@ export async function completeAuditRecord(auditId: string, result: {
         issue.evidence ? String(issue.evidence).slice(0, 2000) : null, issue.recommendation ? String(issue.recommendation).slice(0, 2000) : null, now,
       ]);
     }
-    await query(transaction, `UPDATE audits SET status=?, completed_at=?, pages_discovered=?, pages_checked=?, overall_score=?, grade=?, partial=?,
-      public_result_json=?, full_result_json=?, updated_at=? WHERE id=?`, [
-      status, now, result.pagesDiscovered, result.pagesChecked, result.score, result.grade, result.partial ? 1 : 0,
-      JSON.stringify(result.publicResult), JSON.stringify(result.fullResult), now, auditId,
-    ]);
     await query(transaction, "INSERT INTO audit_events(audit_id,event,payload_json,created_at) VALUES (?,?,?,?)", [
-      auditId, status, JSON.stringify({ pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered, score: result.score }), now,
+      auditId, status, JSON.stringify({ pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered }), now,
     ]);
     await query(transaction, "DELETE FROM audit_domain_locks WHERE audit_id=?", [auditId]);
   });
@@ -211,7 +345,9 @@ export async function failAuditRecord(auditId: string, summary: string, partialR
   }
   const now = Date.now();
   await database.transaction(async (transaction) => {
-    await query(transaction, "UPDATE audits SET status='failed', error_summary=?, completed_at=?, updated_at=? WHERE id=?", [summary.slice(0, 500), now, now, auditId]);
+    const changed = await query(transaction, `UPDATE audits SET status='failed', error_summary=?, completed_at=?, updated_at=?
+      WHERE id=? AND status NOT IN ('completed','partial')`, [summary.slice(0, 500), now, now, auditId]);
+    if (!changed.rowsAffected) return;
     await query(transaction, "INSERT INTO audit_events(audit_id,event,payload_json,created_at) VALUES (?,?,?,?)", [auditId, "failed", JSON.stringify({ code: "audit_failed" }), now]);
     await query(transaction, "DELETE FROM audit_domain_locks WHERE audit_id=?", [auditId]);
   });
@@ -222,6 +358,7 @@ async function deleteAuditOn(connection: QueryConnection, id: string): Promise<v
   await query(connection, "DELETE FROM audit_events WHERE audit_id=?", [id]);
   await query(connection, "DELETE FROM audit_pages WHERE audit_id=?", [id]);
   await query(connection, "DELETE FROM audit_issues WHERE audit_id=?", [id]);
+  await query(connection, "DELETE FROM admin_entity_metadata WHERE entity_type='audit' AND entity_id=?", [id]);
   await query(connection, "DELETE FROM audits WHERE id=?", [id]);
 }
 

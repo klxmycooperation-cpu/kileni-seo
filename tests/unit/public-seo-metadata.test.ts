@@ -87,6 +87,22 @@ describe("public SEO metadata", () => {
     }
   });
 
+  it("keeps public contact and free-audit metadata aligned with the approved product contract", () => {
+    const metadata = [
+      buildPublicMetadata("ru", "contacts"),
+      buildPublicMetadata("en", "contacts"),
+      buildPublicMetadata("ru", "free-audit"),
+      buildPublicMetadata("en", "free-audit"),
+    ];
+    const copy = metadata.map((item) => `${metadataTitle(item)} ${metadataDescription(item)}`).join(" ");
+
+    expect(copy).toContain("телефон и MAX");
+    expect(copy).toContain("phone or MAX");
+    expect(copy).toContain("конкретные замечания по URL");
+    expect(copy).toContain("URL-specific findings");
+    expect(copy).not.toMatch(/Telegram|e-mail|overall (SEO )?score|общ(ую|ая) оценк/iu);
+  });
+
   it("provides complete article metadata without overlong search titles", () => {
     const titles = new Set<string>();
 
@@ -135,6 +151,21 @@ describe("public SEO metadata", () => {
 });
 
 describe("public sitemap", () => {
+  it("publishes the SEO hub as a canonical RU and EN route", () => {
+    expect(publicRoutes).toContain("seo");
+    const urls = sitemap().map((entry) => entry.url);
+    expect(urls).toContain("https://kileni-seo.ru/seo");
+    expect(urls).toContain("https://kileni-seo.ru/en/seo");
+  });
+
+  it("does not publish the retired Megamarket route or language alternates", () => {
+    expect(publicRoutes).not.toContain("marketplaces/megamarket");
+    const serialized = JSON.stringify(sitemap());
+    expect(serialized).not.toContain("marketplaces/megamarket");
+    expect(serialized).not.toContain("Megamarket");
+    expect(serialized).not.toContain("Мегамаркет");
+  });
+
   it("does not rewrite editorial lastmod dates from the deployment clock", () => {
     const current = sitemap();
     vi.useFakeTimers();

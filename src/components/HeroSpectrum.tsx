@@ -162,7 +162,7 @@ export function HeroSpectrum() {
               <span aria-hidden="true">←</span>
             </button>
             <p className="hero-spectrum__gesture-hint">
-              ∞ Перетащите мышью · трекпад · свайп
+              ∞ Перетащите мышью, проведите по трекпаду или свайпните
             </p>
             <button
               className="hero-spectrum__carousel-button"

@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const audits = sqliteTable("audits", {
   id: text("id").primaryKey(),
@@ -23,6 +23,7 @@ export const audits = sqliteTable("audits", {
   ipHash: text("ip_hash").notNull(),
   userAgentHash: text("user_agent_hash").notNull(),
   source: text("source").notNull(),
+  priorityUrlsJson: text("priority_urls_json"),
   utmJson: text("utm_json"),
   publicResultJson: text("public_result_json"),
   fullResultJson: text("full_result_json"),
@@ -78,6 +79,15 @@ export const adminNotes = sqliteTable("admin_notes", {
   note: text("note").notNull(), createdAt: integer("created_at").notNull(),
 });
 
+export const adminEntityMetadata = sqliteTable("admin_entity_metadata", {
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  qaLabel: text("qa_label"),
+  offerSnapshotJson: text("offer_snapshot_json"),
+  archivedAt: integer("archived_at"),
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => [primaryKey({ columns: [table.entityType, table.entityId] })]);
+
 export const rateLimits = sqliteTable("rate_limits", {
   key: text("key").primaryKey(), windowStart: integer("window_start").notNull(), count: integer("count").notNull(), updatedAt: integer("updated_at").notNull(),
 });
@@ -96,6 +106,16 @@ export const publicMetrics = sqliteTable("public_metrics", {
   value: integer("value").notNull(),
   updatedAt: integer("updated_at").notNull(),
 });
+
+// Anonymous, aggregated traffic only: no cookie/session id, IP, user agent,
+// referrer or query string is stored. The primary key bounds one counter per
+// public path and Moscow calendar day.
+export const pageViewDaily = sqliteTable("page_view_daily", {
+  day: text("day").notNull(),
+  path: text("path").notNull(),
+  views: integer("views").notNull().default(0),
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => [primaryKey({ columns: [table.day, table.path] })]);
 
 // Deliberately has no foreign key: a public usage total must survive audit retention cleanup.
 export const auditUsage = sqliteTable("audit_usage", {

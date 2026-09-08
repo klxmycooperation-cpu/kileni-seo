@@ -29,7 +29,7 @@ const ru: Record<string, RawServiceContent> = {
     exclusions: ["Доступы и закрытые разделы без согласования", "Внедрение, если выбран только аудит", "Активное сканирование уязвимостей", "Гарантия позиций или продаж"],
     outcomes: ["Список найденных ошибок", "Примеры проблемных страниц", "Задачи по приоритету", "Критерии повторной проверки"],
     packages: [
-      { name: "Автопроверка", priceKey: "audit-preliminary", description: "Покажет общую оценку и основные группы проблем.", limit: "Автоматически до 10 публичных страниц", features: ["Публичные страницы", "Общая оценка", "Основные группы проблем", "Ссылка на результат"] },
+      { name: "Автопроверка", priceKey: "audit-preliminary", description: "Покажет статусы проверок и замечания по выбранным страницам.", limit: "Автоматически до 10 публичных страниц", features: ["Публичные страницы", "Статусы проверок", "Конкретные замечания", "Ссылка на результат"] },
       { name: "Аудит до 50 страниц", priceKey: "audit-express", description: "Главные ошибки и порядок исправления для небольшого сайта.", limit: "До 50 страниц", features: ["Ключевые проблемы", "Короткий отчёт", "Порядок исправления", "Созвон по результату"], duration: "3–5 рабочих дней" },
       { name: "Аудит до 200 страниц", priceKey: "audit-full", description: "Проверка технической части, шаблонов и скорости.", limit: "До 200 страниц", features: ["Обход страниц", "Проверка шаблонов", "Лабораторный замер скорости", "Список задач"], duration: "5–7 рабочих дней", featured: true },
       { name: "Аудит до 500 страниц", priceKey: "audit-strategy", description: "Полный аудит и рабочий план продвижения на три месяца.", limit: "До 500 страниц; более 500 — индивидуально", features: ["Поисковый спрос", "Конкуренты", "Новые страницы", "План на 3 месяца"], duration: "7–10 рабочих дней" },
@@ -51,10 +51,10 @@ const ru: Record<string, RawServiceContent> = {
     exclusions: ["Рекламный бюджет", "Платные размещения", "Сложная разработка вне тарифа", "Гарантированные позиции и число заявок"],
     outcomes: ["Исправленные страницы", "Новые страницы под спрос", "Понятный список сделанного", "План работ на следующий месяц"],
     packages: [
-      { name: "Старт", priceKey: "seo-base", description: "Для небольшого сайта услуг в одном регионе.", limit: "1 регион · 5 страниц · 1 материал", features: ["Проверка сайта", "5 приоритетных страниц", "1 материал в месяц", "До 3 часов правок"] },
-      { name: "Развитие", priceKey: "seo-growth", description: "Для регулярного улучшения страниц и расширения спроса.", limit: "До 2 регионов · 10 страниц · 2 материала", features: ["10 приоритетных страниц", "2 материала в месяц", "До 6 часов правок", "Встреча раз в месяц"], featured: true },
-      { name: "Команда", priceKey: "seo-full", description: "Для нескольких направлений с постоянными задачами по сайту.", limit: "До 3 регионов · 20 страниц · 4 материала", features: ["20 приоритетных страниц", "4 материала в месяц", "До 10 часов правок", "Статус раз в неделю"] },
-      { name: "Статья", priceKey: "content-article", description: "Один самостоятельный материал для сайта без ежемесячного сопровождения.", limit: "До 8 000 знаков · 1 раунд правок", features: ["План статьи", "Текст", "Название и описание страницы", "Проверка фактов по материалам клиента"] },
+      { name: "Старт", priceKey: "seo-base", description: "Для небольшого сайта услуг в одном регионе.", limit: "Один регион, 5 страниц и 1 материал", features: ["Проверка сайта", "5 приоритетных страниц", "1 материал в месяц", "До 3 часов правок"] },
+      { name: "Развитие", priceKey: "seo-growth", description: "Для регулярного улучшения страниц и расширения спроса.", limit: "До 2 регионов, 10 страниц и 2 материалов", features: ["10 приоритетных страниц", "2 материала в месяц", "До 6 часов правок", "Встреча раз в месяц"], featured: true },
+      { name: "Команда", priceKey: "seo-full", description: "Для нескольких направлений с постоянными задачами по сайту.", limit: "До 3 регионов, 20 страниц и 4 материалов", features: ["20 приоритетных страниц", "4 материала в месяц", "До 10 часов правок", "Статус раз в неделю"] },
+      { name: "Статья", priceKey: "content-article", description: "Один самостоятельный материал для сайта без ежемесячного сопровождения.", limit: "До 8 000 знаков с одним раундом правок", features: ["План статьи", "Текст", "Название и описание страницы", "Проверка фактов по материалам клиента"] },
     ], caseLink: "/cases/zasorservice",
     faq: [
       { q: "Когда появится результат?", a: "Исправления можно подтвердить сразу повторной проверкой. Позиции и трафик меняются после обхода поисковых систем и зависят от рынка, поэтому точную дату обещать некорректно." },
@@ -73,10 +73,10 @@ const ru: Record<string, RawServiceContent> = {
     outcomes: ["Понятное предложение", "Подходящие запросы покупателей", "Согласованный комплект изображений", "План и проверка обновлений"],
     packages: [
       { name: "Разбор карточки", priceKey: "mp-audit", description: "Проверим карточку и покажем, что исправить сначала.", limit: "1 артикул", features: ["Карточка и конкуренты", "Главные проблемы", "Список правок"] },
-      { name: "Текст и SEO", priceKey: "mp-optimization", description: "Запросы, название, описание и свойства товара.", limit: "1 артикул · 1 раунд правок", features: ["Запросы", "Название", "Описание", "Характеристики"] },
-      { name: "Карточка с инфографикой", priceKey: "mp-turnkey", description: "Текст и до шести кадров из материалов клиента.", limit: "1 артикул · до 6 кадров", features: ["Текст и SEO", "Изображения", "Инфографика", "Порядок кадров"], featured: true },
-      { name: "10 карточек", priceKey: "mp-pack", description: "Тексты и свойства для одной товарной категории.", limit: "До 10 артикулов · без визуалов", features: ["Одна категория", "Общий сбор запросов", "Тексты", "Характеристики"] },
-      { name: "Магазин", priceKey: "mp-support", description: "Плановые обновления карточек на одной площадке.", limit: "1 площадка · до 20 артикулов · 4 обновления", features: ["Правки карточек", "План публикаций", "Проверка показателей", "Отчёт"] },
+      { name: "Текст и SEO", priceKey: "mp-optimization", description: "Запросы, название, описание и свойства товара.", limit: "Один артикул с одним раундом правок", features: ["Запросы", "Название", "Описание", "Характеристики"] },
+      { name: "Карточка с инфографикой", priceKey: "mp-turnkey", description: "Текст и до шести кадров из материалов клиента.", limit: "Один артикул и до 6 кадров", features: ["Текст и SEO", "Изображения", "Инфографика", "Порядок кадров"], featured: true },
+      { name: "10 карточек", priceKey: "mp-pack", description: "Тексты и свойства для одной товарной категории.", limit: "До 10 артикулов без изображений", features: ["Одна категория", "Общий сбор запросов", "Тексты", "Характеристики"] },
+      { name: "Магазин", priceKey: "mp-support", description: "Плановые обновления карточек на одной площадке.", limit: "Одна площадка, до 20 артикулов и 4 обновления", features: ["Правки карточек", "План публикаций", "Проверка показателей", "Отчёт"] },
     ],
     faq: [
       { q: "Вы сами публикуете изменения?", a: "Только по согласованию и с предоставленным доступом. Без разрешения клиента карточки не меняем." },
@@ -94,9 +94,9 @@ const ru: Record<string, RawServiceContent> = {
     exclusions: ["Домен, хостинг и платные сервисы", "Материалы вне согласованного объёма", "Подключение внешних сервисов, не согласованное до начала работы", "Бессрочная поддержка"],
     outcomes: ["Рабочая мобильная версия", "Подключённые формы и аналитика", "Базовая подготовка к поиску", "Исходники и инструкция"],
     packages: [
-      { name: "Старт", priceKey: "dev-landing", description: "Одна страница для одной услуги или предложения.", limit: "До 7 блоков · 1 форма", features: ["Структура", "Дизайн", "Адаптивная разработка", "Аналитика и базовое SEO"], duration: "10–14 дней" },
-      { name: "Бизнес", priceKey: "dev-corporate", description: "Сайт услуг с понятной системой страниц.", limit: "До 5 шаблонов · 10 готовых страниц", features: ["Схема экранов", "Дизайн", "Разработка", "Система управления"], duration: "14–21 день", featured: true },
-      { name: "Максимум", priceKey: "dev-commerce", description: "Каталог, фильтры и корзина для товарного проекта.", limit: "До 100 товаров · интеграции отдельно", features: ["Каталог", "Фильтры", "Корзина", "Базовая загрузка товаров"], duration: "21–35 дней" },
+      { name: "Старт", priceKey: "dev-landing", description: "Одна страница для одной услуги или предложения.", limit: "До 7 блоков и одна форма", features: ["Структура", "Дизайн", "Адаптивная разработка", "Аналитика и базовое SEO"], duration: "10–14 дней" },
+      { name: "Бизнес", priceKey: "dev-corporate", description: "Сайт услуг с понятной системой страниц.", limit: "До 5 шаблонов и 10 готовых страниц", features: ["Схема экранов", "Дизайн", "Разработка", "Система управления"], duration: "14–21 день", featured: true },
+      { name: "Максимум", priceKey: "dev-commerce", description: "Каталог, фильтры и корзина для товарного проекта.", limit: "До 100 товаров; интеграции рассчитываются отдельно", features: ["Каталог", "Фильтры", "Корзина", "Базовая загрузка товаров"], duration: "21–35 дней" },
       { name: "Индивидуальная система", priceKey: "individual", description: "Личный кабинет или внутренний сервис после оценки требований.", limit: "Состав и срок после короткого брифа", features: ["Требования", "Схема экранов", "Разработка", "Поддержка"] },
     ],
     faq: [
@@ -115,8 +115,8 @@ const ru: Record<string, RawServiceContent> = {
     exclusions: ["Рекламный бюджет Яндекса", "Гарантия цены заявки", "Переделка сайта вне согласованного объёма", "Скрытые комиссии"],
     outcomes: ["Кампании по отдельным услугам", "Настроенные цели", "Список расходов и изменений", "Данные по обращениям"],
     packages: [
-      { name: "Запуск", priceKey: "ads-setup", description: "Соберём и запустим рекламу одной услуги.", limit: "1 услуга · 1 регион · до 3 кампаний", features: ["До 100 фраз", "Объявления", "Цели", "Запуск"], featured: true },
-      { name: "Ведение", priceKey: "ads-support", description: "Ежемесячные правки кампаний без рекламного бюджета.", limit: "До 5 кампаний · бюджет до 150 000 ₽", features: ["Контроль расходов", "Минус-слова", "Правки объявлений", "Отчёт"] },
+      { name: "Запуск", priceKey: "ads-setup", description: "Соберём и запустим рекламу одной услуги.", limit: "Одна услуга в одном регионе, до 3 кампаний", features: ["До 100 фраз", "Объявления", "Цели", "Запуск"], featured: true },
+      { name: "Ведение", priceKey: "ads-support", description: "Ежемесячные правки кампаний без рекламного бюджета.", limit: "До 5 кампаний при бюджете до 150 000 ₽", features: ["Контроль расходов", "Минус-слова", "Правки объявлений", "Отчёт"] },
     ],
     faq: [
       { q: "Рекламный бюджет входит в цену?", a: "Нет. Бюджет оплачивается Яндексу отдельно, а стоимость KILENI покрывает настройку и управление." },
@@ -128,7 +128,7 @@ const ru: Record<string, RawServiceContent> = {
 
 const en: Record<string, RawServiceContent> = {
   "seo-audit": { ...ru["seo-audit"], eyebrow: "SEO audit", title: "We check the website and prepare a work list", lead: "You receive page examples, priorities and a clear way to verify each fix.", problem: "A website may work for visitors while remaining confusing for search engines: essential pages can be blocked, near-duplicates compete and templates create repeated signals.", fit: ["Your website is missing from search", "Existing reports do not explain what was actually done", "A redesign or migration is planned", "You need an independent baseline before SEO"], work: ["Check whether search engines can reach and index important pages", "Review robots.txt, sitemaps and canonical signals", "Inspect titles, descriptions, headings, duplicates and internal links", "Assess mobile performance, structured data, forms and baseline security headers"], deliverables: ["Executive summary", "Evidence-based issue register", "Prioritized remediation plan", "Developer specification", "Results call"], duration: "From 2 business days for a short audit to 7–10 days for an audit with a plan.", exclusions: ["Private systems without agreed access", "Implementation when an audit-only package is chosen", "Active vulnerability scanning", "Ranking or sales guarantees"], outcomes: ["Issue list", "Affected page examples", "Prioritised tasks", "Checks for completed fixes"], packages: [
-    { name: "Automated check", priceKey: "audit-preliminary", description: "An overall score and the main issue groups.", limit: "Automatically checks up to 10 public pages", features: ["Public pages", "Overall score", "Main issue groups", "Shareable result"] },
+    { name: "Automated check", priceKey: "audit-preliminary", description: "Check statuses and findings tied to selected pages.", limit: "Automatically checks up to 10 public pages", features: ["Public pages", "Check statuses", "URL-specific findings", "Shareable result"] },
     { name: "Audit up to 50 pages", priceKey: "audit-express", description: "The main problems and the order to fix them.", limit: "Up to 50 pages", features: ["Key problems", "Short report", "Order of work", "Results call"], duration: "3–5 business days" },
     { name: "Audit up to 200 pages", priceKey: "audit-full", description: "Technical, template and performance review.", limit: "Up to 200 pages", features: ["Page crawl", "Template review", "Laboratory performance test", "Task list"], duration: "5–7 business days", featured: true },
     { name: "Audit up to 500 pages", priceKey: "audit-strategy", description: "Full audit plus a practical three-month plan.", limit: "Up to 500 pages; more than 500 is scoped individually", features: ["Search demand", "Competitors", "New pages", "Three-month plan"], duration: "7–10 business days" },
@@ -142,7 +142,7 @@ const en: Record<string, RawServiceContent> = {
   ], faq: [{ q: "When will we see results?", a: "Implementation can be verified immediately. Rankings and traffic change after search recrawls and depend on the market, so an exact date would be misleading." }, { q: "Do we need Yandex Ads?", a: "Not always. Ads can validate demand quickly, but management and media spend are separate." }, { q: "Who publishes content?", a: "The package states who writes, designs, approves and publishes each asset." }] },
   marketplaces: { ...ru.marketplaces, eyebrow: "Wildberries and Ozon", title: "Product cards people understand and marketplace search can classify", lead: "We combine query research, copy, attributes, visual storytelling and recurring analysis — without keyword stuffing.", problem: "A card loses visibility and trust when the title is overloaded, attributes are incomplete, images fail to answer questions and updates have no measurement plan.", fit: ["A new product is launching", "The card underperforms stronger competitors", "A product range needs a coherent update", "The store needs ongoing support"], work: ["Review search results and competitors", "Map queries naturally", "Write titles, descriptions and attributes", "Design images, infographics, carousels and video", "Track agreed search phrases"], deliverables: ["Query map", "Ready-to-publish copy", "Image and video files in selected scope", "Publishing schedule", "Performance report for retainers"], duration: "From 3 business days for one card. Larger batches follow an agreed calendar.", exclusions: ["Account access without approval", "Automatic editing through this website", "Guaranteed marketplace ranking", "Marketplace ad spend"], outcomes: ["Clearer proposition", "Relevant search language", "Consistent visual packaging", "Controlled update cycle"], packages: [
     { name: "Card review", priceKey: "mp-audit", description: "We review one listing and show what to fix first.", limit: "1 SKU", features: ["Listing and competitors", "Main problems", "Fix list"] },
-    { name: "Copy + SEO", priceKey: "mp-optimization", description: "Queries, title, description and product attributes.", limit: "1 SKU · 1 revision round", features: ["Queries", "Title", "Description", "Attributes"] },
+    { name: "Copy + SEO", priceKey: "mp-optimization", description: "Queries, title, description and product attributes.", limit: "One SKU with one revision round", features: ["Queries", "Title", "Description", "Attributes"] },
     { name: "Card + infographics", priceKey: "mp-turnkey", description: "Copy and up to six frames based on client materials.", limit: "1 SKU · up to 6 frames", features: ["Copy and SEO", "Images", "Infographics", "Frame order"], featured: true },
     { name: "10 cards", priceKey: "mp-pack", description: "Copy and attributes for one product category.", limit: "Up to 10 SKUs · visuals excluded", features: ["One category", "Shared query research", "Copy", "Attributes"] },
     { name: "Store", priceKey: "mp-support", description: "Scheduled listing updates on one marketplace.", limit: "1 marketplace · up to 20 SKUs · 4 updates", features: ["Listing edits", "Publishing plan", "Metric review", "Report"] },
@@ -163,45 +163,45 @@ const serviceEnhancements: Record<Locale, Record<string, Pick<ServiceContent, "d
   ru: {
     "seo-audit": {
       diagnosis: ["Сопоставляем карту сайта и реально доступные страницы", "Проверяем шаблоны, доступность для поиска, заголовки, описания и скорость", "Группируем замечания по важности и трудоёмкости", "Заранее пишем, как проверить каждое исправление"],
-      visual: { kind: "audit-matrix", label: "Карта проверки", summary: "Из множества проверок — в понятный порядок исправлений", signals: [{ label: "открывается", value: "OK" }, { label: "доступно поиску", value: "ДА" }, { label: "страница", value: "ТЕКСТ" }, { label: "скорость", value: "ЗАМЕР" }] },
+      visual: { kind: "audit-matrix", label: "Карта проверки", summary: "Группируем найденные проблемы и показываем, что исправлять в первую очередь.", signals: [{ label: "открывается", value: "OK" }, { label: "доступно поиску", value: "ДА" }, { label: "страница", value: "ТЕКСТ" }, { label: "скорость", value: "ЗАМЕР" }] },
     },
     "seo-promotion": {
       diagnosis: ["Сверяем спрос с текущей структурой сайта", "Находим страницы, которые мешают друг другу", "Отделяем технические задачи от контентных", "Выбираем измеримый объём на ближайший месяц"],
-      visual: { kind: "growth-loop", label: "Цикл роста", summary: "Проверка → приоритет → внедрение → повторный замер", signals: [{ label: "спрос", value: "01" }, { label: "страницы", value: "02" }, { label: "изменения", value: "03" }, { label: "контроль", value: "04" }] },
+      visual: { kind: "growth-loop", label: "Как проходит ежемесячная работа", summary: "Проверяем сайт, выбираем приоритетные задачи, вносим изменения и повторяем замер.", signals: [{ label: "спрос", value: "01" }, { label: "страницы", value: "02" }, { label: "изменения", value: "03" }, { label: "контроль", value: "04" }] },
     },
     marketplaces: {
       diagnosis: ["Сравниваем карточку с выдачей и сильными конкурентами", "Разделяем поисковую семантику и аргументы для покупателя", "Проверяем свойства, фото и порядок кадров", "Фиксируем состав материалов до производства"],
-      visual: { kind: "card-stack", label: "Система карточки", summary: "Запрос, свойство и визуальный аргумент работают вместе", signals: [{ label: "поиск", value: "QUERY" }, { label: "свойства", value: "DATA" }, { label: "кадры", value: "MEDIA" }, { label: "публикация", value: "LIVE" }] },
+      visual: { kind: "card-stack", label: "Что проверяем в карточке товара", summary: "Связываем поисковые фразы, свойства товара и изображения, чтобы карточка отвечала на вопросы покупателя.", signals: [{ label: "поиск", value: "QUERY" }, { label: "свойства", value: "DATA" }, { label: "кадры", value: "MEDIA" }, { label: "публикация", value: "LIVE" }] },
     },
     "web-development": {
       diagnosis: ["Определяем бизнес-задачу и главное действие посетителя", "Собираем структуру и состояния до визуального дизайна", "Проверяем ограничения интеграций и контента", "Закладываем мобильную версию, аналитику и поисковую базу"],
-      visual: { kind: "build-system", label: "Система сайта", summary: "От задачи — к структуре, интерфейсу и рабочему продукту", signals: [{ label: "задача", value: "BRIEF" }, { label: "структура", value: "FLOW" }, { label: "интерфейс", value: "UI" }, { label: "запуск", value: "SHIP" }] },
+      visual: { kind: "build-system", label: "Как создаём сайт", summary: "Уточняем задачу, проектируем структуру и интерфейс, затем собираем и проверяем готовый сайт.", signals: [{ label: "задача", value: "BRIEF" }, { label: "структура", value: "FLOW" }, { label: "интерфейс", value: "UI" }, { label: "запуск", value: "SHIP" }] },
     },
     "yandex-ads": {
       diagnosis: ["Проверяем предложение и посадочную страницу", "Разделяем запросы по услугам и намерению", "Настраиваем измеримые целевые действия", "Отделяем плату за работу от рекламного бюджета"],
-      visual: { kind: "campaign-funnel", label: "Контур кампании", summary: "Запрос → объявление → страница → измеримое обращение", signals: [{ label: "запрос", value: "Q" }, { label: "объявление", value: "AD" }, { label: "страница", value: "LP" }, { label: "цель", value: "GOAL" }] },
+      visual: { kind: "campaign-funnel", label: "Как устроена рекламная кампания", summary: "Связываем запрос, объявление и посадочную страницу, затем проверяем обращения по настроенной цели.", signals: [{ label: "запрос", value: "Q" }, { label: "объявление", value: "AD" }, { label: "страница", value: "LP" }, { label: "цель", value: "GOAL" }] },
     },
   },
   en: {
     "seo-audit": {
       diagnosis: ["Compare submitted and actually reachable pages", "Review templates, indexation, metadata and performance", "Group evidence by risk and implementation cost", "Define how every completed fix will be verified"],
-      visual: { kind: "audit-matrix", label: "Audit map", summary: "Many technical signals become a short order of work", signals: [{ label: "access", value: "HTTP" }, { label: "pages", value: "INDEX" }, { label: "templates", value: "META" }, { label: "speed", value: "CWV" }] },
+      visual: { kind: "audit-matrix", label: "What the audit checks", summary: "We check page access, search availability, page content and performance, then order the findings by priority.", signals: [{ label: "Page access", value: "CHECKED" }, { label: "Search access", value: "REVIEWED" }, { label: "Page content", value: "REVIEWED" }, { label: "Performance", value: "MEASURED" }] },
     },
     "seo-promotion": {
       diagnosis: ["Match search demand to the current site structure", "Find pages competing for the same intent", "Separate technical and content tasks", "Choose a measurable delivery scope for the next month"],
-      visual: { kind: "growth-loop", label: "Growth loop", summary: "Review → prioritise → implement → measure again", signals: [{ label: "demand", value: "01" }, { label: "pages", value: "02" }, { label: "changes", value: "03" }, { label: "measure", value: "04" }] },
+      visual: { kind: "growth-loop", label: "How monthly SEO work proceeds", summary: "We review demand and pages, choose the next priorities, implement the agreed changes and measure again.", signals: [{ label: "Demand", value: "REVIEW" }, { label: "Pages", value: "PRIORITISE" }, { label: "Changes", value: "IMPLEMENT" }, { label: "Results", value: "MEASURE" }] },
     },
     marketplaces: {
       diagnosis: ["Compare the listing with search results and strong competitors", "Separate marketplace queries from buyer arguments", "Review attributes, images and frame order", "Agree the exact asset scope before production"],
-      visual: { kind: "card-stack", label: "Listing system", summary: "Query, product data and visual proof work together", signals: [{ label: "search", value: "QUERY" }, { label: "attributes", value: "DATA" }, { label: "frames", value: "MEDIA" }, { label: "publish", value: "LIVE" }] },
+      visual: { kind: "card-stack", label: "What we check in a product listing", summary: "We connect marketplace searches with product details and images, so the listing answers the buyer’s questions.", signals: [{ label: "Searches", value: "MAPPED" }, { label: "Details", value: "CHECKED" }, { label: "Images", value: "PLANNED" }, { label: "Delivery", value: "READY" }] },
     },
     "web-development": {
       diagnosis: ["Define the business job and the visitor's primary action", "Map structure and states before visual design", "Confirm integration and content constraints", "Plan mobile delivery, analytics and search foundations"],
-      visual: { kind: "build-system", label: "Website system", summary: "From business task to structure, interface and working product", signals: [{ label: "task", value: "BRIEF" }, { label: "structure", value: "FLOW" }, { label: "interface", value: "UI" }, { label: "launch", value: "SHIP" }] },
+      visual: { kind: "build-system", label: "How we build a website", summary: "We clarify the business task, agree the structure and interface, then build and test the working website.", signals: [{ label: "Task", value: "AGREED" }, { label: "Structure", value: "PLANNED" }, { label: "Interface", value: "DESIGNED" }, { label: "Website", value: "TESTED" }] },
     },
     "yandex-ads": {
       diagnosis: ["Review the offer and landing page", "Separate queries by service and intent", "Configure measurable conversion actions", "Keep agency fees separate from media spend"],
-      visual: { kind: "campaign-funnel", label: "Campaign path", summary: "Query → message → landing page → measured enquiry", signals: [{ label: "query", value: "Q" }, { label: "message", value: "AD" }, { label: "page", value: "LP" }, { label: "goal", value: "GOAL" }] },
+      visual: { kind: "campaign-funnel", label: "How we prepare a campaign", summary: "We connect each search with the right advert and landing page, then measure the agreed actions.", signals: [{ label: "Search", value: "GROUPED" }, { label: "Advert", value: "MATCHED" }, { label: "Page", value: "CHECKED" }, { label: "Action", value: "MEASURED" }] },
     },
   },
 };

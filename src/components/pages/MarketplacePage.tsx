@@ -8,6 +8,7 @@ import { localizedPath } from "../../config/site";
 import { localizedMarketplaceOffers } from "../../config/marketplace-offers";
 import { getMarketplaceResultExample } from "../../content/marketplace-result-examples";
 import { marketplaceName, marketplacePlatforms as platforms, type MarketplacePlatform as Platform } from "../../content/marketplaces";
+import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
 import { CompactPageToc } from "./CompactPageToc";
 import { MarketplaceOfferSelector } from "./MarketplaceOfferSelector";
@@ -23,9 +24,10 @@ function MarketplaceOverview({ locale }: { locale: Locale }) {
   return (
     <PublicShell locale={locale}>
     <div className="marketplace-page page-main">
+      <Breadcrumbs locale={locale} items={[{ label: ru ? "Маркетплейсы" : "Marketplaces", path: "marketplaces", current: true }]} />
       <section className="marketplace-hero shell">
         <p className="section-kicker">{ru ? "Маркетплейсы" : "Marketplaces"}</p>
-        <h1>{ru ? "Карточка, которую легко сравнить и выбрать" : "A product card built to be compared and chosen"}</h1>
+        <h1>{ru ? "Оформление карточек товаров для маркетплейсов" : "Product listing services for marketplaces"}</h1>
         <p>{ru ? "Работаем с полями, запросами и медиа каждой площадки отдельно. До старта показываем состав, границы и результат." : "We handle fields, search intent and media for each platform separately. Scope, boundaries and deliverables are clear before work begins."}</p>
       </section>
       <section className="marketplace-grid shell" id="platforms" aria-label={ru ? "Площадки" : "Platforms"}>
@@ -67,23 +69,27 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
   ] as const;
   const journey = ru
     ? [
-        { title: "Попасть в сравнение", text: copy.visibility.slice(0, 2).join(" · ") },
-        { title: "Не потерять факт", text: copy.fields.slice(0, 2).join(" · ") },
-        { title: "Помочь выбрать", text: copy.content.slice(0, 2).join(" · ") },
-        { title: "Передать без догадок", text: copy.result.slice(0, 2).join(" · ") },
+        { title: "Проверяем исходную карточку", text: joinAsSentences(copy.visibility.slice(0, 2)) },
+        { title: "Сверяем данные товара", text: joinAsSentences(copy.fields.slice(0, 2)) },
+        { title: "Планируем изображения", text: joinAsSentences(copy.content.slice(0, 2)) },
+        { title: "Передаём готовые файлы", text: joinAsSentences(copy.result.slice(0, 2)) },
       ]
     : [
-        { title: "Enter comparison", text: copy.visibility.slice(0, 2).join(" · ") },
-        { title: "Keep the facts", text: copy.fields.slice(0, 2).join(" · ") },
-        { title: "Support the choice", text: copy.content.slice(0, 2).join(" · ") },
-        { title: "Hand over without guesswork", text: copy.result.slice(0, 2).join(" · ") },
+        { title: "Enter comparison", text: joinAsSentences(copy.visibility.slice(0, 2)) },
+        { title: "Keep the facts", text: joinAsSentences(copy.fields.slice(0, 2)) },
+        { title: "Support the choice", text: joinAsSentences(copy.content.slice(0, 2)) },
+        { title: "Hand over without guesswork", text: joinAsSentences(copy.result.slice(0, 2)) },
       ];
   return (
     <PublicShell locale={locale}>
-    <div className="marketplace-page page-main">
+    <div className="marketplace-page page-main" data-marketplace={platform.id}>
+      <Breadcrumbs locale={locale} items={[
+        { label: ru ? "Маркетплейсы" : "Marketplaces", path: "marketplaces" },
+        { label: name, path: `marketplaces/${platform.id}`, current: true },
+      ]} />
       <section className="marketplace-detail-hero shell">
         <PlatformMark platform={platform} label={name} />
-        <div><p className="section-kicker">{ru ? "Карточки товаров" : "Product cards"}</p><h1>{name}</h1><p>{copy.lead}</p></div>
+        <div><p className="section-kicker">{ru ? "Карточки товаров" : "Product cards"}</p><h1>{ru ? `Оформление карточек ${name}` : `${name} product listing services`}</h1><p>{copy.lead}</p></div>
       </section>
       <nav className="marketplace-platform-switch shell" aria-label={ru ? "Выбор площадки" : "Choose a platform"}>
         {platforms.map((entry) => <Link aria-current={entry.id === platform.id ? "page" : undefined} href={localizedPath(locale, `marketplaces/${entry.id}`)} key={entry.id}>{marketplaceName(entry, locale)}</Link>)}
@@ -91,7 +97,7 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
       <CompactPageToc
         label={ru ? "Разделы страницы" : "Page sections"}
         items={[
-          { id: "marketplace-journey", label: ru ? "Логика карточки" : "Card logic" },
+          { id: "marketplace-journey", label: ru ? "Этапы подготовки" : "Preparation steps" },
           { id: "marketplace-scope", label: ru ? "Состав карточки" : "Card scope" },
           { id: "marketplace-result", label: ru ? "Пример результата" : "Example result" },
           { id: "marketplace-offers", label: ru ? "Варианты" : "Options" },
@@ -100,9 +106,9 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
       />
       <section className="marketplace-card-journey shell" id="marketplace-journey" aria-labelledby="marketplace-card-journey-title">
         <header>
-          <p className="section-kicker">{ru ? "Логика карточки" : "Card logic"}</p>
-          <h2 id="marketplace-card-journey-title">{ru ? "Каждый блок помогает покупателю сделать следующий шаг" : "Each block helps the buyer take the next step"}</h2>
-          <p>{ru ? "Не добавляем элементы «для красоты»: порядок повторяет путь от фильтра до готовых материалов для публикации." : "Nothing is added just for decoration: the order follows the route from filters to publication-ready materials."}</p>
+          <p className="section-kicker">{ru ? "Этапы подготовки" : "Preparation steps"}</p>
+          <h2 id="marketplace-card-journey-title">{ru ? "От исходной карточки до файлов для загрузки" : "From the source card to upload-ready files"}</h2>
+          <p>{ru ? "На каждом этапе есть понятный результат: список замечаний, заполненные поля, план изображений и итоговый чек-лист." : "Every stage has a clear result: issue list, completed fields, image plan and final checklist."}</p>
         </header>
         <ol>
           {journey.map((step, index) => <li key={step.title}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{step.title}</h3><p>{step.text}</p></div></li>)}
@@ -148,5 +154,9 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
 }
 
 function PlatformMark({ platform, label }: { platform: Platform; label: string }) {
-  return <span className="platform-mark" style={{ "--platform-color": platform.color } as CSSProperties} aria-label={label}><Image alt="" aria-hidden="true" src={platform.iconSrc} width={500} height={128} unoptimized /></span>;
+  return <span className="platform-mark" role="img" style={{ "--platform-color": platform.color } as CSSProperties} aria-label={label}><Image alt="" aria-hidden="true" src={platform.iconSrc} width={500} height={128} unoptimized /></span>;
+}
+
+function joinAsSentences(items: readonly string[]): string {
+  return items.map((item) => /[.!?]$/u.test(item.trim()) ? item.trim() : `${item.trim()}.`).join(" ");
 }

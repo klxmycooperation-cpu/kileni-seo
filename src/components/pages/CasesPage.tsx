@@ -143,7 +143,7 @@ export function CasePage({ locale, slug }: { locale: Locale; slug: string }) {
             <div>
               <p>{ru ? "Следующий шаг" : "Next step"}</p>
               <h3>{ru ? "Выберите глубину проверки под свой сайт" : "Choose the right audit depth for your website"}</h3>
-              <span>{ru ? "Состав, предел страниц, срок и цена показаны до отправки заявки." : "Scope, page limit, timing and price are shown before you submit a request."}</span>
+              <span>{ru ? "До отправки заявки видно, сколько страниц входит в проверку, сколько она займёт и сколько будет стоить." : "Before you submit a request, you can see the page scope, timing and price."}</span>
             </div>
             <Link className="button button-primary" href={localizedPath(locale, "seo-audit")}>
               {ru ? "Сравнить варианты аудита" : "Compare audit options"}<span aria-hidden="true">↗</span>
@@ -214,10 +214,10 @@ function CaseComparisons({ locale, rows }: { locale: Locale; rows: Array<{ metri
 
 function projectScoreRow(item: NonNullable<ReturnType<typeof getCase>>, locale: Locale) {
   return {
-    metric: locale === "ru" ? "Техническая готовность по итоговой шкале проекта" : "Technical readiness on the project scale",
+    metric: locale === "ru" ? "Внутренняя оценка KILENI" : "Internal KILENI assessment",
     before: `${item.before}/100`,
     after: `${item.after}/100`,
-    note: locale === "ru" ? "Внутренняя экспертная шкала проекта, не метрика Google или Яндекса" : "Internal project scale, not a Google or Yandex metric",
+    note: locale === "ru" ? "Не показатель поисковика: оценка нужна только для сравнения этапов этой работы" : "Not a search-engine metric: this assessment only compares stages of this project",
   };
 }
 
@@ -226,12 +226,12 @@ function caseIndexRows(item: NonNullable<ReturnType<typeof getCase>>, locale: Lo
   if (item.slug === "eco-santeh") {
     return [
       { metric: ru ? "Страницы открылись без ошибки" : "Pages opened without an error", after: "509/509" },
-      { metric: ru ? "Техническая готовность по шкале проекта" : "Technical readiness on the project scale", before: "35", after: "93" },
+      { metric: ru ? "Внутренняя оценка KILENI — не показатель поисковика" : "Internal KILENI assessment — not a search-engine metric", before: "35", after: "93" },
     ];
   }
   return [
     { metric: ru ? "Страницы открылись без ошибки" : "Pages opened without an error", after: "575/575" },
-    { metric: ru ? "Техническая готовность по шкале проекта" : "Technical readiness on the project scale", before: "37", after: "80" },
+    { metric: ru ? "Внутренняя оценка KILENI — не показатель поисковика" : "Internal KILENI assessment — not a search-engine metric", before: "37", after: "80" },
   ];
 }
 
@@ -249,8 +249,8 @@ function CaseStorySection({ number, label, children }: { number: string; label: 
 function CaseStoryList({ items }: { items: string[] }) {
   return (
     <ol className="cp-action-list">
-      {items.map((item, index) => (
-        <li key={item}><span>{String(index + 1).padStart(2, "0")}</span><p>{item}</p></li>
+      {items.map((item) => (
+        <li key={item}><p>{item}</p></li>
       ))}
     </ol>
   );

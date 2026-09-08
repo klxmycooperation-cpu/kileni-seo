@@ -30,7 +30,7 @@ export function AuditChecksIndexPage({ locale }: { locale: Locale }) {
         <section className="glossary-hero shell">
           <p className="section-kicker">{ru ? "30 проверок бесплатного аудита" : "30 checks in the free audit"}</p>
           <h1>{ru ? "Что именно проверяет KILENI" : "What KILENI actually checks"}</h1>
-          <p>{ru ? "Показываем реальные сигналы движка, критерий успешной проверки, способ исправления и границы автоматического вывода. Никаких скрытых псевдопоказателей." : "See the real engine signals, pass criteria, remediation and the limits of each automated conclusion. No hidden vanity metrics."}</p>
+          <p>{ru ? "Показываем, что именно проверяет система, когда результат считается успешным, как исправить проблему и чего нельзя подтвердить автоматически. Скрытых псевдопоказателей нет." : "See what the system checks, what counts as a pass, how to fix a problem and what cannot be confirmed automatically. No hidden vanity metrics."}</p>
         </section>
         <CompactPageToc
           label={ru ? "Разделы методики" : "Methodology sections"}
@@ -64,7 +64,7 @@ export function AuditChecksIndexPage({ locale }: { locale: Locale }) {
           );
         })}
         <section className="glossary-cta shell">
-          <h2>{ru ? "Проверить эти сигналы на своём сайте" : "Check these signals on your website"}</h2>
+          <h2>{ru ? "Проверить эти параметры на своём сайте" : "Check these parameters on your website"}</h2>
           <Link className="button" href={localizedPath(locale, "free-audit")}>{ru ? "Запустить бесплатный аудит" : "Start the free audit"} ↗</Link>
         </section>
       </div>
@@ -132,7 +132,7 @@ export function AuditCheckPage({ locale, slug }: { locale: Locale; slug: string 
           </section>
         ) : null}
         <section className="glossary-cta shell">
-          <h2>{ru ? "Проверить этот и остальные сигналы" : "Check this and every other signal"}</h2>
+          <h2>{ru ? "Проверить этот и остальные параметры" : "Check this and every other parameter"}</h2>
           <Link className="button" href={localizedPath(locale, "free-audit")}>{ru ? "Запустить бесплатный аудит" : "Start the free audit"} ↗</Link>
         </section>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</gu, "\\u003c") }}/>

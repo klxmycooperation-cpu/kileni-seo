@@ -1,3 +1,8 @@
+import type { AdminEntityMetadata, AdminOfferSnapshot } from "@/src/db/admin-entity-metadata";
+import { auditChecks } from "@/src/content/audit-checks";
+import { buildAuditClientPresentation, type AuditClientPresentation } from "@/src/lib/audit/client-presentation";
+import { auditCheckCopy, auditObservationCopy, type AuditCheckCopyInput } from "@/src/lib/audit/report-content";
+
 const auditStatusLabels: Readonly<Record<string, string>> = {
   queued: "В очереди",
   validating_target: "Проверка адреса",
@@ -8,7 +13,8 @@ const auditStatusLabels: Readonly<Record<string, string>> = {
   crawling_pages: "Обход страниц",
   analyzing_structure: "Анализ структуры",
   running_performance: "Проверка скорости",
-  calculating_score: "Расчёт оценки",
+  finalizing_report: "Формирование отчёта",
+  calculating_score: "Формирование отчёта",
   completed: "Завершён",
   partial: "Частичный результат",
   failed: "Ошибка",
@@ -121,6 +127,326 @@ export type EmailDeliveryView = {
   detail?: string;
 };
 
+export type AdminAuditContractView = {
+  clientPresentation: AuditClientPresentation;
+  engineVersion: string;
+  contractVersion: number;
+  coverageStatus: string;
+  coverageLabel: string;
+  pagesDiscovered: number;
+  pagesEligible: number;
+  pagesExcluded: number;
+  pagesSelected: number;
+  pagesChecked: number;
+  pagesNotCompleted: number;
+  pagesNotCheckedTotal: number;
+  inventorySummary: { objectsFound: number; htmlFound: number; eligibleHtml: number; excludedHtml: number; selected: number; checked: number; notCompleted: number; outsideSample: number; representedPageTypes: number };
+  statusCounts: { pass: number; warning: number; fail: number; notApplicable: number; notRun: number; insufficientData: number; total: number; completed: number };
+  selectedPages: Array<{ url: string; pageType: string; selectionReason: string; templateFamily: string; classificationConfidence: number | null; classificationReasons: string[] }>;
+  checkedPages: Array<{ url: string; finalUrl: string; pageType: string; templateFamily: string; classificationConfidence: number; statusCode: number | null; noindex: boolean | null; title: string; h1Count: number | null; canonical: string }>;
+  findings: Array<{ id: string; title: string; severity: string; severityLabel: string; whatFound: string; whyImportant: string; nextStep: string; affectedCount: number; confidence: number; examples: Array<{ url: string; observation: string }> }>;
+  technicalResources: Array<{ url: string; resourceType: string; resourceTypeLabel: string; statusCode: number | null; contentType: string; classificationReasons: string[] }>;
+  inventory: Array<{
+    url: string;
+    requestedUrl: string;
+    resourceType: string;
+    resourceTypeLabel: string;
+    pageType: string | null;
+    pageTypeLabel: string;
+    templateFamily: string;
+    statusCode: number | null;
+    contentType: string;
+    classificationConfidence: number | null;
+    classificationReasons: string[];
+    included: boolean | null;
+    decisionReason: string | null;
+    decisionLabel: string;
+    decisionPrimaryUrl: string | null;
+  }>;
+  limitations: string[];
+  checks: Array<{
+    id: string;
+    version: number;
+    title: string;
+    category: string;
+    status: string;
+    statusLabel: string;
+    severity: string;
+    explanation: string;
+    nextAction: string;
+    expected: string;
+    automationLimit: string;
+    evidenceCount: number;
+    evidence: Array<{ url: string; observation: string }>;
+  }>;
+  qaLabel: string;
+  offerSnapshot: string;
+};
+
+export function buildAuditContractView(
+  publicResult: unknown,
+  fullResult: unknown,
+  metadata?: AdminEntityMetadata | null,
+): AdminAuditContractView | null {
+  const publicRecord = asRecord(publicResult);
+  const fullRecord = asRecord(fullResult);
+  const nestedPublic = asRecord(fullRecord?.publicResult);
+  const source = isV4AuditSnapshot(publicRecord)
+    ? publicRecord
+    : isV4AuditSnapshot(nestedPublic)
+      ? nestedPublic
+      : isV3AuditSnapshot(publicRecord)
+        ? publicRecord
+        : isV3AuditSnapshot(nestedPublic) ? nestedPublic : null;
+  if (!source) return null;
+
+  const isV4 = readNumber(source.contractVersion) === 3;
+  const clientPresentation = buildAuditClientPresentation(source, "ru");
+  const clientPagesByUrl = new Map(clientPresentation.pages.map((page) => [adminComparableUrl(page.url), page]));
+  const summary = asRecord(source.resultSummary);
+  const inventory = asRecord(source.inventorySummary);
+  const coverageStatus = readString(source.coverageStatus) ?? "sample_partial";
+  const findingRecords = asRecordArray(source.findings);
+  const checks = asRecordArray(source.checks).map((check) => {
+    const status = normalizedAuditCheckStatus(check.status);
+    const checkId = readString(check.checkId) ?? "unknown";
+    const content = auditChecks.find((item) => item.id === checkId)?.ru;
+    const rawEvidence = asRecordArray(isV4 ? check.evidence : check.urlEvidence).map((item) => ({
+      url: readString(item.url) ?? "—",
+      observation: readString(item.observation) ?? "Факт не сохранён",
+    }));
+    const copy = isV4 ? {
+      title: readString(check.title) ?? "Проверка",
+      explanation: readString(check.reason) ?? "Результат не сохранён",
+      expected: readString(check.publicExplanation) ?? "Описание проверки не сохранено",
+      automationLimit: readString(check.automationLimit) ?? "Граница автоматической проверки не сохранена",
+    } : auditCheckCopy("ru", {
+      checkId,
+      status,
+      value: check.value,
+      title: readString(check.title) ?? undefined,
+      expected: readString(check.expected) ?? undefined,
+      explanation: readString(check.explanation) ?? undefined,
+      automationLimit: readString(check.automationLimit) ?? undefined,
+      urlEvidence: rawEvidence,
+    });
+    const evidence = rawEvidence.map((item) => ({ ...item, observation: auditObservationCopy("ru", item.observation) }));
+    const matchingFinding = findingRecords.find((finding) => readString(finding.checkId) === checkId);
+    return {
+      id: checkId,
+      version: readNumber(isV4 ? check.version : check.checkVersion) ?? 0,
+      title: copy.title,
+      category: categoryLabels[readString(check.category) ?? ""] ?? "Другое",
+      status,
+      statusLabel: auditCheckStatusLabel(status),
+      severity: readString(check.severity) ?? "info",
+      explanation: copy.explanation,
+      nextAction: status === "pass"
+        ? "Исправления по этому пункту не нужны."
+        : status === "not_applicable"
+          ? "Действие не требуется: проверка не относится к этому типу страницы или ресурса."
+          : readString(matchingFinding?.nextStep) ?? content?.action ?? "Сверьте найденный факт со страницей и запланируйте исправление.",
+      expected: copy.expected,
+      automationLimit: copy.automationLimit,
+      evidenceCount: evidence.length,
+      evidence,
+    };
+  });
+  const selectedPages = asRecordArray(source.selectedPages).map((page) => {
+    const pageType = readString(page.pageType);
+    const selectionReason = readString(page.selectionReason);
+    const pageLocale = readString(page.locale);
+    const rawUrl = readString(page.url) ?? "—";
+    const clientPage = clientPagesByUrl.get(adminComparableUrl(rawUrl));
+    return {
+      url: rawUrl,
+      pageType: isV4
+        ? clientPage?.typeLabel ?? adminSelectedPageTypeLabel(pageType, selectionReason, pageLocale)
+        : pageType ?? "Не определён",
+      selectionReason: isV4
+        ? clientPage?.selectionReason ?? adminSelectionReasonLabel(selectionReason)
+        : selectionReason ?? "Причина выбора не сохранена",
+      templateFamily: readString(page.templateFamily) ?? "Не сохранён",
+      classificationConfidence: readNumber(page.classificationConfidence),
+      classificationReasons: readStringArray(page.classificationReasons),
+    };
+  });
+  const checkedPages = asRecordArray(source.checkedPages).map((page) => ({
+    url: readString(page.url) ?? "—",
+    finalUrl: readString(page.finalUrl) ?? readString(page.url) ?? "—",
+    pageType: adminPageTypeLabel(readString(page.pageType)),
+    templateFamily: readString(page.templateFamily) ?? "Не сохранён",
+    classificationConfidence: readNumber(page.classificationConfidence) ?? 0,
+    statusCode: readNumber(page.statusCode) ?? readNumber(asRecord(page.http)?.status),
+    noindex: readBoolean(page.noindex),
+    title: readString(asRecord(page.title)?.value) ?? readString(page.title) ?? "Не задан",
+    h1Count: readNumber(asRecord(page.h1)?.count) ?? readNumber(page.h1Count),
+    canonical: readString(asRecord(page.canonical)?.url) ?? readString(page.canonical) ?? "Не задан",
+  }));
+  const findings = findingRecords.map((finding, index) => {
+    const severity = readString(finding.severity) ?? "info";
+    return {
+      id: readString(finding.checkId) ?? `finding-${index + 1}`,
+      title: readString(finding.title) ?? "Находка",
+      severity,
+      severityLabel: severityLabels[severity] ?? "Информация",
+      whatFound: readString(finding.whatFound) ?? "Факт не сохранён",
+      whyImportant: readString(finding.whyImportant) ?? "Пояснение не сохранено",
+      nextStep: readString(finding.nextStep) ?? "Действие не сохранено",
+      affectedCount: readNumber(finding.affectedCount) ?? 0,
+      confidence: readNumber(finding.confidence) ?? 0,
+      examples: asRecordArray(finding.examples).map((example) => ({
+        url: readString(example.url) ?? "—",
+        observation: readString(example.observation) ?? "Факт не сохранён",
+      })),
+    };
+  });
+  const technicalResources = asRecordArray(source.technicalResources).map((resource) => {
+    const resourceType = readString(resource.resourceType) ?? "unknown";
+    return {
+      url: readString(resource.finalUrl) ?? readString(resource.url) ?? "—",
+      resourceType,
+      resourceTypeLabel: adminResourceTypeLabel(resourceType),
+      statusCode: readNumber(resource.statusCode),
+      contentType: readString(resource.contentType) ?? "Не указан",
+      classificationReasons: readStringArray(resource.classificationReasons),
+    };
+  });
+  const inventoryDecisions = new Map(asRecordArray(fullRecord?.inventoryDecisions).flatMap((decision) => {
+    const url = readString(decision.url);
+    if (!url) return [];
+    const finalUrl = readString(decision.finalUrl) ?? url;
+    return [[adminInventoryDecisionKey(url, finalUrl), {
+      included: readBoolean(decision.included),
+      reason: readString(decision.reason),
+      primaryUrl: readString(decision.primaryUrl),
+    }] as const];
+  }));
+  const inventoryObjects = isV4 ? asRecordArray(fullRecord?.inventory).map((item) => {
+    const requestedUrl = readString(item.url) ?? "—";
+    const finalUrl = readString(item.finalUrl) ?? requestedUrl;
+    const resourceType = readString(item.resourceType) ?? "unknown";
+    const pageType = readString(item.pageType);
+    const decision = inventoryDecisions.get(adminInventoryDecisionKey(requestedUrl, finalUrl))
+      ?? inventoryDecisions.get(adminInventoryDecisionKey(finalUrl, finalUrl));
+    return {
+      url: finalUrl,
+      requestedUrl,
+      resourceType,
+      resourceTypeLabel: adminResourceTypeLabel(resourceType),
+      pageType,
+      pageTypeLabel: resourceType === "html" ? adminPageTypeLabel(pageType) : "Не относится к странице",
+      templateFamily: readString(item.templateFamily) ?? "Не сохранён",
+      statusCode: readNumber(item.statusCode),
+      contentType: readString(item.contentType) ?? "Не указан",
+      classificationConfidence: readNumber(item.classificationConfidence),
+      classificationReasons: readStringArray(item.classificationReasons),
+      included: decision?.included ?? null,
+      decisionReason: decision?.reason ?? null,
+      decisionLabel: adminInventoryDecisionLabel(decision?.included ?? null, decision?.reason ?? null),
+      decisionPrimaryUrl: decision?.primaryUrl ?? null,
+    };
+  }) : [];
+  const qaLabel = metadata?.qaLabel
+    ?? readString(source.qaLabel)
+    ?? readString(fullRecord?.qaLabel)
+    ?? readString(asRecord(fullRecord?.metadata)?.qaLabel)
+    ?? "Не указана";
+  const offerRecord = asRecord(source.offerSnapshot) ?? asRecord(fullRecord?.offerSnapshot);
+  const fallbackOffer = normalizeOfferSnapshot(offerRecord);
+  const offerSnapshot = formatOfferSnapshot(metadata?.offerSnapshot ?? fallbackOffer)
+    ?? readString(offerRecord?.id)
+    ?? readString(source.offerSnapshot)
+    ?? readString(fullRecord?.offerSnapshot)
+    ?? "Не указан";
+
+  return {
+    clientPresentation,
+    engineVersion: readString(source.engineVersion) ?? "Не указана",
+    contractVersion: readNumber(source.contractVersion) ?? 2,
+    coverageStatus,
+    coverageLabel: coverageStatus === "sample_complete"
+      ? "Все выбранные страницы проверены"
+      : "Часть выбранных страниц не удалось проверить",
+    pagesDiscovered: readNumber(source.pagesDiscovered) ?? 0,
+    pagesEligible: readNumber(source.pagesEligible) ?? readNumber(inventory?.eligibleHtml) ?? 0,
+    pagesExcluded: readNumber(source.pagesExcluded) ?? readNumber(inventory?.excludedHtml) ?? 0,
+    pagesSelected: readNumber(source.pagesSelected) ?? selectedPages.length,
+    pagesChecked: readNumber(source.pagesChecked) ?? 0,
+    pagesNotCompleted: readNumber(source.pagesNotCompleted) ?? readNumber(inventory?.notCompleted) ?? 0,
+    pagesNotCheckedTotal: readNumber(source.pagesNotCheckedTotal) ?? 0,
+    inventorySummary: {
+      objectsFound: readNumber(inventory?.objectsFound) ?? readNumber(source.pagesDiscovered) ?? 0,
+      htmlFound: readNumber(inventory?.htmlFound) ?? readNumber(source.pagesDiscovered) ?? 0,
+      eligibleHtml: readNumber(inventory?.eligibleHtml) ?? readNumber(source.pagesSelected) ?? 0,
+      excludedHtml: readNumber(inventory?.excludedHtml) ?? readNumber(source.pagesExcluded) ?? 0,
+      selected: readNumber(inventory?.selected) ?? readNumber(source.pagesSelected) ?? selectedPages.length,
+      checked: readNumber(inventory?.checked) ?? readNumber(source.pagesChecked) ?? 0,
+      notCompleted: readNumber(inventory?.notCompleted) ?? readNumber(source.pagesNotCompleted) ?? 0,
+      outsideSample: readNumber(inventory?.outsideSample) ?? readNumber(source.pagesNotCheckedTotal) ?? 0,
+      representedPageTypes: readNumber(inventory?.representedPageTypes) ?? new Set(selectedPages.map((page) => page.pageType)).size,
+    },
+    statusCounts: {
+      pass: readNumber(summary?.pass) ?? checks.filter((check) => check.status === "pass").length,
+      warning: readNumber(summary?.warning) ?? checks.filter((check) => check.status === "warning").length,
+      fail: readNumber(summary?.fail) ?? checks.filter((check) => check.status === "fail").length,
+      notApplicable: readNumber(summary?.not_applicable) ?? checks.filter((check) => check.status === "not_applicable").length,
+      notRun: readNumber(summary?.not_run) ?? checks.filter((check) => check.status === "not_run").length,
+      insufficientData: readNumber(summary?.insufficient_data) ?? checks.filter((check) => check.status === "insufficient_data").length,
+      total: readNumber(summary?.totalChecks) ?? checks.length,
+      completed: readNumber(summary?.completedChecks) ?? checks.filter((check) => ["pass", "warning", "fail"].includes(check.status)).length,
+    },
+    selectedPages,
+    checkedPages,
+    findings,
+    technicalResources,
+    inventory: inventoryObjects,
+    limitations: readStringArray(source.limitations),
+    checks,
+    qaLabel,
+    offerSnapshot,
+  };
+}
+
+function isV4AuditSnapshot(value: Record<string, unknown> | null): boolean {
+  return readNumber(value?.resultVersion) === 4 && readNumber(value?.contractVersion) === 3;
+}
+
+function isV3AuditSnapshot(value: Record<string, unknown> | null): boolean {
+  const resultVersion = readNumber(value?.resultVersion);
+  return readNumber(value?.contractVersion) === 2 && (resultVersion === null || resultVersion === 3);
+}
+
+function normalizeOfferSnapshot(value: Record<string, unknown> | null): AdminOfferSnapshot | null {
+  if (!value) return null;
+  const id = readString(value.id);
+  const title = readString(value.title);
+  if (!id || !title) return null;
+  const price = readString(value.price);
+  return { id, title, ...(price ? { price } : {}) };
+}
+
+function formatOfferSnapshot(value: AdminOfferSnapshot | null | undefined): string | null {
+  if (!value) return null;
+  return value.price ? `${value.title} · ${value.price}` : value.title;
+}
+
+function auditCheckStatusLabel(status: string): string {
+  if (status === "pass") return "Пройдено";
+  if (status === "warning") return "Есть замечание";
+  if (status === "fail") return "Ошибка";
+  if (status === "not_applicable") return "Не относится к объекту";
+  if (status === "not_run") return "Замер не запускался";
+  if (status === "insufficient_data") return "Результат не получен";
+  return "Не определён";
+}
+
+function normalizedAuditCheckStatus(value: unknown): AuditCheckCopyInput["status"] {
+  const status = readString(value);
+  if (status === "pass" || status === "warning" || status === "fail" || status === "not_applicable" || status === "not_run" || status === "insufficient_data") return status;
+  return "insufficient_data";
+}
+
 export function emailDeliveryView(input: {
   contactType: unknown;
   auditStatus: unknown;
@@ -136,7 +462,7 @@ export function emailDeliveryView(input: {
   if (!input.providerConfigured || (notificationStatus === "skipped" && notificationError === "not_configured")) {
     return { key: "not_connected", label: "Не подключён", tone: "warning", detail: "Отправка писем не настроена" };
   }
-  if (notificationStatus === "sent") return { key: "sent", label: "Отправлено", tone: "success" };
+  if (notificationStatus === "sent") return { key: "sent", label: "Передано почтовому серверу", tone: "success" };
   if (notificationStatus === "failed") {
     return { key: "failed", label: "Ошибка отправки", tone: "danger", detail: notificationError || undefined };
   }
@@ -409,6 +735,13 @@ function readString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.flatMap((item) => {
+    const text = readString(item);
+    return text ? [text] : [];
+  }) : [];
+}
+
 function readNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
@@ -420,6 +753,135 @@ function readBoolean(value: unknown): boolean | null {
 function humanizeCode(value: string): string {
   const text = value.replace(/[_-]+/gu, " ").trim();
   return text ? `${text[0].toUpperCase()}${text.slice(1)}` : "Проблема без названия";
+}
+
+function adminPageTypeLabel(value: string | null): string {
+  const labels: Readonly<Record<string, string>> = {
+    homepage: "Главная",
+    service: "Услуга",
+    category: "Раздел",
+    product: "Карточка товара",
+    article: "Статья",
+    case: "Кейс",
+    pricing: "Цены",
+    contact: "Контакты",
+    legal: "Правовая информация",
+    auth: "Вход",
+    account: "Личный кабинет",
+    cart: "Корзина",
+    internal_search: "Поиск по сайту",
+    filter: "Фильтр",
+    utility: "Служебная страница",
+    commercial: "Коммерческая страница",
+    conversion_support: "Страница обращения",
+    hub: "Страница раздела",
+    detail: "Детальная страница",
+    unique: "Отдельный шаблон",
+    alternate_locale: "Другая языковая версия",
+    unknown: "Тип не определён",
+  };
+  return value ? labels[value] ?? value : "Не определён";
+}
+
+function adminSelectedPageTypeLabel(pageType: string | null, selectionReason: string | null, pageLocale: string | null): string {
+  if (selectionReason === "primary_locale_type_missing") {
+    if (pageLocale === "en" && (pageType === "commercial" || pageType === "service")) return "Англоязычная страница услуги";
+    if (pageType === "commercial" || pageType === "service") return "Страница услуги на другом языке";
+    return "Страница на другом языке";
+  }
+  return adminPageTypeLabel(pageType);
+}
+
+function adminSelectionReasonLabel(value: string | null): string {
+  const labels: Readonly<Record<string, string>> = {
+    homepage: "Главная страница",
+    primary_commercial: "Основная коммерческая страница",
+    commercial_different_template: "Другой коммерческий шаблон",
+    conversion_support: "Страница, ведущая к обращению",
+    category_hub: "Страница раздела",
+    detail_page: "Детальная страница",
+    case_page: "Кейс",
+    article_page: "Статья",
+    unique_template: "Отдельный шаблон",
+    additional_important: "Дополнительная значимая страница",
+    alternate_locale_control: "Контроль другой языковой версии",
+    primary_locale_type_missing: "Выбрана как отдельный тип страницы; соответствующая страница основной локали не обнаружена",
+    user_target: "Адрес указан пользователем",
+    priority_url: "Приоритетный адрес",
+  };
+  return value ? labels[value] ?? value : "Причина выбора не сохранена";
+}
+
+function adminResourceTypeLabel(value: string): string {
+  const labels: Readonly<Record<string, string>> = {
+    html: "Страница сайта (HTML)",
+    robots: "robots.txt",
+    sitemap: "sitemap.xml",
+    xml_feed: "XML-фид",
+    document: "Документ",
+    image: "Изображение",
+    script: "Скрипт",
+    stylesheet: "Таблица стилей",
+    api: "Ответ API",
+    unknown: "Неизвестный ресурс",
+  };
+  return labels[value] ?? value;
+}
+
+function adminInventoryDecisionLabel(included: boolean | null, reason: string | null): string {
+  if (included) return adminSelectionReasonLabel(reason);
+  const labels: Readonly<Record<string, string>> = {
+    technical_resource: "Технический файл проверяется отдельно",
+    not_selected_within_limit: "Подходит для проверки, но не вошла в лимит 10 страниц",
+    not_selected_similar_template: "Подходит для проверки, но не выбрана из-за похожего шаблона",
+    excluded_by_sampling_rules: "Не подходит для бесплатной выборки",
+    tracking_query: "Адрес с рекламной меткой не расходует бесплатный лимит",
+    filter_query: "Вариант фильтра или сортировки не расходует бесплатный лимит",
+  };
+  if (reason?.startsWith("excluded_by_sampling_rules:")) {
+    const exclusionReason = reason.slice("excluded_by_sampling_rules:".length);
+    const exclusionLabels: Readonly<Record<string, string>> = {
+      search_page: "Исключена до выборки: страница поиска",
+      closed_section: "Исключена до выборки: закрытый раздел",
+      technical_page: "Исключена до выборки: юридическая или служебная страница",
+      parameterized_url: "Исключена до выборки: URL с параметрами",
+      redirect: "Исключена до выборки: перенаправление",
+      confirmed_duplicate: "Исключена до выборки: подтверждённый дубликат",
+      service_url: "Исключена до выборки: служебный URL (старый снимок)",
+      technical_object: "Исключена до выборки: технический объект (старый снимок)",
+      duplicate_template: "Исключена до выборки: дубликат шаблона (старый снимок)",
+      other: "Исключена до выборки: другая сохранённая причина",
+    };
+    return exclusionLabels[exclusionReason] ?? `Исключена до выборки: ${humanizeCode(exclusionReason)}`;
+  }
+  if (reason) return labels[reason] ?? humanizeCode(reason);
+  return included === false ? "Причина исключения не сохранена" : "Решение по адресу не сохранено";
+}
+
+function adminInventoryUrlKey(value: string): string {
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    return url.href;
+  } catch {
+    return value;
+  }
+}
+
+function adminComparableUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    url.search = "";
+    url.pathname = url.pathname.replace(/\/+$/u, "") || "/";
+    return url.href;
+  } catch {
+    return value;
+  }
+}
+
+function adminInventoryDecisionKey(requestedUrl: string, finalUrl: string): string {
+  return `${adminInventoryUrlKey(requestedUrl)}\u0000${adminInventoryUrlKey(finalUrl)}`;
 }
 
 function normalizePercentage(value: number | null): number | null {

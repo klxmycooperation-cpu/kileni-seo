@@ -29,7 +29,7 @@ export function AdminLoginForm() {
         setMessage(result.message ?? "Не удалось войти");
         return;
       }
-      router.replace("/admin/audits");
+      router.replace("/admin");
       router.refresh();
     } catch {
       setMessage("Сервис входа временно недоступен");

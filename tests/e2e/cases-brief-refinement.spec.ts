@@ -44,6 +44,21 @@ test("turns the case index into two concise before-and-after stories", async ({ 
   await expect(page.getByText("Limitation", { exact: true })).toHaveCount(2);
 });
 
+test("keeps the result tables aligned across desktop case cards", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/cases");
+
+  const panels = page.locator(".cp-narrative-result");
+  await expect(panels).toHaveCount(2);
+  const positions = await panels.evaluateAll((elements) => elements.map((element) => {
+    const rect = element.getBoundingClientRect();
+    return { top: rect.top, height: rect.height };
+  }));
+
+  expect(positions[0]?.top).toBeCloseTo(positions[1]?.top ?? 0, 0);
+  expect(positions[0]?.height).toBeCloseTo(positions[1]?.height ?? 0, 0);
+});
+
 test("keeps the project scale visible on the second case card", async ({ page }) => {
   await page.goto("/cases");
   const secondCase = page.locator(".cp-narrative-case").nth(1);
@@ -76,13 +91,22 @@ test("labels final-only case evidence without inventing a before value", async (
 
 test("serves every offline brief download", async ({ request }) => {
   for (const locale of ["ru", "en"]) {
-    for (const type of ["seo", "audit", "marketplaces", "development"]) {
+    for (const type of ["seo", "audit", "marketplaces", "development", "ads", "custom"]) {
       for (const extension of ["docx", "pdf"]) {
         const response = await request.get(`/downloads/generated/${locale}-${type}-brief.${extension}`);
         expect(response.status(), `${locale}-${type}.${extension}`).toBe(200);
         expect((await response.body()).byteLength).toBeGreaterThan(1_000);
       }
     }
+  }
+});
+
+test("offers an offline brief for every interactive direction", async ({ page }) => {
+  for (const path of ["/brief", "/en/brief"]) {
+    await page.goto(path);
+    const downloads = page.locator(".brief-download-option");
+    await expect(downloads).toHaveCount(6);
+    await expect(downloads.locator('a[download]')).toHaveCount(12);
   }
 });
 
@@ -100,7 +124,7 @@ test("shows the brief as an accessible five-stage route and preserves the chosen
 
   await expect(route.getByRole("listitem").filter({ hasText: "Цель" })).toHaveAttribute("aria-current", "step");
   await page.reload();
-  await expect(page.getByRole("heading", { level: 2, name: "Контекст задачи" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "О задаче" })).toBeVisible();
 
   await page.evaluate(() => {
     localStorage.removeItem("kileni-brief");
@@ -117,7 +141,7 @@ test("explains price, scope and preparation before the brief is sent", async ({ 
 
   await expect(page.getByRole("heading", { level: 1, name: /соберём предложение без лишних работ/u })).toBeVisible();
   await expect(page.locator(".brief-effort")).toContainText("5–7 минут");
-  await expect(page.locator(".brief-effort")).toContainText("технические знания не нужны");
+  await expect(page.locator(".brief-effort")).toContainText("Технические знания не нужны");
   const guide = page.locator(".brief-service-guide");
   await expect(guide.getByText("За что вы платите", { exact: true })).toBeVisible();
   await expect(guide.getByText("Что подготовить", { exact: true })).toBeVisible();
@@ -155,12 +179,14 @@ test("switches pricing categories without changing the approved Russian amounts"
   await page.goto("/pricing");
 
   const categories = page.getByRole("tablist", { name: "Категории услуг" });
-  await expect(categories.getByRole("tab")).toHaveCount(6);
+  await expect(categories.getByRole("tab")).toHaveCount(7);
+  await expect(categories.getByRole("tab", { name: "Wildberries и Ozon" })).toBeVisible();
   await expect(categories.getByRole("tab", { name: "SEO-аудит" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("tabpanel")).toContainText(/39\s*900\s*₽/u);
 
   await categories.getByRole("tab", { name: "Разработка" }).click();
   await expect(categories.getByRole("tab", { name: "Разработка" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tabpanel")).toContainText("3 варианта");
   await expect(page.getByRole("tabpanel")).toContainText(/99\s*900\s*₽/u);
 
   await page.goto("/en/pricing");
@@ -199,6 +225,9 @@ test("does not grow endlessly after mobile pages are loaded", async ({ page }) =
 test("has no serious accessibility violations on the refined brief", async ({ page }) => {
   for (const path of ["/brief", "/en/brief"]) {
     await page.goto(path);
+    await expect(page).toHaveURL(new RegExp(`${path.replaceAll("/", "\\/")}$`));
+    await expect(page.locator("main h1")).toBeVisible();
+    await page.waitForLoadState("networkidle");
     const result = await new AxeBuilder({ page }).analyze();
     expect(
       result.violations.filter((violation) => violation.impact === "critical" || violation.impact === "serious"),

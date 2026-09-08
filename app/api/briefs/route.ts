@@ -1,14 +1,14 @@
 import { randomUUID } from "node:crypto";
 
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { publicFormsAreEnabled } from "@/src/config/site";
 import { database } from "@/src/db/client";
 import { createBrief } from "@/src/db/submissions";
 import { notifyTelegram } from "@/src/lib/notifications/telegram";
 import { sendEmail } from "@/src/lib/notifications/email";
-import { briefAnswerLabel, type BriefService } from "@/src/content/brief";
 import { canonicalizeBriefOffer } from "@/src/lib/brief/offer-payload";
+import { briefServiceName, formatBriefEmailCopy } from "@/src/lib/brief/presentation";
 import {
   fileTypeAllowed,
   maxFileCount,
@@ -135,12 +135,15 @@ export async function POST(request: Request) {
 
   let briefId: string;
   try {
-    briefId = await createBrief(submission, ipHash);
-    const now = Date.now();
-    for (const file of prepared) {
-      await database.execute({ sql: `INSERT INTO attachments (id, brief_id, storage_name, original_name, mime, size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, args: [file.id, briefId, file.storageName, file.originalName, file.mime, file.size, now] });
-    }
-    if (prepared.length > 0) await database.execute({ sql: "UPDATE brief_submissions SET status='uploading' WHERE id=?", args: [briefId] });
+    briefId = await database.transaction(async (transaction) => {
+      const id = await createBrief(submission, ipHash, transaction);
+      const now = Date.now();
+      for (const file of prepared) {
+        await transaction.execute({ sql: `INSERT INTO attachments (id, brief_id, storage_name, original_name, mime, size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, args: [file.id, id, file.storageName, file.originalName, file.mime, file.size, now] });
+      }
+      if (prepared.length > 0) await transaction.execute({ sql: "UPDATE brief_submissions SET status='uploading' WHERE id=?", args: [id] });
+      return id;
+    });
   } catch {
     return apiError(500, "BRIEF_CREATE_FAILED", "Не удалось сохранить бриф");
   }
@@ -172,13 +175,14 @@ export async function POST(request: Request) {
     }
   }
 
+  after(async () => {
   await notifyTelegram({
     entityType: "brief",
     entityId: briefId,
     text: [
       "Новый бриф",
-      `Направление: ${submission.service}`,
-      `Предложение: ${submission.offerId ?? "не выбрано"}`,
+      `Направление: ${briefServiceName(submission.service, "ru")}`,
+      `Предложение: ${submission.offerId ? (getReadableOfferTitle(submission.answers) ?? "выбрано в каталоге") : "не выбрано"}`,
       `Имя: ${sanitizeLogValue(parsed.data.name)}`,
       `Контакт: ${sanitizeLogValue(parsed.data.contact)}`,
       `Файлов: ${prepared.length}`,
@@ -192,7 +196,7 @@ export async function POST(request: Request) {
     const emailResult = await sendEmail({
       to: parsed.data.contact,
       subject: parsed.data.locale === "ru" ? "Копия брифа KILENI" : "Your KILENI brief copy",
-      text: formatBriefCopy(submission.locale, submission.service, submission.answers),
+      text: formatBriefEmailCopy(submission.locale, submission.service, submission.answers),
     });
     const now = Date.now();
     await database.execute({
@@ -201,18 +205,14 @@ export async function POST(request: Request) {
     });
   }
 
+  });
+
   return NextResponse.json({ ok: true }, { status: 201, headers: { "cache-control": "no-store" } });
 }
 
-function formatBriefCopy(locale: "ru" | "en", service: BriefService, answers: Readonly<Record<string, unknown>>): string {
-  const heading = locale === "ru"
-    ? `KILENI сохранил ваш бриф по направлению «${service}». Ниже — копия ответов.`
-    : `KILENI saved your “${service}” brief. A copy of your answers follows.`;
-  const rows = Object.entries(answers).map(([key, value]) => `${briefAnswerLabel(service, key, locale)}: ${Array.isArray(value) ? value.join(", ") : String(value)}`);
-  const footer = locale === "ru"
-    ? "Это автоматическая копия. Мы свяжемся с вами в рабочее время."
-    : "This is an automated copy. We will follow up during working hours.";
-  return `${heading}\n\n${rows.join("\n")}\n\n${footer}`.slice(0, 20_000);
+function getReadableOfferTitle(answers: Readonly<Record<string, unknown>>): string | null {
+  const value = answers.selectedOfferTitle;
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 function adminUrl(id: string): string {

@@ -14,18 +14,20 @@ import {
 
 describe("glossary detail architecture", () => {
   it("keeps every existing term addressable with explicit publication data", () => {
-    expect(glossaryTerms).toHaveLength(41);
+    expect(glossaryTerms).toHaveLength(44);
     expect(new Set(glossaryTerms.map((term) => term.slug)).size).toBe(glossaryTerms.length);
 
     for (const term of glossaryTerms) {
       expect(getGlossaryTerm(term.slug)).toBe(term);
       expect(typeof term.indexable).toBe("boolean");
       expect(term.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+      expect(term.ru.editor).toBe("Редакция KILENI");
+      expect(term.en.editor).toBe("KILENI Editorial");
     }
   });
 
   it("indexes only the terms with four distinct, term-specific explanations", () => {
-    expect(indexableGlossarySlugs).toHaveLength(41);
+    expect(indexableGlossarySlugs).toHaveLength(44);
     expect(indexableGlossarySlugs).toEqual(
       glossaryTerms.filter((term) => term.indexable).map((term) => term.slug),
     );
@@ -53,8 +55,8 @@ describe("glossary detail architecture", () => {
 
     for (const locale of ["ru", "en"] as const) {
       const published = glossaryTerms.filter((term) => term.indexable);
-      expect(new Set(published.map((term) => term[locale].plain)).size).toBe(41);
-      expect(new Set(published.map((term) => term[locale].why)).size).toBe(41);
+      expect(new Set(published.map((term) => term[locale].plain)).size).toBe(44);
+      expect(new Set(published.map((term) => term[locale].why)).size).toBe(44);
     }
   });
 
@@ -74,6 +76,24 @@ describe("glossary detail architecture", () => {
     expect(formerlyDraft?.alternates?.canonical).toBe("/en/glossary/seo-audit");
     expect(formerlyDraft?.robots).toBeUndefined();
     expect(getGlossaryDetailMetadata("ru", "not-a-term")).toBeNull();
+  });
+
+  it("uses complete editorial definitions instead of mechanically cut descriptions", () => {
+    const descriptions = new Set<string>();
+    for (const term of glossaryTerms) {
+      for (const locale of ["ru", "en"] as const) {
+        const expected = `${term[locale].term}: ${term[locale].definition}`;
+        const description = getGlossaryDetailMetadata(locale, term.slug)?.description;
+
+        expect(description).toBe(expected);
+        expect(description).not.toContain("…");
+        expect(description).toMatch(/[.!?]$/u);
+        expect(description?.length).toBeGreaterThanOrEqual(70);
+        expect(description?.length).toBeLessThanOrEqual(160);
+        expect(descriptions.has(expected)).toBe(false);
+        descriptions.add(expected);
+      }
+    }
   });
 
   it("exports sitemap paths only for reviewed terms", () => {

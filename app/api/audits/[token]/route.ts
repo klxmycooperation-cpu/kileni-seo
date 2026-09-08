@@ -1,8 +1,8 @@
-import { getAuditByToken } from "@/src/db/queries";
-import { siteConfig } from "@/src/config/site";
+import { getAuditByToken, getAuditEvents } from "@/src/db/queries";
+import { mergePublicAuditProgressPayloads, sanitizePublicAuditProgressPayload } from "@/src/lib/audit/public-progress";
 import { apiError, noStoreJson, safeJsonParse, validOpaqueToken } from "../../_lib/http";
-import { sanitizePublicAuditResult } from "../../_lib/audit-public";
 import { verifyAuditRestoreEnvelope } from "../../_lib/audit-restore";
+import { buildRestoredPublicAuditSnapshot, buildStoredPublicAuditSnapshot } from "../../_lib/audit-snapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,59 +18,56 @@ export async function GET(
   if (!audit) {
     const restored = verifyAuditRestoreEnvelope(new URL(request.url).searchParams.get("restore"), token);
     if (!restored) return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
-    return noStoreJson({
-      token: restored.token,
-      normalizedDomain: restored.normalizedDomain,
-      status: restored.status,
-      terminal: true,
-      cached: false,
-      createdAt: restored.createdAt,
-      completedAt: restored.completedAt,
-      consentRecorded: true,
-      pagesDiscovered: restored.result.pagesDiscovered,
-      pagesChecked: restored.result.pagesChecked,
-      pageLimit: siteConfig.audit.pageLimit,
-      overallScore: restored.result.score,
-      progress: {
-        pagesDiscovered: restored.result.pagesDiscovered,
-        pagesChecked: restored.result.pagesChecked,
-        pageLimit: siteConfig.audit.pageLimit,
-      },
-      score: restored.result.score,
-      grade: restored.result.grade,
-      partial: restored.result.partial,
-      result: restored.result,
-    });
+    return noStoreJson(buildRestoredPublicAuditSnapshot(restored));
   }
 
-  const terminal = audit.status === "completed" || audit.status === "partial" || audit.status === "failed";
+  const baseSnapshot = buildStoredPublicAuditSnapshot(audit);
+  const terminal = baseSnapshot.terminal;
+  const eventRows = terminal ? [] : await getAuditEvents(audit.id, 0);
+  const safeEventPayloads = eventRows.map((row) => sanitizePublicAuditProgressPayload(
+    safeJsonParse(row.payloadJson),
+    audit.normalizedDomain,
+    baseSnapshot.pageLimit,
+  ));
+  const liveProgress = mergePublicAuditProgressPayloads(safeEventPayloads);
+  const recentEvents = eventRows.flatMap((row, index) => {
+    const payload = safeEventPayloads[index] ?? {};
+    if (typeof payload.eventKind !== "string") return [];
+    return [{
+      kind: payload.eventKind,
+      ...(typeof payload.currentUrl === "string" ? { path: progressPath(payload.currentUrl) } : {}),
+      ...(typeof payload.currentPageType === "string" ? { pageType: payload.currentPageType } : {}),
+      createdAt: new Date(row.createdAt).toISOString(),
+    }];
+  }).slice(-3);
+  const latestEvent = recentEvents.at(-1);
+  const liveEventPath = typeof liveProgress.currentUrl === "string" ? progressPath(liveProgress.currentUrl) : undefined;
+  const eventCreatedAt = latestEvent
+    && latestEvent.kind === liveProgress.eventKind
+    && (liveEventPath === undefined || latestEvent.path === liveEventPath)
+    ? latestEvent.createdAt
+    : undefined;
   return noStoreJson({
-    token: audit.publicToken,
-    normalizedDomain: audit.normalizedDomain,
-    status: audit.status,
-    terminal,
-    cached: audit.startedAt === audit.createdAt && audit.completedAt === audit.createdAt,
-    createdAt: audit.createdAt,
-    completedAt: audit.completedAt,
-    consentRecorded: true,
-    pagesDiscovered: audit.pagesDiscovered,
-    pagesChecked: audit.pagesChecked,
-    pageLimit: Math.min(siteConfig.audit.pageLimit, audit.pageLimit),
-    overallScore: audit.overallScore,
-    progress: {
-      pagesDiscovered: audit.pagesDiscovered,
-      pagesChecked: audit.pagesChecked,
-      pageLimit: Math.min(siteConfig.audit.pageLimit, audit.pageLimit),
-    },
-    score: audit.overallScore,
-    grade: audit.grade,
-    partial: Boolean(audit.partial),
-    result: sanitizePublicAuditResult(safeJsonParse(audit.publicResultJson)),
+    ...baseSnapshot,
+    ...liveProgress,
+    ...(eventCreatedAt ? { eventCreatedAt } : {}),
+    pagesDiscovered: Math.max(baseSnapshot.pagesDiscovered, typeof liveProgress.pagesDiscovered === "number" ? liveProgress.pagesDiscovered : 0),
+    pagesChecked: Math.max(baseSnapshot.pagesChecked, typeof liveProgress.pagesChecked === "number" ? liveProgress.pagesChecked : 0),
+    ...(recentEvents.length ? { recentEvents } : {}),
+    result: baseSnapshot.result,
     ...(audit.status === "failed" ? {
       message: audit.locale === "en"
-        ? "The audit could not be completed. Please try again later."
-        : "Аудит не удалось завершить. Попробуйте повторить позже.",
-      errorSummary: audit.locale === "en" ? "The audit ended with an error" : "Проверка завершилась с ошибкой",
+        ? "The report could not be prepared. Run the check again."
+        : "Отчёт не удалось подготовить. Повторите проверку.",
+      errorSummary: audit.locale === "en" ? "Technical failure while preparing the report" : "Технический сбой при подготовке отчёта",
     } : {}),
   });
+}
+
+function progressPath(value: string): string {
+  try {
+    return new URL(value).pathname || "/";
+  } catch {
+    return "/";
+  }
 }

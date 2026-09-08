@@ -1,197 +1,386 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Locale } from "../../config/site";
-import { PUBLIC_AUDIT_PAGE_LIMIT } from "../../config/public-audit";
+import { Logo } from "../brand/Logo";
+
+export type AuditLiveSelectedPage = {
+  readonly url: string;
+  readonly pageType: string;
+  readonly selectionReason: string;
+};
+
+export type AuditLiveEvent = {
+  readonly kind: string;
+  readonly path?: string;
+  readonly pageType?: string;
+  readonly createdAt?: string;
+};
 
 export type AuditLiveSnapshot = {
   token?: string;
   status?: string;
   pagesChecked?: number;
   pagesDiscovered?: number;
+  pagesEligible?: number;
+  pagesSelected?: number;
+  selectedPages?: readonly AuditLiveSelectedPage[];
+  checkedUrls?: readonly string[];
+  failedUrls?: readonly string[];
+  selectionComplete?: boolean;
+  technicalFilesChecked?: number;
+  robotsStatus?: "found" | "missing" | "error";
+  sitemapStatus?: "found" | "missing" | "error";
+  currentUrl?: string;
+  currentPageType?: string;
+  recentEvents?: readonly AuditLiveEvent[];
+  eventKind?: string;
+  eventCreatedAt?: string;
   pageLimit?: number;
   createdAt?: number;
   completedAt?: number | null;
 };
 
+type StageKey = "connection" | "rules" | "selection" | "check" | "report";
 type StageState = "waiting" | "active" | "completed" | "error";
 
-type Stage = {
-  key: string;
-  ru: string;
-  en: string;
-  icon: "link" | "file" | "search" | "check" | "nodes" | "speed" | "report";
-};
-
-const stages: readonly Stage[] = [
-  { key: "connecting", ru: "Подключение", en: "Connection", icon: "link" },
-  { key: "robots", ru: "Robots.txt и sitemap", en: "Robots.txt & sitemap", icon: "file" },
-  { key: "discovery", ru: "Поиск страниц", en: "Discovering pages", icon: "search" },
-  { key: "crawl", ru: "Проверка страниц", en: "Checking pages", icon: "check" },
-  { key: "structure", ru: "Структура и SEO", en: "Structure & SEO", icon: "nodes" },
-  { key: "performance", ru: "Скорость", en: "Speed", icon: "speed" },
-  { key: "result", ru: "Формирование результата", en: "Preparing result", icon: "report" },
+const stages: readonly { key: StageKey; ru: string; en: string }[] = [
+  { key: "connection", ru: "Подключение", en: "Connection" },
+  { key: "rules", ru: "Правила сайта", en: "Site rules" },
+  { key: "selection", ru: "Выбор страниц", en: "Page selection" },
+  { key: "check", ru: "Проверка", en: "Checking" },
+  { key: "report", ru: "Результат", en: "Result" },
 ];
 
-function stageIndex(status: string | undefined): number {
-  if (!status || ["queued", "validating_target", "connecting"].includes(status)) return 0;
-  if (["checking_robots", "checking_sitemaps"].includes(status)) return 1;
-  if (status === "discovering_pages") return 2;
-  if (status === "crawling_pages") return 3;
-  if (status === "analyzing_structure") return 4;
-  if (status === "running_performance") return 5;
-  return 6;
-}
-
-function pageDenominator(snapshot: AuditLiveSnapshot): number | null {
-  const limit = Math.max(1, snapshot.pageLimit ?? PUBLIC_AUDIT_PAGE_LIMIT);
-  const discovered = Math.max(0, snapshot.pagesDiscovered ?? 0);
-  return discovered > 0 ? Math.min(discovered, limit) : null;
-}
-
-function progressFor(snapshot: AuditLiveSnapshot): number {
+function currentStage(snapshot: AuditLiveSnapshot): number {
   const status = snapshot.status ?? "queued";
+  if (["queued", "validating_target", "connecting"].includes(status)) return 0;
+  if (["checking_robots", "checking_sitemaps", "discovering_pages"].includes(status)) return 1;
+  if (status === "crawling_pages" && snapshot.selectionComplete !== true) return 2;
+  if (["crawling_pages", "analyzing_structure", "running_performance"].includes(status)) return 3;
+  return 4;
+}
+
+function isTerminal(status: string): boolean {
+  return ["completed", "partial", "failed"].includes(status);
+}
+
+function progressState(snapshot: AuditLiveSnapshot): { determinate: boolean; value: number } {
+  const selected = Math.max(0, snapshot.pagesSelected ?? snapshot.selectedPages?.length ?? 0);
   const checked = Math.max(0, snapshot.pagesChecked ?? 0);
-  const denominator = pageDenominator(snapshot);
-  const crawlProgress = denominator ? Math.min(1, checked / denominator) : 0;
-
-  if (status === "completed") return 100;
-  if (status === "partial") return Math.min(99, Math.round(crawlProgress * 100));
-  if (status === "failed") return Math.round(crawlProgress * 70);
-  if (status === "calculating_score") return 95;
-  if (status === "running_performance") return 87;
-  if (status === "analyzing_structure") return 76;
-  if (status === "crawling_pages") return Math.round(25 + crawlProgress * 45);
-  if (status === "discovering_pages") return 19;
-  if (status === "checking_sitemaps") return 14;
-  if (status === "checking_robots") return 9;
-  if (status === "connecting") return 5;
-  if (status === "validating_target") return 2;
-  return 0;
+  if (snapshot.selectionComplete !== true || selected === 0) return { determinate: false, value: 0 };
+  return { determinate: true, value: Math.min(100, Math.round((checked / selected) * 100)) };
 }
 
-function activityLabel(status: string | undefined, locale: Locale): string {
+function pageTypeLabel(type: string, locale: Locale): string {
   const labels: Record<string, [string, string]> = {
-    queued: ["Готовим проверку", "Preparing the check"],
-    validating_target: ["Проверяем адрес сайта", "Validating the website address"],
-    connecting: ["Подключаемся к сайту", "Connecting to the website"],
-    checking_robots: ["Проверяем robots.txt и sitemap", "Checking robots.txt and sitemap"],
-    checking_sitemaps: ["Проверяем robots.txt и sitemap", "Checking robots.txt and sitemap"],
-    discovering_pages: ["Ищем доступные страницы", "Finding available pages"],
-    crawling_pages: ["Проверяем найденные страницы", "Checking discovered pages"],
-    analyzing_structure: ["Анализируем структуру и SEO-сигналы", "Analyzing structure and SEO signals"],
-    running_performance: ["Проверяем доступные сигналы скорости", "Checking available speed signals"],
-    calculating_score: ["Собираем результат", "Preparing the result"],
-    completed: ["Проверка завершена", "Check complete"],
-    partial: ["Собираем доступную часть результата", "Preparing the available result"],
-    failed: ["Проверка остановлена", "The check stopped"],
+    homepage: ["Главная", "Homepage"],
+    service: ["Страница услуги", "Service page"],
+    commercial: ["Коммерческая страница", "Commercial page"],
+    conversion_support: ["Страница для связи", "Contact-support page"],
+    hub: ["Раздел", "Hub page"],
+    unique: ["Отдельная страница", "Distinct page"],
+    category: ["Раздел", "Category"],
+    pricing: ["Страница с ценами", "Pricing page"],
+    contact: ["Контакты", "Contacts"],
+    case: ["Кейс", "Case study"],
+    about: ["О компании", "About page"],
+    blog: ["Раздел блога", "Blog section"],
+    article: ["Статья", "Article"],
+    product: ["Детальная страница", "Detail page"],
+    detail: ["Детальная страница", "Detail page"],
+    alternate_locale: ["Другая языковая версия", "Other language version"],
+    unknown: ["Отдельная страница", "Distinct page"],
   };
-  const label = labels[status ?? "queued"] ?? labels.queued;
-  return label[locale === "ru" ? 0 : 1];
+  return (labels[type] ?? labels.unknown)[locale === "ru" ? 0 : 1];
 }
 
-function formatDuration(milliseconds: number): string {
-  const seconds = Math.max(0, Math.floor(milliseconds / 1000));
-  const minutes = Math.floor(seconds / 60);
-  return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-}
-
-function useElapsed(startedAt: number | undefined, completedAt: number | null | undefined): string {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!startedAt || completedAt) return;
-    setNow(Date.now());
-    const interval = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(interval);
-  }, [completedAt, startedAt]);
-  return formatDuration(Math.max(0, (completedAt ?? now) - (startedAt ?? now)));
-}
-
-function StageIcon({ icon, state }: { icon: Stage["icon"]; state: StageState }) {
-  if (state === "completed") return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12.5 4.1 4.1L19.5 6.8"/></svg>;
-  const paths: Record<Stage["icon"], ReactNode> = {
-    link: <><path d="M9.2 14.8 7.4 16.6a3.2 3.2 0 0 1-4.5-4.5l3.6-3.6A3.2 3.2 0 0 1 11 8.5"/><path d="m14.8 9.2 1.8-1.8a3.2 3.2 0 0 1 4.5 4.5l-3.6 3.6a3.2 3.2 0 0 1-4.5 0"/><path d="m8.5 15.5 7-7"/></>,
-    file: <><path d="M7 3.5h7l3 3v14H7z"/><path d="M14 3.5v4h3"/><path d="M9.5 12h5M9.5 15.5h5"/></>,
-    search: <><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4.2 4.2"/></>,
-    check: <><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12.3 2.6 2.6 5.4-5.5"/></>,
-    nodes: <><circle cx="6" cy="7" r="2"/><circle cx="18" cy="7" r="2"/><circle cx="12" cy="17" r="2"/><path d="m7.8 8.2 2.8 6.5m5.6-6.5-2.8 6.5M8 7h8"/></>,
-    speed: <><path d="M4 15a8 8 0 1 1 16 0"/><path d="m12 12 4-3"/><path d="M12 4v1m6.4 2.6-.7.7M5.6 7.6l.7.7"/></>,
-    report: <><path d="M7 3.5h7l3 3v14H7z"/><path d="M14 3.5v4h3"/><path d="M9.5 12h5M9.5 15.5h3.2"/></>,
+function selectionReasonLabel(reason: string, locale: Locale): string {
+  const labels: Record<string, [string, string]> = {
+    user_target: ["адрес, который вы указали", "the address you entered"],
+    homepage: ["главная страница сайта", "the website homepage"],
+    priority_url: ["важный раздел сайта", "an important website section"],
+    primary_commercial: ["основная коммерческая страница", "a primary commercial page"],
+    commercial_different_template: ["другой коммерческий формат", "a different commercial format"],
+    conversion_support: ["страница помогает связаться", "a page that helps visitors make contact"],
+    category_hub: ["страница объединяет раздел", "a page that groups a section"],
+    case_page: ["пример отдельного кейса", "a representative case study"],
+    article_page: ["пример отдельной статьи", "a representative article"],
+    unique_template: ["отдельный формат страницы", "a distinct page format"],
+    page_type: ["отдельный тип страницы", "a distinct page type"],
+    template_diversity: ["другой формат страницы", "a different page format"],
+    detail_page: ["пример детальной страницы", "a representative detail page"],
+    alternate_locale_control: ["контроль другой языковой версии", "a check of another language version"],
+    primary_locale_type_missing: ["основная локаль этого типа страницы не обнаружена", "no primary-locale page of this type was found"],
+    additional_important: ["важная страница", "an important page"],
   };
-  return <svg aria-hidden="true" viewBox="0 0 24 24">{paths[icon]}</svg>;
+  return (labels[reason] ?? labels.additional_important)[locale === "ru" ? 0 : 1];
+}
+
+function urlPath(value: string): string {
+  try {
+    const url = new URL(value);
+    return `${url.pathname || "/"}${url.search}`;
+  } catch {
+    return value;
+  }
+}
+
+function normalizedUrl(value: string | undefined): string {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    return url.href;
+  } catch {
+    return value;
+  }
+}
+
+function displayDomain(domain: string | undefined): string {
+  if (!domain) return "";
+  try {
+    return new URL(domain.includes("://") ? domain : `https://${domain}`).hostname.replace(/^www\./u, "");
+  } catch {
+    return domain;
+  }
+}
+
+function currentPagePosition(snapshot: AuditLiveSnapshot, selectedCount: number): number {
+  const current = normalizedUrl(snapshot.currentUrl);
+  const selectedIndex = (snapshot.selectedPages ?? []).findIndex((page) => normalizedUrl(page.url) === current);
+  if (selectedIndex >= 0) return selectedIndex + 1;
+  const attempted = new Set([
+    ...(snapshot.checkedUrls ?? []),
+    ...(snapshot.failedUrls ?? []),
+  ].map(normalizedUrl).filter(Boolean)).size;
+  return Math.min(Math.max(1, attempted + 1), Math.max(1, selectedCount));
+}
+
+function stageCopy(snapshot: AuditLiveSnapshot, locale: Locale): { title: string; description: string; shortStatus: string } {
+  const ru = locale === "ru";
+  const stage = currentStage(snapshot);
+  const status = snapshot.status ?? "queued";
+  const selected = Math.max(0, snapshot.pagesSelected ?? snapshot.selectedPages?.length ?? 0);
+  const checked = Math.min(Math.max(0, snapshot.pagesChecked ?? 0), Math.max(0, selected));
+  if (stage === 0) return {
+    title: ru ? "Подключение" : "Connecting",
+    description: ru ? "Подключаемся к сайту и проверяем, отвечает ли сервер." : "Connecting to the website and checking whether the server responds.",
+    shortStatus: ru ? "Подключаемся" : "Connecting",
+  };
+  if (stage === 1) return {
+    title: ru ? "Читаем правила сайта" : "Reading the site rules",
+    description: ru ? "Проверяем robots.txt и sitemap.xml, затем ищем страницы сайта." : "Checking robots.txt and sitemap.xml, then finding website pages.",
+    shortStatus: ru ? "Ищем страницы" : "Finding pages",
+  };
+  if (stage === 2) return {
+    title: ru ? "Выбираем страницы" : "Selecting pages",
+    description: ru ? "Берём разные типы страниц, чтобы бесплатная десятка показывала сайт целиком, а не повторяла один раздел." : "Choosing different page types so the free sample represents the site instead of repeating one section.",
+    shortStatus: ru ? "Формируем выборку" : "Building the sample",
+  };
+  if (stage === 3) {
+    const position = currentPagePosition(snapshot, selected);
+    const currentType = pageTypeLabel(snapshot.currentPageType ?? "unknown", locale);
+    const path = snapshot.currentUrl ? urlPath(snapshot.currentUrl) : "";
+    const started = snapshot.eventKind === "page_started" && path;
+    return {
+      title: selected > 0
+        ? (ru ? `Проверяем ${started ? position : Math.min(checked + 1, selected)} из ${selected}` : `Checking ${started ? position : Math.min(checked + 1, selected)} of ${selected}`)
+        : (ru ? "Проверяем выбранные страницы" : "Checking selected pages"),
+      description: started
+        ? `${currentType} · ${path}`
+        : (ru ? "Проверяем страницы по очереди и сохраняем только подтверждённые результаты." : "Checking pages one by one and saving only confirmed results."),
+      shortStatus: ru ? "Проверка страниц" : "Checking pages",
+    };
+  }
+  if (status === "failed") return {
+    title: ru ? "Проверка остановлена" : "The check stopped",
+    description: ru ? "Не удалось завершить автоматическую проверку. Уже полученные данные сохранены." : "The automated check could not finish. The data already collected was saved.",
+    shortStatus: ru ? "Проверка остановлена" : "Check stopped",
+  };
+  if (status === "completed" || status === "partial") return {
+    title: ru ? "Проверка завершена" : "Check complete",
+    description: ru ? "Страницы проверены. Собираем выводы в понятный отчёт." : "The pages are checked. Turning the results into a clear report.",
+    shortStatus: ru ? "Отчёт готов" : "Report ready",
+  };
+  return {
+    title: ru ? "Собираем результат" : "Preparing the result",
+    description: ru ? "Объединяем одинаковые замечания и готовим краткий итог." : "Combining repeated findings and preparing a concise summary.",
+    shortStatus: ru ? "Формируем отчёт" : "Preparing report",
+  };
+}
+
+function eventLabel(event: AuditLiveEvent, snapshot: AuditLiveSnapshot, locale: Locale): string {
+  const ru = locale === "ru";
+  const path = event.path ?? "";
+  if (event.kind === "site_connected") return ru ? "Сайт ответил." : "The website responded.";
+  if (event.kind === "robots_checked") {
+    if (snapshot.robotsStatus === "found") return ru ? "robots.txt найден и прочитан." : "robots.txt was found and read.";
+    if (snapshot.robotsStatus === "missing") return ru ? "robots.txt не найден." : "robots.txt was not found.";
+    return ru ? "robots.txt не удалось прочитать." : "robots.txt could not be read.";
+  }
+  if (event.kind === "sitemap_checked") {
+    if (snapshot.sitemapStatus === "found") return ru ? "sitemap.xml найден и прочитан." : "sitemap.xml was found and read.";
+    if (snapshot.sitemapStatus === "missing") return ru ? "sitemap.xml не найден." : "sitemap.xml was not found.";
+    return ru ? "sitemap.xml не удалось прочитать." : "sitemap.xml could not be read.";
+  }
+  if (event.kind === "selection_started") return ru ? "Сравниваем найденные страницы." : "Comparing the discovered pages.";
+  if (event.kind === "selection_complete") {
+    const count = Math.max(0, snapshot.pagesSelected ?? snapshot.selectedPages?.length ?? 0);
+    return ru ? `Выбрали ${count} страниц разных типов.` : `Selected ${count} pages of different types.`;
+  }
+  if (event.kind === "page_started") return ru ? `Проверяем ${path || "страницу"}.` : `Checking ${path || "a page"}.`;
+  if (event.kind === "page_checked") return ru ? `Проверена ${path || "страница"}.` : `Checked ${path || "a page"}.`;
+  if (event.kind === "page_failed") return ru ? `Не удалось проверить ${path || "страницу"}.` : `Could not check ${path || "a page"}.`;
+  return ru ? "Получены новые данные." : "New audit data received.";
+}
+
+function technicalStatus(status: AuditLiveSnapshot["robotsStatus"] | AuditLiveSnapshot["sitemapStatus"], locale: Locale): string | null {
+  const ru = locale === "ru";
+  if (status === "found") return ru ? "Прочитан" : "Read";
+  if (status === "missing") return ru ? "Не найден" : "Not found";
+  if (status === "error") return ru ? "Не удалось прочитать" : "Could not be read";
+  return null;
+}
+
+function liveMetrics(snapshot: AuditLiveSnapshot, locale: Locale): Array<{ label: string; value: string | number }> {
+  const ru = locale === "ru";
+  const stage = currentStage(snapshot);
+  const discovered = Math.max(0, snapshot.pagesDiscovered ?? 0);
+  const eligible = Math.max(0, snapshot.pagesEligible ?? 0);
+  const selected = Math.max(0, snapshot.pagesSelected ?? snapshot.selectedPages?.length ?? 0);
+  const checked = Math.min(Math.max(0, snapshot.pagesChecked ?? 0), Math.max(0, selected));
+  const technical = Math.max(0, snapshot.technicalFilesChecked ?? 0);
+  if (stage === 0) return [];
+  if (stage === 1) return [
+    ...(discovered > 0 ? [{ label: ru ? "Найдено HTML-страниц" : "HTML pages found", value: discovered }] : []),
+    ...(technical > 0 ? [{ label: ru ? "Технических файлов прочитано" : "Technical files read", value: technical }] : []),
+  ].slice(0, 3);
+  if (stage === 2) return [
+    { label: ru ? "Найдено HTML-страниц" : "HTML pages found", value: discovered > 0 ? discovered : ru ? "Ищем…" : "Searching…" },
+    { label: ru ? "Подходят для проверки" : "Eligible pages", value: eligible > 0 ? eligible : ru ? "Ищем…" : "Searching…" },
+    { label: ru ? "Выбрано" : "Selected", value: snapshot.selectionComplete ? selected : ru ? "Ещё не выбраны." : "Not selected yet." },
+  ];
+  return [
+    { label: ru ? "Проверено" : "Checked", value: `${checked} ${ru ? "из" : "of"} ${selected}` },
+    ...(discovered > 0 ? [{ label: ru ? "Найдено HTML-страниц" : "HTML pages found", value: discovered }] : []),
+    ...(technical > 0 ? [{ label: ru ? "Технических файлов прочитано" : "Technical files read", value: technical }] : []),
+  ].slice(0, 3);
+}
+
+function AuditStageVisual({ locale, domain, snapshot, stage }: { locale: Locale; domain?: string; snapshot: AuditLiveSnapshot; stage: number }) {
+  const ru = locale === "ru";
+  const selectedPages = (snapshot.selectedPages ?? []).slice(0, 10);
+  const checkedUrls = new Set((snapshot.checkedUrls ?? []).map(normalizedUrl));
+  const failedUrls = new Set((snapshot.failedUrls ?? []).map(normalizedUrl));
+  const current = snapshot.eventKind === "page_started" ? normalizedUrl(snapshot.currentUrl) : "";
+  const siteName = displayDomain(domain) || (ru ? "Адрес сайта" : "Website address");
+
+  if (stage === 0) return <div className="audit-live__connection" data-connected="false">
+    <div className="audit-live__connection-brand"><Logo locale={locale}/></div>
+    <div className="audit-live__connection-line" aria-hidden="true"><span/></div>
+    <div className="audit-live__connection-domain"><span aria-hidden="true"/><strong>{siteName}</strong></div>
+  </div>;
+
+  if (stage === 1) return <div className="audit-live__rules-scene">
+    <div className="audit-live__site-core"><span aria-hidden="true"/><strong>{siteName}</strong></div>
+    <div className="audit-live__rule-files" aria-label={ru ? "Технические файлы сайта" : "Website technical files"}>
+      {(["robots", "sitemap"] as const).map((type) => {
+        const state = type === "robots" ? snapshot.robotsStatus : snapshot.sitemapStatus;
+        const label = type === "robots" ? "robots.txt" : "sitemap.xml";
+        const detail = technicalStatus(state, locale);
+        return <article className={`audit-live__rule-file${state ? ` is-${state}` : ""}`} key={type}><span aria-hidden="true"/><div><strong>{label}</strong>{detail ? <small>{detail}</small> : null}</div></article>;
+      })}
+    </div>
+    <p>{ru ? "Эти файлы проверяются отдельно и не занимают места в выборке страниц." : "These files are checked separately and do not use page-sample slots."}</p>
+  </div>;
+
+  if (stage === 4) return <div className="audit-live__report-scene">
+    <div className="audit-live__report-sheet" aria-hidden="true"><span/><span/><span/></div>
+    <div className="audit-live__report-groups">
+      <div><span className="is-attention"/><strong>{ru ? "Что требует внимания" : "What needs attention"}</strong></div>
+      <div><span className="is-ready"/><strong>{ru ? "Что уже в порядке" : "What is already fine"}</strong></div>
+      <div><span/><strong>{ru ? "Проверенные страницы" : "Checked pages"}</strong></div>
+    </div>
+  </div>;
+
+  return <div className={`audit-live__tree${stage === 3 ? " is-checking" : " is-selecting"}`}>
+    <div className="audit-live__tree-root"><span aria-hidden="true"/><strong>{siteName}</strong></div>
+    {selectedPages.length > 0 ? <ol className="audit-live__tree-pages">
+      {selectedPages.map((page, index) => {
+        const pageUrl = normalizedUrl(page.url);
+        const isCurrent = current !== "" && pageUrl === current;
+        const isCompleted = !isCurrent && checkedUrls.has(pageUrl);
+        const isFailed = !isCurrent && !isCompleted && failedUrls.has(pageUrl);
+        return <li
+          className={`${isCurrent ? "is-current" : ""}${isCompleted ? " is-completed" : ""}${isFailed ? " is-failed" : ""}`}
+          key={page.url}
+          title={selectionReasonLabel(page.selectionReason, locale)}
+          style={{ "--page-index": index } as CSSProperties}
+        ><span aria-hidden="true"/><div><small>{pageTypeLabel(page.pageType, locale)}</small><strong>{urlPath(page.url)}</strong></div>{isFailed ? <span className="visually-hidden">{ru ? "Не удалось проверить" : "Could not be checked"}</span> : null}</li>;
+      })}
+    </ol> : <div className="audit-live__discovery" aria-label={ru ? "Найденные страницы группируются" : "Discovered pages are being grouped"}>
+      {Array.from({ length: Math.min(6, Math.max(1, snapshot.pagesDiscovered ?? 1)) }, (_, index) => <span key={index}/>) }
+    </div>}
+  </div>;
 }
 
 export function AuditLiveProgress({ locale, domain, snapshot }: { locale: Locale; domain?: string; snapshot: AuditLiveSnapshot }) {
   const ru = locale === "ru";
   const status = snapshot.status ?? "queued";
-  const currentStage = stageIndex(status);
-  const percentage = progressFor(snapshot);
-  const elapsed = useElapsed(snapshot.createdAt, snapshot.completedAt);
-  const denominator = pageDenominator(snapshot);
-  const checked = Math.max(0, snapshot.pagesChecked ?? 0);
-  const found = Math.max(0, snapshot.pagesDiscovered ?? 0);
-  const currentActivity = activityLabel(status, locale);
-  const isFailed = status === "failed";
-  const isTerminal = ["completed", "partial", "failed"].includes(status);
-
-  const checkedValue = denominator ? `${Math.min(checked, denominator)} / ${denominator}` : "—";
+  const activeStage = currentStage(snapshot);
+  const progress = progressState(snapshot);
+  const copy = stageCopy(snapshot, locale);
+  const events = (snapshot.recentEvents ?? []).slice(-3);
+  const metrics = liveMetrics(snapshot, locale);
   const stageItems = useMemo(() => stages.map((stage, index) => {
     let state: StageState = "waiting";
-    if (isFailed && index === currentStage) state = "error";
-    else if (index < currentStage || (status === "completed" && index <= currentStage) || (status === "partial" && index < currentStage)) state = "completed";
-    else if (index === currentStage && !isTerminal) state = "active";
+    if (status === "failed" && index === activeStage) state = "error";
+    else if (index < activeStage || ((status === "completed" || status === "partial") && index <= activeStage)) state = "completed";
+    else if (index === activeStage && !isTerminal(status)) state = "active";
     return { stage, state };
-  }), [currentStage, isFailed, isTerminal, status]);
+  }), [activeStage, status]);
 
-  return (
-    <article className="audit-live" data-status={status}>
-      <div className="audit-live__lead">
-        <span className="audit-live__eyebrow">{ru ? "Бесплатная SEO-проверка" : "Free SEO check"}</span>
-        <div className="audit-live__headline">
-          <div>
-            <h1>{ru ? "Проводим SEO-проверку сайта" : "Running an SEO check"}</h1>
-            <p>{domain || (ru ? "Адрес сайта уточняется" : "Website address is being confirmed")}</p>
-          </div>
-          <div className="audit-live__percent" aria-label={ru ? `Выполнено ${percentage}%` : `${percentage}% complete`}>
-            <strong>{percentage}</strong><span>%</span>
-          </div>
-        </div>
-      </div>
+  return <article className="audit-live" data-stage={stages[activeStage].key} data-status={status}>
+    <section className="audit-live__narrative" aria-labelledby="audit-live-heading">
+      <p className="audit-live__eyebrow">{ru ? `Этап ${activeStage + 1} из 5` : `Stage ${activeStage + 1} of 5`}</p>
+      <h1 id="audit-live-heading">{copy.title}</h1>
+      <p className="audit-live__activity" aria-live="polite" aria-atomic="true">{copy.description}</p>
+    </section>
 
-      <div className="audit-live__progress-wrap">
-        <div className="audit-live__activity"><span className={isFailed ? "is-error" : undefined}/><p aria-live="polite" aria-atomic="true">{currentActivity}</p></div>
-        <div className="audit-live__progress" role="progressbar" aria-label={ru ? "Ход проверки сайта" : "Website audit progress"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}>
-          <span style={{ width: `${percentage}%` }} />
-        </div>
-      </div>
+    <section className="audit-live__visual" aria-label={ru ? `Текущий этап: ${copy.shortStatus}` : `Current stage: ${copy.shortStatus}`}>
+      <AuditStageVisual locale={locale} domain={domain} snapshot={snapshot} stage={activeStage}/>
+    </section>
 
-      <ol className="audit-live__stages" aria-label={ru ? "Этапы проверки" : "Check stages"} tabIndex={0}>
-        {stageItems.map(({ stage, state }, index) => (
-          <li className={`audit-live__stage is-${state}`} aria-current={state === "active" ? "step" : undefined} key={stage.key}>
-            <span className="audit-live__connector" aria-hidden="true"/>
-            <span className="audit-live__stage-icon"><StageIcon icon={stage.icon} state={state}/></span>
-            <span className="audit-live__stage-index">{String(index + 1).padStart(2, "0")}</span>
-            <span className="audit-live__stage-label">{ru ? stage.ru : stage.en}</span>
-          </li>
-        ))}
-      </ol>
+    <section className="audit-live__data" aria-label={ru ? "Реальные показатели проверки" : "Observed audit figures"}>
+      {metrics.length > 0 ? <dl className="audit-live__metrics">{metrics.map((metric) => <div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div>)}</dl> : null}
+      {events.length > 0 ? <div className="audit-live__events"><h2>{ru ? "Последние события" : "Latest events"}</h2><ol>{events.map((event, index) => <li key={`${event.createdAt ?? index}-${event.kind}-${event.path ?? ""}`}>{eventLabel(event, snapshot, locale)}</li>)}</ol></div> : null}
+    </section>
 
-      <dl className="audit-live__metrics">
-        <div><dt>{ru ? "Найдено страниц" : "Pages found"}</dt><dd>{found || "—"}</dd></div>
-        <div><dt>{ru ? "Проверено страниц" : "Pages checked"}</dt><dd>{checkedValue}</dd></div>
-        <div><dt>{ru ? "Проверяется сейчас" : "Checking now"}</dt><dd className="audit-live__metric-text">{currentActivity}</dd></div>
-        <div><dt>{ru ? "Прошло времени" : "Elapsed time"}</dt><dd>{elapsed}</dd></div>
-      </dl>
-      <p className="audit-live__notice">{ru ? "Показываем фактический ход проверки. Детали и рекомендации будут в результате." : "This shows the observed check progress. Details and recommendations will be available in the result."}</p>
-    </article>
-  );
+    <div className="audit-live__timeline-wrap">
+      <div
+        className={`audit-live__progress${progress.determinate ? " is-determinate" : " is-indeterminate"}`}
+        role="progressbar"
+        aria-label={ru ? "Ход проверки сайта" : "Website audit progress"}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        {...(progress.determinate ? { "aria-valuenow": progress.value } : {})}
+      ><span style={progress.determinate ? { width: `${progress.value}%` } : undefined}/></div>
+      <ol className="audit-live__stages" aria-label={ru ? "Этапы проверки" : "Audit stages"}>{stageItems.map(({ stage, state }, index) => <li className={`is-${state}`} aria-current={state === "active" ? "step" : undefined} key={stage.key}><span aria-hidden="true">{state === "completed" ? "✓" : index + 1}</span><strong>{ru ? stage.ru : stage.en}</strong></li>)}</ol>
+    </div>
+
+    <footer className="audit-live__footer"><p>{ru ? "Не отправляем формы, не вводим пароли и не открываем закрытые разделы." : "We do not submit forms, enter passwords, or open private sections."}</p><p>{ru ? "Можно свернуть окно — проверка продолжится." : "You can minimize this window — the audit will continue."}</p></footer>
+  </article>;
 }
 
 export function AuditLiveOverlay({ locale, domain, snapshot }: { locale: Locale; domain?: string; snapshot: AuditLiveSnapshot }) {
   const [mounted, setMounted] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const ru = locale === "ru";
+  const progress = progressState(snapshot);
+  const completing = snapshot.status === "completed" || snapshot.status === "partial";
+  const copy = stageCopy(snapshot, locale);
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -208,21 +397,19 @@ export function AuditLiveOverlay({ locale, domain, snapshot }: { locale: Locale;
   }, [minimized, mounted]);
 
   if (!mounted) return null;
-  const title = ru ? "Ход SEO-проверки" : "SEO check progress";
-  if (minimized) {
-    return createPortal(
-      <button className="audit-live-float" type="button" onClick={() => setMinimized(false)} aria-label={ru ? "Открыть ход проверки" : "Open check progress"}>
-        <span className="audit-live-float__pulse"/><span>{ru ? "Проверка сайта идёт" : "Website check in progress"}</span><strong>{progressFor(snapshot)}%</strong>
-      </button>,
-      document.body,
-    );
-  }
+  if (minimized) return <>
+    <section className="audit-live-minimized" aria-labelledby="audit-live-minimized-heading">
+      <div>
+        <p>{displayDomain(domain) || (ru ? "Бесплатная SEO-проверка" : "Free SEO check")}</p>
+        <h1 id="audit-live-minimized-heading">{ru ? "Проверка продолжается" : "The audit is still running"}</h1>
+        <p>{ru ? "Откройте ход проверки в правом нижнем углу." : "Open the audit progress in the bottom-right corner."}</p>
+      </div>
+    </section>
+    {createPortal(<button className="audit-live-float" type="button" onClick={() => setMinimized(false)} aria-label={ru ? "Открыть ход проверки" : "Open audit progress"}><span className="audit-live-float__pulse"/><span>{ru ? "Проверка сайта идёт" : "Website audit in progress"}</span>{progress.determinate ? <strong>{Math.min(snapshot.pagesChecked ?? 0, snapshot.pagesSelected ?? 0)} / {snapshot.pagesSelected ?? 0}</strong> : <strong>{copy.shortStatus}</strong>}</button>, document.body)}
+  </>;
 
-  return createPortal(
-    <section className="audit-live-overlay" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="audit-live-overlay__toolbar"><span>{ru ? "KILENI / SEO-АУДИТ" : "KILENI / SEO AUDIT"}</span><button type="button" onClick={() => setMinimized(true)}>{ru ? "Свернуть" : "Minimize"}<span aria-hidden="true">↓</span></button></div>
-      <div className="audit-live-overlay__content"><AuditLiveProgress locale={locale} domain={domain} snapshot={snapshot}/></div>
-    </section>,
-    document.body,
-  );
+  return createPortal(<section className={`audit-live-overlay${completing ? " is-completing" : ""}`} role="dialog" aria-modal="true" aria-label={ru ? "Ход SEO-проверки" : "SEO audit progress"}>
+    <header className="audit-live-overlay__toolbar"><div className="audit-live-overlay__brand"><Logo locale={locale}/><span>{ru ? "Бесплатная SEO-проверка" : "Free SEO check"}</span></div><div className="audit-live-overlay__status"><strong>{displayDomain(domain) || (ru ? "Уточняем адрес" : "Confirming address")}</strong><span>{copy.shortStatus}</span>{!completing ? <button type="button" onClick={() => setMinimized(true)}>{ru ? "Свернуть" : "Minimize"}<span aria-hidden="true">↓</span></button> : null}</div></header>
+    <div className="audit-live-overlay__content"><AuditLiveProgress locale={locale} domain={domain} snapshot={snapshot}/></div>
+  </section>, document.body);
 }

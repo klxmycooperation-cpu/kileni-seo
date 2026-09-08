@@ -1,11 +1,24 @@
+import Link from "next/link";
 import type { Locale } from "../../config/site";
-import { getDictionary } from "../../content/dictionary";
+import { localizedPath } from "../../config/site";
 import { HeroAuditTool } from "./HeroAuditTool";
 import { HeroFreeAuditUsageCounter } from "./HeroFreeAuditUsageCounter";
 
 export function HeroScan({ locale }: { locale: Locale }) {
-  const d = getDictionary(locale);
   const ru = locale === "ru";
+  const checks = ru
+    ? [
+        { title: "Индексация", text: "Может ли страница попасть в поиск", slug: "indexing" },
+        { title: "Структура", text: "Понятны ли заголовки и связи страниц", slug: "on-page" },
+        { title: "Скорость", text: "Не мешает ли загрузка посетителю", slug: "core-web-vitals" },
+        { title: "Оптимизация", text: "Что исправить в первую очередь", slug: "seo-audit" },
+      ]
+    : [
+        { title: "Indexing", text: "Can the page enter search results?", slug: "indexing" },
+        { title: "Structure", text: "Are headings and page links clear?", slug: "on-page" },
+        { title: "Speed", text: "Does loading get in the visitor's way?", slug: "core-web-vitals" },
+        { title: "Optimisation", text: "What should be fixed first?", slug: "seo-audit" },
+      ];
 
   return (
     <section className="hero hero-ready signal-hero" aria-labelledby="hero-title">
@@ -15,7 +28,7 @@ export function HeroScan({ locale }: { locale: Locale }) {
           <h1 id="hero-title">{ru ? "Сайт есть. Пора сделать так, чтобы его находили." : "Your website is live. Now make it discoverable."}</h1>
           <p className="hero-lead">
             {ru
-              ? "Проверим до 10 публичных страниц: открываются ли они, могут ли попасть в поиск, правильно ли заполнены заголовки и ссылки. Покажем, что исправить в первую очередь. Доступ к сайту не нужен."
+              ? "Проверим сайт и простыми словами покажем, что мешает ему появляться в поиске и что исправить в первую очередь."
               : "We will check up to 10 pages, assess the technical baseline and highlight the main risk areas. No admin access required."}
           </p>
           <p className="hero-honesty">
@@ -26,7 +39,7 @@ export function HeroScan({ locale }: { locale: Locale }) {
           <HeroFreeAuditUsageCounter locale={locale} />
           <div className="hero-entry-actions">
             <a className="button button-primary" href="#free-check">
-              {ru ? "Проверить сайт бесплатно" : "Check a website for free"}<span aria-hidden="true">↓</span>
+              {ru ? "Узнать, что мешает сайту" : "See what is holding the website back"}<span aria-hidden="true">↓</span>
             </a>
             <a className="hero-proof-link" href="#home-cases">
               {ru ? "Посмотреть реальные результаты" : "See real results"}<span aria-hidden="true">↗</span>
@@ -41,11 +54,15 @@ export function HeroScan({ locale }: { locale: Locale }) {
             className="scan-keywords"
             aria-label={locale === "ru" ? "Что даст проверка" : "What the check provides"}
           >
-            {d.hero.scanWords.map((word, index) => (
-              <span key={word}>
+            {checks.map((check, index) => (
+              <Link className="hero-check-link" href={localizedPath(locale, `glossary/${check.slug}`)} key={check.slug}>
                 <b>{String(index + 1).padStart(2, "0")}</b>
-                <em>{word}</em>
-              </span>
+                <span>
+                  <em>{check.title}</em>
+                  <small>{check.text}</small>
+                </span>
+                <i aria-hidden="true">↗</i>
+              </Link>
             ))}
           </div>
         </div>

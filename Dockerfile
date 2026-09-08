@@ -52,6 +52,7 @@ COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/runtime ./runtime
 COPY --from=builder --chown=node:node /app/scripts/docker-entrypoint.mjs ./scripts/docker-entrypoint.mjs
+COPY --from=builder --chown=node:node /app/scripts/runtime-isolation.mjs ./scripts/runtime-isolation.mjs
 COPY --from=builder --chown=node:node /app/scripts/backup.mjs ./scripts/backup.mjs
 COPY --from=builder --chown=node:node /app/scripts/restore.mjs ./scripts/restore.mjs
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules-full

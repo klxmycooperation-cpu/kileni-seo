@@ -21,7 +21,6 @@ export function PublicContactLinks({
           data-contact-kind={contact.kind}
           href={contact.href}
           key={contact.kind}
-          aria-label={contact.ariaLabel}
           {...(contact.external ? { target: "_blank", rel: "noreferrer" } : {})}
         >
           <span className="public-contact-icon" aria-hidden="true">

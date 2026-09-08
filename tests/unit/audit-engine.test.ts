@@ -161,7 +161,20 @@ describe("runAudit", () => {
       pagesDiscovered: 1,
       partial: true,
     });
-    expect(JSON.stringify(events)).not.toMatch(/xn--e1afmkfd|https?:|robotsStatus|message/i);
+    expect(events).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: "selection:complete",
+        selectedPages: [expect.objectContaining({
+          url: "https://xn--e1afmkfd.xn--p1ai/",
+          pageType: "homepage",
+        })],
+      }),
+      expect.objectContaining({
+        type: "crawl:page",
+        checkedUrls: ["https://xn--e1afmkfd.xn--p1ai/"],
+      }),
+    ]));
+    expect(JSON.stringify(events)).not.toMatch(/contact|private|robotsStatus|message/i);
   });
 
   it("passes explicit performance observations into scoring and the full result", async () => {
@@ -197,7 +210,7 @@ describe("runAudit", () => {
   it("deeply checks at most ten loaded pages while retaining every discovered URL", async () => {
     const links = Array.from(
       { length: 12 },
-      (_, index) => `<a href="/page-${index}?contact=private%40example.com#section">Page ${index}</a>`,
+      (_, index) => `<a href="/page-${index}#section">Page ${index}</a>`,
     ).join("");
     const fetcher: AuditFetcher = async (input) => {
       const url = new URL(input);
@@ -238,5 +251,71 @@ describe("runAudit", () => {
     expect(publicResult.uncheckedUrls).toHaveLength(3);
     expect(publicResult.uncheckedUrls.every((url) => !url.includes("?") && !url.includes("#"))).toBe(true);
     expect(publicResult.pagesDiscovered).toBe(13);
+  });
+
+  it("uses the deterministic representative selector before fetching the ten-page sample", async () => {
+    const paths = [
+      "/en/blog/seo-audit",
+      "/seo-promotion",
+      "/en",
+      "/cases/eco",
+      "/marketplaces/ozon",
+      "/pricing",
+      "/blog/seo-audit",
+      "/services",
+      "/",
+      "/en/seo-audit",
+      "/calculator",
+      "/web-development",
+      "/seo-audit",
+    ];
+    const htmlCalls: string[] = [];
+    const fetcher: AuditFetcher = async (input) => {
+      const url = new URL(input);
+      if (url.pathname === "/robots.txt") {
+        return response(url.href, "User-agent: *\nAllow: /\nSitemap: https://example.com/sitemap.xml");
+      }
+      if (url.pathname === "/sitemap.xml") {
+        return response(
+          url.href,
+          `<urlset>${[...paths].reverse().map((path) => `<url><loc>https://example.com${path}</loc></url>`).join("")}</urlset>`,
+        );
+      }
+      htmlCalls.push(url.pathname);
+      return response(
+        url.href,
+        `<html lang="${url.pathname.startsWith("/en") ? "en" : "ru"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Проверяемая страница ${url.pathname}</title><link rel="canonical" href="${url.origin}${url.pathname}"></head><body><h1>${url.pathname}</h1></body></html>`,
+      );
+    };
+
+    const full = await runAudit("https://example.com", { fetcher, maxPages: 10 });
+    const selectedPages = (full as typeof full & {
+      selectedPages: ReadonlyArray<{ url: string; pageType: string; selectionReason: string }>;
+    }).selectedPages;
+
+    expect(selectedPages).toHaveLength(10);
+    expect(selectedPages.map((page) => new URL(page.url).pathname)).toEqual([
+      "/",
+      "/services",
+      "/seo-audit",
+      "/pricing",
+      "/cases/eco",
+      "/blog/seo-audit",
+      "/calculator",
+      "/seo-promotion",
+      "/web-development",
+      "/en",
+    ]);
+    expect(full.inventory).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        finalUrl: "https://example.com/marketplaces/ozon",
+        resourceType: "html",
+        pageType: "service",
+      }),
+    ]));
+    expect(htmlCalls).toEqual(expect.arrayContaining(selectedPages.map((page) => new URL(page.url).pathname)));
+    expect(full.pages.map((page) => new URL(page.url).pathname).sort()).toEqual(
+      selectedPages.map((page) => new URL(page.url).pathname).sort(),
+    );
   });
 });

@@ -141,12 +141,11 @@ describe("approved buyer journey specification", () => {
     expect(formatPrice(prices.audits.full, "en")).toBe("Individual estimate");
   });
 
-  it("keeps marketplace guidance distinct and complete for all four platforms", () => {
+  it("keeps marketplace guidance distinct and complete for the three supported platforms", () => {
     expect(marketplacePlatforms.map((platform) => platform.id)).toEqual([
       "wildberries",
       "ozon",
       "yandex-market",
-      "megamarket",
     ]);
     for (const platform of marketplacePlatforms) {
       expect(platform.docs.length).toBeGreaterThan(0);

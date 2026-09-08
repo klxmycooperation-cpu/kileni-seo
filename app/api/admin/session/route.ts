@@ -4,10 +4,16 @@ import { z } from "zod";
 
 import { adminCookieName, createAdminSession } from "@/src/lib/security/session";
 import { clientIp, privateHash } from "@/src/lib/security/request";
+import { clearRateLimits } from "@/src/lib/security/rate-limit";
 import { apiError, declaredBodyTooLarge, jsonReadError, mutationGuard, readJson } from "../../_lib/http";
 import { consumeRules, zodError } from "../../_lib/submission";
 
 export const runtime = "nodejs";
+
+const failedLoginRules = [
+  { suffix: "15m", rule: { windowMs: 15 * 60 * 1000, limit: 8 } },
+  { suffix: "day", rule: { windowMs: 24 * 60 * 60 * 1000, limit: 30 } },
+] as const;
 
 const loginSchema = z.object({
   login: z.string().trim().min(1).max(100),
@@ -20,11 +26,7 @@ export async function POST(request: Request) {
   if (declaredBodyTooLarge(request, 8 * 1024)) return apiError(413, "PAYLOAD_TOO_LARGE", "Запрос слишком большой");
 
   const ipHash = privateHash(clientIp(request));
-  const limited = await consumeRules(`admin-login:${ipHash}`, [
-    { suffix: "15m", rule: { windowMs: 15 * 60 * 1000, limit: 8 } },
-    { suffix: "day", rule: { windowMs: 24 * 60 * 60 * 1000, limit: 30 } },
-  ]);
-  if (limited) return limited;
+  const rateLimitPrefix = `admin-login:${ipHash}`;
 
   let raw: unknown;
   try {
@@ -45,6 +47,12 @@ export async function POST(request: Request) {
     return apiError(503, "ADMIN_NOT_CONFIGURED", "Вход администратора не настроен");
   }
 
+  // Consume the cheap database-backed limit before bcrypt. Otherwise a client
+  // that is already blocked can still force an unbounded number of expensive
+  // password comparisons and exhaust the server CPU.
+  const limited = await consumeRules(rateLimitPrefix, failedLoginRules);
+  if (limited) return limited;
+
   let passwordMatches = false;
   try {
     passwordMatches = await bcrypt.compare(parsed.data.password, passwordHash);
@@ -55,11 +63,13 @@ export async function POST(request: Request) {
     return apiError(401, "INVALID_CREDENTIALS", "Неверный логин или пароль");
   }
 
+  await clearRateLimits(failedLoginRules.map(({ suffix }) => `${rateLimitPrefix}:${suffix}`));
+
   const hours = boundedHours(process.env.ADMIN_SESSION_HOURS);
   const response = NextResponse.json({ ok: true }, { headers: { "cache-control": "no-store" } });
   response.cookies.set(adminCookieName, createAdminSession(configuredLogin), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: secureSessionCookie(request),
     sameSite: "strict",
     path: "/",
     maxAge: hours * 60 * 60,
@@ -73,7 +83,7 @@ export async function DELETE(request: Request) {
   const response = NextResponse.json({ ok: true }, { headers: { "cache-control": "no-store" } });
   response.cookies.set(adminCookieName, "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: secureSessionCookie(request),
     sameSite: "strict",
     path: "/",
     expires: new Date(0),
@@ -84,4 +94,10 @@ export async function DELETE(request: Request) {
 function boundedHours(raw: string | undefined): number {
   const hours = Number(raw ?? 8);
   return Number.isFinite(hours) ? Math.max(1, Math.min(24, Math.floor(hours))) : 8;
+}
+
+function secureSessionCookie(request: Request): boolean {
+  if (process.env.NODE_ENV !== "production") return false;
+  const hostname = new URL(request.url).hostname;
+  return hostname !== "localhost" && hostname !== "127.0.0.1" && hostname !== "[::1]";
 }

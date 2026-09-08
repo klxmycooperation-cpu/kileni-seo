@@ -1,4 +1,5 @@
 type GlossaryCopy = {
+  editor: "Редакция KILENI" | "KILENI Editorial";
   term: string;
   definition: string;
   plain: string;
@@ -36,6 +37,54 @@ type SourceTerm = {
 };
 
 const sources: SourceTerm[] = [
+  {
+    slug: "url",
+    indexable: true,
+    updatedAt: "2026-08-31",
+    ruTerm: "URL",
+    enTerm: "URL",
+    ruDefinition: "Точный адрес страницы или файла в интернете, по которому их открывают браузеры и поисковые системы.",
+    enDefinition: "The exact web address used by browsers and search engines to open a specific page or file.",
+    ruPlain: "По этому адресу браузер и поисковая система открывают конкретную страницу сайта.",
+    enPlain: "Browsers and search engines use this address to open a specific website page.",
+    ruWhy: "Разные URL могут вести на одинаковое содержание, поэтому важно выбрать один основной адрес и последовательно использовать его в ссылках.",
+    enWhy: "Different URLs can show the same content, so one primary address should be selected and used consistently in links.",
+    ruExample: "Адрес /seo-audit ведёт на страницу услуги, а не на случайный результат проверки или служебный раздел.",
+    enExample: "The /seo-audit address leads to the service page rather than a temporary audit result or utility section.",
+    relatedHref: "/seo-audit",
+  },
+  {
+    slug: "http-status",
+    indexable: true,
+    updatedAt: "2026-08-31",
+    ruTerm: "Код ответа",
+    enTerm: "HTTP status",
+    ruDefinition: "Число, которым сервер сообщает, открылась ли страница, перенаправлена ли она или произошла ошибка.",
+    enDefinition: "A number the server uses to say whether a page opened, redirected or failed.",
+    ruPlain: "Коды 200–299 означают успешный ответ, 300–399 — переход на другой адрес, 400–599 — ошибку.",
+    enPlain: "Codes 200–299 mean success, 300–399 mean a redirect, and 400–599 mean an error.",
+    ruWhy: "По коду ответа браузер и поисковая система понимают реальное состояние страницы, даже если внешне она выглядит нормально.",
+    enWhy: "Browsers and search engines use the status to understand the page's real state even when it looks normal on screen.",
+    ruExample: "Код 200 подтверждает, что страница открылась без ошибки; код 404 сообщает, что страница не найдена.",
+    enExample: "A 200 status confirms that the page opened successfully; a 404 status says that the page was not found.",
+    relatedHref: "/seo-audit",
+  },
+  {
+    slug: "lighthouse",
+    indexable: true,
+    updatedAt: "2026-08-31",
+    ruTerm: "Lighthouse",
+    enTerm: "Lighthouse",
+    ruDefinition: "Автоматическая проверка Google, которая оценивает скорость, доступность и базовое качество веб-страницы.",
+    enDefinition: "An automated Google check for page speed, accessibility and basic web quality.",
+    ruPlain: "Инструмент открывает страницу в тестовом браузере и измеряет несколько технических показателей по единым правилам.",
+    enPlain: "The tool opens a page in a test browser and measures several technical signals under consistent rules.",
+    ruWhy: "Результат помогает найти медленные или нестабильные места, но не заменяет проверку на реальных устройствах и не является оценкой поисковой системы.",
+    enWhy: "The result helps find slow or unstable areas, but it does not replace real-device testing or act as a search-engine score.",
+    ruExample: "Проверка показывает, сколько времени заняло появление главного содержимого страницы на тестовом телефоне.",
+    enExample: "The check reports how long the main page content took to appear on a test phone.",
+    relatedHref: "/seo-audit",
+  },
   {
     slug: "seo-audit",
     indexable: true,
@@ -222,7 +271,7 @@ const sources: SourceTerm[] = [
     enDefinition: "The main visible HTML heading that states the primary topic of a particular page.",
     ruPlain: "Это заголовок внутри самой страницы: он сразу объясняет посетителю, куда тот попал и о чём будет содержание.",
     enPlain: "It is the heading inside the page that immediately tells visitors where they are and what the content covers.",
-    ruWhy: "Понятный H1 создаёт смысловой ориентир для человека и структуры документа; декоративный или отсутствующий заголовок этот ориентир ломает.",
+    ruWhy: "Понятный H1 помогает человеку и поисковой системе определить тему страницы; декоративный или отсутствующий заголовок этому мешает.",
     enWhy: "A clear H1 anchors the visitor and document structure, while a missing or purely decorative heading weakens that orientation.",
     ruExample: "На странице аудита H1 называет проверку сайта, а последующие H2 раскрывают состав, процесс и результат.",
     enExample: "On an audit page, the H1 names the website review and subsequent H2 headings explain scope, process and outcome.",
@@ -539,7 +588,7 @@ const sources: SourceTerm[] = [
     ruTerm: "Поисковый интент",
     enTerm: "Search intent",
     ruDefinition: "Задача, которую пользователь хочет решить своим поисковым запросом.",
-    enDefinition: "The task a user wants to complete with a search query.",
+    enDefinition: "The task a user wants to complete through an online search query.",
     ruPlain: "Важно не только какие слова введены, но и нужен ли человеку ответ, сравнение, адрес или покупка.",
     enPlain: "The words alone are not enough: the user may need an answer, comparison, location or purchase.",
     ruWhy: "Страница, не соответствующая намерению, редко помогает посетителю даже при точном совпадении ключевой фразы.",
@@ -572,7 +621,7 @@ const sources: SourceTerm[] = [
     enTerm: "Landing page",
     ruDefinition: "Страница, собранная вокруг одной аудитории, задачи или конкретного предложения и следующего действия.",
     enDefinition: "A page organised around one audience, task or specific offer and its next action.",
-    ruPlain: "Она последовательно отвечает на один сценарий посетителя: объясняет предложение, снимает ключевые вопросы и ведёт к понятному шагу.",
+    ruPlain: "Она последовательно отвечает на вопрос посетителя: объясняет предложение, снимает ключевые сомнения и ведёт к понятному следующему шагу.",
     enPlain: "It follows one visitor scenario by explaining the offer, answering key questions and leading to a clear next step.",
     ruWhy: "Сфокусированная страница согласует ожидание из поиска или рекламы с содержанием и не заставляет искать нужную услугу по всему сайту.",
     enWhy: "A focused page aligns search or advertising expectations with content and avoids making visitors hunt across the website.",
@@ -699,6 +748,7 @@ export const glossaryTerms: GlossaryTerm[] = sources.map((source) => ({
   indexable: source.indexable === true,
   updatedAt: source.updatedAt ?? "2026-08-24",
   ru: {
+    editor: "Редакция KILENI",
     term: source.ruTerm,
     definition: source.ruDefinition,
     plain: source.ruPlain ?? `Проще: ${source.ruDefinition.charAt(0).toLowerCase()}${source.ruDefinition.slice(1)}`,
@@ -708,6 +758,7 @@ export const glossaryTerms: GlossaryTerm[] = sources.map((source) => ({
     relatedHref: source.relatedHref,
   },
   en: {
+    editor: "KILENI Editorial",
     term: source.enTerm,
     definition: source.enDefinition,
     plain: source.enPlain ?? `In plain language: ${source.enDefinition.charAt(0).toLowerCase()}${source.enDefinition.slice(1)}`,

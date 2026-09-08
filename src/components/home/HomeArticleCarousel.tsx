@@ -57,7 +57,7 @@ export function HomeArticleCarousel({ locale, articles }: { locale: Locale; arti
   return (
     <div className="home-article-carousel" aria-roledescription="carousel" aria-label={ru ? "Новые разборы" : "Latest practical guides"}>
       <div className="home-article-carousel__viewport" ref={viewportRef} onScroll={syncControls}>
-        {articles.map((article, index) => (
+        {articles.map((article) => (
           <Link className="home-article-carousel__card" data-article-card href={localizedPath(locale, `blog/${article.slug}`)} key={article.slug}>
             <figure>
               <Image
@@ -66,7 +66,8 @@ export function HomeArticleCarousel({ locale, articles }: { locale: Locale; arti
                 width={720}
                 height={450}
                 sizes="(max-width: 640px) 84vw, (max-width: 1100px) 58vw, 31vw"
-                loading={index === 0 ? "eager" : "lazy"}
+                quality={60}
+                loading="lazy"
               />
             </figure>
             <div className="home-article-carousel__body">

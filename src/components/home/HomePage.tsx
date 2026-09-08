@@ -11,7 +11,7 @@ import { HeroScan } from "./HeroScan";
 import { HomeCaseExplorer } from "./HomeCaseExplorer";
 import { HomeArticleCarousel } from "./HomeArticleCarousel";
 import { HomeDecisionRoute } from "./HomeDecisionRoute";
-import { HomeProcessSteps } from "./HomeProcessSteps";
+import { HomeCheckCategories, HomeMobileDisclosure, HomeProcessSteps } from "./HomeProcessSteps";
 
 export function HomePage({ locale }: { locale: Locale }) {
   const d = getDictionary(locale);
@@ -44,16 +44,29 @@ export function HomePage({ locale }: { locale: Locale }) {
         { title: "Web development", text: "Landing pages, corporate websites and catalogues.", href: "web-development" },
         { title: "Yandex Ads", text: "Campaign setup and management with clear boundaries.", href: "yandex-ads" },
       ];
+  const checkCategories = ru
+    ? [
+        { title: "Индексация", text: "Проверяем, может ли важная страница попасть в поиск и не закрыта ли она от обхода.", href: localizedPath(locale, "glossary/indexing") },
+        { title: "Структура", text: "Смотрим, понятны ли заголовки, адреса и связи между страницами людям и поисковым системам.", href: localizedPath(locale, "glossary/on-page") },
+        { title: "Скорость", text: "Находим то, что замедляет первый экран и мешает посетителю пользоваться сайтом с телефона.", href: localizedPath(locale, "glossary/core-web-vitals") },
+        { title: "Оптимизация", text: "Собираем наблюдения в понятный порядок: что исправить сейчас, а что может подождать.", href: localizedPath(locale, "glossary/seo-audit") },
+      ]
+    : [
+        { title: "Indexing", text: "We check whether important pages can enter search results and are open to crawling.", href: localizedPath(locale, "glossary/indexing") },
+        { title: "Structure", text: "We check whether headings, URLs and page relationships are clear to visitors and search systems.", href: localizedPath(locale, "glossary/on-page") },
+        { title: "Speed", text: "We find what slows down the first screen and gets in the way on mobile devices.", href: localizedPath(locale, "glossary/core-web-vitals") },
+        { title: "Optimisation", text: "We turn the findings into a clear order: what to fix now and what can wait.", href: localizedPath(locale, "glossary/seo-audit") },
+      ];
   const faq = ru
     ? [
-        { q: "Что покажет бесплатная проверка?", a: "Общую оценку, число найденных и проверенных страниц, конкретные замечания по этим страницам и понятный порядок действий." },
+        { q: "Что покажет бесплатная проверка?", a: "Число найденных и проверенных страниц, статусы выполненных проверок, конкретные замечания по выбранным адресам и понятный порядок действий." },
         { q: "Нужен доступ к сайту?", a: "Нет. Проверка видит только те страницы, которые доступны обычному посетителю, и соблюдает правила сайта для поисковых систем." },
         { q: "Можно проверить большой сайт?", a: "Бесплатно проверяем до 10 ключевых публичных страниц. Для более крупного сайта покажем, какие разделы стоит разобрать отдельно." },
         { q: "Можно заказать исправления?", a: "Да. Сначала отдельно согласуем состав, срок, стоимость и критерии повторной проверки." },
         { q: "Вы гарантируете позиции?", a: "Нет. Позиции зависят от спроса, конкурентов, поисковых систем и самого предложения. Мы отвечаем за согласованный объём и проверяемые изменения." },
       ]
     : [
-        { q: "What does the free check show?", a: "An overall SEO score, discovered and checked page counts, and the main risk areas. Exact problem URLs and implementation instructions are not public." },
+        { q: "What does the free check show?", a: "Discovered and checked page counts, statuses for the completed checks, concrete findings tied to the selected URLs, and clear next steps." },
         { q: "Do you need website access?", a: "No. The free check uses public pages only and respects robots.txt restrictions." },
         { q: "Can you check a large website?", a: "The free check covers up to 10 key public pages. For larger websites, we will show which sections need a separate review." },
         { q: "Can you implement the fixes?", a: "Yes. Scope, timing, price and recheck criteria are agreed separately before implementation." },
@@ -66,6 +79,15 @@ export function HomePage({ locale }: { locale: Locale }) {
       <div className="home-content home-redesign home-10">
         <HeroScan locale={locale}/>
 
+        <nav className="home-mobile-section-nav" aria-label={ru ? "По разделам главной" : "Home page sections"} data-mobile-section-nav>
+          <a href="#free-check">{ru ? "Проверка" : "Check"}</a>
+          <a href="#home-process">{ru ? "Как работаем" : "Process"}</a>
+          <a href="#home-formats">{ru ? "Форматы" : "Formats"}</a>
+          <a href="#home-cases">{ru ? "Кейсы" : "Cases"}</a>
+        </nav>
+
+        <HomeCheckCategories locale={locale} items={checkCategories} />
+
         <section className="home-entry-route" id="home-tasks" aria-labelledby="home-task-routes-title">
           <div className="shell">
             <div className="home-entry-route__heading">
@@ -73,15 +95,17 @@ export function HomePage({ locale }: { locale: Locale }) {
               <h2 id="home-task-routes-title">{ru ? "Выберите ближайшую задачу" : "Choose the closest goal"}</h2>
               <span>{ru ? "На следующей странице будут состав, границы и понятный следующий шаг." : "The next page explains the scope, boundaries and next step."}</span>
             </div>
-            <nav className="home-entry-route__list" aria-label={ru ? "Задачи клиентов" : "Client goals"}>
-              {d.scenarios.map((item, index) => (
-                <Link key={item.code} href={localizedPath(locale, item.href)}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <div><strong>{item.title}</strong><small>{item.text}</small></div>
-                  <b aria-hidden="true">↗</b>
-                </Link>
-              ))}
-            </nav>
+            <HomeMobileDisclosure label={ru ? "Показать задачи" : "Show client goals"} className="home-entry-route__disclosure">
+              <nav className="home-entry-route__list" aria-label={ru ? "Задачи клиентов" : "Client goals"}>
+                {d.scenarios.map((item, index) => (
+                  <Link key={item.code} href={localizedPath(locale, item.href)}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <div><strong>{item.title}</strong><small>{item.text}</small></div>
+                    <b aria-hidden="true">↗</b>
+                  </Link>
+                ))}
+              </nav>
+            </HomeMobileDisclosure>
           </div>
         </section>
 
@@ -90,7 +114,7 @@ export function HomePage({ locale }: { locale: Locale }) {
             <div className="home-section-heading home-section-heading--light">
               <p>{ru ? "Как проходит работа" : "How the work runs"}</p>
               <h2 id="home-process-title">{ru ? "От бесплатной проверки до контрольного результата" : "From the free check to a verified result"}</h2>
-              <span>{ru ? "Один прозрачный маршрут: от первых наблюдений к исправлениям и повторной проверке." : "One transparent route: from first findings to implementation and a follow-up check."}</span>
+              <span>{ru ? "Сначала находим причину, затем согласуем исправления и повторяем ту же проверку." : "We first confirm the cause, then agree the fixes and repeat the same check."}</span>
             </div>
             <HomeProcessSteps steps={process} />
           </div>
@@ -103,7 +127,9 @@ export function HomePage({ locale }: { locale: Locale }) {
         <section className="section home-articles" id="home-articles" aria-labelledby="home-articles-title">
           <div className="shell">
             <div className="home-section-heading home-section-heading--row"><div><p>{ru ? "Блог" : "Blog"}</p><h2 id="home-articles-title">{ru ? "Новые разборы — прямо на главной" : "Latest practical guides on the home page"}</h2></div><Link className="warm-text-link" href={localizedPath(locale, "blog")}>{ru ? "Весь блог" : "All guides"} <span>↗</span></Link></div>
-            <HomeArticleCarousel locale={locale} articles={articles} />
+            <HomeMobileDisclosure label={ru ? "Показать разборы" : "Show practical guides"} className="home-articles__disclosure">
+              <HomeArticleCarousel locale={locale} articles={articles} />
+            </HomeMobileDisclosure>
           </div>
         </section>
 
@@ -111,15 +137,15 @@ export function HomePage({ locale }: { locale: Locale }) {
           <div className="shell home-deliverables-grid">
             <div className="home-section-heading">
               <p>{ru ? "Что вы получите" : "What you receive"}</p>
-              <h2 id="home-deliverables-title">{ru ? "Понятный маршрут исправления" : "A clear route to a verified fix"}</h2>
-              <p className="warm-lead">{ru ? "Каждая задача проходит четыре состояния — от найденной причины до повторной проверки." : "Each task moves through four states, from the confirmed cause to a repeat check."}</p>
+              <h2 id="home-deliverables-title">{ru ? "Как замечание превращается в проверенное исправление" : "How a finding becomes a verified fix"}</h2>
+              <p className="warm-lead">{ru ? "Для каждого замечания показываем причину, приоритет, внесённое изменение и результат повторной проверки." : "For every finding, we show the cause, priority, implemented change and follow-up result."}</p>
               <Link className="button button-primary" href={localizedPath(locale, "seo-audit")}>{ru ? "Что входит в аудит" : "What the audit includes"}<span>↗</span></Link>
             </div>
             <ol className="home-deliverable-list">
               {(ru
-                ? [["Находим", "Показываем проблему на конкретной странице"], ["Расставляем", "Объясняем приоритет и влияние"], ["Исправляем", "Передаём действие и критерий готовности"], ["Проверяем", "Повторяем замер и фиксируем результат"]]
-                : [["Find", "Show the issue on a specific page"], ["Prioritise", "Explain impact and urgency"], ["Fix", "Define the action and acceptance check"], ["Verify", "Repeat the measurement and record the result"]]
-              ).map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><small>{text}</small></div><b aria-hidden="true">{index === 3 ? "✓" : "→"}</b></li>)}
+                ? [["Находим причину", "Показываем проблему на конкретной странице"], ["Определяем приоритет", "Объясняем влияние и согласуем порядок работы"], ["Вносим изменения", "Фиксируем, что изменили и как принять работу"], ["Повторно проверяем", "Повторяем тот же тест и сохраняем результат"]]
+                : [["Confirm the cause", "Show the issue on a specific page"], ["Set the priority", "Explain the impact and agree the order of work"], ["Implement the change", "Record what changed and how it will be accepted"], ["Run the follow-up check", "Repeat the same test and save the result"]]
+              ).map(([title, text], index, items) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><small>{text}</small></div><b aria-hidden="true">{index === items.length - 1 ? "✓" : "→"}</b></li>)}
             </ol>
           </div>
         </section>
@@ -127,15 +153,23 @@ export function HomePage({ locale }: { locale: Locale }) {
         <section className="section home-directions" id="home-directions" aria-labelledby="home-directions-title">
           <div className="shell">
             <div className="home-section-heading"><p>{ru ? "Другие направления" : "Other directions"}</p><h2 id="home-directions-title">{ru ? "Когда одной проверки недостаточно" : "When a check is not enough"}</h2></div>
-            <div className="home-direction-list">
-              {directions.map((item, index) => <Link key={item.href} href={localizedPath(locale, item.href)}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{item.title}</h3><p>{item.text}</p></div><b aria-hidden="true">↗</b></Link>)}
-            </div>
-            <Link className="warm-text-link" href={localizedPath(locale, "pricing")}>{ru ? "Посмотреть цены и ограничения" : "See prices and limits"} <span>↗</span></Link>
+            <nav className="home-mobile-directory" aria-label={ru ? "Основные разделы" : "Main sections"}>
+              <Link href={localizedPath(locale, "services")}>{ru ? "Услуги" : "Services"}<span aria-hidden="true">↗</span></Link>
+              <Link href={localizedPath(locale, "pricing")}>{ru ? "Цены" : "Pricing"}<span aria-hidden="true">↗</span></Link>
+              <Link href={localizedPath(locale, "blog")}>{ru ? "Статьи" : "Guides"}<span aria-hidden="true">↗</span></Link>
+              <Link href={localizedPath(locale, "glossary")}>{ru ? "Термины" : "Glossary"}<span aria-hidden="true">↗</span></Link>
+            </nav>
+            <HomeMobileDisclosure label={ru ? "Показать все направления" : "Show every direction"} className="home-directions__disclosure">
+              <div className="home-direction-list">
+                {directions.map((item, index) => <Link key={item.href} href={localizedPath(locale, item.href)}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{item.title}</h3><p>{item.text}</p></div><b aria-hidden="true">↗</b></Link>)}
+              </div>
+              <Link className="warm-text-link" href={localizedPath(locale, "pricing")}>{ru ? "Посмотреть цены и ограничения" : "See prices and limits"} <span>↗</span></Link>
+            </HomeMobileDisclosure>
           </div>
         </section>
 
         <Faq title={ru ? "Перед началом работы" : "Before the work starts"} items={faq}/>
-        <section className="section warm-final-cta"><div className="shell"><p>{ru ? "Первый шаг" : "First step"}</p><h2>{ru ? "Начнём с бесплатной проверки сайта" : "Start with a free website check"}</h2><Link className="button button-light" href={localizedPath(locale, "free-audit")}>{d.auditForm.submit}<span>↗</span></Link></div></section>
+        <section className="section warm-final-cta"><div className="shell"><p>{ru ? "Первый шаг" : "First step"}</p><h2>{ru ? "Начнём с бесплатной проверки сайта" : "Start with a free website check"}</h2><Link className="button button-light" href="#free-check">{ru ? "Узнать, что мешает сайту" : "See what is holding the website back"}<span>↗</span></Link></div></section>
       </div>
     </PublicShell>
   );

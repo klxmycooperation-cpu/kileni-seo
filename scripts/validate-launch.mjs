@@ -1,9 +1,12 @@
 import nextEnv from "@next/env";
 import { readFileSync } from "node:fs";
 
+import { assertIsolatedPreviewEnvironment } from "./runtime-isolation.mjs";
+
 const { loadEnvConfig } = nextEnv;
 
 loadEnvConfig(process.cwd());
+assertIsolatedPreviewEnvironment();
 
 const legalDefaults = JSON.parse(readFileSync(new URL("../src/config/legal-defaults.json", import.meta.url), "utf8"));
 
@@ -19,7 +22,8 @@ const legal = {
   policyUrl: process.env.LEGAL_POLICY_URL?.trim() || legalDefaults.policyUrl,
   consentUrl: process.env.LEGAL_CONSENT_URL?.trim() || legalDefaults.consentUrl,
 };
-const legalEnvironmentIsComplete = Object.values(legal).every((value) => Boolean(value?.trim()));
+const requiredLegalValues = [legal.name, legal.address, legal.inn, legal.ogrnip, legal.version, legal.policyUrl, legal.consentUrl];
+const legalEnvironmentIsComplete = requiredLegalValues.every((value) => Boolean(value?.trim()));
 const formsEnabled = process.env.VERCEL === "1" && !legalEnvironmentIsComplete
   ? false
   : configuredForms ? configuredForms !== "false" : process.env.VERCEL !== "1";
@@ -29,13 +33,15 @@ if (!production) {
   process.exit(0);
 }
 
-if (!formsEnabled) {
-  process.stdout.write("[KILENI] Launch validation passed: public forms disabled.\n");
-  process.exit(0);
-}
-
 const failures = [];
-const required = ["APP_BASE_URL", "IP_HASH_SALT"];
+const required = [
+  "APP_BASE_URL",
+  "IP_HASH_SALT",
+  "ADMIN_LOGIN",
+  "ADMIN_PASSWORD_HASH",
+  "ADMIN_SESSION_SECRET",
+  "ADMIN_SESSION_HOURS",
+];
 
 if (process.env.VERCEL === "1") {
   required.push("TURSO_DATABASE_URL", "TURSO_AUTH_TOKEN");
@@ -48,7 +54,7 @@ for (const name of required) {
 }
 
 const restoreSecret = process.env.AUDIT_RESTORE_SECRET ?? "";
-if (process.env.VERCEL === "1" && (
+if (process.env.VERCEL === "1" && process.env.AUDIT_ENABLED !== "false" && (
   Buffer.byteLength(restoreSecret, "utf8") < 32 ||
   restoreSecret.trim() === "replace-with-at-least-32-random-characters"
 )) {
@@ -60,8 +66,31 @@ if (Buffer.byteLength(ipHashSalt, "utf8") < 32 || ipHashSalt.includes("replace-w
   failures.push("IP_HASH_SALT: must contain at least 32 non-placeholder bytes");
 }
 
-if (!isEmail(legal.email)) {
-  failures.push("LEGAL_EMAIL: must be a valid email address");
+const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH ?? "";
+const adminHashMatch = /^\$2[aby]\$(\d{2})\$[./A-Za-z0-9]{53}$/u.exec(adminPasswordHash);
+const adminHashCost = Number(adminHashMatch?.[1]);
+if (!adminHashMatch || !Number.isInteger(adminHashCost) || adminHashCost < 10 || adminHashCost > 14) {
+  failures.push("ADMIN_PASSWORD_HASH: must be a bcrypt hash with cost from 10 to 14");
+}
+
+const adminSessionSecret = process.env.ADMIN_SESSION_SECRET ?? "";
+if (Buffer.byteLength(adminSessionSecret, "utf8") < 32 || adminSessionSecret.includes("replace-with")) {
+  failures.push("ADMIN_SESSION_SECRET: must contain at least 32 non-placeholder bytes");
+}
+
+const adminSessionHours = Number(process.env.ADMIN_SESSION_HOURS);
+if (!Number.isInteger(adminSessionHours) || adminSessionHours < 1 || adminSessionHours > 24) {
+  failures.push("ADMIN_SESSION_HOURS: must be an integer from 1 to 24");
+}
+
+if (legal.email) {
+  if (!isEmail(legal.email)) failures.push("LEGAL_EMAIL: must be a valid email address");
+  if (legal.email.toLocaleLowerCase("en-US") === "k-trans-dir@mail.ru") {
+    failures.push("LEGAL_EMAIL: forbidden legacy address must not be published");
+  }
+  if (process.env.LEGAL_EMAIL_VERIFIED !== "true") {
+    failures.push("LEGAL_EMAIL_VERIFIED: must be true before a configured legal inbox is published");
+  }
 }
 
 for (const [name, value] of [["LEGAL_POLICY_URL", legal.policyUrl], ["LEGAL_CONSENT_URL", legal.consentUrl]]) {
@@ -74,20 +103,17 @@ if (process.env.APP_BASE_URL && !isProductionBaseUrl(process.env.APP_BASE_URL)) 
   failures.push("APP_BASE_URL: must be a public HTTPS origin");
 }
 
-const publicContact = ["PUBLIC_PHONE", "PUBLIC_EMAIL", "PUBLIC_TELEGRAM", "PUBLIC_MAX", "PUBLIC_WHATSAPP"]
-  .map((name) => process.env[name]?.trim())
-  .find(Boolean) || "+79295900900";
-if (!publicContact) failures.push("PUBLIC_PHONE/PUBLIC_EMAIL/PUBLIC_TELEGRAM/PUBLIC_MAX/PUBLIC_WHATSAPP: at least one public contact is required");
-
-if (process.env.AUDIT_ENABLED !== "false") {
+if (formsEnabled && process.env.AUDIT_ENABLED !== "false") {
   const siteKey = process.env.TURNSTILE_SITE_KEY?.trim();
   const secretKey = process.env.TURNSTILE_SECRET_KEY?.trim();
   if (!siteKey || !secretKey) failures.push("TURNSTILE_SITE_KEY/TURNSTILE_SECRET_KEY: both are required while the public audit is enabled");
 }
 
-const retentionDays = Number(process.env.AUDIT_RESULT_RETENTION_DAYS);
-if (!Number.isInteger(retentionDays) || retentionDays < 90 || retentionDays > 3_650) {
-  failures.push("AUDIT_RESULT_RETENTION_DAYS: must be an integer from 90 to 3650");
+if (process.env.AUDIT_ENABLED !== "false") {
+  const retentionDays = Number(process.env.AUDIT_RESULT_RETENTION_DAYS);
+  if (!Number.isInteger(retentionDays) || retentionDays < 90 || retentionDays > 3_650) {
+    failures.push("AUDIT_RESULT_RETENTION_DAYS: must be an integer from 90 to 3650");
+  }
 }
 
 if (failures.length) {
@@ -96,7 +122,9 @@ if (failures.length) {
   process.exit(1);
 }
 
-process.stdout.write("[KILENI] Production launch configuration is complete.\n");
+process.stdout.write(formsEnabled
+  ? "[KILENI] Production launch configuration is complete.\n"
+  : "[KILENI] Production launch configuration is complete; public forms are disabled.\n");
 
 function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value.trim());

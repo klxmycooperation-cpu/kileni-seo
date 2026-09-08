@@ -32,8 +32,17 @@ export default async function AdminBriefDetailPage({ params }: { params: Promise
           <h1>{String(brief.name)}</h1>
           <p className="admin-title__description">Ответы собраны в том же порядке, в котором клиент описывал задачу.</p>
         </div>
-        <SubmissionStatus value={brief.status}/>
+        <div className="admin-title__flags">
+          <SubmissionStatus value={brief.status}/>
+          {detail.metadata.qaLabel && <span className="admin-badge admin-badge--qa">QA · {detail.metadata.qaLabel}</span>}
+          {detail.metadata.archivedAt && <span className="admin-badge admin-badge--muted">В архиве</span>}
+        </div>
       </div>
+
+      <section className="admin-section" aria-labelledby="brief-actions-heading">
+        <header className="admin-section__heading"><div><p className="admin-kicker">Быстрые действия</p><h2 id="brief-actions-heading">Передать или сохранить бриф</h2></div><p>Экспорт содержит ответы, выбранное предложение, вложения, статус и историю заметок.</p></header>
+        <div className="admin-action-links"><a href={`/api/admin/briefs/${id}/export`}>Скачать JSON</a></div>
+      </section>
 
       <section className="admin-contact-card" aria-labelledby="brief-contact-heading">
         <div><p className="admin-kicker">Основное действие</p><h2 id="brief-contact-heading">Ответить клиенту</h2></div>
@@ -59,7 +68,7 @@ export default async function AdminBriefDetailPage({ params }: { params: Promise
       <section className="admin-card">
         <h2>Управление брифом</h2>
         <p className="admin-card__intro">После ответа клиенту обновите статус и запишите договорённости — заметка останется в истории.</p>
-        <AdminEntityControls endpoint={`/api/admin/briefs/${id}`} id={id} currentStatus={String(brief.status)} statusOptions={submissionStatuses}/>
+        <AdminEntityControls endpoint={`/api/admin/briefs/${id}`} id={id} currentStatus={String(brief.status)} statusOptions={submissionStatuses} currentArchived={Boolean(detail.metadata.archivedAt)} currentQaLabel={detail.metadata.qaLabel}/>
       </section>
 
       <section className="admin-card">

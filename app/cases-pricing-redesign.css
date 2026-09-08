@@ -71,7 +71,8 @@
 .cp-cases-index-hero h1,
 .cp-case-detail-hero h1 {
   margin: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
   font-size: clamp(3.5rem, 8.4vw, 9.5rem);
   line-height: 0.9;
   letter-spacing: -0.065em;
@@ -863,7 +864,8 @@
   grid-column: 1 / -1;
   max-width: 56rem;
   margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
   font-family: var(--sans);
   font-size: clamp(1.9rem, 3.1vw, 3.1rem);
   font-weight: 650;

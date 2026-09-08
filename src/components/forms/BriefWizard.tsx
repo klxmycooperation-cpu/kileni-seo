@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatOfferPrice, getOffer, localizedOffer, type LocalizedOffer } from "../../config/offers";
 import type { Locale } from "../../config/site";
-import { briefAnswerLabel, briefServices, commonBriefQuestions, qLabel, serviceQuestions, type BriefService } from "../../content/brief";
+import { briefServices, commonBriefQuestions, qLabel, serviceQuestions, type BriefService } from "../../content/brief";
 import { readAuditLeadHandoff } from "../../lib/audit/lead-handoff";
 import { BRIEF_DRAFT_KEY, parseBriefDraft, resolveBriefOfferState, type BriefDraftV2 } from "../../lib/brief/offer-state";
+import { briefPresentationEntries } from "../../lib/brief/presentation";
 import { useCsrf } from "./useCsrf";
 import { TurnstileField } from "./TurnstileField";
 import { ConsentNotice } from "./ConsentNotice";
@@ -30,6 +32,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
   const [turnstileReset, setTurnstileReset] = useState(0);
   const [invalidField, setInvalidField] = useState<string>();
   const [pending, setPending] = useState(false);
+  const [visualKeyboardOpen, setVisualKeyboardOpen] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousStep = useRef(0);
   const initialized = useRef(false);
@@ -79,8 +82,52 @@ export function BriefWizard({ locale }: { locale: Locale }) {
   useEffect(() => {
     if (!draftReady || previousStep.current === step) return;
     previousStep.current = step;
-    headingRef.current?.focus();
+    const heading = headingRef.current;
+    if (!heading) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    heading.focus({ preventScroll: true });
+    heading.scrollIntoView({
+      block: "start",
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
   }, [draftReady, step]);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    let fullHeight = Math.max(window.innerHeight, viewport.height);
+    let fullWidth = viewport.width;
+    const editableSelector = "input, textarea, select, [contenteditable='true']";
+
+    const updateKeyboardState = () => {
+      const activeElement = document.activeElement;
+      const editing = activeElement instanceof HTMLElement && activeElement.matches(editableSelector);
+      const orientationChanged = Math.abs(viewport.width - fullWidth) > 40;
+
+      if (orientationChanged || !editing) {
+        fullWidth = viewport.width;
+        fullHeight = Math.max(window.innerHeight, viewport.height);
+      }
+
+      setVisualKeyboardOpen(editing && fullHeight - viewport.height > 120);
+    };
+    const updateAfterFocus = () => window.requestAnimationFrame(updateKeyboardState);
+
+    updateKeyboardState();
+    viewport.addEventListener("resize", updateKeyboardState);
+    viewport.addEventListener("scroll", updateKeyboardState);
+    window.addEventListener("resize", updateKeyboardState);
+    document.addEventListener("focusin", updateAfterFocus);
+    document.addEventListener("focusout", updateAfterFocus);
+    return () => {
+      viewport.removeEventListener("resize", updateKeyboardState);
+      viewport.removeEventListener("scroll", updateKeyboardState);
+      window.removeEventListener("resize", updateKeyboardState);
+      document.removeEventListener("focusin", updateAfterFocus);
+      document.removeEventListener("focusout", updateAfterFocus);
+    };
+  }, []);
 
   const questions = useMemo(
     () => step === 1 ? commonBriefQuestions : serviceQuestions[service],
@@ -211,7 +258,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
   const heading = step === 0
     ? (ru ? "С чего начнём?" : "Where should we start?")
     : step === 1
-      ? (ru ? "Контекст задачи" : "Project context")
+      ? (ru ? "О задаче" : "About the project")
       : step === 2
         ? (ru ? "Детали по направлению" : "Service details")
         : step === 3
@@ -219,7 +266,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
           : (ru ? "Спасибо. Бриф уже в работе." : "Thank you. The brief is in our queue.");
 
   return (
-    <div className="brief-wizard">
+    <div className="brief-wizard" data-visual-keyboard={visualKeyboardOpen ? "open" : undefined}>
       <aside
         className="brief-compass"
         aria-label={ru ? "Состав и стоимость выбранной услуги" : "Selected service scope and price"}
@@ -266,20 +313,24 @@ export function BriefWizard({ locale }: { locale: Locale }) {
             <>
               <p className="brief-step-intro">{ru ? "Выберите ближайший вариант. Бриф займёт 5–7 минут; технические термины не нужны, а неясные пункты можно отметить «не уверен»." : "Choose the closest option. The brief takes 5–7 minutes; no technical terminology is required, and “Not sure” is a valid answer."}</p>
               <div className="service-choice" aria-labelledby="brief-current-step">
-                {briefServices.map((item, index) => (
-                  <button
-                    type="button"
-                    className={service === item.id ? "selected" : ""}
-                    aria-pressed={service === item.id}
-                    key={item.id}
-                    onClick={() => chooseService(item.id)}
-                  >
-                    <span className="brief-choice-number">{String(index + 1).padStart(2, "0")}</span>
-                    <b>{ru ? item.ru : item.en}</b>
-                    <span className="brief-choice-copy">{ru ? item.textRu : item.textEn}</span>
-                    <strong className="brief-choice-price">{briefGuide(item.id, locale).price}</strong>
-                  </button>
-                ))}
+                {briefServices.map((item, index) => {
+                  const label = ru ? item.ru : item.en;
+                  return (
+                    <button
+                      type="button"
+                      className={service === item.id ? "selected" : ""}
+                      aria-label={label}
+                      aria-pressed={service === item.id}
+                      key={item.id}
+                      onClick={() => chooseService(item.id)}
+                    >
+                      <span className="brief-choice-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="brief-choice-title">{label}</span>
+                      <span className="brief-choice-copy">{ru ? item.textRu : item.textEn}</span>
+                      <strong className="brief-choice-price">{briefGuide(item.id, locale).price}</strong>
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}
@@ -300,36 +351,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
 
           {step === 3 && (
             <div className="brief-review">
-              <div className="brief-review-head">
-                <p>{ru ? "Вы выбрали" : "Selected service"}</p>
-                <strong>{localizedSelectedOffer?.title ?? serviceLabel(service, locale)}</strong>
-                <span>{guide.price}</span>
-              </div>
-              {localizedSelectedOffer && (
-                <dl className="brief-offer-facts" aria-label={ru ? "Параметры выбранного предложения" : "Selected offer details"}>
-                  <div><dt>{ru ? "Объём" : "Scope"}</dt><dd>{localizedSelectedOffer.scope}</dd></div>
-                  <div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{localizedSelectedOffer.duration}</dd></div>
-                  <div><dt>{ru ? "Результат" : "Result"}</dt><dd>{localizedSelectedOffer.result}</dd></div>
-                </dl>
-              )}
-              <dl>
-                {Object.entries(answers)
-                  .filter(([key, value]) => value && !["name", "contact", "consent"].includes(key))
-                  .map(([key, value]) => (
-                    <div key={key}>
-                      <dt>{briefAnswerLabel(service, key, locale)}</dt>
-                      <dd>{displayBriefAnswer(value, locale)}</dd>
-                    </div>
-                  ))}
-              </dl>
-              <section className="brief-response-promise" aria-labelledby="brief-response-title">
-                <h3 id="brief-response-title">{ru ? "Что вы получите в ответ" : "What you receive in response"}</h3>
-                <ul>
-                  <li>{ru ? "Рекомендуемый состав работ без лишних пунктов" : "A recommended scope without unnecessary items"}</li>
-                  <li>{ru ? "Срок и последовательность этапов" : "Timing and sequence of stages"}</li>
-                  <li>{ru ? "Стоимость и границы, за которые доплата не появится внезапно" : "Price and boundaries, so additional costs do not appear unexpectedly"}</li>
-                </ul>
-              </section>
+              <p className="brief-contact-intro">{ru ? "Оставьте контакт для расчёта. Ответы можно проверить ниже — обзор свёрнут, чтобы форма оставалась короткой." : "Leave a contact for the estimate. You can review every answer below; the review stays collapsed to keep this step short."}</p>
               <div className="brief-fields brief-contact-fields">
                 <label data-question-number="01" data-question-key="name">
                   <span>{ru ? "Имя" : "Name"}</span>
@@ -337,10 +359,10 @@ export function BriefWizard({ locale }: { locale: Locale }) {
                   {invalidField === "name" && <small className="brief-field-error">{ru ? "Напишите, как к вам обращаться." : "Tell us how to address you."}</small>}
                 </label>
                 <label data-question-number="02" data-question-key="contact">
-                  <span>{ru ? "Telegram или e-mail" : "Telegram or email"}</span>
-                  <input name="contact" autoComplete="email" maxLength={254} type="text" placeholder={ru ? "@username или name@example.ru" : "@username or name@example.com"} required aria-invalid={invalidField === "contact"} value={answers.contact ?? ""} onChange={(event) => update("contact", event.target.value)} />
+                  <span>{ru ? "Телефон или e-mail" : "Phone or email"}</span>
+                  <input name="contact" maxLength={254} type="text" placeholder={ru ? "+7 999 123-45-67 или name@example.ru" : "+1 555 123 4567 or name@example.com"} required aria-invalid={invalidField === "contact"} value={answers.contact ?? ""} onChange={(event) => update("contact", event.target.value)} />
                   <small>{ru ? "Нужен только для ответа по этому брифу." : "Used only to reply to this brief."}</small>
-                  {invalidField === "contact" && <small className="brief-field-error">{ru ? "Укажите e-mail или Telegram в формате @username." : "Enter an email or Telegram username in the format @username."}</small>}
+                  {invalidField === "contact" && <small className="brief-field-error">{ru ? "Укажите корректный телефон или e-mail." : "Enter a valid phone number or email."}</small>}
                 </label>
                 <label className="check-field" data-question-key="consent">
                   <input type="checkbox" checked={answers.consent === "yes"} onChange={(event) => update("consent", event.target.checked ? "yes" : "")} />
@@ -358,6 +380,40 @@ export function BriefWizard({ locale }: { locale: Locale }) {
                 )}
                 <TurnstileField onToken={setTurnstileToken} resetKey={turnstileReset} />
               </div>
+              <section className="brief-response-promise" aria-labelledby="brief-response-title">
+                <h3 id="brief-response-title">{ru ? "Что вы получите в ответ" : "What you receive in response"}</h3>
+                <ul>
+                  <li>{ru ? "Рекомендуемый состав работ без лишних пунктов" : "A recommended scope without unnecessary items"}</li>
+                  <li>{ru ? "Срок и последовательность этапов" : "Timing and sequence of stages"}</li>
+                  <li>{ru ? "Стоимость и границы, за которые доплата не появится внезапно" : "Price and boundaries, so additional costs do not appear unexpectedly"}</li>
+                </ul>
+              </section>
+              <details className="brief-review-details">
+                <summary>{ru ? "Проверить все ответы" : "Review all answers"}</summary>
+                <div className="brief-review-content">
+                  <div className="brief-review-head">
+                    <p>{ru ? "Вы выбрали" : "Selected service"}</p>
+                    <strong>{localizedSelectedOffer?.title ?? serviceLabel(service, locale)}</strong>
+                    <span>{guide.price}</span>
+                  </div>
+                  {localizedSelectedOffer && (
+                    <dl className="brief-offer-facts" aria-label={ru ? "Параметры выбранного предложения" : "Selected offer details"}>
+                      <div><dt>{ru ? "Объём" : "Scope"}</dt><dd>{localizedSelectedOffer.scope}</dd></div>
+                      <div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{localizedSelectedOffer.duration}</dd></div>
+                      <div><dt>{ru ? "Результат" : "Result"}</dt><dd>{localizedSelectedOffer.result}</dd></div>
+                    </dl>
+                  )}
+                  <dl className="brief-answer-review">
+                    {briefPresentationEntries(answers, service, locale, { offerDetails: "exclude" })
+                      .map((entry) => (
+                        <div key={entry.key}>
+                          <dt>{entry.label}</dt>
+                          <dd>{entry.value}</dd>
+                        </div>
+                      ))}
+                  </dl>
+                </div>
+              </details>
             </div>
           )}
 
@@ -419,46 +475,82 @@ function QuestionFields({
 
   return (
     <div className="brief-fields">
-      {questions.map((question, index) => (
-        <label key={question.key} data-question-key={question.key} data-question-number={String(index + startIndex + 1).padStart(2, "0")}>
-          <span>{qLabel(question, locale)}{requiredKeys.includes(question.key) && <small className="brief-required">{ru ? "обязательно" : "required"}</small>}</span>
-          {question.type === "textarea" ? (
-            <textarea name={question.key} rows={4} maxLength={3000} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} placeholder={ru ? "Можно коротко и своими словами" : "A short plain-language answer is enough"} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)} />
-          ) : question.type === "select" ? (
-            <select name={question.key} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)}>
-              <option value="">{ru ? "Нужна помощь с выбором" : "Not sure — help me choose"}</option>
-              {question.options?.map((option) => (
-                <option key={option.value} value={option.value}>{ru ? option.ru : option.en}</option>
-              ))}
-            </select>
-          ) : (
-            <input name={question.key} maxLength={question.type === "url" ? 2048 : 500} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} inputMode={question.type === "url" ? "url" : "text"} type="text" placeholder={question.type === "url" ? "https://example.ru" : undefined} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)} />
-          )}
-          {invalidField === question.key && <small className="brief-field-error">{ru ? "Заполните это поле, чтобы продолжить." : "Complete this field to continue."}</small>}
-        </label>
-      ))}
+      {questions.map((question, index) => {
+        const options = (question.options ?? []).filter((option, optionIndex, items) => (
+          items.findIndex((candidate) => candidate.value === option.value) === optionIndex
+        ));
+        const hasUnknownOption = options.some((option) => option.value === "unknown");
+        return (
+          <label key={question.key} data-question-key={question.key} data-question-number={String(index + startIndex + 1).padStart(2, "0")}>
+            <span>{qLabel(question, locale)}{requiredKeys.includes(question.key) && <small className="brief-required">{ru ? "обязательно" : "required"}</small>}</span>
+            {question.type === "textarea" ? (
+              <textarea name={question.key} rows={4} maxLength={3000} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} placeholder={ru ? "Можно коротко и своими словами" : "A short plain-language answer is enough"} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)} />
+            ) : question.type === "select" ? (
+              <select name={question.key} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)}>
+                <option value="" hidden={hasUnknownOption}>{ru ? "Нужна помощь с выбором" : "Not sure — help me choose"}</option>
+                {options.map((option) => (
+                  <option key={option.value} value={option.value}>{ru ? option.ru : option.en}</option>
+                ))}
+              </select>
+            ) : (
+              <input name={question.key} maxLength={question.type === "url" ? 2048 : 500} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} inputMode={question.type === "url" ? "url" : "text"} type="text" placeholder={question.type === "url" ? "https://example.ru" : undefined} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)} />
+            )}
+            {invalidField === question.key && <small className="brief-field-error">{ru ? "Заполните это поле, чтобы продолжить." : "Complete this field to continue."}</small>}
+          </label>
+        );
+      })}
     </div>
   );
 }
 
 function ServiceGuide({ locale, service, offer, guide }: { locale: Locale; service: BriefService; offer?: LocalizedOffer; guide: Guide }) {
   const ru = locale === "ru";
+  const [expanded, setExpanded] = useState(true);
+  const contract = offer?.priceType === "fixed"
+    ? (ru ? "Цена фиксирована для указанного объёма. Оплата на странице не требуется." : "The price is fixed for the stated scope. No payment is taken on this page.")
+    : offer?.priceType === "from"
+      ? (ru ? "Указана стартовая цена. Итог согласуем до начала. Оплата на странице не требуется." : "This is a starting price. The final scope is agreed before work begins. No payment is taken on this page.")
+      : (ru ? "Состав и цена появятся после ответов. Оплата на странице не требуется." : "Scope and price follow the brief. No payment is taken on this page.");
+
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 680px)");
+    const syncDisclosure = () => setExpanded(!mobile.matches);
+    syncDisclosure();
+    mobile.addEventListener("change", syncDisclosure);
+    return () => mobile.removeEventListener("change", syncDisclosure);
+  }, []);
 
   return (
-    <section className="brief-service-guide" aria-live="polite" aria-label={ru ? "Ориентир по выбранной услуге" : "Selected service guide"}>
-      <p>{ru ? "Что входит и сколько стоит" : "What is included and what it costs"}</p>
-      <h2>{offer?.title ?? serviceLabel(service, locale)}</h2>
-      <strong>{guide.price}</strong>
-      {offer && <dl className="brief-service-facts"><div><dt>{ru ? "Объём" : "Scope"}</dt><dd>{offer.scope}</dd></div><div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{offer.duration}</dd></div></dl>}
-      <div>
-        <h3>{ru ? "За что вы платите" : "What you are paying for"}</h3>
-        <ul>{guide.included.map((item) => <li key={item}>{item}</li>)}</ul>
+    <section className="brief-service-guide brief-mobile-summary" aria-live="polite" aria-label={ru ? "Условия выбранной услуги" : "Selected service details"}>
+      <h2 className="visually-hidden">{ru ? "Условия выбранной услуги" : "Selected service details"}</h2>
+      <div className="brief-service-summary">
+        <strong>{offer?.title ?? serviceLabel(service, locale)}</strong>
+        <span>{guide.price}</span>
       </div>
-      <div>
-        <h3>{ru ? "Что подготовить" : "Prepare"}</h3>
-        <ul>{guide.prepare.map((item) => <li key={item}>{item}</li>)}</ul>
-      </div>
-      <small>{ru ? "Точный состав и цена — после ответов. Оплата на странице не требуется." : "Exact scope and price follow the brief. No payment is taken on this page."}</small>
+      <details
+        className="brief-service-details"
+        open={expanded}
+        onToggle={(event) => setExpanded(event.currentTarget.open)}
+      >
+        <summary>{ru ? "Что входит и что подготовить" : "Scope and what to prepare"}</summary>
+        <div className="brief-service-details-body">
+          {offer && <dl className="brief-service-facts"><div><dt>{ru ? "Объём" : "Scope"}</dt><dd>{offer.scope}</dd></div><div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{offer.duration}</dd></div></dl>}
+          <div>
+            <h3>{ru ? "За что вы платите" : "What you are paying for"}</h3>
+            <ul>{guide.included.map((item) => <li key={item}>{item}</li>)}</ul>
+          </div>
+          <div>
+            <h3>{ru ? "Что подготовить" : "Prepare"}</h3>
+            <ul>{guide.prepare.map((item) => <li key={item}>{item}</li>)}</ul>
+          </div>
+          <small>{contract}</small>
+          {offer ? (
+            <Link href={`${locale === "en" ? "/en" : ""}/pricing?category=${encodeURIComponent(offer.category)}&offer=${encodeURIComponent(offer.id)}`}>
+              {ru ? "Изменить тариф" : "Change offer"}
+            </Link>
+          ) : null}
+        </div>
+      </details>
     </section>
   );
 }
@@ -559,7 +651,7 @@ export function briefStepIssue(step: number, service: BriefService, answers: Ans
     }
   }
   if (step === 3 && !isValidBriefContact(answers.contact ?? "")) {
-    return { key: "contact", message: ru ? "Проверьте контакт: нужен e-mail или Telegram в формате @username." : "Check the contact: enter an email or Telegram username in the format @username." };
+    return { key: "contact", message: ru ? "Проверьте контакт: нужен телефон или e-mail." : "Check the contact: enter a phone number or email." };
   }
   if (step === 3 && answers.consent !== "yes") {
     return { key: "consent", message: ru ? "Подтвердите согласие на обработку данных, чтобы отправить бриф." : "Confirm data processing consent to send the brief." };
@@ -569,7 +661,10 @@ export function briefStepIssue(step: number, service: BriefService, answers: Ans
 
 export function isValidBriefContact(value: string): boolean {
   const contact = value.trim();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(contact) || /^@[A-Za-z0-9_]{5,32}$/u.test(contact);
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(contact)) return true;
+  if (!/^\+?[\d\s()-]+$/u.test(contact)) return false;
+  const digits = contact.replace(/\D/gu, "");
+  return digits.length >= 10 && digits.length <= 15;
 }
 
 function requiredKeysForStep(step: number, service: BriefService): string[] {
@@ -610,19 +705,13 @@ function isValidHttpUrl(value: string): boolean {
 
 function focusBriefField(key: string) {
   window.requestAnimationFrame(() => {
-    document.querySelector<HTMLElement>(`[data-question-key="${CSS.escape(key)}"] input, [data-question-key="${CSS.escape(key)}"] textarea, [data-question-key="${CSS.escape(key)}"] select`)?.focus();
+    const field = document.querySelector<HTMLElement>(`[data-question-key="${CSS.escape(key)}"] input, [data-question-key="${CSS.escape(key)}"] textarea, [data-question-key="${CSS.escape(key)}"] select`);
+    if (!field) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    field.focus({ preventScroll: true });
+    field.scrollIntoView({
+      block: "center",
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
   });
-}
-
-function displayBriefAnswer(value: string, locale: Locale): string {
-  const ru = locale === "ru";
-  const labels: Record<string, [string, string]> = {
-    yes: ["Да", "Yes"], no: ["Нет", "No"], unknown: ["Пока не знаю", "Not sure yet"],
-    clear: ["Задача понятна", "Scope is clear"], copy: ["Только тексты", "Copy only"], full: ["Полная упаковка", "Full packaging"],
-    multiple: ["Несколько площадок", "Multiple platforms"], "yandex-market": ["Яндекс Маркет", "Yandex Market"],
-    wildberries: ["Wildberries", "Wildberries"], ozon: ["Ozon", "Ozon"], megamarket: ["Мегамаркет", "Megamarket"],
-    under50: ["До 50 000 ₽", "Entry scope"], "50-150": ["50 000–150 000 ₽", "Standard scope"],
-    "150-400": ["150 000–400 000 ₽", "Extended scope"], "400plus": ["Более 400 000 ₽", "Large scope"],
-  };
-  return labels[value]?.[ru ? 0 : 1] ?? value;
 }

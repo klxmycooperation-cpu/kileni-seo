@@ -355,6 +355,11 @@
   border-top: 1px solid var(--svc-ink);
   list-style: none;
 }
+.about-mobile-disclosure > summary { display: none; }
+details.about-mobile-disclosure:not([open]) > .about-action-list,
+details.about-mobile-disclosure:not([open]) > .about-start-route,
+details.about-mobile-disclosure:not([open]) > .about-boundary-grid,
+details.about-mobile-disclosure:not([open]) > .about-acceptance-grid { display: grid; }
 .about-action-list li,
 .about-start-route li {
   display: flex;
@@ -369,7 +374,7 @@
 .about-action-list span,
 .about-start-route span,
 .about-roles li span { color: var(--svc-accent); font-family: var(--mono); font-size: 0.68rem; }
-.about-action-list strong,
+.about-action-list strong { max-width: none; font-size: clamp(1rem, 1.35vw, 1.25rem); line-height: 1.15; white-space: nowrap; }
 .about-start-route strong { max-width: 11ch; font-size: clamp(1rem, 1.35vw, 1.25rem); line-height: 1.15; }
 .about-roles-grid > div > p { color: var(--svc-muted); line-height: 1.65; }
 .about-roles { background: var(--svc-soft); }
@@ -433,6 +438,13 @@
 .pricing-10 .cp-package[data-selected] { border-color: var(--svc-accent); box-shadow: inset 4px 0 0 var(--svc-accent); transform: none; }
 .kileni-site .pricing-10 .cp-package-list > *:hover { transform: none; }
 .pricing-10 .cp-package-fit { display: grid; gap: .4rem; }
+.pricing-10 .cp-pricing-status { margin: 0 0 1.5rem; padding: 1rem 1.15rem; border-left: 4px solid #b42318; background: color-mix(in srgb, #b42318 8%, transparent); color: var(--svc-ink); font-weight: 700; }
+.pricing-10 .cp-package-contract { margin: .7rem 0 0; color: var(--svc-muted); font-size: .82rem; line-height: 1.45; }
+.pricing-10 .cp-package-exclusions { margin-top: 1rem; border-top: 1px solid var(--svc-line); }
+.pricing-10 .cp-package-exclusions summary { padding: .9rem 0; cursor: pointer; font-weight: 750; }
+.pricing-10 .cp-package-exclusions > p { margin: .8rem 0 .25rem; color: var(--svc-ink); font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+.pricing-10 .cp-package-exclusions ul { margin: 0; padding: 0; list-style: none; }
+.pricing-10 .cp-package-exclusions li { padding: .55rem 0; border-bottom: 1px solid var(--svc-line); color: var(--svc-muted); font-size: .82rem; line-height: 1.45; }
 .pricing-10 .cp-package-fit span,
 .cp-package-facts dt { color: var(--svc-muted); font: 650 .68rem/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
 .cp-package-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 1.25rem 0 0; border-top: 1px solid var(--svc-line); border-left: 1px solid var(--svc-line); }
@@ -448,7 +460,7 @@
 .cp-package-brief { display: flex; justify-content: space-between; gap: 1rem; margin-top: .75rem; padding: .9rem 1rem; background: var(--svc-accent); color: #fff; font-weight: 800; }
 .cp-tier-switch {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: 1px;
   margin-top: 1rem;
   overflow: hidden;
@@ -474,10 +486,13 @@
 .cp-tier-switch button span { align-self: center; color: var(--svc-muted); font: 700 .65rem var(--mono); }
 .cp-tier-switch button strong { min-width: 0; overflow: hidden; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
 .cp-tier-switch button small { grid-column: 2; color: var(--svc-muted); font-size: .78rem; }
+.cp-tier-switch button b { grid-column: 2; color: var(--svc-accent); font-size: .68rem; }
 .cp-tier-switch button[data-preview] { background: var(--svc-ink); color: var(--svc-paper); }
 .cp-tier-switch button[data-preview] span,
-.cp-tier-switch button[data-preview] small { color: color-mix(in srgb, var(--svc-paper) 72%, transparent); }
-.cp-tier-switch button[aria-selected="true"] { box-shadow: inset 0 -3px 0 var(--svc-accent); }
+.cp-tier-switch button[data-preview] small,
+.cp-tier-switch button[data-preview] b { color: color-mix(in srgb, var(--svc-paper) 72%, transparent); }
+.cp-tier-switch button[data-selected="true"] { box-shadow: inset 0 -3px 0 var(--svc-accent); }
+.cp-tier-switch button:focus-visible { position: relative; z-index: 2; outline: 3px solid var(--svc-accent); outline-offset: -3px; }
 
 /* Enriched marketplace and glossary navigation. */
 .marketplace-related { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 2rem; border: 1px solid var(--theme-line, #d7dce7); }
@@ -624,9 +639,91 @@
   .cp-tier-switch button small { grid-column: 3; white-space: nowrap; }
   .about-hero-grid { min-height: auto; }
   .about-hero h1 { font-size: clamp(2.8rem, 13vw, 4rem); }
+  .about-process,
+  .about-actions,
+  .about-roles,
+  .about-deliverables,
+  .about-boundaries,
+  .about-acceptance,
+  .about-next { padding-block: clamp(2.75rem, 10vw, 4rem); }
+  .about-section-heading { margin-bottom: 1.35rem; }
+  .about-section-heading h2,
+  .about-roles h2,
+  .about-deliverables h2,
+  .about-next h2 { font-size: clamp(2rem, 9.5vw, 2.8rem); }
+  .about-mobile-disclosure {
+    border-top: 1px solid var(--svc-ink);
+    border-bottom: 1px solid var(--svc-line);
+  }
+  .about-mobile-disclosure > summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.5rem;
+    gap: .45rem 1rem;
+    min-height: 4.75rem;
+    padding: 1rem 0;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+  }
+  .about-mobile-disclosure > summary::-webkit-details-marker { display: none; }
+  .about-mobile-disclosure > summary::after {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    color: var(--svc-accent);
+    content: "+";
+    font-size: 1.8rem;
+    line-height: 1;
+    text-align: center;
+  }
+  .about-mobile-disclosure[open] > summary::after { content: "−"; }
+  .about-mobile-disclosure > summary span {
+    color: var(--svc-ink);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+  .about-mobile-disclosure > summary small {
+    overflow: hidden;
+    color: var(--svc-muted);
+    font-size: .78rem;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  details.about-mobile-disclosure:not([open]) > .about-action-list,
+  details.about-mobile-disclosure:not([open]) > .about-start-route,
+  details.about-mobile-disclosure:not([open]) > .about-boundary-grid,
+  details.about-mobile-disclosure:not([open]) > .about-acceptance-grid { display: none; }
   .about-action-list li,
   .about-start-route li,
-  .about-acceptance-grid li { min-height: 8rem; border-right: 0; border-bottom: 1px solid var(--svc-line); }
+  .about-acceptance-grid li { min-height: 0; border-right: 0; border-bottom: 1px solid var(--svc-line); }
+  .about-action-list li,
+  .about-start-route li {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: .75rem;
+    min-height: 3.5rem;
+    padding: .8rem 0;
+    align-items: center;
+  }
+  .about-action-list strong,
+  .about-start-route strong { max-width: none; font-size: 1rem; }
+  .about-roles-grid { gap: 1.5rem; }
+  .about-roles ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-left: 1px solid var(--svc-line);
+  }
+  .about-roles li {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    min-width: 0;
+    min-height: 4rem;
+    padding: .75rem;
+    border-right: 1px solid var(--svc-line);
+    font-size: .88rem;
+    line-height: 1.25;
+  }
+  .about-acceptance-grid li { padding: 1rem 0; }
   .about-boundary-grid article + article { border-top: 1px solid var(--svc-line); border-left: 0; }
   .about-acceptance-grid h3 { margin-top: 2.5rem; }
   .about-next .button { justify-self: start; }
@@ -638,6 +735,10 @@
   .marketplace-offers > header .section-kicker { grid-row: auto; }
   .marketplace-result-states article { min-height: 0; }
   .marketplace-result-states article + article { border-top: 1px solid var(--theme-line, #d7dce7); border-left: 0; }
+}
+
+@media (max-width: 340px) {
+  .about-roles ul { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -656,4 +757,19 @@
   font: 700 .78rem/1.2 var(--font-sans, sans-serif);
   letter-spacing: .08em;
   text-transform: uppercase;
+}
+
+/* The development hero keeps complete phrases together without dominating the viewport. */
+.kileni-site .service-10-web-development .svc-detail-copy h1 {
+  max-width: 20ch;
+  font-size: clamp(2.75rem, 4.25vw, 4.15rem);
+  line-height: 1;
+  text-wrap: balance;
+}
+
+@media (max-width: 700px) {
+  .kileni-site .service-10-web-development .svc-detail-copy h1 {
+    max-width: none;
+    font-size: clamp(2.45rem, 13vw, 4rem);
+  }
 }

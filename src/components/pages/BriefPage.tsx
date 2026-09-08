@@ -3,13 +3,14 @@ import "../../../app/brief-refinement.css";
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Locale } from "../../config/site";
+import { briefServices } from "../../content/brief";
 import { BriefWizard } from "../forms/BriefWizard";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
 
 export function BriefPage({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
-  const downloads = ["seo", "audit", "marketplaces", "development"];
+  const downloads = briefServices;
 
   return (
     <PublicShell locale={locale}>
@@ -20,7 +21,7 @@ export function BriefPage({ locale }: { locale: Locale }) {
             <div>
               <p className="brief-kicker">{ru ? "Предложение под вашу задачу" : "A proposal shaped around your task"}</p>
               <h1>{ru ? "Расскажите о задаче — соберём предложение без лишних работ" : "Describe the task — get a proposal without unnecessary work"}</h1>
-              <p className="brief-effort">{ru ? "5–7 минут · технические знания не нужны · можно отвечать «не уверен»" : "5–7 minutes · No technical knowledge is required · “Not sure” is a valid answer"}</p>
+              <p className="brief-effort">{ru ? "Обычно это занимает 5–7 минут. Технические знания не нужны, а на сложный вопрос можно ответить «Не уверен»." : "It usually takes 5–7 minutes. No technical knowledge is required, and “Not sure” is a valid answer."}</p>
               <ul className="brief-hero-outcomes" aria-label={ru ? "Что даст бриф" : "What the brief provides"}>
                 {(ru
                   ? ["Состав работ", "Срок по этапам", "Стоимость и границы"]
@@ -29,11 +30,12 @@ export function BriefPage({ locale }: { locale: Locale }) {
               </ul>
             </div>
             <div className="brief-hero-note">
-              <strong>{ru ? "За что вы будете платить" : "What the estimate pays for"}</strong>
+              <strong>{ru ? "После брифа вы получите" : "After the brief, you will receive"}</strong>
+              <p>{ru ? "Предложение, в котором можно сразу проверить состав, порядок работы, цену и необходимые материалы." : "A proposal that clearly states the scope, work order, price and required materials."}</p>
               <dl className="brief-offer-preview">
                 {(ru
-                  ? [["01", "Что делаем"], ["02", "В какой последовательности"], ["03", "Сколько стоит"], ["04", "Что потребуется от вас"]]
-                  : [["01", "What we will do"], ["02", "In what order"], ["03", "What it will cost"], ["04", "What we need from you"]]
+                  ? [["01", "Перечень работ"], ["02", "Порядок и сроки"], ["03", "Стоимость и ограничения"], ["04", "Что понадобится от вас"]]
+                  : [["01", "Scope of work"], ["02", "Order and timing"], ["03", "Price and boundaries"], ["04", "What we need from you"]]
                 ).map(([number, label]) => <div key={number}><dt>{number}</dt><dd>{label}</dd></div>)}
               </dl>
               <Link className="brief-download-link" href="#downloads">{ru ? "Заполнить в файле" : "Complete it in a file"}<span aria-hidden="true">↓</span></Link>
@@ -41,7 +43,7 @@ export function BriefPage({ locale }: { locale: Locale }) {
           </div>
         </header>
 
-        <section className="brief-workspace" aria-label={ru ? "Интерактивный бриф" : "Interactive brief"}>
+        <section className="brief-workspace" id="brief" aria-label={ru ? "Интерактивный бриф" : "Interactive brief"}>
           <div className="shell brief-shell">
             <Suspense fallback={<div className="brief-loading" aria-live="polite">{ru ? "Загружаем бриф…" : "Loading brief…"}</div>}>
               <BriefWizard locale={locale} />
@@ -58,28 +60,27 @@ export function BriefPage({ locale }: { locale: Locale }) {
                 <p>{ru ? "Те же вопросы в DOCX или PDF — если удобнее обсудить их с командой." : "The same questions in DOCX or PDF, ready to share with your team."}</p>
               </div>
             </div>
-            <div className="brief-download-grid">
-              {downloads.map((type, index) => (
-                <article key={type}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <h3>{downloadTitle(type, ru)}</h3>
-                  <div>
-                    <a download href={`/downloads/generated/${locale}-${type}-brief.docx`}>DOCX ↓</a>
-                    <a download href={`/downloads/generated/${locale}-${type}-brief.pdf`}>PDF ↓</a>
+            <details className="brief-download-selector">
+              <summary>
+                <span>{ru ? "Выбрать направление и формат" : "Choose a direction and format"}</span>
+                <small>DOCX · PDF</small>
+              </summary>
+              <div className="brief-download-options">
+                {downloads.map((service, index) => (
+                  <div className="brief-download-option" key={service.id}>
+                    <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                    <strong>{ru ? service.ru : service.en}</strong>
+                    <div>
+                      <a download href={`/downloads/generated/${locale}-${service.id}-brief.docx`}>DOCX ↓</a>
+                      <a download href={`/downloads/generated/${locale}-${service.id}-brief.pdf`}>PDF ↓</a>
+                    </div>
                   </div>
-                </article>
-              ))}
-            </div>
+                ))}
+              </div>
+            </details>
           </div>
         </section>
       </div>
     </PublicShell>
   );
-}
-
-function downloadTitle(type: string, ru: boolean) {
-  if (type === "seo") return ru ? "Продвижение" : "SEO growth";
-  if (type === "audit") return ru ? "SEO-аудит" : "SEO audit";
-  if (type === "marketplaces") return "Wildberries & Ozon";
-  return ru ? "Разработка" : "Development";
 }

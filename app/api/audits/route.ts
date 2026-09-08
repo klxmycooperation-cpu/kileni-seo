@@ -1,12 +1,15 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 
 import { publicAuditIsEnabled, publicFormsAreEnabled, siteConfig } from "@/src/config/site";
 import { PUBLIC_AUDIT_PAGE_LIMIT } from "@/src/config/public-audit";
-import { assertPublicUrl, AuditUrlError, hasCurrentAuditResultVersion, normalizeAuditDomain, normalizeTargetUrl, runAudit, SsrfProtectionError, toPublicAuditResult, type AuditEvent } from "@/src/lib/audit";
+import { formatOfferPrice, getOffer, localizedOffer } from "@/src/config/offers";
+import { assertPublicUrl, AUDIT_ENGINE_VERSION_V3, AuditUrlError, finalizeAuditResultV4, hasCurrentAuditCacheSemantics, normalizeAuditDomain, normalizeTargetUrl, runPublicAudit, SsrfProtectionError, type AuditEvent } from "@/src/lib/audit";
+import { persistAuditCompletionWithRetry } from "@/src/lib/audit/completion-reliability";
 import { database } from "@/src/db/client";
 import {
   appendAuditEvent,
+  auditInputsMatchForCache,
   completeAuditRecord,
   createDomainAudit,
   failAuditRecord,
@@ -24,7 +27,10 @@ import { verifyTurnstile } from "@/src/lib/security/turnstile";
 import { purgeExpiredRateLimits } from "@/src/lib/security/rate-limit";
 import { notifyTelegram } from "@/src/lib/notifications/telegram";
 import { sendEmail } from "@/src/lib/notifications/email";
+import { buildAuditResultEmail } from "@/src/lib/notifications/audit-email";
+import { deliverAuditResultEmail } from "@/src/lib/notifications/audit-delivery";
 import { withAuditRestore } from "@/src/lib/audit/restore-url";
+import { toAuditProgressTransition } from "@/src/lib/audit/progress-event";
 import {
   createPublicAuditStreamResponse,
   type PublicAuditProgressEvent,
@@ -43,6 +49,17 @@ type CreationResult = { audit: AuditRow; cached: boolean } | { conflict: true };
 let lastMaintenanceAt = 0;
 
 export async function POST(request: Request) {
+  try {
+    return await handleAuditSubmission(request);
+  } catch (error) {
+    console.error("[KILENI AUDIT] Submission temporarily unavailable", {
+      kind: error instanceof Error ? error.name : typeof error,
+    });
+    return apiError(503, "AUDIT_TEMPORARILY_UNAVAILABLE", "Сервис проверки временно недоступен. Повторите попытку через минуту.");
+  }
+}
+
+async function handleAuditSubmission(request: Request) {
   if (!publicFormsAreEnabled()) return apiError(503, "FORM_SUBMISSIONS_DISABLED", "Приём заявок временно отключён");
   if (!publicAuditIsEnabled()) return apiError(503, "AUDIT_DISABLED", "Бесплатная проверка временно недоступна");
   if (isVercelRuntime() && !auditRestoreIsConfigured()) {
@@ -94,12 +111,28 @@ export async function POST(request: Request) {
     return apiError(422, "TARGET_REJECTED", "Не удалось проверить адрес сайта");
   }
 
-  const canonicalTarget = new URL(`${target.url.protocol}//${target.url.host}/`);
+  let priorityUrls: string[];
+  try {
+    priorityUrls = await validatePriorityUrls(parsed.data.priorityUrls, target.url);
+  } catch (error) {
+    if (error instanceof AuditUrlError || error instanceof SsrfProtectionError || error instanceof PriorityUrlError) {
+      return apiError(422, "PRIORITY_URL_REJECTED", "Важный адрес должен быть безопасной HTML-страницей этого же сайта");
+    }
+    return apiError(422, "PRIORITY_URL_REJECTED", "Не удалось проверить важный адрес");
+  }
 
   const cacheDays = siteConfig.audit.cacheDays;
   // Invalid/safety-rejected URLs and a reusable result must not exhaust a visitor's quota.
   const recentForRateLimit = await findRecentCompletedAudit(normalizedDomain, cacheDays * 24 * 60 * 60 * 1000);
-  if (!recentForRateLimit || !reusableCache(recentForRateLimit)) {
+  const canReuseRecent = Boolean(
+    recentForRateLimit &&
+    auditInputsMatchForCache(recentForRateLimit, {
+      originalUrl: target.url.href,
+      priorityUrls,
+    }) &&
+    reusableCache(recentForRateLimit),
+  );
+  if (parsed.data.forceFresh || !canReuseRecent) {
     const limited = await consumeRules(`audit:${ipHash}`, [
       { suffix: "hour", rule: { windowMs: 60 * 60 * 1000, limit: siteConfig.audit.rateLimit.hourly } },
       { suffix: "day", rule: { windowMs: 24 * 60 * 60 * 1000, limit: siteConfig.audit.rateLimit.daily } },
@@ -108,9 +141,12 @@ export async function POST(request: Request) {
   }
   let created: CreationResult;
   const auditEmail = parsed.data.email;
+  const freeAuditOffer = getOffer("seo-audit-free");
+  if (!freeAuditOffer) return apiError(500, "AUDIT_OFFER_MISSING", "Не удалось зафиксировать условия бесплатной проверки");
+  const localizedFreeAuditOffer = localizedOffer(freeAuditOffer, parsed.data.locale);
   try {
     created = await createDomainAudit({
-      originalUrl: canonicalTarget.href,
+      originalUrl: target.url.href,
       normalizedDomain,
       locale: parsed.data.locale,
       name: auditEmail
@@ -122,9 +158,17 @@ export async function POST(request: Request) {
       userAgentHash: privateHash(request.headers.get("user-agent") ?? "unknown"),
       source: parsed.data.source,
       pageLimit: siteConfig.audit.pageLimit,
+      priorityUrls,
       utm: parsed.data.utm,
       consentVersion: siteConfig.legal.version,
-    }, cacheDays * 24 * 60 * 60 * 1000, reusableCache);
+      offerSnapshot: {
+        id: freeAuditOffer.id,
+        title: localizedFreeAuditOffer.title,
+        price: formatOfferPrice(freeAuditOffer, parsed.data.locale),
+      },
+    }, cacheDays * 24 * 60 * 60 * 1000, reusableCache, {
+      reuseCachedResult: !parsed.data.forceFresh,
+    });
   } catch {
     return apiError(500, "AUDIT_CREATE_FAILED", "Не удалось поставить аудит в очередь");
   }
@@ -142,10 +186,11 @@ export async function POST(request: Request) {
         pageLimit: PUBLIC_AUDIT_PAGE_LIMIT,
       },
       async (emit): Promise<PublicAuditTerminalEvent> => {
-        const currentAudit = await runVercelAudit(created.audit, (progress) => emit({
+        const currentAudit = await runVercelAudit(created.audit, priorityUrls, (progress) => emit({
           type: "progress",
           token: created.audit.publicToken,
           ...progress,
+          eventCreatedAt: new Date().toISOString(),
           pageLimit: PUBLIC_AUDIT_PAGE_LIMIT,
         }));
         const restore = restoreForAudit(currentAudit);
@@ -176,8 +221,8 @@ export async function POST(request: Request) {
     );
   }
 
-  await recordSubmissionNotifications({ created, currentAudit, restore, request: parsed.data, normalizedDomain })
-    .catch(() => undefined);
+  after(() => recordSubmissionNotifications({ created, currentAudit, restore, request: parsed.data, normalizedDomain })
+    .catch(() => undefined));
 
   return NextResponse.json(
     {
@@ -235,15 +280,26 @@ async function recordSubmissionNotifications(input: {
     input.request.email &&
     (input.currentAudit.status === "completed" || input.currentAudit.status === "partial")
   ) {
+    if (!isVercelRuntime()) {
+      await deliverAuditResultEmail(input.created.audit.id);
+      return;
+    }
     const publicPath = withAuditRestore(
       `${input.request.locale === "en" ? "/en" : ""}/audit/${encodeURIComponent(input.created.audit.publicToken)}`,
       input.restore,
     );
     const publicUrl = process.env.APP_BASE_URL ? new URL(publicPath, process.env.APP_BASE_URL).toString() : publicPath;
+    const email = buildAuditResultEmail({
+      locale: input.request.locale,
+      publicUrl,
+      domain: input.normalizedDomain,
+      completedAt: input.currentAudit.completedAt ?? input.currentAudit.createdAt,
+      pagesChecked: input.currentAudit.pagesChecked,
+      partial: input.currentAudit.status === "partial" || Boolean(input.currentAudit.partial),
+    });
     const emailResult = await sendEmail({
       to: input.request.email,
-      subject: input.request.locale === "ru" ? "Результат предварительной SEO-проверки KILENI" : "Your KILENI preliminary SEO check",
-      text: input.request.locale === "ru" ? `Результат проверки готов: ${publicUrl}` : `Your audit result is ready: ${publicUrl}`,
+      ...email,
     });
     const now = Date.now();
     await database.execute({
@@ -253,10 +309,11 @@ async function recordSubmissionNotifications(input: {
   }
 }
 
-type InlineProgress = Pick<PublicAuditProgressEvent, "status" | "pagesChecked" | "pagesDiscovered">;
+type InlineProgress = Omit<PublicAuditProgressEvent, "type" | "token" | "pageLimit">;
 
 async function runVercelAudit(
   audit: AuditRow,
+  priorityUrls: readonly string[],
   onProgress?: (progress: InlineProgress) => void,
 ): Promise<AuditRow> {
   const controller = new AbortController();
@@ -264,17 +321,23 @@ async function runVercelAudit(
   const timer = setTimeout(() => controller.abort("VERCEL_AUDIT_TIMEOUT"), 42_000);
 
   try {
-    const result = await runAudit(audit.originalUrl, {
+    const result = await runPublicAudit(audit.originalUrl, {
       maxPages: Math.min(siteConfig.audit.pageLimit, audit.pageLimit),
       concurrency: 4,
       performance: null,
+      priorityUrls,
       signal: controller.signal,
       onEvent: async (event) => {
         const progress = await recordInlineAuditEvent(audit.id, event);
         if (progress) onProgress?.(progress);
       },
     });
-    const publicResult = toPublicAuditResult(result, audit.locale);
+    const finalized = finalizeAuditResultV4({
+      auditId: audit.publicToken,
+      createdAt: new Date(audit.createdAt).toISOString(),
+      result,
+      performance: null,
+    });
     await appendAuditEvent(audit.id, "analyzing_structure", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     onProgress?.({ status: "analyzing_structure", pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     // Vercel does not provide a browser runtime for synthetic Lighthouse data.
@@ -282,19 +345,17 @@ async function runVercelAudit(
     // the crawl, while unavailable lab metrics remain explicitly unknown.
     await appendAuditEvent(audit.id, "running_performance", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     onProgress?.({ status: "running_performance", pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
-    await appendAuditEvent(audit.id, "calculating_score", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
-    onProgress?.({ status: "calculating_score", pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
-    await completeAuditRecord(audit.id, {
-      publicResult: publicResult as unknown as Record<string, unknown>,
-      fullResult: result as unknown as Record<string, unknown>,
-      score: result.score.total,
-      grade: result.grade,
-      partial: result.partial,
-      pagesDiscovered: result.pagesDiscovered,
-      pagesChecked: result.pagesChecked,
-      pages: result.pages.map((page) => ({ ...page, depth: page.transport?.depth ?? 0 } as unknown as Record<string, unknown>)),
-      issues: result.issues.map((issue) => ({ ...issue, evidence: issue.description } as unknown as Record<string, unknown>)),
-    });
+    await appendAuditEvent(audit.id, "finalizing_report", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
+    onProgress?.({ status: "finalizing_report", pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
+    await persistAuditCompletionWithRetry(() => completeAuditRecord(audit.id, {
+        publicResult: finalized.publicResult as unknown as Record<string, unknown>,
+        fullResult: finalized.fullResult as unknown as Record<string, unknown>,
+        score: null,
+        grade: null,
+        partial: finalized.partial,
+        pagesDiscovered: finalized.publicResult.pagesDiscovered,
+        pagesChecked: finalized.publicResult.pagesChecked,
+      }));
   } catch (error) {
     const reason = controller.signal.aborted
       ? "Audit time limit exceeded"
@@ -331,24 +392,21 @@ async function recordInlineAuditEvent(
   auditId: string,
   event: AuditEvent,
 ): Promise<InlineProgress | null> {
-  if (event.type === "audit:start") return appendInlineProgress(auditId, "connecting", 0, 0);
-  if (event.type === "discovery:start") return appendInlineProgress(auditId, "checking_robots", 0, 0);
-  if (event.type === "discovery:robots_complete") return appendInlineProgress(auditId, "checking_sitemaps", 0, 0);
-  if (event.type === "discovery:sitemaps_complete") return appendInlineProgress(auditId, "discovering_pages", 0, 0);
-  if (event.type === "crawl:page" || event.type === "crawl:progress") {
-    return appendInlineProgress(auditId, "crawling_pages", event.pagesChecked, event.pagesDiscovered);
-  }
-  return null;
+  const mapped = toAuditProgressTransition(event);
+  if (!mapped) return null;
+  return appendInlineProgress(auditId, mapped.status, mapped.payload);
 }
 
 async function appendInlineProgress(
   auditId: string,
   status: string,
-  pagesChecked: number,
-  pagesDiscovered: number,
+  payload: Readonly<Record<string, unknown>>,
 ): Promise<InlineProgress> {
-  await appendAuditEvent(auditId, status, { pagesChecked, pagesDiscovered });
-  return { status, pagesChecked, pagesDiscovered };
+  const pagesChecked = typeof payload.pagesChecked === "number" ? payload.pagesChecked : 0;
+  const pagesDiscovered = typeof payload.pagesDiscovered === "number" ? payload.pagesDiscovered : 0;
+  const storedPayload = { ...payload, pagesChecked, pagesDiscovered };
+  await appendAuditEvent(auditId, status, storedPayload);
+  return { ...storedPayload, status, pagesChecked, pagesDiscovered } as InlineProgress;
 }
 
 function streamFailure(audit: AuditRow): PublicAuditTerminalEvent {
@@ -370,8 +428,8 @@ function adminUrl(section: string, id: string): string {
 function reusableCache(row: AuditRow): {
   publicResultJson: string;
   fullResultJson: string;
-  overallScore: number;
-  grade: string;
+  overallScore: number | null;
+  grade: string | null;
   pagesDiscovered: number;
   pagesChecked: number;
   partial: boolean;
@@ -381,20 +439,36 @@ function reusableCache(row: AuditRow): {
   if (
     publicResult === null ||
     fullResult === null ||
-    !hasCurrentAuditResultVersion(publicResult) ||
-    !hasCurrentAuditResultVersion(fullResult) ||
-    row.overallScore === null ||
-    !row.grade
+    !hasCurrentAuditCacheSemantics(publicResult, AUDIT_ENGINE_VERSION_V3) ||
+    !hasCurrentAuditCacheSemantics(fullResult, AUDIT_ENGINE_VERSION_V3)
   ) return null;
   return {
     publicResultJson: JSON.stringify(stripSensitiveFields(publicResult)),
     fullResultJson: JSON.stringify(stripSensitiveFields(fullResult)),
-    overallScore: row.overallScore,
-    grade: row.grade,
+    overallScore: null,
+    grade: null,
     pagesDiscovered: row.pagesDiscovered,
     pagesChecked: row.pagesChecked,
     partial: Boolean(row.partial),
   };
+}
+
+class PriorityUrlError extends Error {}
+
+async function validatePriorityUrls(values: readonly string[], target: URL): Promise<string[]> {
+  const validated: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values.slice(0, 3)) {
+    const candidate = await assertPublicUrl(normalizeTargetUrl(value));
+    if (candidate.url.host !== target.host) {
+      throw new PriorityUrlError("Priority URL must use the target host");
+    }
+    const href = candidate.url.href;
+    if (seen.has(href)) continue;
+    seen.add(href);
+    validated.push(href);
+  }
+  return validated;
 }
 
 function stripSensitiveFields(value: unknown, depth = 0): unknown {

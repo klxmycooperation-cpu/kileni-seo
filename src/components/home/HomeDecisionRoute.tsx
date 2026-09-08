@@ -33,7 +33,7 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
         {
           number: "01",
           title: "Бесплатная проверка",
-          eyebrow: "Первый ориентир",
+          eyebrow: "Быстрая предварительная оценка",
           description: "Быстро проверим до 10 ключевых страниц и покажем, с чего разумно начать.",
           price: formatOfferPrice(getOffer("seo-audit-free")!, locale),
           timing: freeAudit.duration,
@@ -71,7 +71,7 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
         {
           number: "01",
           title: "Free check",
-          eyebrow: "A first signal",
+          eyebrow: "When you need an initial check",
           description: "We review up to 10 key public pages and show where a sensible review should start.",
           price: formatOfferPrice(getOffer("seo-audit-free")!, locale),
           timing: freeAudit.duration,
@@ -107,29 +107,53 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
       ];
 
   const [active, setActive] = useState(1);
-  const activeOption = options[active];
-  const panelId = useId();
+  const baseId = useId().replace(/:/g, "");
+  const tabId = (index: number) => `${baseId}-tab-${index}`;
+  const panelId = (index: number) => `${baseId}-panel-${index}`;
+
+  function moveTab(index: number) {
+    const next = (index + options.length) % options.length;
+    setActive(next);
+    window.requestAnimationFrame(() => document.getElementById(tabId(next))?.focus());
+  }
 
   return (
     <section id="home-levels" className="home-decision" aria-labelledby="decision-heading">
-      <div className="home-decision__intro">
-        <p className="section-label">{ru ? "Маршрут работы" : "Working route"}</p>
+      <div className="home-decision__intro" id="home-formats">
+        <p className="section-label">{ru ? "Какой объём выбрать" : "Choose the right scope"}</p>
         <h2 id="decision-heading">{ru ? "Начните с того объёма, который нужен сейчас" : "Start with the level that fits the task now"}</h2>
         <p>{ru ? "Можно ограничиться проверкой, перейти к полному аудиту или сразу обсудить внедрение. Никаких скрытых переходов между форматами." : "Start with a check, move to a full audit, or discuss implementation straight away. The formats stay transparent."}</p>
       </div>
 
       <div className="home-decision__body">
-        <div className="home-decision__tabs" role="tablist" aria-label={ru ? "Выбор формата работы" : "Choose a format"}>
+        <div className="home-decision__tabs" role="tablist" aria-label={ru ? "Выбор формата работы" : "Choose a format"} data-mobile-route-tabs>
           {options.map((option, index) => (
             <button
+              id={tabId(index)}
               className="home-decision__tab"
               data-active={index === active}
               key={option.number}
               type="button"
               role="tab"
               aria-selected={index === active}
-              aria-controls={panelId}
+              aria-controls={panelId(index)}
+              tabIndex={index === active ? 0 : -1}
               onClick={() => setActive(index)}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                  event.preventDefault();
+                  moveTab(index + 1);
+                } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                  event.preventDefault();
+                  moveTab(index - 1);
+                } else if (event.key === "Home") {
+                  event.preventDefault();
+                  moveTab(0);
+                } else if (event.key === "End") {
+                  event.preventDefault();
+                  moveTab(options.length - 1);
+                }
+              }}
             >
               <span>{option.number}</span>
               <strong>{option.title}</strong>
@@ -138,32 +162,42 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           ))}
         </div>
 
-        <article className="home-decision__panel" id={panelId} role="tabpanel">
-          <div className="home-decision__panel-head">
-            <div>
-              <p>{activeOption.eyebrow}</p>
-              <h3>{activeOption.title}</h3>
+        {options.map((option, index) => (
+          <article
+            className="home-decision__panel"
+            id={panelId(index)}
+            role="tabpanel"
+            aria-labelledby={tabId(index)}
+            key={option.number}
+            hidden={active !== index}
+            data-route={index}
+          >
+            <div className="home-decision__panel-head">
+              <div>
+                <p>{option.eyebrow}</p>
+                <h3>{option.title}</h3>
+              </div>
+              <b>{option.price}</b>
             </div>
-            <b>{activeOption.price}</b>
-          </div>
-          <p className="home-decision__description">{activeOption.description}</p>
-          <dl>
-            <div>
-              <dt>{ru ? "Объём" : "Scope"}</dt>
-              <dd>{activeOption.scope}</dd>
-            </div>
-            <div>
-              <dt>{ru ? "Срок" : "Timing"}</dt>
-              <dd>{activeOption.timing}</dd>
-            </div>
-          </dl>
-          <ul>
-            {activeOption.details.map((detail) => <li key={detail}>{detail}</li>)}
-          </ul>
-          <Link className="home-decision__cta" href={activeOption.href}>
-            {activeOption.cta}<span aria-hidden="true">↗</span>
-          </Link>
-        </article>
+            <p className="home-decision__description">{option.description}</p>
+            <dl>
+              <div>
+                <dt>{ru ? "Объём" : "Scope"}</dt>
+                <dd>{option.scope}</dd>
+              </div>
+              <div>
+                <dt>{ru ? "Срок" : "Timing"}</dt>
+                <dd>{option.timing}</dd>
+              </div>
+            </dl>
+            <ul>
+              {option.details.map((detail) => <li key={detail}>{detail}</li>)}
+            </ul>
+            <Link className="home-decision__cta" href={option.href}>
+              {option.cta}<span aria-hidden="true">↗</span>
+            </Link>
+          </article>
+        ))}
       </div>
     </section>
   );

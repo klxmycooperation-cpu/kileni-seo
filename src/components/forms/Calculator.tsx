@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Locale } from "../../config/site";
 import { calculateEstimate, type CalculatorAnswers, type CalculatorKind } from "../../config/calculator";
-import { formatPrice } from "../../config/prices";
+import { formatOfferAmount } from "../../config/offers";
 import { collectBrowserAttribution } from "../../lib/attribution";
 import { useCsrf } from "./useCsrf";
 import { TurnstileField } from "./TurnstileField";
@@ -20,15 +20,32 @@ export function Calculator({ locale, enPricing }: { locale: Locale; enPricing?: 
   const ru = locale === "ru"; const { token, refresh } = useCsrf();
   const [kind, setKind] = useState<CalculatorKind>("audit"); const [answers, setAnswers] = useState<CalculatorAnswers>({ pages: 50, scale: "base", items: 1, package: "audit", siteType: "landing", languages: 1, regions: 1 });
   const [submitted, setSubmitted] = useState(""); const [turnstileToken, setTurnstileToken] = useState<string>(); const [turnstileReset, setTurnstileReset] = useState(0); const estimate = useMemo(() => calculateEstimate(kind, answers, locale), [answers, kind, locale]);
+  const submissionPending = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const update = (key: string, value: string | number | boolean) => setAnswers((current) => ({ ...current, [key]: value }));
-  const money = (value: number) => formatPrice(value, locale, { perMonth: kind === "seo", english: enPricing });
+  const money = (value: number) => formatOfferAmount(value, locale, { perMonth: kind === "seo", english: enPricing });
   const estimateLabel = (() => { const min = money(estimate.min); const max = money(estimate.max); return min === max ? min : `${min}–${max}`; })();
   async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setSubmitted(ru ? "Отправляем…" : "Sending…"); const form = new FormData(event.currentTarget); const csrf = token || await refresh();
-    const attribution = collectBrowserAttribution();
-    const response = await fetch("/api/calculator", { method: "POST", headers: { "content-type": "application/json", "x-csrf-token": csrf }, body: JSON.stringify({ name: form.get("name"), contact: form.get("contact"), consent: form.get("consent") === "on", honeypot: form.get("company"), turnstileToken, locale, kind, answers, estimate, source: "calculator", ...attribution }) });
-    setSubmitted(response.ok ? (ru ? "Расчёт сохранён. Свяжемся в рабочее время и уточним объём." : "Estimate saved. We will follow up during working hours.") : (ru ? "Не удалось отправить. Проверьте контакт." : "Could not submit. Check the contact field."));
-    if (!response.ok) setTurnstileReset((value) => value + 1);
+    event.preventDefault();
+    if (submissionPending.current) return;
+    submissionPending.current = true;
+    setIsSubmitting(true);
+    setSubmitted(ru ? "Отправляем…" : "Sending…");
+    const form = new FormData(event.currentTarget);
+    try {
+      const csrf = token || await refresh();
+      const attribution = collectBrowserAttribution();
+      const response = await fetch("/api/calculator", { method: "POST", headers: { "content-type": "application/json", "x-csrf-token": csrf }, body: JSON.stringify({ name: form.get("name"), contact: form.get("contact"), consent: form.get("consent") === "on", honeypot: form.get("company"), turnstileToken, locale, kind, answers, estimate, source: "calculator", ...attribution }), signal: AbortSignal.timeout(20_000) });
+      if (response.status >= 500) throw new Error("Calculator service unavailable");
+      setSubmitted(response.ok ? (ru ? "Расчёт сохранён. Свяжемся в рабочее время и уточним объём." : "Estimate saved. We will follow up during working hours.") : (ru ? "Не удалось отправить. Проверьте контакт." : "Could not submit. Check the contact field."));
+      if (!response.ok) setTurnstileReset((value) => value + 1);
+    } catch {
+      setSubmitted(ru ? "Не удалось отправить расчёт. Проверьте соединение и попробуйте ещё раз." : "Could not send the estimate. Check your connection and try again.");
+      setTurnstileReset((value) => value + 1);
+    } finally {
+      submissionPending.current = false;
+      setIsSubmitting(false);
+    }
   }
   return <div className="calculator"><div className="calculator-tabs" role="tablist" aria-label={ru ? "Тип расчёта" : "Estimate type"}>{kinds.map((item) => <button role="tab" aria-selected={kind === item.id} key={item.id} onClick={() => setKind(item.id)}>{ru ? item.ru : item.en}</button>)}</div>
     <div className="calculator-body"><div className="calculator-fields">
@@ -36,5 +53,5 @@ export function Calculator({ locale, enPricing }: { locale: Locale; enPricing?: 
       {kind === "seo" && <><Field label={ru ? "Масштаб работы" : "Scope"}><select value={String(answers.scale)} onChange={(e) => update("scale", e.target.value)}><option value="base">{ru ? "База" : "Foundation"}</option><option value="growth">{ru ? "Рост" : "Growth"}</option><option value="full">{ru ? "Полное сопровождение" : "Full partnership"}</option></select></Field><Field label={ru ? "Число регионов" : "Number of regions"}><input type="number" min="1" max="20" value={Number(answers.regions)} onChange={(e) => update("regions", Number(e.target.value))}/></Field><label className="toggle-field"><input type="checkbox" checked={Boolean(answers.technical)} onChange={(e) => update("technical", e.target.checked)}/><span>{ru ? "Нужны технические работы" : "Technical work required"}</span></label><label className="toggle-field"><input type="checkbox" checked={Boolean(answers.ads)} onChange={(e) => update("ads", e.target.checked)}/><span>{ru ? "Нужно ведение Яндекс Рекламы" : "Yandex Ads management"}</span></label></>}
       {kind === "marketplaces" && <><Field label={ru ? "Площадка" : "Platform"}><select onChange={(e) => update("platform", e.target.value)}><option>Wildberries</option><option>Ozon</option></select></Field><Field label={ru ? "Число артикулов" : "Number of SKUs"}><input type="number" min="1" max="500" value={Number(answers.items)} onChange={(e) => update("items", Number(e.target.value))}/></Field><Field label={ru ? "Пакет" : "Package"}><select value={String(answers.package)} onChange={(e) => update("package", e.target.value)}><option value="audit">{ru ? "Аудит" : "Audit"}</option><option value="optimization">SEO</option><option value="turnkey">{ru ? "Под ключ" : "Turnkey"}</option></select></Field><label className="toggle-field"><input type="checkbox" checked={Boolean(answers.video)} onChange={(e) => update("video", e.target.checked)}/><span>{ru ? "Нужно видео" : "Video required"}</span></label><label className="toggle-field"><input type="checkbox" checked={Boolean(answers.analytics)} onChange={(e) => update("analytics", e.target.checked)}/><span>{ru ? "Регулярная аналитика" : "Recurring analytics"}</span></label></>}
       {kind === "development" && <><Field label={ru ? "Тип сайта" : "Website type"}><select value={String(answers.siteType)} onChange={(e) => update("siteType", e.target.value)}><option value="landing">{ru ? "Лендинг" : "Landing page"}</option><option value="corporate">{ru ? "Корпоративный" : "Corporate"}</option><option value="commerce">{ru ? "Каталог или магазин" : "Catalogue or commerce"}</option></select></Field><Field label={ru ? "Языковые версии" : "Languages"}><input type="number" min="1" max="10" value={Number(answers.languages)} onChange={(e) => update("languages", Number(e.target.value))}/></Field><label className="toggle-field"><input type="checkbox" checked={Boolean(answers.account)} onChange={(e) => update("account", e.target.checked)}/><span>{ru ? "Личный кабинет" : "User account"}</span></label><label className="toggle-field"><input type="checkbox" checked={Boolean(answers.integrations)} onChange={(e) => update("integrations", e.target.checked)}/><span>{ru ? "Сложные интеграции" : "Complex integrations"}</span></label><label className="toggle-field"><input type="checkbox" checked={Boolean(answers.urgent)} onChange={(e) => update("urgent", e.target.checked)}/><span>{ru ? "Сжатый срок" : "Compressed timeline"}</span></label></>}
-    </div><aside className="estimate-panel"><p className="eyebrow">{ru ? "Предварительная стоимость" : "Preliminary estimate"}</p><h2>{estimateLabel}</h2><p>{ru ? "Это не оферта и не окончательная смета." : "This is not a binding quote."}</p><ul>{estimate.factors.map((factor) => <li key={factor}>{factor}</li>)}</ul><form method="post" onSubmit={submit}><input name="name" aria-label={ru ? "Имя" : "Name"} placeholder={ru ? "Имя" : "Name"} required/><input name="contact" aria-label={ru ? "Telegram или e-mail" : "Telegram or email"} placeholder={ru ? "Telegram или e-mail" : "Telegram or email"} required/><input className="honeypot" name="company" aria-label="Company" tabIndex={-1}/><label className="check-field"><input name="consent" type="checkbox" required/><ConsentNotice locale={locale}/></label><TurnstileField onToken={setTurnstileToken} resetKey={turnstileReset}/>{submitted && <p role="status">{submitted}</p>}<button className="button button-primary" disabled={!token || !turnstileToken}>{ru ? "Отправить расчёт" : "Send estimate"}<span>↗</span></button></form></aside></div></div>;
+    </div><aside className="estimate-panel"><p className="eyebrow">{ru ? "Предварительная стоимость" : "Preliminary estimate"}</p><h2>{estimateLabel}</h2><p>{ru ? "Это не оферта и не окончательная смета." : "This is not a binding quote."}</p><ul>{estimate.factors.map((factor) => <li key={factor}>{factor}</li>)}</ul><form method="post" onSubmit={submit}><input name="name" aria-label={ru ? "Имя" : "Name"} placeholder={ru ? "Имя" : "Name"} required/><input name="contact" aria-label={ru ? "Телефон или e-mail" : "Phone or email"} placeholder={ru ? "+7 999 123-45-67 или name@example.ru" : "+1 555 123 4567 or name@example.com"} required/><input className="honeypot" name="company" aria-label="Company" tabIndex={-1}/><label className="check-field"><input name="consent" type="checkbox" required/><ConsentNotice locale={locale}/></label><TurnstileField onToken={setTurnstileToken} resetKey={turnstileReset}/>{submitted && <p role="status">{submitted}</p>}<button className="button button-primary" disabled={isSubmitting || !token || !turnstileToken}>{ru ? "Отправить расчёт" : "Send estimate"}<span>↗</span></button></form></aside></div></div>;
 }

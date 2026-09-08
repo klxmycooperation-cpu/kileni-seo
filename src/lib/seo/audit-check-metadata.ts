@@ -21,7 +21,7 @@ export function getAuditCheckMetadata(locale: Locale, slug?: string): Metadata |
   const check = getAuditCheck(slug);
   if (!check) return null;
   const copy = check[locale];
-  const description = compact(`${copy.summary} ${copy.pass}`);
+  const description = copy.summary;
   const title = locale === "ru"
     ? `${copy.title}: критерий SEO-проверки`
     : `${copy.title}: website SEO audit check`;
@@ -46,12 +46,4 @@ function metadata(locale: Locale, path: string, title: string, description: stri
       images: [{ url: "/brand/kileni-og.png", width: 1200, height: 630, alt: "KILENI" }],
     },
   };
-}
-
-function compact(value: string): string {
-  const normalized = value.replace(/\s+/gu, " ").trim();
-  if (normalized.length <= 160) return normalized;
-  const candidate = normalized.slice(0, 157);
-  const boundary = candidate.lastIndexOf(" ");
-  return `${candidate.slice(0, boundary > 90 ? boundary : 157).trimEnd()}…`;
 }

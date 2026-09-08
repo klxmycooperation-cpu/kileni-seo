@@ -30,22 +30,25 @@ export function MarketplaceOfferSelector({ platform, locale, offers }: { platfor
         const href = offerBriefHref(offer.id, locale);
         return (
           <article className="marketplace-offer" data-offer-id={offer.id} data-platform={platform} data-selected={active || undefined} data-featured={offer.featured || undefined} key={offer.id}>
-            {offer.featured && <span className="marketplace-offer-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
-            <h3>{offer.name}</h3>
-            <p>{offer.description}</p>
-            <strong>{offer.current}</strong>
-            {offer.note && <small>{offer.note}</small>}
+            <div className="marketplace-offer-badge-slot">
+              {offer.featured && <span className="marketplace-offer-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
+            </div>
+            <div className="marketplace-offer-head"><h3>{offer.name}</h3><p>{offer.description}</p></div>
+            <strong className="marketplace-offer-price">{offer.current}</strong>
+            <small className="marketplace-offer-note">{offer.note ?? ""}</small>
             <dl>
-              <div><dt>{ru ? "Главный результат" : "Main result"}</dt><dd>{offer.mainResult}</dd></div>
-              <div><dt>{ru ? "Предел" : "Limit"}</dt><dd>{offer.limit}</dd></div>
+              <div><dt>{ru ? "Что вы получите" : "What you receive"}</dt><dd>{offer.mainResult}</dd></div>
+              <div><dt>{ru ? "Объём работы" : "Work scope"}</dt><dd>{offer.limit}</dd></div>
               <div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{offer.duration}</dd></div>
             </dl>
             <div className="marketplace-offer__included">
               <h4>{ru ? "В результат входят" : "Included in the result"}</h4>
               <ul>{offer.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
             </div>
-            <button type="button" aria-pressed={active} onClick={() => setSelected(offer.id)}>{active ? (ru ? "Выбрано" : "Selected") : (ru ? "Выбрать вариант" : "Select option")}</button>
-            {active && <Link href={href}>{ru ? "Передать в короткий бриф" : "Continue to the short brief"}<span aria-hidden="true">↗</span></Link>}
+            <div className="marketplace-offer-actions">
+              {!active && <button type="button" onClick={() => setSelected(offer.id)}>{ru ? "Выбрать вариант" : "Select option"}</button>}
+              {active && <Link href={href}>{ru ? "Передать в короткий бриф" : "Continue to the short brief"}<span aria-hidden="true">↗</span></Link>}
+            </div>
           </article>
         );
       })}

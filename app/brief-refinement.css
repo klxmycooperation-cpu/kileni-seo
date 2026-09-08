@@ -42,10 +42,7 @@
 }
 
 .brief-hero-grid h1 {
-  max-width: 62rem;
   margin: 0;
-  font-size: clamp(3.2rem, 6.8vw, 7.5rem);
-  line-height: 0.93;
 }
 
 .brief-hero-note {
@@ -537,10 +534,6 @@
     padding-top: 68px;
   }
 
-  .brief-hero-grid h1 {
-    font-size: clamp(3rem, 14vw, 5rem);
-  }
-
   .brief-route ol {
     display: flex;
     justify-content: space-between;
@@ -600,6 +593,27 @@
 @media (prefers-reduced-motion: reduce) {
   .brief-refinement .brief-progress span {
     transition: none;
+  }
+}
+
+/* Keep the selected service summary readable on a narrow screen. */
+@media (max-width: 680px) {
+  .kileni-site .brief-refinement .brief-service-guide > .brief-service-summary,
+  .kileni-site .brief-refinement .brief-service-summary {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .kileni-site .brief-refinement .brief-service-summary > strong {
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+    font-size: 0.9rem;
+  }
+
+  .kileni-site .brief-refinement .brief-service-summary > span {
+    font-size: 0.7rem;
+    text-align: left;
   }
 }
 
@@ -899,10 +913,6 @@
 }
 
 @media (max-width: 680px) {
-  .brief-refinement .brief-hero-grid h1 {
-    font-size: 2.5rem;
-  }
-
   .brief-refinement .brief-download-heading h2 {
     font-size: 2.25rem;
   }
@@ -950,9 +960,9 @@
   font-size: 0.78rem;
   letter-spacing: 0.025em;
 }
-.brief-offer-preview { margin: 1.2rem 0 1.5rem; border-top: 1px solid rgba(253, 253, 253, .25); }
-.brief-offer-preview > div { display: grid; grid-template-columns: 2rem 1fr; gap: .75rem; padding: .8rem 0; border-bottom: 1px solid rgba(253, 253, 253, .18); }
-.brief-offer-preview dt { color: rgba(253, 253, 253, .55); font-family: var(--mono); font-size: .65rem; }
+.brief-offer-preview { margin: 1.2rem 0 1.5rem; border-top: 1px solid color-mix(in srgb, var(--brief-paper) 25%, transparent); }
+.brief-offer-preview > div { display: grid; grid-template-columns: 2rem 1fr; gap: .75rem; padding: .8rem 0; border-bottom: 1px solid color-mix(in srgb, var(--brief-paper) 18%, transparent); }
+.brief-offer-preview dt { color: var(--brief-paper); font-family: var(--mono); font-size: .65rem; }
 .brief-offer-preview dd { margin: 0; color: var(--brief-paper); font-size: .82rem; }
 .brief-refinement .brief-hero-note .brief-download-link { color: var(--brief-paper); }
 
@@ -981,7 +991,6 @@
 }
 
 @media (max-width: 680px) {
-  .brief-refinement .brief-hero-grid h1 { font-size: 2.35rem; line-height: 1.08; }
   .brief-refinement .brief-hero-note { padding: 1.2rem; }
   .brief-refinement .brief-panel section > h2 { font-size: 1.9rem; }
 }
@@ -1055,4 +1064,536 @@
 @media (max-width: 680px) {
   .brief-refinement .brief-file-list li { align-items: flex-start; }
   .brief-refinement .wizard-actions .button { min-height: 3rem; }
+}
+
+/* Long answers and browser zoom must stay inside the brief column. */
+.kileni-site .brief-refinement :is(.brief-panel, .brief-panel > section, .brief-step-intro, .brief-fields, .brief-fields > label, .brief-review, .brief-review dl, .brief-review dl > div) { min-width: 0; max-width: 100%; }
+.kileni-site .brief-refinement :is(.brief-panel section > h2, .brief-step-intro, .brief-fields label > span, .brief-review dt, .brief-optional summary, .brief-optional p) { overflow-wrap: normal; word-break: normal; }
+.kileni-site .brief-refinement .brief-review dd { overflow-wrap: anywhere; }
+.kileni-site .brief-refinement .brief-panel section > h2 { text-wrap: balance; }
+.kileni-site .brief-refinement .brief-fields :is(input, select, textarea) { min-width: 0; max-width: 100%; }
+.kileni-site .brief-refinement .brief-fields select { text-overflow: ellipsis; }
+
+@media (max-width: 380px) {
+  .kileni-site .brief-refinement .brief-panel { padding-inline: 1rem; }
+  .kileni-site .brief-refinement .brief-step-label { align-items: flex-start; flex-direction: column; gap: .35rem; }
+  .kileni-site .brief-refinement .brief-panel section > h2 { font-size: clamp(1.65rem, 10vw, 1.9rem); }
+}
+
+/* Mobile composition: the working form is the route target and every long
+   supporting block becomes an explicit disclosure. */
+.brief-refinement .brief-workspace,
+.brief-refinement .brief-panel section > h2 {
+  scroll-margin-top: 6rem;
+}
+
+.brief-refinement .brief-choice-title {
+  grid-column: 2;
+  color: var(--brief-ink);
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.kileni-site .brief-refinement .brief-service-guide {
+  display: block;
+}
+
+.kileni-site .brief-refinement .brief-service-guide > .brief-service-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(7.5rem, auto);
+  gap: 1rem;
+  align-items: start;
+  margin: 0;
+}
+
+.brief-refinement .brief-service-summary > strong {
+  min-width: 0;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1.25;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.brief-refinement .brief-service-summary > span {
+  color: rgba(253, 253, 253, 0.72);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.brief-refinement .brief-service-details {
+  margin-top: 0.9rem;
+  border-top: 1px solid rgba(253, 253, 253, 0.24);
+}
+
+.brief-refinement .brief-service-details > summary {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.brief-refinement .brief-service-details > summary::-webkit-details-marker,
+.brief-refinement .brief-download-selector > summary::-webkit-details-marker,
+.brief-refinement .brief-review-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.brief-refinement .brief-service-details > summary::after,
+.brief-refinement .brief-download-selector > summary::after,
+.brief-refinement .brief-review-details > summary::after {
+  flex: 0 0 auto;
+  content: "+";
+  font-family: var(--mono);
+  font-size: 1rem;
+}
+
+.brief-refinement .brief-service-details[open] > summary::after,
+.brief-refinement .brief-download-selector[open] > summary::after,
+.brief-refinement .brief-review-details[open] > summary::after {
+  content: "−";
+}
+
+.brief-refinement .brief-service-details-body {
+  display: grid;
+  gap: 1.25rem;
+  padding-top: 0.85rem;
+}
+
+.brief-refinement .brief-service-details-body > div,
+.brief-refinement .brief-service-details-body > dl {
+  margin: 0;
+}
+
+.brief-refinement .brief-service-facts {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.brief-refinement .brief-service-facts > div {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.brief-refinement .brief-service-facts :is(dt, dd) {
+  margin: 0;
+  color: rgba(253, 253, 253, 0.72);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.brief-refinement .brief-service-facts dt {
+  color: rgba(253, 253, 253, 0.48);
+  font-family: var(--mono);
+}
+
+.brief-refinement .brief-service-details-body > small {
+  color: rgba(253, 253, 253, 0.54);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.brief-refinement .brief-service-details-body > a {
+  width: max-content;
+  max-width: 100%;
+  border-bottom: 1px solid currentColor;
+  color: var(--brief-paper);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.brief-refinement .brief-contact-intro {
+  max-width: 42rem;
+  margin: 0;
+}
+
+.brief-refinement .brief-review-details {
+  margin-top: 1.5rem;
+  border: 1px solid var(--brief-line);
+}
+
+.brief-refinement .brief-review-details > summary {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  color: var(--brief-ink);
+  cursor: pointer;
+  font-weight: 750;
+  list-style: none;
+}
+
+.brief-refinement .brief-review-details[open] > summary {
+  border-bottom: 1px solid var(--brief-line);
+}
+
+.brief-refinement .brief-review-content {
+  min-width: 0;
+  padding: 0 1rem 1rem;
+}
+
+.brief-refinement .brief-review-content .brief-review-head {
+  margin-top: 1rem;
+}
+
+.brief-refinement .brief-review-content .brief-offer-facts,
+.brief-refinement .brief-review-content .brief-answer-review {
+  max-height: 18rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  overflow: auto;
+  border-top: 1px solid var(--brief-ink);
+}
+
+.brief-refinement .brief-review-content :is(.brief-offer-facts, .brief-answer-review) > div {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.45fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--brief-line);
+}
+
+.brief-refinement .brief-review-content :is(dt, dd) {
+  margin: 0;
+}
+
+.brief-refinement .brief-download-heading {
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.brief-refinement .brief-download-selector {
+  max-width: 64rem;
+  border-block: 1px solid var(--brief-ink);
+}
+
+.brief-refinement .brief-download-selector > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 1rem;
+  min-height: 3.5rem;
+  align-items: center;
+  padding: 0.75rem 0;
+  color: var(--brief-ink);
+  cursor: pointer;
+  font-weight: 750;
+  list-style: none;
+}
+
+.brief-refinement .brief-download-selector > summary small {
+  color: var(--brief-muted);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.brief-refinement .brief-download-options {
+  border-top: 1px solid var(--brief-line);
+}
+
+.brief-refinement .brief-download-option {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  align-items: center;
+  border-bottom: 1px solid var(--brief-line);
+}
+
+.brief-refinement .brief-download-option:last-child {
+  border-bottom: 0;
+}
+
+.brief-refinement .brief-download-option > span {
+  color: var(--brief-muted);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+}
+
+.brief-refinement .brief-download-option > strong {
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.brief-refinement .brief-download-option > div {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.brief-refinement .brief-download-option a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-bottom: 1px solid currentColor;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+@media (max-width: 680px) {
+  .brief-refinement .brief-page-hero {
+    padding-top: 68px;
+  }
+
+  .brief-refinement .brief-page-hero .breadcrumbs {
+    padding-block: 0.45rem;
+    font-size: 0.7rem;
+  }
+
+  .brief-refinement .brief-hero-grid {
+    gap: 0.65rem;
+    padding-block: 0.75rem 1rem;
+  }
+
+  .brief-refinement .brief-kicker {
+    margin-bottom: 0.5rem;
+    font-size: 0.62rem;
+  }
+
+  .brief-refinement .brief-hero-grid h1 {
+    font-size: clamp(1.9rem, 9vw, 2.3rem);
+    line-height: 1.03;
+  }
+
+  .brief-refinement .brief-effort {
+    margin-top: 0.65rem;
+    padding-top: 0.55rem;
+    font-size: 0.66rem;
+    line-height: 1.45;
+  }
+
+  .brief-refinement .brief-hero-outcomes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 0.65rem;
+  }
+
+  .brief-refinement .brief-hero-outcomes li {
+    min-height: 0;
+    padding: 0.55rem 0.35rem 0.55rem 1.05rem;
+    border-right: 1px solid var(--brief-line);
+    border-bottom: 0;
+    font-size: 0.64rem;
+    line-height: 1.3;
+  }
+
+  .brief-refinement .brief-hero-outcomes li::before {
+    left: 0.25rem;
+  }
+
+  .brief-refinement .brief-hero-note {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--brief-ink);
+  }
+
+  .brief-refinement .brief-hero-note > strong,
+  .brief-refinement .brief-offer-preview {
+    display: none;
+  }
+
+  .brief-refinement .brief-hero-note .brief-download-link {
+    min-height: 2.75rem;
+    color: var(--brief-ink);
+    font-size: 0.76rem;
+  }
+
+  .brief-refinement .brief-workspace {
+    padding-block: 0.75rem 2rem;
+  }
+
+  .kileni-site .brief-refinement .brief-workspace .brief-shell {
+    width: min(calc(100% - 1rem), 1440px);
+  }
+
+  .brief-refinement .brief-route {
+    padding: 0.85rem 1rem 0.65rem;
+  }
+
+  .brief-refinement .brief-route li {
+    min-width: 0;
+    padding-inline: 0.3rem;
+  }
+
+  .brief-refinement .brief-route li:first-child {
+    padding-left: 0;
+  }
+
+  .brief-refinement .brief-route li:last-child {
+    padding-right: 0;
+  }
+
+  .brief-refinement .brief-service-guide {
+    margin: 0 1rem 0.85rem;
+    padding-top: 0.7rem;
+  }
+
+  .brief-refinement .brief-service-summary {
+    grid-template-columns: minmax(0, 0.85fr) minmax(7rem, 1.15fr);
+    gap: 0.65rem;
+  }
+
+  .brief-refinement .brief-service-summary > strong {
+    font-size: 0.82rem;
+  }
+
+  .brief-refinement .brief-service-summary > span {
+    font-size: 0.64rem;
+  }
+
+  .brief-refinement .brief-service-details {
+    margin-top: 0.55rem;
+  }
+
+  .brief-refinement .brief-service-details-body {
+    max-height: min(50svh, 24rem);
+    padding-right: 0.35rem;
+    overflow-y: auto;
+  }
+
+  .kileni-site .brief-refinement .brief-panel {
+    padding: 1rem 1rem 0;
+  }
+
+  .brief-refinement .brief-step-label {
+    margin: 0.75rem 0 1rem;
+  }
+
+  .brief-refinement .brief-panel section > h2 {
+    margin-bottom: 0.65rem;
+    font-size: clamp(1.7rem, 8vw, 1.95rem);
+  }
+
+  .brief-refinement .brief-step-intro {
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+
+  .kileni-site .brief-refinement .service-choice {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 1rem;
+  }
+
+  .kileni-site .brief-refinement .service-choice button {
+    grid-template-columns: 1.35rem minmax(0, 1fr);
+    gap: 0.2rem 0.4rem;
+    min-height: 5.5rem;
+    padding: 0.7rem;
+  }
+
+  .brief-refinement .service-choice .brief-choice-number {
+    grid-row: 1 / span 2;
+  }
+
+  .brief-refinement .brief-choice-title {
+    font-size: 0.78rem;
+    line-height: 1.15;
+  }
+
+  .brief-refinement .service-choice .brief-choice-copy {
+    display: none;
+  }
+
+  .brief-refinement .brief-choice-price {
+    margin-top: 0.15rem;
+    font-size: 0.64rem;
+    line-height: 1.3;
+  }
+
+  .brief-refinement .brief-review-content :is(.brief-offer-facts, .brief-answer-review) > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+  }
+
+  .brief-refinement .brief-contact-intro {
+    font-size: 0.82rem;
+  }
+
+  .brief-refinement .brief-contact-fields {
+    margin-top: 1rem;
+  }
+
+  .brief-refinement .wizard-actions {
+    position: sticky;
+    z-index: 30;
+    bottom: 0;
+    gap: 0.65rem;
+    margin: 1.5rem -1rem 0;
+    padding: 0.7rem 1rem;
+    padding-bottom: calc(0.7rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--brief-ink);
+    background: var(--brief-paper);
+    box-shadow: 0 -0.75rem 1.5rem rgba(11, 19, 43, 0.08);
+  }
+
+  .brief-refinement .brief-wizard[data-visual-keyboard="open"] .wizard-actions,
+  .kileni-site:has(> .cookie-layer) .brief-refinement .wizard-actions {
+    position: static;
+  }
+
+  .brief-refinement .brief-fields :is(input, textarea, select) {
+    scroll-margin-block: 6rem;
+  }
+
+  .brief-refinement .brief-downloads {
+    padding-block: 2.5rem;
+  }
+
+  .brief-refinement .brief-download-option {
+    grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 339px) {
+  .kileni-site .brief-refinement .service-choice {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kileni-site .brief-refinement .service-choice button {
+    grid-template-columns: 1.35rem minmax(0, 1fr) minmax(7rem, auto);
+    min-height: 3.5rem;
+  }
+
+  .brief-refinement .service-choice .brief-choice-number,
+  .brief-refinement .brief-choice-title,
+  .brief-refinement .brief-choice-price {
+    grid-row: auto;
+  }
+
+  .brief-refinement .brief-choice-price {
+    grid-column: 3;
+    margin: 0;
+    text-align: right;
+  }
+
+  .brief-refinement .brief-download-selector > summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .brief-refinement .brief-download-selector > summary small {
+    display: none;
+  }
+
+  .brief-refinement .brief-download-option {
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    padding-block: 0.5rem;
+  }
+
+  .brief-refinement .brief-download-option > div {
+    grid-column: 2;
+  }
 }

@@ -1,5 +1,7 @@
 import { siteConfig } from "@/src/config/site";
 import { getAuditByToken, getAuditEvents, type AuditRow } from "@/src/db/queries";
+import { derivePublicAuditCoverage, type PublicAuditCoverageStatus } from "@/src/lib/audit/public-coverage";
+import { sanitizePublicAuditProgressPayload } from "@/src/lib/audit/public-progress";
 import { consumeRateLimit } from "@/src/lib/security/rate-limit";
 import { clientIp, privateHash } from "@/src/lib/security/request";
 import { apiError, noStoreJson, retryAfterHeaders, safeJsonParse, validOpaqueToken } from "../../../_lib/http";
@@ -35,14 +37,15 @@ export async function GET(
   if (!audit) {
     const restored = verifyAuditRestoreEnvelope(url.searchParams.get("restore"), token);
     if (!restored) return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
+    const coverage = derivePublicAuditCoverage({ result: restored.result, pageLimit: siteConfig.audit.pageLimit });
     const snapshot = {
-      status: restored.status,
-      pagesChecked: restored.result.pagesChecked,
-      pagesDiscovered: restored.result.pagesDiscovered,
+      normalizedDomain: restored.normalizedDomain,
+      status: publicTerminalStatus(restored.status, coverage.coverageStatus),
+      pagesChecked: coverage.pagesChecked,
+      pagesDiscovered: coverage.pagesDiscovered,
+      pagesSelected: coverage.pagesSelected,
       pageLimit: siteConfig.audit.pageLimit,
-      overallScore: restored.result.score,
-      grade: restored.result.grade,
-      partial: restored.result.partial,
+      coverageStatus: coverage.coverageStatus,
     };
     if (!wantsSse) return noStoreJson({ ...snapshot, terminal: true, events: [], nextEventId: after });
     return new Response(
@@ -58,7 +61,7 @@ export async function GET(
     );
   }
   if (!wantsSse) {
-    const events = await publicEvents(audit.id, after);
+    const events = await publicEvents(audit.id, after, audit.normalizedDomain);
     const current = (await getAuditByToken(token)) ?? audit;
     return noStoreJson({
       ...publicSnapshot(current),
@@ -91,18 +94,19 @@ export async function GET(
       let lastKeepAlive = Date.now();
       try {
         while (!closed && Date.now() - startedAt < 55_000) {
-          const events = await publicEvents(audit.id, cursor);
+          const events = await publicEvents(audit.id, cursor, audit.normalizedDomain);
           for (const event of events) {
             cursor = event.id;
             const current = (await getAuditByToken(token)) ?? audit;
             controller.enqueue(encoder.encode(
-              `id: ${event.id}\ndata: ${JSON.stringify({ ...publicSnapshot(current), event: safeEventName(event.event), payload: event.payload, eventCreatedAt: event.createdAt })}\n\n`,
+              `id: ${event.id}\ndata: ${JSON.stringify({ ...publicSnapshot(current), ...(event.status ? { status: event.status } : {}), ...event.payload, eventCreatedAt: event.createdAt })}\n\n`,
             ));
           }
           const current = await getAuditByToken(token);
           if (!current || TERMINAL.has(current.status)) {
+            const doneStatus = current ? publicSnapshot(current).status : "not_found";
             controller.enqueue(encoder.encode(
-              `event: done\ndata: ${JSON.stringify({ status: current?.status ?? "not_found", lastEventId: cursor })}\n\n`,
+              `event: done\ndata: ${JSON.stringify({ status: doneStatus, lastEventId: cursor })}\n\n`,
             ));
             close();
             return;
@@ -111,7 +115,7 @@ export async function GET(
             controller.enqueue(encoder.encode(`: keepalive ${Date.now()}\n\n`));
             lastKeepAlive = Date.now();
           }
-          await waitFor(1_000, request.signal);
+          await waitFor(250, request.signal);
         }
         if (!closed) controller.enqueue(encoder.encode("event: reconnect\ndata: {}\n\n"));
       } catch (error) {
@@ -152,27 +156,32 @@ function releaseStream(key: string): void {
   else activeStreams.set(key, current - 1);
 }
 
-async function publicEvents(auditId: string, after: number) {
+async function publicEvents(auditId: string, after: number, normalizedDomain: string) {
   return (await getAuditEvents(auditId, after)).map((row) => ({
     id: row.id,
-    event: row.event,
-    payload: publicEventPayload(safeJsonParse(row.payloadJson)),
+    status: publicEventStatus(row.event),
+    payload: sanitizePublicAuditProgressPayload(safeJsonParse(row.payloadJson), normalizedDomain, siteConfig.audit.pageLimit),
     createdAt: new Date(row.createdAt).toISOString(),
   }));
 }
 
-function publicEventPayload(value: unknown): Record<string, number | boolean> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
-  const source = value as Record<string, unknown>;
-  const result: Record<string, number | boolean> = {};
-  for (const key of ["pagesChecked", "pagesDiscovered", "pageLimit", "score"] as const) {
-    const candidate = source[key];
-    if (typeof candidate === "number" && Number.isFinite(candidate)) result[key] = candidate;
-  }
-  for (const key of ["partial", "cached", "queued"] as const) {
-    if (typeof source[key] === "boolean") result[key] = source[key];
-  }
-  return result;
+function publicEventStatus(value: string): string | null {
+  return [
+    "queued",
+    "validating_target",
+    "connecting",
+    "checking_robots",
+    "checking_sitemaps",
+    "discovering_pages",
+    "crawling_pages",
+    "analyzing_structure",
+    "running_performance",
+    "finalizing_report",
+    "calculating_score",
+    "completed",
+    "partial",
+    "failed",
+  ].includes(value) ? value : null;
 }
 
 function eventCursor(value: string | null): number {
@@ -181,20 +190,33 @@ function eventCursor(value: string | null): number {
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : 0;
 }
 
-function safeEventName(value: string): string {
-  return /^[a-z0-9:_-]{1,80}$/iu.test(value) ? value : "progress";
-}
-
 function publicSnapshot(audit: AuditRow) {
-  return {
+  const common = {
+    normalizedDomain: audit.normalizedDomain,
     status: audit.status,
     pagesChecked: audit.pagesChecked,
     pagesDiscovered: audit.pagesDiscovered,
     pageLimit: Math.min(siteConfig.audit.pageLimit, audit.pageLimit),
-    overallScore: audit.overallScore,
-    grade: audit.grade,
-    partial: Boolean(audit.partial),
   };
+  const result = safeJsonParse(audit.publicResultJson);
+  if (!TERMINAL.has(audit.status) || audit.status === "failed" || !result) return common;
+  const coverage = derivePublicAuditCoverage({
+    result,
+    pagesChecked: audit.pagesChecked,
+    pagesDiscovered: audit.pagesDiscovered,
+    pageLimit: common.pageLimit,
+  });
+  return {
+    ...common,
+    status: publicTerminalStatus(audit.status, coverage.coverageStatus),
+    pagesSelected: coverage.pagesSelected,
+    coverageStatus: coverage.coverageStatus,
+  };
+}
+
+function publicTerminalStatus(status: string, coverageStatus: PublicAuditCoverageStatus): string {
+  if (status !== "completed" && status !== "partial") return status;
+  return coverageStatus === "sample_complete" ? "completed" : "partial";
 }
 
 function waitFor(milliseconds: number, signal: AbortSignal): Promise<void> {

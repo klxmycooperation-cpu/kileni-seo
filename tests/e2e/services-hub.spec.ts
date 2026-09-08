@@ -91,3 +91,46 @@ test("shows a static final visual when reduced motion is requested", async ({ pa
   await expect(page.locator(".services-explorer__visual-variant[data-active='true']")).toHaveCSS("transition-duration", "0s");
   await expect(page.locator(".services-explorer__visual-result")).toContainText("Задачу можно оценить и принять");
 });
+
+test("keeps the direction selector at the beginning of the second viewport", async ({ page }) => {
+  for (const viewport of [
+    { width: 320, height: 720 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/services");
+
+    const selectorBox = await page.getByRole("tablist", { name: "Направления услуг" }).boundingBox();
+    expect(selectorBox, `${viewport.width}px selector box`).not.toBeNull();
+    expect(selectorBox!.y, `${viewport.width}px selector position`).toBeLessThanOrEqual(viewport.height * 1.35);
+
+    const h1Metrics = await page.getByRole("heading", { level: 1 }).evaluate((heading) => {
+      const style = getComputedStyle(heading);
+      return {
+        height: heading.getBoundingClientRect().height,
+        lineHeight: Number.parseFloat(style.lineHeight),
+      };
+    });
+    expect(Math.round(h1Metrics.height / h1Metrics.lineHeight), `${viewport.width}px H1 lines`).toBeLessThanOrEqual(5);
+  }
+});
+
+test("keeps the approved structure and interaction in English", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/en/services");
+
+  await expect(page.getByText("KILENI services", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "From a problem to a clear result" })).toBeVisible();
+  await expect(page.getByText("Choose the task. See what we will do, how long it takes, what it costs and what you keep after the work is done.", { exact: true })).toBeVisible();
+
+  const tabs = page.getByRole("tablist", { name: "Service directions" });
+  await expect(tabs.getByRole("tab")).toHaveCount(4);
+  await expect(tabs.getByRole("tab", { name: "SEO", exact: true })).toHaveAttribute("aria-selected", "true");
+
+  await tabs.getByRole("tab", { name: "Non-standard task" }).click();
+  const panel = page.getByRole("tabpanel");
+  await expect(panel).toContainText("Define a task that does not fit a ready-made package");
+  await expect(panel).toContainText("Price after a short brief");
+  await expect(panel.locator("summary")).toHaveText(/What is included/u);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});

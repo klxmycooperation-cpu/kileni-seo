@@ -1,4 +1,6 @@
 import { getAuditByToken } from "@/src/db/queries";
+import { derivePublicAuditCoverage } from "@/src/lib/audit/public-coverage";
+import { PUBLIC_AUDIT_PAGE_LIMIT } from "@/src/config/public-audit";
 import { createPublicAuditPdf } from "@/src/lib/reports/audit-pdf";
 import { sanitizePublicAuditResult } from "../../../_lib/audit-public";
 import { apiError, safeJsonParse, validOpaqueToken } from "../../../_lib/http";
@@ -19,14 +21,15 @@ export async function GET(
   if (!audit) {
     const restored = verifyAuditRestoreEnvelope(new URL(request.url).searchParams.get("restore"), token);
     if (!restored) return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
+    const coverage = derivePublicAuditCoverage({ result: restored.result, pageLimit: PUBLIC_AUDIT_PAGE_LIMIT });
     return pdfResponse({
       locale: restored.locale,
       normalizedDomain: restored.normalizedDomain,
-      score: restored.result.score,
-      grade: restored.result.grade,
-      partial: restored.result.partial,
-      pagesChecked: restored.result.pagesChecked,
-      pagesDiscovered: restored.result.pagesDiscovered,
+      score: null,
+      grade: null,
+      partial: coverage.coverageStatus === "sample_partial",
+      pagesChecked: coverage.pagesChecked,
+      pagesDiscovered: coverage.pagesDiscovered,
       completedAt: restored.completedAt,
       publicResult: restored.result,
     });
@@ -36,14 +39,20 @@ export async function GET(
   }
 
   const publicResult = sanitizePublicAuditResult(safeJsonParse(audit.publicResultJson));
+  const coverage = derivePublicAuditCoverage({
+    result: publicResult,
+    pagesChecked: audit.pagesChecked,
+    pagesDiscovered: audit.pagesDiscovered,
+    pageLimit: Math.min(PUBLIC_AUDIT_PAGE_LIMIT, audit.pageLimit),
+  });
   return pdfResponse({
     locale: audit.locale,
     normalizedDomain: audit.normalizedDomain,
-    score: audit.overallScore,
-    grade: audit.grade,
-    partial: Boolean(audit.partial),
-    pagesChecked: audit.pagesChecked,
-    pagesDiscovered: audit.pagesDiscovered,
+    score: null,
+    grade: null,
+    partial: coverage.coverageStatus === "sample_partial",
+    pagesChecked: coverage.pagesChecked,
+    pagesDiscovered: coverage.pagesDiscovered,
     completedAt: audit.completedAt,
     publicResult,
   });

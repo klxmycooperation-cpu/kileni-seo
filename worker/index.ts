@@ -1,17 +1,19 @@
-import { randomUUID } from "node:crypto";
-
-import type { AuditEvent, FullAuditResult } from "../src/lib/audit/index";
-import { gradeForScore, interpretationForGrade, runAudit, scoreAudit, toPublicAuditResult } from "../src/lib/audit/index";
-import { database } from "../src/db/client";
-import { acquireNextAudit, appendAuditEvent, completeAuditRecord, failAuditRecord, failStaleAudits, heartbeatWorker, purgeExpiredAudits, type AuditRow, type AuditStatus } from "../src/db/queries";
-import { sendEmail } from "../src/lib/notifications/email";
+import { assertIsolatedPreviewEnvironment } from "../scripts/runtime-isolation.mjs";
+import type { AuditEvent, PublicAuditRun } from "../src/lib/audit/index";
+import { finalizeAuditResultV4, runPublicAudit } from "../src/lib/audit/index";
+import { completeAuditReliably } from "../src/lib/audit/completion-reliability";
+import { toAuditProgressTransition } from "../src/lib/audit/progress-event";
+import { acquireNextAudit, appendAuditEvent, completeAuditRecord, failAuditRecord, failStaleAudits, heartbeatWorker, parseAuditPriorityUrls, purgeExpiredAudits, type AuditRow, type AuditStatus } from "../src/db/queries";
+import { deliverAuditResultEmail, retryPendingAuditEmails } from "../src/lib/notifications/audit-delivery";
 import { notifyTelegram } from "../src/lib/notifications/telegram";
 import { runMobileLighthouse } from "../src/lib/performance/lighthouse";
 import { purgeExpiredRateLimits } from "../src/lib/security/rate-limit";
 
+assertIsolatedPreviewEnvironment();
+
 const pollIntervalMs = positiveNumber(process.env.WORKER_POLL_MS ?? process.env.WORKER_POLL_INTERVAL_MS, 1_500);
 const auditTimeoutMs = Math.min(420_000, positiveNumber(process.env.AUDIT_TIMEOUT_MS, 420_000));
-const pageLimit = Math.min(100, positiveNumber(process.env.AUDIT_PAGE_LIMIT, 100));
+const pageLimit = Math.min(10, positiveNumber(process.env.AUDIT_PAGE_LIMIT, 10));
 const retentionDays = Math.max(90, Math.min(3_650, positiveNumber(process.env.AUDIT_RESULT_RETENTION_DAYS, 90)));
 const shutdown = new AbortController();
 
@@ -25,6 +27,7 @@ async function runWorker(): Promise<void> {
   let lastHeartbeat = 0;
   let lastRetentionCheck = 0;
   let lastStaleCheck = 0;
+  let lastEmailCheck = 0;
   while (!shutdown.signal.aborted) {
     if (Date.now() - lastRetentionCheck >= 24 * 60 * 60 * 1_000) {
       const purgedAudits = await purgeExpiredAudits(retentionDays);
@@ -40,6 +43,12 @@ async function runWorker(): Promise<void> {
     if (Date.now() - lastHeartbeat >= 10_000) {
       await heartbeatWorker({ pid: process.pid, state: "idle" });
       lastHeartbeat = Date.now();
+    }
+    if (Date.now() - lastEmailCheck >= 30_000) {
+      await retryPendingAuditEmails().catch((error: unknown) => {
+        log("audit_email_retry_failed", { reason: errorName(error), code: errorCode(error) });
+      });
+      lastEmailCheck = Date.now();
     }
     const audit = await acquireNextAudit();
     if (!audit) {
@@ -75,49 +84,75 @@ async function processAudit(audit: AuditRow): Promise<void> {
   try {
     log("audit_started", { auditId: audit.id });
     const plannedPages = Math.min(pageLimit, audit.pageLimit);
-    const initial = await runAudit(audit.originalUrl, {
+    const initial = await runPublicAudit(audit.originalUrl, {
       maxPages: plannedPages,
       concurrency: 4,
       signal: controller.signal,
       performance: null,
+      priorityUrls: parseAuditPriorityUrls(audit.priorityUrlsJson),
       onEvent: (event) => handleAuditEvent(event, transition),
     });
 
-    await transition("analyzing_structure", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
-    await transition("running_performance", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
+    const samplePayload = {
+      pagesChecked: initial.pagesChecked,
+      pagesDiscovered: initial.pagesDiscovered,
+      pagesSelected: initial.selectedPages.length,
+    };
+    await transition("analyzing_structure", { ...samplePayload, eventKind: "structure_checked" });
+    await transition("running_performance", { ...samplePayload, eventKind: "performance_started" });
     const lighthouse = controller.signal.aborted
       ? { performance: null, pagesAttempted: 0, pagesChecked: 0 }
-      : await runMobileLighthouse(initial.pages.map((page) => page.url).slice(0, 3), { signal: controller.signal });
+      : await runMobileLighthouse(initial.pages.map((page) => page.url).slice(0, 1), { signal: controller.signal });
 
-    await transition("calculating_score", { pagesChecked: initial.pagesChecked, pagesDiscovered: initial.pagesDiscovered });
-    const result = rescore(initial, lighthouse.performance, controller.signal.aborted || lighthouse.pagesChecked < lighthouse.pagesAttempted, plannedPages);
-    const publicResult = toPublicAuditResult(result, audit.locale);
-    await completeAuditRecord(audit.id, {
-      publicResult: publicResult as unknown as Record<string, unknown>,
-      fullResult: result as unknown as Record<string, unknown>,
-      score: result.score.total,
-      grade: result.grade,
-      partial: result.partial,
-      pagesDiscovered: result.pagesDiscovered,
-      pagesChecked: result.pagesChecked,
-      pages: result.pages.map((page) => ({ ...page, depth: page.transport?.depth ?? 0 } as unknown as Record<string, unknown>)),
-      issues: result.issues.map((issue) => ({ ...issue, evidence: issue.description } as unknown as Record<string, unknown>)),
+    await transition("finalizing_report", { ...samplePayload, eventKind: "report_building" });
+    const result = attachPerformance(initial, lighthouse.performance, controller.signal.aborted || lighthouse.pagesChecked < lighthouse.pagesAttempted);
+    const finalized = finalizeAuditResultV4({
+      auditId: audit.publicToken,
+      createdAt: new Date(audit.createdAt).toISOString(),
+      result,
+      performance: lighthouse.performance,
     });
-    await sendCompletionNotifications(audit, result);
+    const completion = await completeAuditReliably({
+      persist: () => completeAuditRecord(audit.id, {
+        publicResult: finalized.publicResult as unknown as Record<string, unknown>,
+        fullResult: finalized.fullResult as unknown as Record<string, unknown>,
+        score: null,
+        grade: null,
+        partial: finalized.partial,
+        pagesDiscovered: finalized.publicResult.pagesDiscovered,
+        pagesChecked: finalized.publicResult.pagesChecked,
+      }),
+      notify: () => sendCompletionNotifications(audit, finalized.publicResult.pagesChecked, finalized.partial),
+    });
+    if (completion.persistenceAttempts > 1) {
+      log("audit_persistence_retried", { auditId: audit.id, attempts: completion.persistenceAttempts });
+    }
+    if (completion.notificationError) {
+      log("audit_notification_failed", {
+        auditId: audit.id,
+        reason: errorName(completion.notificationError),
+        code: errorCode(completion.notificationError),
+      });
+    }
     log("audit_completed", {
       auditId: audit.id,
       durationMs: Date.now() - started,
       pagesChecked: result.pagesChecked,
       pagesDiscovered: result.pagesDiscovered,
-      score: result.score.total,
-      partial: result.partial,
+      partial: finalized.partial,
       lighthousePages: lighthouse.pagesChecked,
     });
   } catch (error) {
     const timedOut = controller.signal.aborted && controller.signal.reason === "AUDIT_TIMEOUT";
     const summary = timedOut ? "Audit time limit exceeded" : error instanceof Error ? error.message : "Audit failed";
     await failAuditRecord(audit.id, summary);
-    log("audit_failed", { auditId: audit.id, stage, durationMs: Date.now() - started, reason: timedOut ? "timeout" : errorName(error) });
+    log("audit_failed", {
+      auditId: audit.id,
+      stage,
+      durationMs: Date.now() - started,
+      reason: timedOut ? "timeout" : errorName(error),
+      code: errorCode(error),
+    });
   } finally {
     clearTimeout(timeout);
     shutdown.signal.removeEventListener("abort", stopListener);
@@ -125,78 +160,45 @@ async function processAudit(audit: AuditRow): Promise<void> {
 }
 
 async function handleAuditEvent(event: AuditEvent, transition: (status: AuditStatus, payload?: Record<string, unknown>) => Promise<void>): Promise<void> {
-  switch (event.type) {
-    case "audit:start": await transition("connecting"); break;
-    case "discovery:start": await transition("checking_robots"); break;
-    case "discovery:robots_complete": await transition("checking_sitemaps"); break;
-    case "discovery:sitemaps_complete": await transition("discovering_pages"); break;
-    case "discovery:complete": break;
-    case "crawl:page": await transition("crawling_pages", { pagesChecked: event.pagesChecked, pagesDiscovered: event.pagesDiscovered }); break;
-    case "crawl:progress": await transition("crawling_pages", { pagesChecked: event.pagesChecked, pagesDiscovered: event.pagesDiscovered, queued: event.queued, limit: event.limit }); break;
-    case "warning": log("audit_warning", { code: event.code }); break;
-    case "audit:complete": break;
+  if (event.type === "warning") {
+    log("audit_warning", { code: event.code });
+    return;
   }
+  const mapped = toAuditProgressTransition(event);
+  if (mapped) await transition(mapped.status, { ...mapped.payload });
 }
 
-function rescore(
-  initial: FullAuditResult,
-  performance: FullAuditResult["performance"],
+function attachPerformance(
+  initial: PublicAuditRun,
+  performance: PublicAuditRun["performance"],
   forcedPartial: boolean,
-  plannedPages: number,
-): FullAuditResult {
-  const score = scoreAudit({
-    targetUrl: initial.finalUrl,
-    pages: initial.pages,
-    pagesDiscovered: initial.pagesDiscovered,
-    plannedPages,
-    robots: initial.robots,
-    sitemap: initial.sitemap,
-    performance,
-  });
-  const grade = gradeForScore(score.total);
+): PublicAuditRun {
   return {
     ...initial,
-    score,
-    grade,
-    interpretation: interpretationForGrade(grade),
-    partial: score.partial || forcedPartial,
-    coverage: score.coverage,
+    partial: initial.partial || forcedPartial,
     performance,
     finishedAt: new Date().toISOString(),
   };
 }
 
-async function sendCompletionNotifications(audit: AuditRow, result: FullAuditResult): Promise<void> {
+async function sendCompletionNotifications(audit: AuditRow, pagesChecked: number, partial: boolean): Promise<void> {
   const publicBase = process.env.APP_BASE_URL;
   const adminBase = process.env.ADMIN_BASE_URL || publicBase;
   const publicPath = `${audit.locale === "en" ? "/en" : ""}/audit/${encodeURIComponent(audit.publicToken)}`;
   const publicUrl = publicBase ? new URL(publicPath, publicBase).toString() : publicPath;
   const adminUrl = adminBase ? new URL(`/admin/audits/${encodeURIComponent(audit.id)}`, adminBase).toString() : `/admin/audits/${audit.id}`;
+  const failures: unknown[] = [];
   await notifyTelegram({
     entityType: "audit",
     entityId: audit.id,
-    text: [`KILENI · аудит завершён`, `Домен: ${audit.normalizedDomain}`, `Оценка: ${result.score.total}/100`, `Проверено страниц: ${result.pagesChecked}`, `Статус: ${result.partial ? "частично" : "завершён"}`, `Admin: ${adminUrl}`, `Публичный результат: ${publicUrl}`].join("\n"),
-  });
-  if (audit.contactType === "email" && isEmail(audit.contact)) {
-    const emailResult = await sendEmail({
-      to: audit.contact,
-      subject: audit.locale === "ru" ? "Предварительная SEO-проверка KILENI завершена" : "Your KILENI preliminary SEO check is ready",
-      text: audit.locale === "ru" ? `Проверка завершена. Результат: ${publicUrl}` : `Your check is complete. Result: ${publicUrl}`,
-    });
-    await recordEmailNotification(audit.id, emailResult.sent ? "sent" : emailResult.reason === "not_configured" ? "skipped" : "failed", emailResult.reason);
-  }
-}
-
-async function recordEmailNotification(entityId: string, status: string, error?: string): Promise<void> {
-  const now = Date.now();
-  await database.execute({
-    sql: "INSERT INTO notification_events(id,entity_type,entity_id,channel,status,error,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)",
-    args: [randomUUID(), "audit", entityId, "email", status, error?.slice(0, 240) ?? null, now, now],
-  });
+    text: [`KILENI · аудит завершён`, `Домен: ${audit.normalizedDomain}`, `Проверено страниц: ${pagesChecked}`, `Статус: ${partial ? "частично" : "завершён"}`, `Admin: ${adminUrl}`, `Публичный результат: ${publicUrl}`].join("\n"),
+  }).catch((error: unknown) => { failures.push(error); });
+  await deliverAuditResultEmail(audit.id).catch((error: unknown) => { failures.push(error); });
+  if (failures.length > 0) throw failures[0];
 }
 
 function safeProgress(payload: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(payload).filter(([key]) => ["pagesChecked", "pagesDiscovered", "queued", "limit"].includes(key)));
+  return Object.fromEntries(Object.entries(payload).filter(([key]) => ["pagesChecked", "pagesDiscovered", "pagesEligible", "pagesSelected", "technicalFilesChecked", "queued", "limit", "eventKind"].includes(key)));
 }
 
 function log(event: string, data: Record<string, unknown>): void {
@@ -207,8 +209,17 @@ function errorName(error: unknown): string {
   return error instanceof Error ? error.name : "unknown_error";
 }
 
-function isEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value);
+function errorCode(error: unknown): string | null {
+  const visited = new Set<unknown>();
+  let current: unknown = error;
+  for (let depth = 0; depth < 6 && current && !visited.has(current); depth += 1) {
+    visited.add(current);
+    if (typeof current !== "object") return null;
+    const candidate = current as { code?: unknown; cause?: unknown };
+    if (typeof candidate.code === "string") return candidate.code.slice(0, 80);
+    current = candidate.cause;
+  }
+  return null;
 }
 
 function positiveNumber(value: string | undefined, fallback: number): number {
