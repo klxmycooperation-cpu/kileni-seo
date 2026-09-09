@@ -38,10 +38,10 @@ pnpm dev
 
 - runtime и пути: `APP_BASE_URL`, `DATABASE_PATH`, `PRIVATE_UPLOADS_PATH`, `BACKUP_PATH`;
 - защита: `IP_HASH_SALT`, `ADMIN_SESSION_SECRET`, `ADMIN_PASSWORD_HASH`;
-- контакты и юридические данные: `PUBLIC_*`, `LEGAL_*`, `PRELAUNCH_MODE`;
+- юридические данные и режим запуска: `LEGAL_*`, `PRELAUNCH_MODE`;
 - уведомления: `TELEGRAM_*`, опциональные `SMTP_*`;
 - необязательная bot-защита: `TURNSTILE_SITE_KEY` вместе с `TURNSTILE_SECRET_KEY`;
-- аудит: `AUDIT_PAGE_LIMIT`, `AUDIT_TIMEOUT_MS`, `AUDIT_CACHE_DAYS`, `AUDIT_RESULT_RETENTION_DAYS`, `WORKER_POLL_MS`;
+- аудит и worker: `AUDIT_ENABLED`, `AUDIT_TIMEOUT_MS`, `AUDIT_RESULT_RETENTION_DAYS`, `AUDIT_USER_AGENT`, `WORKER_POLL_MS`, `LIGHTHOUSE_*`;
 - мобильные замеры: `LIGHTHOUSE_ENABLED`, `LIGHTHOUSE_CHROME_PATH`, `LIGHTHOUSE_NO_SANDBOX`;
 - английские цены: `NEXT_PUBLIC_EN_PRICE_CURRENCY` и `NEXT_PUBLIC_EN_PRICE_RATE` — только явно утверждённая валюта и коммерческий курс.
 
@@ -92,10 +92,10 @@ pnpm tsx scripts/hash-password.ts 'длинный-уникальный-паро�
 - коэффициенты калькулятора: `src/config/calculator.ts`;
 - услуги, кейсы и словари: `src/content/`;
 - статьи и связанные материалы: `src/content/articles.ts`;
-- контакты и юридические реквизиты: `.env` (`PUBLIC_*`, `LEGAL_*`);
+- юридические реквизиты: `.env` (`LEGAL_*`); публичные телефон и MAX сейчас заданы в `src/config/site.ts`;
 - логотипы, favicon и OG: `public/brand/` и `public/favicon.svg`.
 
-Пустые публичные контакты скрываются. Числовые цены EN появляются только когда одновременно заданы `NEXT_PUBLIC_EN_PRICE_CURRENCY` и `NEXT_PUBLIC_EN_PRICE_RATE`; иначе платные услуги показывают `Individual estimate`, а бесплатная проверка остаётся `Free`. Автоматического или резервного курса нет.
+Числовые цены EN появляются только когда одновременно заданы `NEXT_PUBLIC_EN_PRICE_CURRENCY` и `NEXT_PUBLIC_EN_PRICE_RATE`; иначе платные услуги показывают `Individual estimate`, а бесплатная проверка остаётся `Free`. Автоматического или резервного курса нет. Публичная бесплатная проверка всегда рассчитана максимум на 10 выбранных HTML-страниц; не меняйте этот предел через окружение в production.
 
 Операционные скрипты можно запускать напрямую:
 

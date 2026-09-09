@@ -62,7 +62,7 @@ pnpm dev
 | Формы | `FORMS_ENABLED`, `AUDIT_ENABLED`, `PRELAUNCH_MODE`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | включение публичных мутаций и bot-защиты | владелец, Cloudflare Turnstile |
 | Аудит и worker | `AUDIT_TIMEOUT_MS`, `AUDIT_RESULT_RETENTION_DAYS`, `AUDIT_USER_AGENT`, `WORKER_POLL_MS`, `WORKER_POLL_INTERVAL_MS`, `LIGHTHOUSE_ENABLED`, `LIGHTHOUSE_CHROME_PATH`, `LIGHTHOUSE_NO_SANDBOX`, `HEALTH_REQUIRE_WORKER` | управление ограничениями и health | инфраструктурная конфигурация |
 | Почта и уведомления | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | только при включённом канале | почтовый и Telegram-владелец |
-| Публичные и юридические данные | `PUBLIC_PHONE`, `PUBLIC_MAX`, `PUBLIC_MAX_URL`, `LEGAL_*` | production и публичные документы | утверждённая карточка владельца |
+| Юридические данные | `LEGAL_*` | production и публичные документы | утверждённая карточка владельца; телефон и MAX сейчас меняются в `src/config/site.ts`, а не через `PUBLIC_*` |
 | RU/EN цены | `NEXT_PUBLIC_EN_PRICE_CURRENCY`, `NEXT_PUBLIC_EN_PRICE_RATE` | только вместе для числовых EN-цен | коммерческое решение владельца |
 | Только QA | `E2E_*`, `QA_*`, `KILENI_QA_OUTPUT_DIR`, `KILENI_BASE_URL` | локальные тесты, не production | тестовый runner |
 
