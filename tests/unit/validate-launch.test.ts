@@ -211,6 +211,9 @@ function run(overrides: NodeJS.ProcessEnv) {
     SMTP_FROM: "",
     TELEGRAM_BOT_TOKEN: "",
     TELEGRAM_CHAT_ID: "",
+    // The child process receives its complete configuration below. Loading this
+    // developer machine's .env.local would make these checks non-deterministic.
+    KILENI_SKIP_ENV_FILE: "1",
   };
   return spawnSync(process.execPath, [fileURLToPath(script)], {
     cwd: process.cwd(),

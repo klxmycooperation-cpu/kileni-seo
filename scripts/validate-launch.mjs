@@ -5,7 +5,9 @@ import { assertIsolatedPreviewEnvironment } from "./runtime-isolation.mjs";
 
 const { loadEnvConfig } = nextEnv;
 
-loadEnvConfig(process.cwd());
+if (process.env.KILENI_SKIP_ENV_FILE !== "1") {
+  loadEnvConfig(process.cwd());
+}
 assertIsolatedPreviewEnvironment();
 
 const legalDefaults = JSON.parse(readFileSync(new URL("../src/config/legal-defaults.json", import.meta.url), "utf8"));
