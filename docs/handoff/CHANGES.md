@@ -31,4 +31,4 @@
 1. Восстановить штатный доступ Timeweb и создать свежую проверенную копию production данных.
 2. Проверить active release и переключить validated candidate с rollback path.
 3. Выполнить реальные audit, brief и email E2E на production; подтверждение SMTP acceptance не выдавать за получение письма.
-4. Указать правильный GitHub remote, push commit, создать tag/release и выполнить clean clone именно из GitHub.
+4. Выдать новому разработчику доступ к приватному GitHub-репозиторию и передать секреты по защищённому каналу. Ветка, tag/release и чистый clone уже проверены.

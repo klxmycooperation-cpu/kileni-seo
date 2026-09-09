@@ -147,7 +147,7 @@ docs/                архитектура и эксплуатация
 
 Актуальная точка входа для следующего разработчика — [пакет передачи](docs/handoff/HANDOVER.md). В нём отдельно отмечены данные, которые нельзя хранить в Git, порядок безопасного восстановления и фактические ограничения текущей передачи. Исторический [SITE_HANDOFF.md](SITE_HANDOFF.md) сохранён как журнал предыдущих release-проходов и не заменяет этот пакет.
 
-Текущая ветка передачи — `release/final-handoff-qa`. Проверенный application candidate: `c2097fd3dd518db6bc26df511dd4fb5b270a3687`; документация передачи уточнена commit `423fce59c9a9b3e50e1d839e8a63782994f4e1bc`. Этот candidate ещё не опубликован: у локального Git нет remote KILENI, а production-переключение ожидает восстановления доступа к серверу. Продолжать работу нужно с этой ветки после привязки правильного GitHub-репозитория.
+Исходники переданы в приватный репозиторий [klxmycooperation-cpu/kileni-seo](https://github.com/klxmycooperation-cpu/kileni-seo). Рабочая ветка — `release/final-handoff-qa`; проверенный application candidate — `c2097fd3dd518db6bc26df511dd4fb5b270a3687`, tag/release — `v0.1.0-audit-stability-r2`. Код, инструкции и шаблон конфигурации находятся в GitHub, но production-переключение и свежая резервная копия данных ожидают восстановления доступа к серверу Timeweb.
 
 - [Передача проекта](docs/handoff/HANDOVER.md)
 - [Данные и восстановление](docs/handoff/DATA_AND_RESTORE.md)

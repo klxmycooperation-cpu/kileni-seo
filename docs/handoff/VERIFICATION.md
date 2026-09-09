@@ -20,6 +20,10 @@ pnpm test:e2e
 
 Это подтверждает candidate и не является подтверждением production-почты, реального inbox, свежих production-данных или фактического переключения на Timeweb.
 
+## Чистый GitHub clone
+
+Ветку `release/final-handoff-qa` повторно клонировали из приватного GitHub-репозитория после публикации. В отдельной временной папке выполнили `pnpm install --frozen-lockfile`, скопировали `.env.example` в `.env.local`, применили `pnpm db:migrate`, затем успешно запустили `pnpm lint`, `pnpm typecheck`, `pnpm test` (626 tests) и `pnpm build`. Миграция создала только изолированную SQLite-базу в этой временной копии; внешние сервисы и production-данные не использовались.
+
 ## Сквозные сценарии
 
 ### Аудит
