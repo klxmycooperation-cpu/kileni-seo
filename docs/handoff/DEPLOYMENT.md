@@ -2,10 +2,10 @@
 
 ## До публикации
 
-1. Восстановите SSH или VNC/serial access к серверу Timeweb. Не переустанавливайте ОС и не удаляйте server/volume ради публикации.
-2. Определите активный runtime по read-only mount `/app` контейнера `kileni-seo-web-1`, а не по предположению или старому документу.
+1. Используйте serial console Timeweb или SSH-ключ владельца. Парольный SSH-вход отключён; не включайте его ради публикации. Не переустанавливайте ОС и не удаляйте server/volume.
+2. Active runtime уже определён по read-only mount `/app` контейнера `kileni-seo-web-1`: `/opt/kileni-seo-releases/20260908-forms-mail-fix/runtime`. Перед каждым новым переключением всё равно сверяйте mount и Compose labels, а не полагайтесь на этот документ.
 3. Сверьте активные Compose labels и exact config files. Сохраните путь как `$active` для отката.
-4. Создайте и проверьте свежий backup данных по [DATA_AND_RESTORE.md](DATA_AND_RESTORE.md).
+4. Используйте подготовленный зашифрованный production package как исходный срез для изолированной проверки. Перед любым новым переключением создайте ещё один fresh backup по [DATA_AND_RESTORE.md](DATA_AND_RESTORE.md).
 5. Передайте на сервер единственный полный artifact, а не набор файлов из разных сборок.
 
 Подготовленный artifact для `c2097fd3` имеет SHA-256 `12aa07ff2ee2341607dd924baf77855073055a6ea5e3f96e81ee68a080f09b15`, build ID `A-x7mMbc1h-vtjmDHUy6h`, 33 406 файлов и 710 проверенных относительных symlink. Он содержит Linux x86-64 native dependencies. Его нельзя смешивать с `node_modules`, migration или worker от активного release.

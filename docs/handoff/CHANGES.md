@@ -20,7 +20,7 @@
 
 Есть подтверждённая ошибка старого publish-script: он заменял migration и `node_modules` нового релиза файлами активного релиза. Это создаёт смешанный runtime и объясняет расхождение схемы, worker и web-кода. Внутри candidate такой перенос исключён.
 
-Серверные логи и active container недоступны из-за отказа SSH/VNC/serial access. Поэтому нельзя честно утверждать, что это единственная причина всех production симптомов или что SMTP в production сломан. После восстановления доступа нужно сопоставить release mounts, environment web/worker, database mode, worker logs, `notification_events` и timestamps трёх реальных сценариев.
+Serial console и active container доступны. Active web смонтирован из старого release; в нём нет штатного `scripts/backup.mjs`, который есть в сохранённом candidate. Это подтверждает, что running runtime не равен проверенному candidate и требует контролируемого переключения. Однако этого недостаточно, чтобы объявить смешанный publish-script единственной причиной всех production симптомов или утверждать, что production SMTP сломан. До выпуска нужно сопоставить environment web/worker, database mode, worker logs, `notification_events` и timestamps трёх реальных сценариев.
 
 ## Проверки candidate
 
@@ -28,7 +28,7 @@
 
 ## Что осталось
 
-1. Восстановить штатный доступ Timeweb и создать свежую проверенную копию production данных.
+1. Получить публичный SSH-ключ нового разработчика и открыть ему ограниченный SFTP-доступ к уже зашифрованному data package.
 2. Проверить active release и переключить validated candidate с rollback path.
 3. Выполнить реальные audit, brief и email E2E на production; подтверждение SMTP acceptance не выдавать за получение письма.
-4. Выдать новому разработчику доступ к приватному GitHub-репозиторию и передать секреты по защищённому каналу. Ветка, tag/release и чистый clone уже проверены.
+4. Принять GitHub invitation с правом Write и передать парольную фразу от архива отдельным каналом. Ветка, tag/release и чистый clone уже проверены.

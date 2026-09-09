@@ -9,13 +9,13 @@
 | Рабочая ветка | `release/final-handoff-qa` | опубликована в GitHub и назначена веткой по умолчанию |
 | Application commit | `c2097fd3dd518db6bc26df511dd4fb5b270a3687` | проверен; отмечен tag `v0.1.0-audit-stability-r2` |
 | GitHub | [klxmycooperation-cpu/kileni-seo](https://github.com/klxmycooperation-cpu/kileni-seo) | приватный репозиторий; ветка, tag и GitHub release опубликованы |
-| Production | [kileni-seo.ru](https://kileni-seo.ru/) | сайт отвечает, но active release нельзя подтвердить без SSH/консоли |
+| Production | [kileni-seo.ru](https://kileni-seo.ru/) | сайт отвечает; active web смонтирован из `/opt/kileni-seo-releases/20260908-forms-mail-fix/runtime`, а не из candidate `c2097fd3` |
 | Админка | [kileni-seo.ru/admin](https://kileni-seo.ru/admin) | доступ требует отдельной администраторской учётной записи |
-| Timeweb Cloud | [карточка сервера 8898503](https://timeweb.cloud/my/servers/8898503) | SSH принимает TCP-соединение, но не завершает SSH banner exchange; VNC не подключается, serial console не показывает prompt |
+| Timeweb Cloud | [карточка сервера 8898503](https://timeweb.cloud/my/servers/8898503) | serial console доступна; SSH принимает только ключи, парольный вход root отключён |
 | Подготовленный runtime | архив commit `c2097fd3`, SHA-256 `12aa07ff2ee2341607dd924baf77855073055a6ea5e3f96e81ee68a080f09b15` | готов к публикации, не переключён |
-| Production backup | свежий срез не создан в этом проходе | блокер: нет доступа к production-хранилищам |
+| Production data package | read-only export Turso/libSQL, SQLite backup, uploads и runtime-настройки | создан, проверен и зашифрован; выдача через ограниченный SFTP ожидает публичный SSH-ключ получателя |
 
-Исходники переданы в GitHub. Передача production не завершена, пока не создан и не восстановлен свежий production backup, а runtime `c2097fd3` не пройдёт server-side проверки и переключение. Владельцу также нужно выдать новому разработчику доступ к приватному репозиторию и секретам через защищённый канал.
+Исходники переданы в GitHub. Production-копия подготовлена отдельно и не загружается в GitHub: в ней находятся клиентские данные и действующие runtime-настройки. Передача считается завершённой только после установки публичного SSH-ключа получателя, скачивания зашифрованного архива, сверки SHA-256 и отдельной передачи парольной фразы. Candidate `c2097fd3` ещё не опубликован на production и должен пройти server-side проверку до переключения.
 
 ## Что находится в репозитории
 
