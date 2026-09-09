@@ -1,5 +1,7 @@
 # SITE HANDOFF — KILENI
 
+> Архивный снимок от 7 сентября 2026 года. Он сохраняет сведения о прежних release-проходах, но не подтверждает текущий опубликованный runtime. Для продолжения работы используйте [актуальный пакет передачи](docs/handoff/HANDOVER.md). В частности, application commit `c2097fd3` подготовлен и проверен локально, однако его переключение в production требует восстановления штатного доступа к серверу.
+
 Снимок актуализирован 7 сентября 2026 года. Production работает из release `/opt/kileni-seo-releases/20260907-final-integration-rc3/runtime` со сборкой `SENFDQRfLN1EzZQY-cqkc`; web healthy, worker запущен, внешний `/api/health` возвращает `status=ok`, `database=ok`, `worker=ok`. RC3 опубликован после server-side preflight, backup и post-switch smoke. Реальные данные и secrets в пакет не копируются.
 
 ## Идентификация

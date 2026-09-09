@@ -10,6 +10,11 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem("kileni-cookie-preferences:v2", JSON.stringify({ essential: true, analytics: false, marketing: false, version: "2026-08-23.2" }));
   });
   await page.goto("/calculator");
+  // WebKit may expose server-rendered fields before React has attached the
+  // submit handler. Wait for the CSRF-backed control to become usable before
+  // entering data, otherwise this test can exercise native HTML validation
+  // instead of the calculator's network-error path.
+  await expect(page.getByRole("button", { name: "Отправить расчёт" })).toBeEnabled();
   await page.getByRole("textbox", { name: "Имя", exact: true }).fill("QA test — do not contact");
   await page.getByRole("textbox", { name: "Телефон или e-mail" }).fill("qa@example.test");
   await page.locator('.estimate-panel input[name="consent"]').check();
