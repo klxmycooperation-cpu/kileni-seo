@@ -9,6 +9,7 @@ const STORAGE_KEY = "kileni-cookie-preferences:v2";
 // previously stored choice cannot silently suppress the updated notice.
 const CONSENT_VERSION = "2026-08-23.2";
 const OPEN_EVENT = "kileni:open-cookie-settings";
+const READY_EVENT = "kileni:cookie-manager-ready";
 const POST_INTRO_DELAY_MS = 160;
 
 type Preferences = { essential: true; analytics: boolean; marketing: boolean; version?: string; savedAt?: string };
@@ -103,7 +104,10 @@ export function CookieManager({ locale }: { locale: Locale }) {
       setOpen(true);
     };
     window.addEventListener(OPEN_EVENT, show);
+    document.documentElement.dataset.kileniCookieManagerReady = "true";
+    window.dispatchEvent(new Event(READY_EVENT));
     return () => {
+      delete document.documentElement.dataset.kileniCookieManagerReady;
       stopWaitingForIntro();
       window.clearTimeout(revealTimer);
       window.removeEventListener(OPEN_EVENT, show);
@@ -305,10 +309,20 @@ function StorageInventory({ locale }: { locale: Locale }) {
 }
 
 export function CookieSettingsButton({ locale }: { locale: Locale }) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const update = () => setReady(document.documentElement.dataset.kileniCookieManagerReady === "true");
+    update();
+    window.addEventListener(READY_EVENT, update);
+    return () => window.removeEventListener(READY_EVENT, update);
+  }, []);
+
   return (
     <button
       type="button"
       className="footer-cookie-button"
+      disabled={!ready}
       onClick={(event) => window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: event.currentTarget }))}
     >
       {locale === "ru" ? "Настройки cookies" : "Cookie settings"}

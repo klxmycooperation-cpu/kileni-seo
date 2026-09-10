@@ -96,9 +96,9 @@ test.describe("правки по скриншотам 2026-09-06", () => {
     await expect(panels.nth(0)).toBeHidden();
     await expect(panels.nth(1)).toBeHidden();
 
-    const deliverySteps = page.locator(".home-deliverable-list > li");
+    const deliverySteps = page.locator(".home-fix-flow > li");
     await expect(deliverySteps).toHaveCount(4);
-    await expect(deliverySteps.nth(3)).toContainText("Повторно проверяем");
+    await expect(deliverySteps.nth(3)).toContainText("ПРОВЕРИЛИ");
   });
 
   test("карточки статей имеют изображения и карусель начинается без обрезания", async ({ page }) => {

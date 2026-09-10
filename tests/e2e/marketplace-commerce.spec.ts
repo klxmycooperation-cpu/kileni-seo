@@ -103,11 +103,20 @@ test("carries the selected marketplace and service tier into the brief", async (
   await expect(page.locator(".brief-service-guide")).toContainText("Яндекс Маркет");
   await expect(page.locator(".brief-service-guide")).toContainText(/4\s*900\s*₽ за артикул/u);
   await page.getByRole("button", { name: /^Далее/u }).click();
-  await page.getByLabel("Компания или проект").fill("Тестовый магазин");
-  await page.getByLabel("Что сейчас не устраивает?").fill("Карточки сложно сравнивать");
-  await page.getByLabel("Какой результат нужен?").fill("Понятные карточки для покупателей");
+  const company = page.getByLabel("Компания или проект");
+  const problem = page.getByLabel("Что сейчас не устраивает?");
+  const desiredResult = page.getByLabel("Какой результат нужен?");
+  await expect(company).toBeVisible();
+  await company.fill("Тестовый магазин");
+  await problem.fill("Карточки сложно сравнивать");
+  await desiredResult.fill("Понятные карточки для покупателей");
+  await expect(company).toHaveValue("Тестовый магазин");
+  await expect(problem).toHaveValue("Карточки сложно сравнивать");
+  await expect(desiredResult).toHaveValue("Понятные карточки для покупателей");
   await page.getByRole("button", { name: /^Далее/u }).click();
-  await expect(page.getByLabel(/Площадка/u)).toHaveValue("yandex-market");
+  const platform = page.getByLabel(/Площадка/u);
+  await expect(platform).toBeVisible();
+  await expect(platform).toHaveValue("yandex-market");
 
   await page.goto("/seo-audit");
   const serviceTier = page.locator(".svc-package-grid > article").nth(1);

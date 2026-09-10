@@ -75,6 +75,19 @@ describe("public copy", () => {
     expect(homeSource).not.toMatch(/overall (SEO )?score/iu);
   });
 
+  it("keeps the revised home flow concrete and removes example captions", () => {
+    const homeSource = readFileSync(resolve(process.cwd(), "src/components/home/HomePage.tsx"), "utf8");
+    const heroSource = readFileSync(resolve(process.cwd(), "src/components/home/HeroScan.tsx"), "utf8");
+    const analyticsSource = readFileSync(resolve(process.cwd(), "src/components/analytics/AnalyticsVisuals.tsx"), "utf8");
+
+    for (const label of ["НАШЛИ", "ОБЪЯСНИЛИ", "ИСПРАВИЛИ", "ПРОВЕРИЛИ"]) {
+      expect(homeSource).toContain(label);
+    }
+    expect(heroSource).not.toContain("Сначала факты");
+    expect(homeSource).not.toContain("технического шума");
+    expect(analyticsSource).not.toContain("Это пример, а не результат клиента");
+  });
+
   it("keeps reviewed interface copy concrete and free of artificial shorthand", () => {
     const reviewedSources = [
       "src/components/analytics/AnalyticsVisuals.tsx",

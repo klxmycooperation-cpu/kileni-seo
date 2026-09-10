@@ -58,7 +58,7 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           number: "03",
           title: "Аудит и внедрение",
           eyebrow: "Когда нужна реализация",
-          description: "Не только фиксируем проблемы: согласуем объём, вносим изменения и повторно проверяем результат.",
+          description: "Согласуем объём, внесём изменения и повторим проверку после внедрения.",
           price: formatOfferPrice(getOffer("seo-audit-implementation")!, locale),
           timing: implementation.duration,
           scope: implementation.scope,
@@ -96,7 +96,7 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           number: "03",
           title: "Audit with implementation",
           eyebrow: "When execution matters",
-          description: "We agree the scope, implement the work and verify the result instead of leaving you with a list.",
+          description: "We agree the scope, implement the work and repeat the check after delivery.",
           price: formatOfferPrice(getOffer("seo-audit-implementation")!, locale),
           timing: implementation.duration,
           scope: implementation.scope,
@@ -122,7 +122,7 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
       <div className="home-decision__intro" id="home-formats">
         <p className="section-label">{ru ? "Какой объём выбрать" : "Choose the right scope"}</p>
         <h2 id="decision-heading">{ru ? "Начните с того объёма, который нужен сейчас" : "Start with the level that fits the task now"}</h2>
-        <p>{ru ? "Можно ограничиться проверкой, перейти к полному аудиту или сразу обсудить внедрение. Никаких скрытых переходов между форматами." : "Start with a check, move to a full audit, or discuss implementation straight away. The formats stay transparent."}</p>
+        <p>{ru ? "Можно ограничиться проверкой, перейти к полному аудиту или сразу обсудить внедрение. Состав и цена каждого формата указаны отдельно." : "Start with a check, move to a full audit, or discuss implementation straight away. Each format lists its scope and price."}</p>
       </div>
 
       <div className="home-decision__body">

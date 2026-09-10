@@ -58,7 +58,7 @@ test("renders controlled A/B/C fixture reports with API, PDF and admin parity", 
     await expect(page.locator(".audit-complete--client")).toBeVisible();
     await expect(page.getByText(`${completed.publicResult.inventorySummary.checked}`, { exact: true }).first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-    await page.screenshot({ path: resolve(evidenceRoot, `${label}-${browserName}-web.png`), fullPage: true, animations: "disabled" });
+    await page.screenshot({ path: resolve(evidenceRoot, `${label}-${browserName}-web.png`), fullPage: browserName !== "webkit", animations: "disabled" });
 
     const pdfResponse = await page.request.get(`/api/audits/${completed.audit.publicToken}/report.pdf`);
     expect(pdfResponse.ok()).toBe(true);
@@ -76,7 +76,7 @@ test("renders controlled A/B/C fixture reports with API, PDF and admin parity", 
     await page.goto(`/admin/audits/${audit.id}`);
     await expect(page.locator('section[aria-labelledby="audit-client-summary-heading"]')).toBeVisible();
     await expect(page.locator("body")).toContainText(String(audit.expected.inventorySummary.checked));
-    await page.screenshot({ path: resolve(evidenceRoot, `${audit.label}-${browserName}-admin.png`), fullPage: true, animations: "disabled" });
+    await page.screenshot({ path: resolve(evidenceRoot, `${audit.label}-${browserName}-admin.png`), fullPage: browserName !== "webkit", animations: "disabled" });
   }
 });
 

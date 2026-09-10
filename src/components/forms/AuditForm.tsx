@@ -147,6 +147,7 @@ export function AuditForm({
   const router = useRouter();
   const { token, refresh, error: csrfError, loading: csrfLoading } = useCsrf();
   const [step, setStep] = useState<1 | 2>(1);
+  const [formReady, setFormReady] = useState(false);
   const [pending, setPending] = useState(false);
   const [serverError, setServerError] = useState("");
   const [activeAudit, setActiveAudit] = useState<ActiveAudit | null>(null);
@@ -166,9 +167,11 @@ export function AuditForm({
     const enteredBeforeHydration = urlInputRef.current?.value.trim();
     const value = enteredBeforeHydration || params.get("url")?.trim();
     setForceFresh(params.get("fresh") === "1");
-    if (!value || value.length > 2048) return;
-    setUrlValue(value);
-    if (urlInputRef.current) urlInputRef.current.value = value;
+    if (value && value.length <= 2048) {
+      setUrlValue(value);
+      if (urlInputRef.current) urlInputRef.current.value = value;
+    }
+    setFormReady(true);
   }, []);
 
   useEffect(() => {
@@ -447,6 +450,7 @@ export function AuditForm({
           <button
             className="button button-primary"
             type="button"
+            disabled={!formReady}
             onMouseDown={(event) => {
               if (auditUrlError(urlInputRef.current?.value ?? urlValue, ru)) event.preventDefault();
             }}

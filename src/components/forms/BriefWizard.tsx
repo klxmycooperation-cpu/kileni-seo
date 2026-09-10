@@ -84,11 +84,10 @@ export function BriefWizard({ locale }: { locale: Locale }) {
     previousStep.current = step;
     const heading = headingRef.current;
     if (!heading) return;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     heading.focus({ preventScroll: true });
     heading.scrollIntoView({
       block: "start",
-      behavior: reducedMotion ? "auto" : "smooth",
+      behavior: "auto",
     });
   }, [draftReady, step]);
 
@@ -428,11 +427,11 @@ export function BriefWizard({ locale }: { locale: Locale }) {
         {status && step < 4 && <p className="form-error" role="status">{status}</p>}
         {step < 4 && (
           <div className="wizard-actions">
-            <button type="button" className="button button-secondary" disabled={step === 0} onClick={() => setStep((value) => Math.max(0, value - 1))}>
+            <button type="button" className="button button-secondary" disabled={!draftReady || step === 0} onClick={() => setStep((value) => Math.max(0, value - 1))}>
               {ru ? "Назад" : "Back"}
             </button>
             {step < 3 ? (
-              <button type="button" className="button button-primary" onClick={goNext}>
+              <button type="button" className="button button-primary" disabled={!draftReady} onClick={goNext}>
                 {ru ? "Далее" : "Next"}<span aria-hidden="true">→</span>
               </button>
             ) : (

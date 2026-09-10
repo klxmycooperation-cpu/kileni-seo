@@ -44,7 +44,7 @@ const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
     slug: "seo-audit",
     eyebrow: "Пример результата",
     title: "Одна строка аудита должна объяснять проблему и способ приёмки",
-    lead: "Не обезличенный список предупреждений, а рабочая запись, которую можно передать разработчику и проверить повторно.",
+    lead: "Рабочую запись можно передать разработчику и использовать для повторной проверки.",
     fragment: {
       title: "Фрагмент таблицы аудита",
       caption: "Обезличенный пример формата одной находки.",
@@ -317,7 +317,7 @@ const en: Record<ServiceResultExampleSlug, ServiceResultExample> = {
     slug: "seo-audit",
     eyebrow: "Result example",
     title: "Each audit row should explain the issue and how to accept the fix",
-    lead: "Not an anonymous warning list, but a working record that can be handed to a developer and verified again.",
+    lead: "This working record can be handed to a developer and used for the follow-up check.",
     fragment: {
       title: "Audit table fragment",
       caption: "An anonymised example of one finding.",

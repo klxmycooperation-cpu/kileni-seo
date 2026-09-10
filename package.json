@@ -76,16 +76,5 @@
     "typescript": "5.9.3",
     "vitest": "^4.1.11"
   },
-  "pnpm": {
-    "overrides": {
-      "@esbuild-kit/core-utils>esbuild": "0.25.12",
-      "js-yaml": "4.3.2"
-    },
-    "onlyBuiltDependencies": [
-      "better-sqlite3",
-      "esbuild",
-      "sharp"
-    ]
-  },
   "type": "module"
 }

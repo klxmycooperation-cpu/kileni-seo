@@ -64,7 +64,7 @@ test("uses the dark hero and leads from the task to proof before prices", async 
   await expect(caseExplorer.locator(".home-case-explorer__surface")).toContainText("509 / 509");
   await expect(caseExplorer.locator(".home-case-explorer__identity img")).toBeVisible();
   await expect(page.locator(".home-deliverables")).toContainText("Как замечание превращается в проверенное исправление");
-  await expect(page.locator(".home-deliverables")).toContainText("Показываем проблему на конкретной странице");
+  await expect(page.locator(".home-deliverables")).toContainText("Показываем директиву noindex и адрес страницы");
 });
 
 test("uses the site palette and the approved typographic first-visit brand reveal", async ({ page }) => {

@@ -575,3 +575,197 @@ html[data-kileni-theme="dark"] .kileni-site .home-deliverable-list li:nth-child(
 html[data-kileni-theme="signal"] .kileni-site .home-deliverable-list li:nth-child(4) > div > small {
   color: var(--text-secondary) !important;
 }
+
+/* Final client-feedback release: controlled headlines, readable supporting copy
+   and layouts that keep their rhythm across themes and viewports. */
+.kileni-site .signal-hero .hero-title-lock { white-space: nowrap; }
+
+@media (max-width: 360px) {
+  .kileni-site .signal-hero .hero-copy h1 {
+    overflow-wrap: anywhere;
+  }
+
+  .kileni-site .signal-hero .hero-title-lock {
+    /* At 200% text zoom the phrase may wrap instead of overflowing the H1. */
+    white-space: normal;
+  }
+}
+
+@media (max-width: 760px) {
+  .kileni-site .signal-hero {
+    min-height: 100svh;
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+}
+
+.kileni-site :is(
+  .hero-microcopy,
+  .hero-free-audit-usage,
+  .hero-check-link small,
+  .svc-detail-copy > p,
+  .svc-visual-deliverables li,
+  .svc-visual-note,
+  .svc-compact-heading > p:last-child,
+  .svc-compact-grid li,
+  .svc-package-head p,
+  .svc-package-limit,
+  .svc-package-included li,
+  .svc-assurance li,
+  .svc-assurance-footer p,
+  .marketplace-card-journey li p,
+  .marketplace-offer-head p,
+  .marketplace-offer-note,
+  .marketplace-offer dt,
+  .marketplace-offer dd,
+  .marketplace-offer li,
+  .cp-package-fit,
+  .cp-package-contract,
+  .cp-package-exclusions li,
+  .faq-list details p,
+  .lead-form label > span,
+  .lead-form .check-field
+) {
+  font-size: max(.875rem, 14px);
+  line-height: 1.55;
+}
+
+html[data-kileni-theme="dark"] .kileni-site .svc-detail-hero :is(.svc-detail-copy > p, .svc-visual-deliverables li, .svc-visual-note) {
+  color: #c8d2e0;
+}
+
+html[data-kileni-theme="signal"] .kileni-site .svc-detail-hero :is(.svc-detail-copy > p, .svc-visual-deliverables li, .svc-visual-note) {
+  color: #c6d9cb;
+}
+
+.kileni-site :is(.desktop-nav a, .language-link, .theme-toggle) { font-size: .8rem; }
+
+html[data-kileni-theme="dark"] .kileni-site :is(.service-10, .services-10, .pricing-10, .about-10, .marketplace-page) {
+  --svc-muted: #c2ccdb;
+  --theme-muted: #c2ccdb;
+}
+
+html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pricing-10, .about-10, .marketplace-page) {
+  --svc-muted: #bfd2c4;
+  --theme-muted: #bfd2c4;
+}
+
+.kileni-site .home-deliverables-grid { align-items: start; }
+.kileni-site .home-deliverables .home-section-heading .warm-lead {
+  color: var(--text-secondary, #2f3a55);
+  font-family: var(--font-manrope), Arial, sans-serif;
+  font-size: 1rem !important;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.6;
+  text-transform: none;
+}
+.kileni-site .home-fix-flow {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: .75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.kileni-site .home-fix-flow::before {
+  position: absolute;
+  top: 2.1rem;
+  right: 10%;
+  left: 10%;
+  height: 2px;
+  background: var(--brand, #4164ff);
+  content: "";
+  opacity: .34;
+}
+.kileni-site .home-fix-flow li {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 4.2rem auto;
+  min-width: 0;
+  padding: 0 .85rem;
+}
+.kileni-site .home-fix-flow li > span {
+  display: grid;
+  width: 2.45rem;
+  height: 2.45rem;
+  place-items: center;
+  align-self: center;
+  border: 2px solid var(--brand, #4164ff);
+  border-radius: 50%;
+  background: var(--background-elevated, #eef2f7);
+  color: var(--brand, #4164ff);
+  font: 800 .75rem/1 var(--mono);
+}
+.kileni-site .home-fix-flow li > div { padding-top: 1rem; border-top: 1px solid var(--border, #d8dce6); }
+.kileni-site .home-fix-flow strong { display: block; margin-bottom: .55rem; color: var(--text-primary, #0b132b); font-size: .88rem; letter-spacing: .06em; }
+.kileni-site .home-fix-flow small { display: block; color: var(--text-secondary, #2f3a55); font-size: .9rem; line-height: 1.55; }
+.kileni-site .home-fix-flow li > b { display: none; }
+
+.kileni-site .svc-request-section {
+  background: #17398e;
+  color: #fff;
+}
+.kileni-site .svc-request-grid {
+  grid-template-columns: minmax(17rem, .72fr) minmax(28rem, 1.28fr);
+  align-items: start;
+  gap: clamp(2rem, 6vw, 6rem);
+}
+.kileni-site .svc-request-intro { display: grid; align-content: start; gap: 1rem; }
+.kileni-site .svc-request-intro :is(h2, p) { margin: 0; }
+.kileni-site .svc-request-intro h2 { max-width: 12ch; font-size: clamp(2.4rem, 4.2vw, 4.65rem); }
+.kileni-site .svc-request-intro > p:last-of-type { color: #e8edff; font-size: 1rem; line-height: 1.6; }
+.kileni-site .svc-request-intro ul { display: grid; gap: .65rem; margin: .5rem 0 0; padding: 1.1rem 0 0; border-top: 1px solid rgba(255, 255, 255, .3); list-style: none; }
+.kileni-site .svc-request-intro li { display: grid; grid-template-columns: 1.2rem minmax(0, 1fr); gap: .65rem; color: #f7f9ff; font-size: .9rem; }
+.kileni-site .svc-request-intro li::before { color: #aebeff; content: "✓"; font-weight: 800; }
+.kileni-site .svc-request-form { padding: clamp(1rem, 2vw, 1.5rem); border: 1px solid rgba(255, 255, 255, .25); border-radius: 1.25rem; background: rgba(5, 16, 48, .3); }
+.kileni-site .svc-request-form .lead-form { padding: clamp(1.25rem, 2.5vw, 2rem); border-radius: .85rem; }
+
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 981px) {
+    .kileni-site .marketplace-offer-grid { grid-template-rows: repeat(8, auto); }
+    .kileni-site .marketplace-offer {
+      grid-row: span 8;
+      grid-template-rows: subgrid;
+    }
+    .kileni-site .marketplace-offer-head {
+      display: contents;
+    }
+  }
+}
+
+.kileni-site .error-page {
+  min-height: 100svh;
+  padding: clamp(8rem, 15vw, 12rem) 1rem clamp(4rem, 8vw, 7rem);
+  background:
+    radial-gradient(circle at 72% 22%, rgba(65, 100, 255, .2), transparent 27rem),
+    var(--background, #07111f);
+  color: var(--text-primary, #f7f8fc);
+  text-align: left;
+}
+.kileni-site .error-page__content { width: min(100%, 58rem); margin: auto; }
+.kileni-site .error-page__code { margin: 0 0 1.25rem; color: var(--brand, #8aa4ff); font: 800 clamp(4.5rem, 13vw, 9rem)/.8 var(--font-manrope), sans-serif; letter-spacing: -.08em; }
+.kileni-site .error-page h1 { max-width: 12ch; margin-bottom: 1.25rem; font-size: clamp(2.7rem, 6vw, 5.7rem); }
+.kileni-site .error-page__content > p:not(.error-page__code) { max-width: 36rem; color: var(--text-secondary, #d5ddec); font-size: 1.05rem; }
+.kileni-site .error-page__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+.kileni-site .error-page__actions .button { margin: 0; }
+
+@media (max-width: 980px) {
+  .kileni-site .home-deliverables-grid,
+  .kileni-site .svc-request-grid { grid-template-columns: 1fr; }
+  .kileni-site .home-fix-flow { grid-template-columns: 1fr; }
+  .kileni-site .home-fix-flow::before { top: 1.2rem; right: auto; bottom: 1.2rem; left: 1.2rem; width: 2px; height: auto; }
+  .kileni-site .home-fix-flow li { grid-template-columns: 3.25rem minmax(0, 1fr); grid-template-rows: auto; padding: .65rem 0; }
+  .kileni-site .home-fix-flow li > span { grid-column: 1; grid-row: 1; align-self: start; background: var(--background, #f7f8fb); }
+  .kileni-site .home-fix-flow li > div { grid-column: 2; grid-row: 1; min-height: 5rem; padding: .15rem 0 1rem 1rem; border-top: 0; border-bottom: 1px solid var(--border, #d8dce6); }
+  .kileni-site .svc-request-form { padding: .75rem; }
+}
+
+@media (max-width: 520px) {
+  .kileni-site .signal-hero .hero-copy h1 { font-size: clamp(2.45rem, 11vw, 3rem); }
+  .kileni-site .svc-request-section { padding-block: 3.5rem; }
+  .kileni-site .svc-request-intro h2 { max-width: 15ch; font-size: clamp(2.25rem, 10vw, 3.15rem); }
+  .kileni-site .svc-request-form { margin-inline: -.25rem; }
+  .kileni-site .error-page__actions { display: grid; }
+  .kileni-site .error-page__actions .button { width: 100%; }
+}

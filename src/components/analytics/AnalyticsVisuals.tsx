@@ -431,11 +431,6 @@ export function HeroSearchVisibilityVisual({ locale }: { locale: Locale }) {
   return (
     <figure className="hero-audit-visual analytics-card analytics-card--hero" aria-label={ru ? "Поисковая видимость" : "Search visibility"} data-visualisation-run="0">
       <VisibilityChart locale={locale} />
-      <figcaption className="analytics-demo-caption">
-        {ru
-          ? "График показывает, как может меняться видимость сайта после исправлений. Это пример, а не результат клиента."
-          : "The chart shows how a website's search visibility can change after improvements. This is an example, not a client result."}
-      </figcaption>
     </figure>
   );
 }

@@ -125,7 +125,21 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
         </section>
 
         <Faq title={ru ? "Вопросы об услуге" : "Questions about the service"} items={service.faq} />
-        <section id="request" className="svc-request-section"><div className="shell svc-request-grid"><div><p className="svc-kicker">{ru ? "Следующий шаг" : "Next step"}</p><h2>{ru ? "Опишите задачу — предложим подходящий объём" : "Describe the task — get a sensible scope"}</h2><p>{ru ? "До начала назовём состав, срок, цену и то, что не входит в работу." : "Before work starts, we state scope, timing, price and exclusions."}</p></div><LeadForm locale={locale} service={slug} /></div></section>
+        <section id="request" className="svc-request-section">
+          <div className="shell svc-request-grid">
+            <div className="svc-request-intro">
+              <p className="svc-kicker">{ru ? "Следующий шаг" : "Next step"}</p>
+              <h2>{ru ? "Опишите задачу — предложим подходящий объём" : "Describe the task — get a suitable scope"}</h2>
+              <p>{ru ? "До начала назовём состав, срок, цену и то, что не входит в работу." : "Before work starts, we state scope, timing, price and exclusions."}</p>
+              <ul>
+                <li>{ru ? "Ответим по указанному контакту" : "We reply using the contact you provide"}</li>
+                <li>{ru ? "Уточним только необходимые входные данные" : "We ask only for the inputs we need"}</li>
+                <li>{ru ? "Работу начнём после согласования" : "Work starts after your approval"}</li>
+              </ul>
+            </div>
+            <div className="svc-request-form"><LeadForm locale={locale} service={slug} /></div>
+          </div>
+        </section>
       </article>
       </ServiceTierProvider>
     </PublicShell>

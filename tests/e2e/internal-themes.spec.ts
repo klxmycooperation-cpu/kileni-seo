@@ -63,7 +63,7 @@ test("keeps the light home hero's supporting copy readable", async ({ page }) =>
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
   await expect(page.locator(".hero-free-audit-usage")).toHaveCSS("color", "rgb(75, 89, 112)");
   await expect(page.locator(".hero-free-audit-usage strong")).toHaveCSS("color", "rgb(16, 23, 34)");
-  await expect(page.locator(".analytics-demo-caption")).toHaveCSS("color", "rgb(89, 97, 121)");
+  await expect(page.locator(".analytics-demo-caption")).toHaveCount(0);
 });
 
 test("cycles the public themes in the approved Dark to Signal to Light order", async ({ page }) => {

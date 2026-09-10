@@ -21,22 +21,22 @@ export function HomePage({ locale }: { locale: Locale }) {
   const process = ru
     ? [
         { title: "Проверяем", text: "Проводим бесплатную проверку до 10 ключевых страниц: открываются ли они, доступны ли поиску и нет ли повторяющихся ошибок.", result: "Видим, что мешает сайту появляться в поиске" },
-        { title: "Объясняем", text: "Показываем, где сайт теряет видимость и обращения, и отделяем критичное от того, что может подождать.", result: "Получаете приоритеты без технического шума" },
-        { title: "Исправляем", text: "Согласуем объём и по этапам внедряем нужные изменения: от структуры до контента и скорости.", result: "Работы привязаны к понятному результату" },
-        { title: "Перепроверяем", text: "После внедрения повторяем те же проверки и фиксируем, что действительно изменилось.", result: "Есть доказательство результата, а не просто отчёт" },
+        { title: "Объясняем", text: "Показываем, где сайт теряет видимость и обращения, и отделяем критичное от того, что может подождать.", result: "Согласуем, что исправлять в первую очередь" },
+        { title: "Исправляем", text: "Согласуем объём и по этапам внедряем нужные изменения: от структуры до контента и скорости.", result: "Фиксируем выполненные изменения" },
+        { title: "Перепроверяем", text: "После внедрения повторяем те же проверки и фиксируем, что действительно изменилось.", result: "Сохраняем результат повторной проверки" },
       ]
     : [
         { title: "Check", text: "We run a free express review of up to 10 key pages: access, indexing and visible technical risks.", result: "You see whether there are systemic growth constraints" },
-        { title: "Explain", text: "We show where visibility and enquiries are being lost, separating critical work from what can wait.", result: "You receive priorities without technical noise" },
-        { title: "Implement", text: "We agree the scope and implement the necessary changes in stages: structure, content and speed.", result: "Every action is tied to an understandable result" },
-        { title: "Recheck", text: "After implementation, we repeat the same checks and record what actually changed.", result: "There is proof of the result, not just a report" },
+        { title: "Explain", text: "We show where visibility and enquiries are being lost, separating critical work from what can wait.", result: "We agree what should be fixed first" },
+        { title: "Implement", text: "We agree the scope and implement the necessary changes in stages: structure, content and speed.", result: "We record the completed changes" },
+        { title: "Recheck", text: "After implementation, we repeat the same checks and record what actually changed.", result: "We save the follow-up check result" },
       ];
   const directions = ru
     ? [
         { title: "SEO-продвижение", text: "Технические исправления, структура и новые страницы по плану.", href: "seo-promotion" },
         { title: "Wildberries и Ozon", text: "Карточки, тексты и визуальная упаковка товара.", href: "marketplaces" },
         { title: "Разработка", text: "Лендинги, корпоративные сайты и каталоги.", href: "web-development" },
-        { title: "Яндекс Реклама", text: "Настройка и ведение кампаний с прозрачными границами.", href: "yandex-ads" },
+        { title: "Яндекс Реклама", text: "Настройка и ведение кампаний с заранее согласованным объёмом работ.", href: "yandex-ads" },
       ]
     : [
         { title: "SEO support", text: "Technical improvements, structure and planned new pages.", href: "seo-promotion" },
@@ -47,9 +47,9 @@ export function HomePage({ locale }: { locale: Locale }) {
   const checkCategories = ru
     ? [
         { title: "Индексация", text: "Проверяем, может ли важная страница попасть в поиск и не закрыта ли она от обхода.", href: localizedPath(locale, "glossary/indexing") },
-        { title: "Структура", text: "Смотрим, понятны ли заголовки, адреса и связи между страницами людям и поисковым системам.", href: localizedPath(locale, "glossary/on-page") },
+        { title: "Структура", text: "Смотрим, точно ли заголовки, адреса и ссылки описывают содержание страниц.", href: localizedPath(locale, "glossary/on-page") },
         { title: "Скорость", text: "Находим то, что замедляет первый экран и мешает посетителю пользоваться сайтом с телефона.", href: localizedPath(locale, "glossary/core-web-vitals") },
-        { title: "Оптимизация", text: "Собираем наблюдения в понятный порядок: что исправить сейчас, а что может подождать.", href: localizedPath(locale, "glossary/seo-audit") },
+        { title: "Оптимизация", text: "Распределяем замечания по приоритету: что исправить сейчас, а что может подождать.", href: localizedPath(locale, "glossary/seo-audit") },
       ]
     : [
         { title: "Indexing", text: "We check whether important pages can enter search results and are open to crawling.", href: localizedPath(locale, "glossary/indexing") },
@@ -59,7 +59,7 @@ export function HomePage({ locale }: { locale: Locale }) {
       ];
   const faq = ru
     ? [
-        { q: "Что покажет бесплатная проверка?", a: "Число найденных и проверенных страниц, статусы выполненных проверок, конкретные замечания по выбранным адресам и понятный порядок действий." },
+        { q: "Что покажет бесплатная проверка?", a: "Число найденных и проверенных страниц, статусы выполненных проверок, конкретные замечания по выбранным адресам и порядок исправлений." },
         { q: "Нужен доступ к сайту?", a: "Нет. Проверка видит только те страницы, которые доступны обычному посетителю, и соблюдает правила сайта для поисковых систем." },
         { q: "Можно проверить большой сайт?", a: "Бесплатно проверяем до 10 ключевых публичных страниц. Для более крупного сайта покажем, какие разделы стоит разобрать отдельно." },
         { q: "Можно заказать исправления?", a: "Да. Сначала отдельно согласуем состав, срок, стоимость и критерии повторной проверки." },
@@ -93,7 +93,7 @@ export function HomePage({ locale }: { locale: Locale }) {
             <div className="home-entry-route__heading">
               <p>{ru ? "С чего начать" : "Where to start"}</p>
               <h2 id="home-task-routes-title">{ru ? "Выберите ближайшую задачу" : "Choose the closest goal"}</h2>
-              <span>{ru ? "На следующей странице будут состав, границы и понятный следующий шаг." : "The next page explains the scope, boundaries and next step."}</span>
+              <span>{ru ? "На следующей странице будут состав, ограничения и следующий шаг." : "The next page explains the scope, boundaries and next step."}</span>
             </div>
             <HomeMobileDisclosure label={ru ? "Показать задачи" : "Show client goals"} className="home-entry-route__disclosure">
               <nav className="home-entry-route__list" aria-label={ru ? "Задачи клиентов" : "Client goals"}>
@@ -138,13 +138,13 @@ export function HomePage({ locale }: { locale: Locale }) {
             <div className="home-section-heading">
               <p>{ru ? "Что вы получите" : "What you receive"}</p>
               <h2 id="home-deliverables-title">{ru ? "Как замечание превращается в проверенное исправление" : "How a finding becomes a verified fix"}</h2>
-              <p className="warm-lead">{ru ? "Для каждого замечания показываем причину, приоритет, внесённое изменение и результат повторной проверки." : "For every finding, we show the cause, priority, implemented change and follow-up result."}</p>
+              <p className="warm-lead">{ru ? "Показываем весь путь на одном замечании: от найденной причины до результата повторной проверки." : "Follow one finding from the confirmed cause to the result of the follow-up check."}</p>
               <Link className="button button-primary" href={localizedPath(locale, "seo-audit")}>{ru ? "Что входит в аудит" : "What the audit includes"}<span>↗</span></Link>
             </div>
-            <ol className="home-deliverable-list">
+            <ol className="home-fix-flow">
               {(ru
-                ? [["Находим причину", "Показываем проблему на конкретной странице"], ["Определяем приоритет", "Объясняем влияние и согласуем порядок работы"], ["Вносим изменения", "Фиксируем, что изменили и как принять работу"], ["Повторно проверяем", "Повторяем тот же тест и сохраняем результат"]]
-                : [["Confirm the cause", "Show the issue on a specific page"], ["Set the priority", "Explain the impact and agree the order of work"], ["Implement the change", "Record what changed and how it will be accepted"], ["Run the follow-up check", "Repeat the same test and save the result"]]
+                ? [["НАШЛИ", "Страница закрыта от поисковых систем"], ["ОБЪЯСНИЛИ", "Показываем директиву noindex и адрес страницы"], ["ИСПРАВИЛИ", "Убираем запрет после согласования"], ["ПРОВЕРИЛИ", "Повторный тест подтверждает, что страница открыта для поиска"]]
+                : [["FOUND", "The page is blocked from search engines"], ["EXPLAINED", "We show the noindex directive and the affected URL"], ["FIXED", "We remove the block after approval"], ["VERIFIED", "The follow-up check confirms that the page is open to search"]]
               ).map(([title, text], index, items) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><small>{text}</small></div><b aria-hidden="true">{index === items.length - 1 ? "✓" : "→"}</b></li>)}
             </ol>
           </div>

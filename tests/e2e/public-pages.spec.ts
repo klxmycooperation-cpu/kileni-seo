@@ -281,13 +281,13 @@ test("finishes the approved SVG brand reveal at its natural pace", async ({ page
 
   const completionMs = await page.evaluate(async () => {
     const root = document.documentElement;
-    const startedAt = Number(root.dataset.kileniIntroStartedAt);
-    if (root.dataset.kileniIntro === "done") return performance.now() - startedAt;
+    const readDuration = () => Number(root.dataset.kileniIntroLastCompletedAt) - Number(root.dataset.kileniIntroLastStartedAt);
+    if (root.dataset.kileniIntro === "done") return readDuration();
     return await new Promise<number>((resolve) => {
       const observer = new MutationObserver(() => {
         if (root.dataset.kileniIntro !== "done") return;
         observer.disconnect();
-        resolve(performance.now() - startedAt);
+        resolve(readDuration());
       });
       observer.observe(root, { attributes: true, attributeFilter: ["data-kileni-intro"] });
     });
@@ -540,9 +540,17 @@ test("submits the detailed brief with a validated private PNG attachment", async
   await page.getByLabel("Компания или проект").fill("E2E Brief");
   await page.getByLabel("Что сейчас не устраивает?").fill("Посетители не находят нужные услуги в поиске.");
   await page.getByLabel("Какой результат нужен?").fill("Понятный план роста заявок из поиска.");
+  await page.waitForFunction(() => {
+    const draft = JSON.parse(window.localStorage.getItem("kileni-brief:v2") ?? "null") as { answers?: { result?: string } } | null;
+    return draft?.answers?.result === "Понятный план роста заявок из поиска.";
+  });
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Ссылка на сайт").fill("https://example.com");
   await page.getByLabel("Приоритетные услуги").fill("SEO-аудит и продвижение.");
+  await page.waitForFunction(() => {
+    const draft = JSON.parse(window.localStorage.getItem("kileni-brief:v2") ?? "null") as { answers?: { priorities?: string } } | null;
+    return draft?.answers?.priorities === "SEO-аудит и продвижение.";
+  });
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Имя").fill(briefName);
   await page.getByLabel("Телефон или e-mail").fill("brief-e2e@example.com");

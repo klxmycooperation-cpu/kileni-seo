@@ -10,7 +10,7 @@ test("renders the native visibility chart before an audit begins", async ({ page
   await expect(page.getByText("Показы в поиске ↑", { exact: true })).toBeVisible();
   await expect(page.locator(".hero-audit-visual")).toHaveAttribute("aria-label", "Поисковая видимость");
   await expect(page.locator(".analytics-visibility-detail svg")).toBeVisible();
-  await expect(page.getByText("График показывает, как может меняться видимость сайта после исправлений. Это пример, а не результат клиента.", { exact: true })).toBeVisible();
+  await expect(page.locator(".analytics-demo-caption")).toHaveCount(0);
   await expect(page.locator(".hero-tool")).toHaveAttribute("data-audit-state", "demo");
 });
 

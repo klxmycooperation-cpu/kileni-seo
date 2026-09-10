@@ -16,7 +16,6 @@ export function buildPublicShellSchema(locale: Locale): { "@context": string; "@
 }
 
 export function PublicShell({ locale, children }: { locale: Locale; children: React.ReactNode }) {
-  const schema = buildPublicShellSchema(locale);
   const glossaryLinkEntries = getGlossaryLinkEntries(locale);
-  return <div className="kileni-site"><PageViewBeacon/><SiteHeader locale={locale}/><main id="main-content" tabIndex={-1}>{children}</main><GlossaryLinkEnhancer locale={locale} entries={glossaryLinkEntries}/><SiteFooter locale={locale}/><CookieManager locale={locale}/><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</gu, "\\u003c") }}/></div>;
+  return <div className="kileni-site"><PageViewBeacon/><SiteHeader locale={locale}/><main id="main-content" tabIndex={-1}>{children}</main><GlossaryLinkEnhancer locale={locale} entries={glossaryLinkEntries}/><SiteFooter locale={locale}/><CookieManager locale={locale}/></div>;
 }

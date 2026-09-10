@@ -152,12 +152,26 @@ test("explains price, scope and preparation before the brief is sent", async ({ 
   await expect(guide.getByText(/Список проблем по приоритету/u)).toBeVisible();
 
   await page.getByRole("button", { name: /^Далее/u }).click();
-  await page.getByLabel("Компания или проект").fill("Проверка брифа");
-  await page.getByLabel("Что сейчас не устраивает?").fill("Неясно, какие страницы мешают поиску");
-  await page.getByLabel("Какой результат нужен?").fill("Понятный список проблем и порядок исправлений");
+  const company = page.getByLabel("Компания или проект");
+  await expect(company).toBeVisible();
+  await company.fill("Проверка брифа");
+  const currentProblem = page.getByLabel("Что сейчас не устраивает?");
+  const desiredResult = page.getByLabel("Какой результат нужен?");
+  await currentProblem.fill("Неясно, какие страницы мешают поиску");
+  await desiredResult.fill("Понятный список проблем и порядок исправлений");
+  await expect(desiredResult).toHaveValue("Понятный список проблем и порядок исправлений");
   await page.getByRole("button", { name: /^Далее/u }).click();
-  await page.getByLabel("Ссылка на сайт").fill("https://example.ru");
-  await page.getByLabel("Что беспокоит?").fill("Страницы плохо находятся в поиске");
+  const siteUrl = page.getByLabel("Ссылка на сайт");
+  await expect(siteUrl).toBeVisible();
+  await siteUrl.fill("https://example.ru");
+  const concern = page.getByLabel("Что беспокоит?");
+  await concern.fill("Страницы плохо находятся в поиске");
+  await expect(siteUrl).toHaveValue("https://example.ru");
+  await expect(concern).toHaveValue("Страницы плохо находятся в поиске");
+  await page.waitForFunction(() => {
+    const draft = JSON.parse(window.localStorage.getItem("kileni-brief:v2") ?? "null") as { answers?: { concern?: string } } | null;
+    return draft?.answers?.concern === "Страницы плохо находятся в поиске";
+  });
   await page.getByRole("button", { name: /^Далее/u }).click();
 
   await expect(page.getByRole("heading", { level: 2, name: "Итог перед отправкой" })).toBeVisible();

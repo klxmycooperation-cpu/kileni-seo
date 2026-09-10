@@ -15,9 +15,13 @@ sqlite.close();
 
 const productionServer = process.env.E2E_PRODUCTION_SERVER === "1";
 const port = process.env.E2E_PORT ?? "3107";
-const child = spawn(process.platform === "win32" ? "pnpm.cmd" : "pnpm", productionServer
+if (!/^\d{2,5}$/u.test(port)) throw new Error("E2E_PORT must be a numeric TCP port");
+const pnpmArgs = productionServer
   ? ["start"]
-  : ["dev:web", "--hostname", "127.0.0.1", "--port", port], {
+  : ["dev:web", "--hostname", "127.0.0.1", "--port", port];
+const executable = process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "pnpm";
+const args = process.platform === "win32" ? ["/d", "/s", "/c", ["pnpm", ...pnpmArgs].join(" ")] : pnpmArgs;
+const child = spawn(executable, args, {
   env: productionServer
     ? { ...process.env, HOSTNAME: "127.0.0.1", PORT: port }
     : process.env,

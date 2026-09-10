@@ -60,7 +60,7 @@ test("adds the same compact sticky navigation to checks and marketplace guides",
   await expect(marketplaceToc).toHaveCSS("position", "sticky");
   await expect(marketplaceToc.getByRole("link", { name: "Этапы подготовки" })).toHaveAttribute("href", "#marketplace-journey");
   await expect(marketplaceToc.getByRole("link", { name: "Состав карточки" })).toHaveAttribute("href", "#marketplace-scope");
-  await expect(marketplaceToc.getByRole("link", { name: "Пример результата" })).toHaveAttribute("href", "#marketplace-result");
+  await expect(marketplaceToc.getByRole("link", { name: "Передаваемые материалы" })).toHaveAttribute("href", "#marketplace-result");
   await expect(marketplaceToc.getByRole("link", { name: "Варианты" })).toHaveAttribute("href", "#marketplace-offers");
   await expect(marketplaceToc.getByRole("link", { name: "Правила площадки" })).toHaveAttribute("href", "#marketplace-docs");
 });

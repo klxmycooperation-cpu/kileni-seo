@@ -99,7 +99,7 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
         items={[
           { id: "marketplace-journey", label: ru ? "Этапы подготовки" : "Preparation steps" },
           { id: "marketplace-scope", label: ru ? "Состав карточки" : "Card scope" },
-          { id: "marketplace-result", label: ru ? "Пример результата" : "Example result" },
+          { id: "marketplace-result", label: ru ? "Передаваемые материалы" : "Delivered materials" },
           { id: "marketplace-offers", label: ru ? "Варианты" : "Options" },
           { id: "marketplace-docs", label: ru ? "Правила площадки" : "Platform rules" },
         ]}
@@ -108,7 +108,7 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
         <header>
           <p className="section-kicker">{ru ? "Этапы подготовки" : "Preparation steps"}</p>
           <h2 id="marketplace-card-journey-title">{ru ? "От исходной карточки до файлов для загрузки" : "From the source card to upload-ready files"}</h2>
-          <p>{ru ? "На каждом этапе есть понятный результат: список замечаний, заполненные поля, план изображений и итоговый чек-лист." : "Every stage has a clear result: issue list, completed fields, image plan and final checklist."}</p>
+          <p>{ru ? "После каждого этапа передаём конкретный материал: список замечаний, заполненные поля, план изображений или итоговый чек-лист." : "Each stage produces a specific deliverable: an issue list, completed fields, an image plan or the final checklist."}</p>
         </header>
         <ol>
           {journey.map((step, index) => <li key={step.title}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{step.title}</h3><p>{step.text}</p></div></li>)}
@@ -128,7 +128,7 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
         </article>
       </section>
       <section className="marketplace-result-example shell" id="marketplace-result" aria-labelledby="marketplace-result-example-title">
-        <header><p className="section-kicker">{ru ? "Пример результата" : "Deliverable example"}</p><h2 id="marketplace-result-example-title">{example.title}</h2><p>{example.lead}</p></header>
+        <header><h2 id="marketplace-result-example-title">{example.title}</h2></header>
         <div className="marketplace-result-states">
           {[example.before, example.after].map((state, index) => <article data-after={index === 1 || undefined} key={state.label}><span>{state.label}</span><h3>{state.title}</h3><ul>{state.items.map((item) => <li key={item}>{item}</li>)}</ul></article>)}
         </div>

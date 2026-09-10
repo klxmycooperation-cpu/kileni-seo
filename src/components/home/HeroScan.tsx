@@ -9,7 +9,7 @@ export function HeroScan({ locale }: { locale: Locale }) {
   const checks = ru
     ? [
         { title: "Индексация", text: "Может ли страница попасть в поиск", slug: "indexing" },
-        { title: "Структура", text: "Понятны ли заголовки и связи страниц", slug: "on-page" },
+        { title: "Структура", text: "Точно ли заголовки описывают страницы", slug: "on-page" },
         { title: "Скорость", text: "Не мешает ли загрузка посетителю", slug: "core-web-vitals" },
         { title: "Оптимизация", text: "Что исправить в первую очередь", slug: "seo-audit" },
       ]
@@ -25,7 +25,10 @@ export function HeroScan({ locale }: { locale: Locale }) {
       <div className="shell hero-grid">
         <div className="hero-copy">
           <p className="eyebrow">{ru ? "Бесплатная SEO-проверка до 10 страниц" : "Free SEO check for up to 10 pages"}</p>
-          <h1 id="hero-title">{ru ? "Сайт есть. Пора сделать так, чтобы его находили." : "Your website is live. Now make it discoverable."}</h1>
+          <h1 id="hero-title">
+            <span className="hero-title-lock">{ru ? "Сайт есть." : "Your website is live."}</span>{" "}
+            {ru ? "Пора сделать так, чтобы его находили." : "Now make it discoverable."}
+          </h1>
           <p className="hero-lead">
             {ru
               ? "Проверим сайт и простыми словами покажем, что мешает ему появляться в поиске и что исправить в первую очередь."
@@ -33,8 +36,8 @@ export function HeroScan({ locale }: { locale: Locale }) {
           </p>
           <p className="hero-honesty">
             {ru
-              ? "Сначала факты. Потом разговор о продвижении."
-              : "Facts first. Then a conversation about growth."}
+              ? "Проверка покажет, с каких исправлений стоит начать."
+              : "The check shows which improvements should come first."}
           </p>
           <HeroFreeAuditUsageCounter locale={locale} />
           <div className="hero-entry-actions">

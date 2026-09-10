@@ -117,7 +117,7 @@ export function AboutPage({ locale }: { locale: Locale }) {
 
         <section className="about-deliverables" aria-labelledby="about-deliverables-title">
           <div className="shell about-deliverables-grid">
-            <div><p className="svc-kicker">{ru ? "Что получает клиент" : "What the client receives"}</p><h2 id="about-deliverables-title">{ru ? "Не россыпь файлов, а понятная передача результата" : "A structured handover, not a pile of files"}</h2></div>
+            <div><p className="svc-kicker">{ru ? "Что получает клиент" : "What the client receives"}</p><h2 id="about-deliverables-title">{ru ? "Материалы собраны для передачи и приёмки" : "Materials prepared for handover and acceptance"}</h2></div>
             <ol className="about-deliverable-flow">{deliverables.map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><p>{text}</p></div></li>)}</ol>
           </div>
         </section>

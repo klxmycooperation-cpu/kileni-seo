@@ -28,10 +28,7 @@ test("mobile hero keeps the approved copy, chart and audit action in one visible
   const entry = page.locator(".hero-entry-actions").getByRole("link", { name: "Узнать, что мешает сайту" });
   await expect(entry).toBeVisible();
   await expect(page.locator(".hero-audit-surface")).toHaveCount(1);
-  await expect(page.getByText(
-    "График показывает, как может меняться видимость сайта после исправлений. Это пример, а не результат клиента.",
-    { exact: true },
-  )).toBeVisible();
+  await expect(page.locator(".analytics-demo-caption")).toHaveCount(0);
 
   await entry.click();
   const input = page.getByLabel("Адрес сайта");
@@ -59,6 +56,7 @@ test("mobile homepage changes process stages inside one visible panel", async ({
     await tabs.nth(index).click();
     await expect(tabs.nth(index)).toHaveAttribute("aria-selected", "true");
     await expect(panel).toHaveAttribute("data-stage", String(index));
+    await panel.evaluate((element) => element.scrollIntoView({ block: "center" }));
     const box = await panel.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.y).toBeGreaterThanOrEqual(0);

@@ -63,7 +63,7 @@ test("answers the five owner questions without opening technical details", async
   await expect(report.locator(".audit-technical-details")).toHaveCount(0);
 });
 
-test("keeps the two conclusions, pages, PDF and admin client summary in parity", async ({ page }) => {
+test("keeps the two conclusions, pages, PDF and admin client summary in parity", async ({ page, browserName }) => {
   const audit = await createQueuedFixtureAudit();
   await completeClientReportFixtureAudit(audit);
   await page.goto(`/audit/${audit.publicToken}`);
@@ -118,6 +118,23 @@ test("keeps the two conclusions, pages, PDF and admin client summary in parity",
   await expect(adminOptional.getByRole("heading", { name: "Можно улучшить" })).toBeVisible();
   await expect(adminOptional).toContainText("Подсказка о месте страницы в структуре сайта");
   await expect(adminOptional).not.toContainText("Скорость главной страницы");
+
+  const clientMessage = page.locator(".admin-client-message");
+  await clientMessage.getByRole("button", { name: "Сгенерировать текст для заказчика" }).click();
+  const messageField = clientMessage.getByLabel("Текст для заказчика");
+  await expect(messageField).toBeVisible();
+  await expect(messageField).toHaveValue(/correct\.test/u);
+  const firstMessage = await messageField.inputValue();
+  await messageField.fill(`${firstMessage}\n\nКомментарий менеджера.`);
+  await expect(messageField).toHaveValue(/Комментарий менеджера\.$/u);
+  await clientMessage.getByRole("button", { name: "Сгенерировать заново" }).click();
+  await expect(messageField).not.toHaveValue(firstMessage);
+  await expect(clientMessage.getByText("Текст подготовлен. Его можно отредактировать перед отправкой.")).toBeVisible();
+  await clientMessage.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: `work/browser-qa/client-feedback/after/admin-client-message-${browserName}.png`,
+    animations: "disabled",
+  });
 });
 
 test("release pass keeps technical explanations readable and the disclaimer AA-visible", async ({ page }) => {

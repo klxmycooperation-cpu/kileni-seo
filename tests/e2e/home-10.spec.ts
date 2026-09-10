@@ -16,7 +16,7 @@ test("presents the approved home-page story in a deliberate order", async ({ pag
   await expect(page.getByText("Бесплатная SEO-проверка до 10 страниц", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Сайт есть. Пора сделать так, чтобы его находили." })).toBeVisible();
   await expect(page.getByText("Проверим сайт и простыми словами покажем, что мешает ему появляться в поиске и что исправить в первую очередь.", { exact: true })).toBeVisible();
-  await expect(page.getByText("Сначала факты. Потом разговор о продвижении.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Проверка покажет, с каких исправлений стоит начать.", { exact: true })).toBeVisible();
   await expect(page.locator(".hero-copy").getByText("1 267", { exact: true })).toBeVisible();
   await expect(page.locator(".hero-copy").getByText("страниц прошли бесплатную проверку KILENI", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: /Посмотреть реальные результаты/u })).toBeVisible();

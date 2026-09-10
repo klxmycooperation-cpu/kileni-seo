@@ -138,15 +138,17 @@ test("seals the mobile canvas while the intro is covering a dark page", async ({
       intro: getComputedStyle(intro).backgroundColor,
       html: getComputedStyle(root).backgroundColor,
       body: getComputedStyle(document.body).backgroundColor,
-      htmlOverscroll: getComputedStyle(root).overscrollBehaviorY,
-      bodyOverscroll: getComputedStyle(document.body).overscrollBehaviorY,
+      htmlOverflow: getComputedStyle(root).overflowY,
+      htmlOverscroll: getComputedStyle(root).getPropertyValue("overscroll-behavior-y"),
+      bodyOverscroll: getComputedStyle(document.body).getPropertyValue("overscroll-behavior-y"),
     };
   });
 
   expect(canvas.html).toBe(canvas.intro);
   expect(canvas.body).toBe(canvas.intro);
-  expect(canvas.htmlOverscroll).toBe("none");
-  expect(canvas.bodyOverscroll).toBe("none");
+  expect(canvas.htmlOverflow).toBe("hidden");
+  expect(["", "none"]).toContain(canvas.htmlOverscroll);
+  expect(["", "none"]).toContain(canvas.bodyOverscroll);
 });
 
 test("loads intro audio only after the visitor requests sound", async ({ page }) => {

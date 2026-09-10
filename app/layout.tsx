@@ -5,6 +5,7 @@ import { prelaunchRobotsMetadata, siteConfig, warnIfProductionIntegrationConfigI
 import { INTRO_BOOTSTRAP } from "@/src/components/home/brand-intro-config";
 import { ThemePreferenceSync } from "@/src/components/layout/ThemePreferenceSync";
 import { THEME_BOOTSTRAP } from "@/src/components/layout/theme-config";
+import { buildPublicShellSchema } from "@/src/components/layout/PublicShell";
 import "./globals.css";
 import "./editorial.css";
 import "./brand-intro.css";
@@ -71,6 +72,7 @@ export default async function RootLayout({
   const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY?.trim() && process.env.TURNSTILE_SECRET_KEY?.trim()
     ? process.env.TURNSTILE_SITE_KEY.trim()
     : undefined;
+  const publicShellSchema = buildPublicShellSchema(locale);
   return (
     <html
       lang={locale}
@@ -97,6 +99,11 @@ export default async function RootLayout({
         <ThemePreferenceSync />
         <a className="skip-link" href="#main-content" tabIndex={0}>{locale === "ru" ? "Перейти к содержимому" : "Skip to content"}</a>
         {children}
+        <script
+          id="kileni-public-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(publicShellSchema).replace(/</gu, "\\u003c") }}
+        />
       </body>
     </html>
   );

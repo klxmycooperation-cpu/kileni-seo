@@ -221,6 +221,31 @@ button:disabled { cursor: wait; opacity: .55; }
 .admin-action-links button { padding: 8px 11px; border: 1px solid var(--admin-line); border-radius: 5px; background: rgba(7, 17, 31, .55); color: #dce7f8; font: 700 11px/1.1 var(--font-manrope), Arial, sans-serif; cursor: pointer; transition: border-color .16s ease, background .16s ease; }
 .admin-action-links a:hover,
 .admin-action-links button:hover { border-color: #6785ff; background: var(--admin-blue-soft); }
+.admin-client-message { display: grid; max-width: 860px; gap: 12px; }
+.admin-client-message > label { color: var(--admin-muted); font-size: 13px; font-weight: 700; }
+.admin-client-message textarea {
+  width: 100%;
+  min-height: 280px;
+  resize: vertical;
+  border: 1px solid var(--admin-line);
+  border-radius: 7px;
+  background: #07111f;
+  color: #edf3fb;
+  font: 14px/1.6 var(--font-manrope), Arial, sans-serif;
+}
+.admin-client-message__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.admin-client-message > button,
+.admin-client-message__actions button {
+  width: max-content;
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 1px solid #6884ff;
+  border-radius: 6px;
+  background: var(--admin-blue);
+  color: #fff;
+  font-weight: 750;
+}
+.admin-client-message button:disabled { cursor: wait; opacity: .58; }
 .admin-events,
 .admin-notes { display: grid; gap: 10px; }
 .admin-events article,
