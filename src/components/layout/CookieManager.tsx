@@ -279,14 +279,14 @@ function StorageInventory({ locale }: { locale: Locale }) {
   const items = ru
     ? [
         ["CSRF cookie", "Защищает отправку форм", "2 часа", "KILENI"],
-        ["Тема", "Запоминает Light, Dark или Signal", "До удаления данных сайта", "KILENI · localStorage"],
+        ["Тема", "Запоминает светлую, тёмную или контрастную тему", "До удаления данных сайта", "KILENI · localStorage"],
         ["Черновик брифа", "Сохраняет незавершённые ответы", "До отправки брифа или удаления данных", "KILENI · localStorage"],
         ["Связка аудита", "Передаёт имя и контакт в бриф только в этом браузере", "24 часа", "KILENI · sessionStorage"],
         ["Выбор cookies", "Запоминает этот выбор", "До удаления данных сайта", "KILENI · localStorage"],
       ]
     : [
         ["CSRF cookie", "Protects form submissions", "2 hours", "KILENI"],
-        ["Theme", "Remembers Light, Dark or Signal", "Until site data is removed", "KILENI · localStorage"],
+        ["Theme", "Remembers the light, dark or contrast theme", "Until site data is removed", "KILENI · localStorage"],
         ["Brief draft", "Keeps unfinished answers", "Until submission or data removal", "KILENI · localStorage"],
         ["Audit handoff", "Passes name and contact to the brief in this browser only", "24 hours", "KILENI · sessionStorage"],
         ["Cookie choice", "Remembers this selection", "Until site data is removed", "KILENI · localStorage"],

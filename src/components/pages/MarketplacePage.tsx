@@ -76,7 +76,7 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
       ]
     : [
         { title: "Enter comparison", text: joinAsSentences(copy.visibility.slice(0, 2)) },
-        { title: "Keep the facts", text: joinAsSentences(copy.fields.slice(0, 2)) },
+        { title: "Verify product details", text: joinAsSentences(copy.fields.slice(0, 2)) },
         { title: "Support the choice", text: joinAsSentences(copy.content.slice(0, 2)) },
         { title: "Hand over without guesswork", text: joinAsSentences(copy.result.slice(0, 2)) },
       ];

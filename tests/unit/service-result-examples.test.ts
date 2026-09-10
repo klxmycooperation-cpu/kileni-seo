@@ -22,7 +22,6 @@ describe("service result examples", () => {
         expect(example?.beforeAfter.after.items.length).toBeGreaterThanOrEqual(3);
         expect(example?.whyThisOption.length).toBeGreaterThanOrEqual(3);
         expect(example?.whyKileni.length).toBeGreaterThanOrEqual(3);
-        expect(example?.disclaimer.length).toBeGreaterThan(20);
       }
     }
   });

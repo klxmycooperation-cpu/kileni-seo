@@ -596,6 +596,34 @@ html[data-kileni-theme="signal"] .kileni-site .home-deliverable-list li:nth-chil
     min-height: 100svh;
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   }
+
+  .kileni-site .signal-hero .hero-copy {
+    display: flex;
+    min-height: calc(100svh - 5.2rem - env(safe-area-inset-bottom));
+    flex-direction: column;
+    padding-bottom: max(4.5rem, calc(3.75rem + env(safe-area-inset-bottom)));
+  }
+
+  .kileni-site .signal-hero .hero-copy > .scan-keywords {
+    display: grid;
+    margin-top: auto;
+  }
+
+  .kileni-site .signal-hero .scan-keywords .hero-check-link {
+    min-height: 5.5rem;
+    padding: .8rem .55rem;
+    grid-template-columns: 1.3rem minmax(0, 1fr);
+    gap: .5rem;
+  }
+
+  .kileni-site .signal-hero .scan-keywords .hero-check-link > i {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) and (orientation: landscape) and (max-height: 620px) {
+  .kileni-site .signal-hero,
+  .kileni-site .signal-hero .hero-copy { min-height: 0; }
 }
 
 .kileni-site :is(

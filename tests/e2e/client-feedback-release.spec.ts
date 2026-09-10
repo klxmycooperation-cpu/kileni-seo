@@ -16,13 +16,26 @@ test("keeps the complete mobile hero above the next section", async ({ page }) =
   await page.goto("/");
 
   const hero = await page.locator(".signal-hero").boundingBox();
+  const auditTool = await page.locator(".signal-hero .hero-tool").boundingBox();
   const nextSection = await page.locator(".home-mobile-section-nav").boundingBox();
   expect(hero).not.toBeNull();
+  expect(auditTool).not.toBeNull();
   expect(nextSection).not.toBeNull();
   expect(hero!.y + hero!.height).toBeGreaterThanOrEqual(911);
+  expect(auditTool!.y).toBeGreaterThanOrEqual(912);
   expect(nextSection!.y).toBeGreaterThanOrEqual(912);
   await expect(page.locator(".hero-title-lock")).toHaveText("Сайт есть.");
   await expectNoHorizontalOverflow(page);
+});
+
+test("uses a plain-language name for the third theme", async ({ page }) => {
+  await page.setViewportSize({ width: 420, height: 912 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Открыть меню" }).click();
+  await page.getByRole("button", { name: "Включить контрастную тему" }).click();
+
+  await expect(page.locator(".mobile-menu .theme-toggle__label")).toHaveText("Контрастная");
+  await expect(page.locator(".mobile-menu")).not.toContainText("Сигнальная");
 });
 
 test("keeps the mobile hero stable on a short landscape viewport", async ({ page }) => {
@@ -38,6 +51,7 @@ test("aligns marketplace offer titles, prices, facts and actions", async ({ page
 
   for (const platform of ["wildberries", "ozon"] as const) {
     await page.goto(`/marketplaces/${platform}#marketplace-offers`);
+    await expect(page.locator("main")).not.toContainText(/это пример|не реальный результат|не вымышленный кейс/iu);
     for (const selector of [".marketplace-offer h3", ".marketplace-offer-price", ".marketplace-offer dl", ".marketplace-offer-actions"]) {
       const tops = await page.locator(selector).evaluateAll((elements) => elements.map((element) => Math.round(element.getBoundingClientRect().top)));
       expect(new Set(tops).size, `${platform}: ${selector}`).toBe(1);

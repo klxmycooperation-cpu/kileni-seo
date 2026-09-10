@@ -5,7 +5,6 @@ type ExampleState = { label: string; title: string; items: string[] };
 
 export type MarketplaceResultExample = {
   title: string;
-  lead: string;
   before: ExampleState;
   after: ExampleState;
   rows: Array<{ key: "search-phrases" | "card-fields" | "image-scenario" | "files" | "publishing-rules"; label: string; value: string }>;
@@ -61,9 +60,6 @@ export function getMarketplaceResultExample(platformId: MarketplaceId, locale: L
   const ru = locale === "ru";
   return {
     title: ru ? `Как выглядит передача материалов для ${name}` : `What the ${name} handover looks like`,
-    lead: ru
-      ? "Это не вымышленный кейс и не обещание роста. Ниже показан состав файлов на условной карточке; данные конкретного товара появятся только после проверки исходников."
-      : "This is neither an invented case nor a growth promise. It shows the file structure on a sample card; product-specific data appears only after the source materials are reviewed.",
     before: {
       label: ru ? "Что проверяем" : "What we review",
       title: ru ? "На входе: карточка и данные продавца" : "Input: seller card and source data",

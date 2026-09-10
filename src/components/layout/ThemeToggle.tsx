@@ -20,14 +20,14 @@ export function ThemeToggle({ locale, mobile = false }: { locale: Locale; mobile
   }, []);
 
   const labels = locale === "ru"
-    ? { light: "Светлая", dark: "Тёмная", signal: "Сигнальная" }
-    : { light: "Light", dark: "Dark", signal: "Signal" };
+    ? { light: "Светлая", dark: "Тёмная", signal: "Контрастная" }
+    : { light: "Light", dark: "Dark", signal: "Contrast" };
   const nextTheme: Record<KileniTheme, KileniTheme> = { light: "dark", dark: "signal", signal: "light" };
   const next = nextTheme[theme];
   const currentLabel = labels[theme];
   const actionLabels: Record<KileniTheme, string> = locale === "ru"
-    ? { light: "Включить светлую тему", dark: "Включить тёмную тему", signal: "Включить сигнальную тему" }
-    : { light: "Switch to light theme", dark: "Switch to dark theme", signal: "Switch to signal theme" };
+    ? { light: "Включить светлую тему", dark: "Включить тёмную тему", signal: "Включить контрастную тему" }
+    : { light: "Switch to light theme", dark: "Switch to dark theme", signal: "Switch to contrast theme" };
   const actionLabel = actionLabels[next];
 
   const toggle = () => {
