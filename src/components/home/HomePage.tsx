@@ -141,12 +141,22 @@ export function HomePage({ locale }: { locale: Locale }) {
               <p className="warm-lead">{ru ? "Показываем весь путь на одном замечании: от найденной причины до результата повторной проверки." : "Follow one finding from the confirmed cause to the result of the follow-up check."}</p>
               <Link className="button button-primary" href={localizedPath(locale, "seo-audit")}>{ru ? "Что входит в аудит" : "What the audit includes"}<span>↗</span></Link>
             </div>
-            <ol className="home-fix-flow">
-              {(ru
-                ? [["НАШЛИ", "Страница закрыта от поисковых систем"], ["ОБЪЯСНИЛИ", "Показываем директиву noindex и адрес страницы"], ["ИСПРАВИЛИ", "Убираем запрет после согласования"], ["ПРОВЕРИЛИ", "Повторный тест подтверждает, что страница открыта для поиска"]]
-                : [["FOUND", "The page is blocked from search engines"], ["EXPLAINED", "We show the noindex directive and the affected URL"], ["FIXED", "We remove the block after approval"], ["VERIFIED", "The follow-up check confirms that the page is open to search"]]
-              ).map(([title, text], index, items) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><small>{text}</small></div><b aria-hidden="true">{index === items.length - 1 ? "✓" : "→"}</b></li>)}
-            </ol>
+            <div className="home-fix-board">
+              <header>
+                <div><span>{ru ? "Индексация страницы" : "Page indexing"}</span><strong>{ru ? "Запрет в meta robots" : "Block in meta robots"}</strong></div>
+                <code>{ru ? "4 этапа проверки" : "4 verification steps"}</code>
+              </header>
+              <ol className="home-fix-flow">
+                {(ru
+                  ? [["НАШЛИ", "Страница закрыта от поисковых систем"], ["ОБЪЯСНИЛИ", "Показываем директиву noindex и адрес страницы"], ["ИСПРАВИЛИ", "Убираем запрет после согласования"], ["ПРОВЕРИЛИ", "Повторный тест подтверждает, что страница открыта для поиска"]]
+                  : [["FOUND", "The page is blocked from search engines"], ["EXPLAINED", "We show the noindex directive and the affected URL"], ["FIXED", "We remove the block after approval"], ["VERIFIED", "The follow-up check confirms that the page is open to search"]]
+                ).map(([title, text], index, items) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><small>{text}</small></div><b aria-hidden="true">{index === items.length - 1 ? "✓" : "→"}</b></li>)}
+              </ol>
+              <footer>
+                <div><span>{ru ? "Контроль после исправления" : "Check after the fix"}</span><strong>{ru ? "Страница доступна для поиска" : "The page is open to search"}</strong></div>
+                <b><span aria-hidden="true">✓</span>{ru ? "Проверено" : "Verified"}</b>
+              </footer>
+            </div>
           </div>
         </section>
 

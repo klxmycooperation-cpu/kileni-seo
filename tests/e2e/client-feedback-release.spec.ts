@@ -46,6 +46,35 @@ test("keeps the mobile hero stable on a short landscape viewport", async ({ page
   await expectNoHorizontalOverflow(page);
 });
 
+test("presents the verified-fix story as a balanced visual board", async ({ page }) => {
+  await page.setViewportSize({ width: 1_440, height: 900 });
+  await page.goto("/");
+
+  const board = page.locator(".home-fix-board");
+  await expect(board).toContainText("Индексация страницы");
+  await expect(board).toContainText("Страница доступна для поиска");
+  await expect(board.locator(".home-fix-flow > li")).toHaveCount(4);
+
+  const positions = await board.locator(".home-fix-flow > li").evaluateAll((elements) =>
+    elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { left: Math.round(box.left), top: Math.round(box.top), fontSize: Number.parseFloat(getComputedStyle(element.querySelector("small")!).fontSize) };
+    }),
+  );
+  expect(new Set(positions.map(({ left }) => left)).size).toBe(2);
+  expect(new Set(positions.map(({ top }) => top)).size).toBe(2);
+  expect(positions.every(({ fontSize }) => fontSize >= 14)).toBe(true);
+  await expectNoHorizontalOverflow(page);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const boardWidth = await board.evaluate((element) => element.getBoundingClientRect().width);
+  const cardWidths = await board.locator(".home-fix-flow > li").evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  );
+  expect(cardWidths.every((width) => width <= boardWidth)).toBe(true);
+  await expectNoHorizontalOverflow(page);
+});
+
 test("aligns marketplace offer titles, prices, facts and actions", async ({ page }) => {
   await page.setViewportSize({ width: 1_440, height: 1_000 });
 
