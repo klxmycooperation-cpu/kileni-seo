@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
 ARG NODE_VERSION=22.14.0
+ARG NODE_IMAGE=node:${NODE_VERSION}-bookworm-slim
 
-FROM node:${NODE_VERSION}-bookworm-slim AS base
+FROM ${NODE_IMAGE} AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
@@ -33,7 +34,7 @@ RUN pnpm build
 RUN mkdir -p /app/runtime \
   && pnpm exec tsx -e "import { writeFileSync } from 'node:fs'; import { migrationSql } from './src/db/migrations.ts'; writeFileSync('/app/runtime/migration.sql', migrationSql);"
 
-FROM node:${NODE_VERSION}-bookworm-slim AS web
+FROM ${NODE_IMAGE} AS web
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
@@ -65,7 +66,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:3000/api/health').then((response)=>{if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))"
 CMD ["sh", "-c", "node /app/scripts/docker-entrypoint.mjs && exec node server.js"]
 
-FROM node:${NODE_VERSION}-bookworm-slim AS worker
+FROM ${NODE_IMAGE} AS worker
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_PATH=/data/kileni.sqlite
