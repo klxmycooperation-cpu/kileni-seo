@@ -16,6 +16,13 @@ coverage
 build
 docs
 tests
+!tests
+tests/*
+!tests/unit
+tests/unit/*
+!tests/unit/fixtures
+tests/unit/fixtures/*
+!tests/unit/fixtures/audit-client-report-snapshot.ts
 tmp
 output
 outputs
