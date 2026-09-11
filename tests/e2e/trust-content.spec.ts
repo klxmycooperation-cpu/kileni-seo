@@ -13,7 +13,7 @@ test("explains project responsibility without presenting a fictional permanent t
   await page.goto("/about");
 
   await expect(page.getByText(/До начала работ называем ответственного за проект/u)).toBeVisible();
-  await expect(page.getByText(/не перечень постоянного штата/u)).toBeVisible();
+  await expect(page.getByText(/не перечень постоянных сотрудников/u)).toBeVisible();
 });
 
 test("shows editorial provenance and update date on a glossary detail", async ({ page }) => {

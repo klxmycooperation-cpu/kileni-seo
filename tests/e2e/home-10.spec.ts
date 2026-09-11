@@ -49,7 +49,7 @@ test("presents the approved home-page story in a deliberate order", async ({ pag
 
   await expect(page.locator(".home-process-chapters li")).toHaveCount(4);
   await expect(page.getByRole("heading", { level: 2, name: "От бесплатной проверки до контрольного результата" })).toBeVisible();
-  await expect(page.locator(".home-process-story__result")).toContainText("Видим, что мешает сайту появляться в поиске");
+  await expect(page.locator(".home-process-story__result")).toContainText("Сохраняем найденные замечания по страницам");
   await expect(page.locator(".home-process-chapters h3")).toContainText(["Проверяем", "Объясняем", "Исправляем", "Перепроверяем"]);
   await expect(page.locator(".home-decision__tab")).toHaveCount(3);
   await expect(page.locator(".home-service-list")).toHaveCount(0);
@@ -88,7 +88,7 @@ test("lets visitors browse all seven home-page guides and keeps signal mode dist
   await nextGuide.click();
   await expect.poll(() => viewport.evaluate((element) => element.scrollLeft)).toBeGreaterThan(initialScroll);
 
-  await page.getByLabel("Включить сигнальную тему").first().click();
+  await page.getByLabel("Включить контрастную тему").first().click();
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "signal");
   await expect(page.locator(".kileni-site")).toHaveCSS("--brand", "#b7f44a");
 });
@@ -101,7 +101,7 @@ test.describe("without JavaScript", () => {
 
     await expect(page.locator(".brand-intro")).toBeHidden();
     await expect(page.getByRole("heading", { level: 1, name: "Сайт есть. Пора сделать так, чтобы его находили." })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Узнать, что мешает сайту", exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Проверить сайт", exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "От бесплатной проверки до контрольного результата" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Как замечание превращается в проверенное исправление" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Когда одной проверки недостаточно" })).toBeVisible();

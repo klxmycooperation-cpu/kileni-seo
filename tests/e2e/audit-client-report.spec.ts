@@ -37,7 +37,7 @@ test("shows a decision-ready report in one first viewport on mobile and desktop"
     await expect(overview).toBeVisible();
     await expect(overview.getByRole("heading", { name: /Краткий итог/u })).toBeVisible();
     await expect(overview.getByText("Критических проблем", { exact: true })).toBeVisible();
-    await expect(overview.getByText("Скорость главной страницы", { exact: true })).toBeVisible();
+    await expect(overview.getByText("Мобильная производительность главной страницы", { exact: true })).toBeVisible();
     await expect(overview.getByText("Подсказка о месте страницы в структуре сайта", { exact: true })).toHaveCount(0);
     await expect(page.locator(".audit-client-improvements").getByText("Подсказка о месте страницы в структуре сайта", { exact: true })).toBeVisible();
     await expect(overview.getByText(/наличие в поиске не проверялось/u)).toBeVisible();
@@ -54,7 +54,7 @@ test("answers the five owner questions without opening technical details", async
   await page.goto(`/audit/${audit.publicToken}`);
 
   const report = page.locator(".result-body--client");
-  await expect(report.getByText("Скорость главной страницы", { exact: true }).first()).toBeVisible();
+  await expect(report.getByText("Мобильная производительность главной страницы", { exact: true }).first()).toBeVisible();
   await expect(report.getByText("Стоит проверить", { exact: true }).first()).toBeVisible();
   await expect(report.getByText("Необязательное улучшение", { exact: true }).first()).toBeVisible();
   await expect(report.getByText("Все 10 проверенных страниц открылись без серверных ошибок.", { exact: true }).first()).toBeVisible();
@@ -107,17 +107,17 @@ test("keeps the two conclusions, pages, PDF and admin client summary in parity",
   await expect(clientSummary).toContainText("Критических проблем0");
   await expect(clientSummary).toContainText("Стоит проверить1");
   await expect(clientSummary).toContainText("Необязательных улучшений1");
-  await expect(clientSummary).toContainText("Скорость главной страницы");
+  await expect(clientSummary).toContainText("Мобильная производительность главной страницы");
   await expect(clientSummary).toContainText("https://example.com/services");
 
   const adminAttention = clientSummary.locator('section[aria-labelledby="admin-client-attention-heading"]');
   const adminOptional = clientSummary.locator('section[aria-labelledby="admin-client-optional-heading"]');
   await expect(adminAttention.getByRole("heading", { name: "Что стоит проверить" })).toBeVisible();
-  await expect(adminAttention).toContainText("Скорость главной страницы");
+  await expect(adminAttention).toContainText("Мобильная производительность главной страницы");
   await expect(adminAttention).not.toContainText("Подсказка о месте страницы в структуре сайта");
   await expect(adminOptional.getByRole("heading", { name: "Можно улучшить" })).toBeVisible();
   await expect(adminOptional).toContainText("Подсказка о месте страницы в структуре сайта");
-  await expect(adminOptional).not.toContainText("Скорость главной страницы");
+  await expect(adminOptional).not.toContainText("Мобильная производительность главной страницы");
 
   const clientMessage = page.locator(".admin-client-message");
   await clientMessage.getByRole("button", { name: "Сгенерировать текст для заказчика" }).click();

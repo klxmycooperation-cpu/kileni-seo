@@ -3,10 +3,40 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { load } from "cheerio";
 import { describe, expect, it } from "vitest";
 
-import { AuditResultReport, type PublicAuditCtaOfferId, type PublicAuditResultView } from "../../src/components/pages/AuditResultReport";
+import { AuditResultReport, clientAuditVerdict, type PublicAuditCtaOfferId, type PublicAuditResultView } from "../../src/components/pages/AuditResultReport";
 import { auditClientReportSnapshot } from "./fixtures/audit-client-report-snapshot";
 
 describe("public audit result report", () => {
+  it("states the main client conclusion without turning review items into confirmed errors", () => {
+    expect(clientAuditVerdict({ checked: 3, critical: 2, review: 1, optional: 4 }, "ru")).toMatchObject({
+      tone: "critical",
+      status: "Исправления нужны",
+      title: "Есть ошибки, которые нужно исправить в первую очередь",
+    });
+
+    expect(clientAuditVerdict({ checked: 3, critical: 0, review: 3, optional: 6 }, "ru")).toEqual({
+      tone: "review",
+      status: "Сначала проверить",
+      title: "Критических ошибок не обнаружено",
+      detail: "Срочных исправлений не требуется. Три вывода стоит проверить: после подтверждения они могут потребовать исправлений.",
+      scope: "Вывод относится к 3 проверенным страницам.",
+    });
+
+    expect(clientAuditVerdict({ checked: 1, critical: 0, review: 0, optional: 2 }, "ru")).toMatchObject({
+      tone: "clear",
+      status: "Срочных действий нет",
+      title: "Ошибок, требующих исправления, не обнаружено",
+    });
+
+    expect(clientAuditVerdict({ checked: 0, critical: 0, review: 0, optional: 0 }, "ru")).toEqual({
+      tone: "review",
+      status: "Нужно повторить проверку",
+      title: "Недостаточно данных для вывода",
+      detail: "Ни одна страница не была подробно проверена, поэтому подтвердить наличие или отсутствие ошибок нельзя.",
+      scope: "Подробно проверенных страниц: 0.",
+    });
+  });
+
   it("renders a compact v4 client report without engine counters or raw classifier data", () => {
     const html = renderToStaticMarkup(createElement(AuditResultReport, {
       locale: "ru",
@@ -29,7 +59,7 @@ describe("public audit result report", () => {
     expect(html).toContain("Предварительно просмотрено адресов");
     expect(html).toContain("Подробно проверено страниц");
     expect(html).toContain("1 вывод требует проверки · 1 возможное улучшение");
-    expect(html).toContain("Скорость главной страницы");
+    expect(html).toContain("Мобильная производительность главной страницы");
     expect(html).toContain("Подсказка о месте страницы в структуре сайта");
     expect(html).toContain("Что нашли");
     expect(html).toContain("Почему это важно");
@@ -52,7 +82,16 @@ describe("public audit result report", () => {
     expect(html).not.toContain("уровень A");
 
     const $ = load(html);
-    expect($(".audit-client-issues").text()).toContain("Скорость главной страницы");
+    const overviewChildren = $(".audit-client-overview").children();
+    expect(overviewChildren.first().hasClass("audit-client-overview__status")).toBe(true);
+    expect($(".audit-client-overview__status").index()).toBeLessThan($(".audit-client-verdict").index());
+    expect($(".audit-client-verdict").text()).toContain("Главное по результату");
+    expect($(".audit-client-verdict").text()).toContain("Критических ошибок не обнаружено");
+    expect($(".audit-client-verdict__signal").length).toBe(1);
+    expect($(".audit-client-verdict__meta-label").text()).toBe("Статус");
+    expect($(".audit-client-verdict__score").length).toBe(0);
+    expect($(".audit-client-verdict").index()).toBeLessThan($(".audit-client-overview__topline").index());
+    expect($(".audit-client-issues").text()).toContain("Мобильная производительность главной страницы");
     expect($(".audit-client-issues").text()).not.toContain("Подсказка о месте страницы в структуре сайта");
     expect($(".audit-client-improvements").text()).toContain("Можно улучшить");
     expect($(".audit-client-improvements").text()).toContain("Подсказка о месте страницы в структуре сайта");

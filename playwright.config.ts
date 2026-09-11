@@ -6,7 +6,7 @@ const port = Number(process.env.E2E_PORT ?? 3_107);
 const runId = process.env.E2E_RUN_ID ?? `${Date.now()}-${process.pid}`;
 const externalServer = process.env.E2E_EXTERNAL_SERVER === "1";
 const productionServer = process.env.E2E_PRODUCTION_SERVER === "1";
-const testHost = externalServer ? "localhost" : "127.0.0.1";
+const testHost = process.env.E2E_HOST === "localhost" ? "localhost" : "127.0.0.1";
 process.env.E2E_RUN_ID = runId;
 process.env.E2E_PORT = String(port);
 process.env.APP_BASE_URL = `http://${testHost}:${port}`;
@@ -54,7 +54,7 @@ export default defineConfig({
     },
   ],
   webServer: externalServer ? undefined : {
-    command: "pnpm exec tsx scripts/e2e-server.ts",
+    command: "node --import tsx scripts/e2e-server.ts",
     url: `http://127.0.0.1:${port}`,
     reuseExistingServer: !process.env.CI && !productionServer,
     timeout: 120_000,

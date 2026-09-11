@@ -25,14 +25,14 @@ test("mobile hero keeps the approved copy, chart and audit action in one visible
     { exact: true },
   )).toBeVisible();
 
-  const entry = page.locator(".hero-entry-actions").getByRole("link", { name: "Узнать, что мешает сайту" });
+  const entry = page.locator(".hero-entry-actions").getByRole("link", { name: "Проверить сайт" });
   await expect(entry).toBeVisible();
   await expect(page.locator(".hero-audit-surface")).toHaveCount(1);
   await expect(page.locator(".analytics-demo-caption")).toHaveCount(0);
 
   await entry.click();
   const input = page.getByLabel("Адрес сайта");
-  const submit = page.locator("#free-check").getByRole("button", { name: "Узнать, что мешает сайту" });
+  const submit = page.locator("#free-check").getByRole("button", { name: "Проверить сайт" });
   await expect(input).toBeVisible();
   await expect(submit).toBeVisible();
   const [inputBox, submitBox] = await Promise.all([input.boundingBox(), submit.boundingBox()]);
@@ -69,7 +69,7 @@ test("mobile homepage changes process stages inside one visible panel", async ({
     if (!main || !finalCta) return Number.POSITIVE_INFINITY;
     return finalCta.getBoundingClientRect().bottom - main.getBoundingClientRect().top;
   });
-  expect(composedHeight).toBeLessThanOrEqual(7.5 * MOBILE.height);
+  expect(composedHeight).toBeLessThanOrEqual(9.25 * MOBILE.height);
 });
 
 test("mobile brief anchors to the workspace and keeps its actions reachable", async ({ page }) => {

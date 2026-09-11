@@ -56,7 +56,7 @@ export function PricingPage({ locale }: { locale: Locale }) {
 
         <section className="cp-extras-section">
           <div className="shell cp-extras-grid">
-            <div><p className="cp-kicker">{ru ? "Отдельная смета" : "Quoted separately"}</p><h2>{ru ? "Что не прячем в тариф" : "What is not hidden in a package"}</h2></div>
+            <div><p className="cp-kicker">{ru ? "Отдельная смета" : "Quoted separately"}</p><h2>{ru ? "Что оплачивается отдельно" : "What is charged separately"}</h2></div>
             <ul>
               <li>{ru ? "Рекламный бюджет и платные размещения" : "Media spend and paid placements"}</li>
               <li>{ru ? "Работы сверх указанного объёма тарифа" : "Work beyond the stated package scope"}</li>

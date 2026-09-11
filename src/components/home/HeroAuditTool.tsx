@@ -7,7 +7,7 @@ import { HeroAuditVisual } from "./HeroAuditVisual";
 
 export function HeroAuditTool({ locale }: { locale: Locale }) {
   const [auditStarted, setAuditStarted] = useState(false);
-  const submitLabel = locale === "ru" ? "Узнать, что мешает сайту" : "See what is holding the website back";
+  const submitLabel = locale === "ru" ? "Проверить сайт" : "Check your website";
 
   return (
     <div className="hero-tool" data-audit-state={auditStarted ? "running" : "demo"}>

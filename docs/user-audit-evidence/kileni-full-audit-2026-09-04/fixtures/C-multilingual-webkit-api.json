@@ -1,0 +1,1422 @@
+{
+  "token": "X_RmSGYRr-XwBRM3958n3mb27AZik5uMXuw8i4uCg3c",
+  "normalizedDomain": "fixture-acceptance-multilingual.test",
+  "status": "completed",
+  "terminal": true,
+  "cached": false,
+  "createdAt": 1789100723878,
+  "completedAt": 1789100723903,
+  "consentRecorded": true,
+  "pagesDiscovered": 9,
+  "pagesChecked": 6,
+  "pagesSelected": 6,
+  "coverageStatus": "sample_complete",
+  "pageLimit": 10,
+  "progress": {
+    "pagesDiscovered": 9,
+    "pagesChecked": 6,
+    "pageLimit": 10
+  },
+  "result": {
+    "resultVersion": 4,
+    "contractVersion": 3,
+    "engineVersion": "audit-pipeline-v3.1.0",
+    "auditId": "X_RmSGYRr-XwBRM3958n3mb27AZik5uMXuw8i4uCg3c",
+    "createdAt": "2026-09-11T04:25:23.878Z",
+    "target": "https://fixture-acceptance-multilingual.test/",
+    "inventorySummary": {
+      "objectsFound": 11,
+      "htmlFound": 9,
+      "eligibleHtml": 9,
+      "excludedHtml": 0,
+      "selected": 6,
+      "checked": 6,
+      "notCompleted": 0,
+      "outsideSample": 3,
+      "representedPageTypes": 5
+    },
+    "pagesDiscovered": 9,
+    "pagesEligible": 9,
+    "pagesExcluded": 0,
+    "pagesSelected": 6,
+    "pagesChecked": 6,
+    "pagesNotCompleted": 0,
+    "pagesNotCheckedTotal": 3,
+    "pagesNotCheckedReturned": 3,
+    "pagesNotCheckedTruncated": false,
+    "pagesNotCheckedUrls": [
+      "https://fixture-acceptance-multilingual.test/en/blog/a",
+      "https://fixture-acceptance-multilingual.test/en/cases/localization",
+      "https://fixture-acceptance-multilingual.test/en/services/seo"
+    ],
+    "exclusionSummary": [],
+    "excludedPages": [],
+    "coverageStatus": "sample_complete",
+    "selectedPages": [
+      {
+        "url": "https://fixture-acceptance-multilingual.test/",
+        "pageType": "homepage",
+        "selectionReason": "user_target",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/services/seo",
+        "pageType": "service",
+        "selectionReason": "primary_commercial",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/pricing",
+        "pageType": "pricing",
+        "selectionReason": "conversion_support",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/cases/localization",
+        "pageType": "case",
+        "selectionReason": "case_page",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/blog/a",
+        "pageType": "article",
+        "selectionReason": "article_page",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/en",
+        "pageType": "homepage",
+        "selectionReason": "alternate_locale_control",
+        "locale": "en"
+      }
+    ],
+    "checkedPages": [
+      {
+        "url": "https://fixture-acceptance-multilingual.test/",
+        "finalUrl": "https://fixture-acceptance-multilingual.test/",
+        "pageType": "homepage",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "Главная русская страница",
+          "present": true,
+          "length": 24,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Компания"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-multilingual.test/",
+          "valid": true,
+          "selfReferential": true
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/services/seo",
+        "finalUrl": "https://fixture-acceptance-multilingual.test/services/seo",
+        "pageType": "service",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "SEO-продвижение",
+          "present": true,
+          "length": 15,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "SEO-продвижение"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-multilingual.test/services/seo",
+          "valid": true,
+          "selfReferential": true
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/pricing",
+        "finalUrl": "https://fixture-acceptance-multilingual.test/pricing",
+        "pageType": "pricing",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "Цены на услуги",
+          "present": true,
+          "length": 14,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Цены"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-multilingual.test/pricing",
+          "valid": true,
+          "selfReferential": true
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/cases/localization",
+        "finalUrl": "https://fixture-acceptance-multilingual.test/cases/localization",
+        "pageType": "case",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "Кейс локализации сайта",
+          "present": true,
+          "length": 22,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Как локализовали сайт"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-multilingual.test/services/seo",
+          "valid": true,
+          "selfReferential": false
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/blog/a",
+        "finalUrl": "https://fixture-acceptance-multilingual.test/blog/a",
+        "pageType": "article",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "Статья о продвижении",
+          "present": true,
+          "length": 20,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Как продвигать сайт"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-multilingual.test/blog/a",
+          "valid": true,
+          "selfReferential": true
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/en",
+        "finalUrl": "https://fixture-acceptance-multilingual.test/en",
+        "pageType": "homepage",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "English home",
+          "present": true,
+          "length": 12,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Company"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-multilingual.test/en",
+          "valid": true,
+          "selfReferential": true
+        }
+      }
+    ],
+    "technicalResources": [
+      {
+        "url": "https://fixture-acceptance-multilingual.test/robots.txt",
+        "finalUrl": "https://fixture-acceptance-multilingual.test/robots.txt",
+        "resourceType": "robots",
+        "pageType": null,
+        "language": null,
+        "depth": 1,
+        "statusCode": 200,
+        "contentType": "text/plain",
+        "indexabilitySignals": [
+          "canonical_missing"
+        ],
+        "authSignals": []
+      },
+      {
+        "url": "https://fixture-acceptance-multilingual.test/sitemap.xml",
+        "finalUrl": "https://fixture-acceptance-multilingual.test/sitemap.xml",
+        "resourceType": "sitemap",
+        "pageType": null,
+        "language": null,
+        "depth": 1,
+        "statusCode": 200,
+        "contentType": "application/xml",
+        "indexabilitySignals": [
+          "canonical_missing"
+        ],
+        "authSignals": []
+      }
+    ],
+    "clientPresentationByLocale": {
+      "ru": {
+        "summary": {
+          "htmlFound": 9,
+          "scopeLabel": "Найдено HTML-страниц",
+          "scopeValue": 9,
+          "checkedLabel": "Подробно проверено страниц",
+          "findingsLabel": "1 вывод требует проверки · 4 возможных улучшения",
+          "eligible": 9,
+          "excluded": 0,
+          "selected": 6,
+          "checked": 6,
+          "notCompleted": 0,
+          "outsideSample": 3,
+          "critical": 0,
+          "review": 1,
+          "optional": 4
+        },
+        "exclusions": [],
+        "issues": [
+          {
+            "checkId": "canonical",
+            "kind": "review",
+            "title": "Основной адрес страницы",
+            "url": "https://fixture-acceptance-multilingual.test/cases/localization",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/cases/localization"
+            ],
+            "whatFound": "Основной адрес ведёт на другую страницу",
+            "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+            "howChecked": "Проверяет canonical в HTML.",
+            "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+            "nextStep": "Проверьте основной адрес страницы, исправьте его при необходимости и повторите проверку."
+          },
+          {
+            "checkId": "title",
+            "kind": "optional",
+            "title": "Название страницы для поисковой выдачи",
+            "url": "https://fixture-acceptance-multilingual.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/",
+              "https://fixture-acceptance-multilingual.test/blog/a",
+              "https://fixture-acceptance-multilingual.test/cases/localization",
+              "https://fixture-acceptance-multilingual.test/en",
+              "https://fixture-acceptance-multilingual.test/pricing",
+              "https://fixture-acceptance-multilingual.test/services/seo"
+            ],
+            "whatFound": "Заголовок есть, длина: 24",
+            "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+            "howChecked": "Проверяет наличие и длину title.",
+            "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+            "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+          },
+          {
+            "checkId": "description",
+            "kind": "optional",
+            "title": "Описание для поисковой выдачи",
+            "url": "https://fixture-acceptance-multilingual.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/",
+              "https://fixture-acceptance-multilingual.test/blog/a",
+              "https://fixture-acceptance-multilingual.test/cases/localization",
+              "https://fixture-acceptance-multilingual.test/en",
+              "https://fixture-acceptance-multilingual.test/pricing",
+              "https://fixture-acceptance-multilingual.test/services/seo"
+            ],
+            "whatFound": "Описание есть, длина: 62",
+            "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+            "howChecked": "Проверяет наличие и длину meta description.",
+            "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+            "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+          },
+          {
+            "checkId": "commercial-structured-data",
+            "kind": "optional",
+            "title": "Разметка типа страницы",
+            "url": "https://fixture-acceptance-multilingual.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/",
+              "https://fixture-acceptance-multilingual.test/cases/localization",
+              "https://fixture-acceptance-multilingual.test/en",
+              "https://fixture-acceptance-multilingual.test/pricing"
+            ],
+            "whatFound": "Структурированные данные не найдены",
+            "whyImportant": "Из-за этого поисковая система получает меньше понятных подсказок о содержимом страницы.",
+            "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+            "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+            "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+          },
+          {
+            "checkId": "breadcrumbs",
+            "kind": "optional",
+            "title": "Подсказка о месте страницы в структуре сайта",
+            "url": "https://fixture-acceptance-multilingual.test/blog/a",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/blog/a",
+              "https://fixture-acceptance-multilingual.test/cases/localization",
+              "https://fixture-acceptance-multilingual.test/services/seo"
+            ],
+            "whatFound": "На странице /blog/a не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+            "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+            "howChecked": "В сохранённом коде страницы /blog/a проверили список специальных меток и не нашли BreadcrumbList.",
+            "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+            "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+          }
+        ],
+        "strengths": [
+          "Все 6 проверенных страниц открылись без серверных ошибок.",
+          "На проверенных страницах не обнаружен явный запрет на индексирование.",
+          "Файл правил для поисковых роботов (robots.txt) и список страниц сайта (sitemap.xml) доступны и прочитаны."
+        ],
+        "pages": [
+          {
+            "url": "https://fixture-acceptance-multilingual.test/",
+            "typeLabel": "Главная страница",
+            "selectionReason": "Это адрес, который был указан для проверки.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "Из-за этого поисковая система получает меньше понятных подсказок о содержимом страницы.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/services/seo",
+            "typeLabel": "Страница услуги",
+            "selectionReason": "Проверяем основную коммерческую страницу.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "Подсказка о месте страницы в структуре сайта",
+                "url": "https://fixture-acceptance-multilingual.test/blog/a",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "На странице /blog/a не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+                "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+                "howChecked": "В сохранённом коде страницы /blog/a проверили список специальных меток и не нашли BreadcrumbList.",
+                "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+                "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/pricing",
+            "typeLabel": "Страница с ценами",
+            "selectionReason": "Страница помогает посетителю принять решение или связаться.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "Из-за этого поисковая система получает меньше понятных подсказок о содержимом страницы.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/cases/localization",
+            "typeLabel": "Кейс",
+            "selectionReason": "Проверяем отдельный кейс.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "canonical",
+                "kind": "review",
+                "title": "Основной адрес страницы",
+                "url": "https://fixture-acceptance-multilingual.test/cases/localization",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/cases/localization"
+                ],
+                "whatFound": "Основной адрес ведёт на другую страницу",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет canonical в HTML.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Проверьте основной адрес страницы, исправьте его при необходимости и повторите проверку."
+              },
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "Из-за этого поисковая система получает меньше понятных подсказок о содержимом страницы.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "Подсказка о месте страницы в структуре сайта",
+                "url": "https://fixture-acceptance-multilingual.test/blog/a",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "На странице /blog/a не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+                "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+                "howChecked": "В сохранённом коде страницы /blog/a проверили список специальных меток и не нашли BreadcrumbList.",
+                "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+                "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/blog/a",
+            "typeLabel": "Статья",
+            "selectionReason": "Проверяем отдельную статью.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "Подсказка о месте страницы в структуре сайта",
+                "url": "https://fixture-acceptance-multilingual.test/blog/a",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "На странице /blog/a не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+                "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+                "howChecked": "В сохранённом коде страницы /blog/a проверили список специальных меток и не нашли BreadcrumbList.",
+                "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+                "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/en",
+            "typeLabel": "Контроль другой языковой версии",
+            "selectionReason": "Контролируем другую языковую версию.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "Из-за этого поисковая система получает меньше понятных подсказок о содержимом страницы.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              }
+            ]
+          }
+        ],
+        "publicTechnicalResources": [
+          {
+            "type": "robots",
+            "label": "robots.txt",
+            "url": "https://fixture-acceptance-multilingual.test/robots.txt",
+            "statusCode": 200,
+            "details": [
+              "Файл прочитан.",
+              "Важные выбранные страницы не заблокированы правилами файла."
+            ]
+          },
+          {
+            "type": "sitemap",
+            "label": "sitemap.xml",
+            "url": "https://fixture-acceptance-multilingual.test/sitemap.xml",
+            "statusCode": 200,
+            "details": [
+              "XML разобран.",
+              "Все 9 адресов из sitemap обработаны. Доступных HTML-страниц: 9; подходят для дальнейшего анализа: 9.",
+              "Все обнаруженные адреса принадлежат проверяемому сайту."
+            ]
+          }
+        ],
+        "additionalFiles": 0,
+        "additionalDocuments": 0,
+        "additionalFilesBasis": "classified_resources",
+        "nextStep": {
+          "primary": "Получить полный аудит сайта",
+          "secondary": "Повторить бесплатную проверку",
+          "note": "Повторная бесплатная проверка снова ограничена выборкой до 10 страниц."
+        },
+        "limitations": [
+          "Индексирование, позиции, показы и долю переходов из поисковой выдачи (CTR) можно определить только с доступом к поисковым кабинетам.",
+          "Трафик и заявки можно определить только с доступом к системе аналитики.",
+          "Выводы относятся только к 6 выбранным и проверенным страницам.",
+          "Закрытые разделы и данные сервера не проверялись."
+        ],
+        "disclaimer": "Это автоматическая проверка публичной части сайта по методике KILENI. Она не заменяет данные Яндекс Вебмастера, Google Search Console, систем аналитики и полный ручной аудит."
+      },
+      "en": {
+        "summary": {
+          "htmlFound": 9,
+          "scopeLabel": "HTML pages found",
+          "scopeValue": 9,
+          "checkedLabel": "Pages checked in detail",
+          "findingsLabel": "1 preliminary signal · 4 possible improvements",
+          "eligible": 9,
+          "excluded": 0,
+          "selected": 6,
+          "checked": 6,
+          "notCompleted": 0,
+          "outsideSample": 3,
+          "critical": 0,
+          "review": 1,
+          "optional": 4
+        },
+        "exclusions": [],
+        "issues": [
+          {
+            "checkId": "canonical",
+            "kind": "review",
+            "title": "Основной адрес страницы",
+            "url": "https://fixture-acceptance-multilingual.test/cases/localization",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/cases/localization"
+            ],
+            "whatFound": "Основной адрес ведёт на другую страницу",
+            "whyImportant": "This can affect how visitors or search engines understand the page.",
+            "howChecked": "Проверяет canonical в HTML.",
+            "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+            "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+          },
+          {
+            "checkId": "title",
+            "kind": "optional",
+            "title": "Заголовок для поисковой выдачи",
+            "url": "https://fixture-acceptance-multilingual.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/",
+              "https://fixture-acceptance-multilingual.test/blog/a",
+              "https://fixture-acceptance-multilingual.test/cases/localization",
+              "https://fixture-acceptance-multilingual.test/en",
+              "https://fixture-acceptance-multilingual.test/pricing",
+              "https://fixture-acceptance-multilingual.test/services/seo"
+            ],
+            "whatFound": "Заголовок есть, длина: 24",
+            "whyImportant": "This can affect how visitors or search engines understand the page.",
+            "howChecked": "Проверяет наличие и длину title.",
+            "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+            "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+          },
+          {
+            "checkId": "description",
+            "kind": "optional",
+            "title": "Описание для поисковой выдачи",
+            "url": "https://fixture-acceptance-multilingual.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/",
+              "https://fixture-acceptance-multilingual.test/blog/a",
+              "https://fixture-acceptance-multilingual.test/cases/localization",
+              "https://fixture-acceptance-multilingual.test/en",
+              "https://fixture-acceptance-multilingual.test/pricing",
+              "https://fixture-acceptance-multilingual.test/services/seo"
+            ],
+            "whatFound": "Описание есть, длина: 62",
+            "whyImportant": "This can affect how visitors or search engines understand the page.",
+            "howChecked": "Проверяет наличие и длину meta description.",
+            "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+            "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+          },
+          {
+            "checkId": "commercial-structured-data",
+            "kind": "optional",
+            "title": "Разметка типа страницы",
+            "url": "https://fixture-acceptance-multilingual.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/",
+              "https://fixture-acceptance-multilingual.test/cases/localization",
+              "https://fixture-acceptance-multilingual.test/en",
+              "https://fixture-acceptance-multilingual.test/pricing"
+            ],
+            "whatFound": "Структурированные данные не найдены",
+            "whyImportant": "This can affect how visitors or search engines understand the page.",
+            "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+            "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+            "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+          },
+          {
+            "checkId": "breadcrumbs",
+            "kind": "optional",
+            "title": "A clue to the page's place in the site structure",
+            "url": "https://fixture-acceptance-multilingual.test/blog/a",
+            "affectedUrls": [
+              "https://fixture-acceptance-multilingual.test/blog/a",
+              "https://fixture-acceptance-multilingual.test/cases/localization",
+              "https://fixture-acceptance-multilingual.test/services/seo"
+            ],
+            "whatFound": "No structured section trail (BreadcrumbList) was found on /blog/a.",
+            "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+            "howChecked": "The structured-data markers in the saved code for /blog/a were checked and no BreadcrumbList was found.",
+            "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+            "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+          }
+        ],
+        "strengths": [
+          "All 6 checked pages opened without a server error.",
+          "No explicit indexing block was found on the checked pages.",
+          "robots.txt and sitemap.xml were available and read."
+        ],
+        "pages": [
+          {
+            "url": "https://fixture-acceptance-multilingual.test/",
+            "typeLabel": "Homepage",
+            "selectionReason": "This is the address submitted for the check.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/services/seo",
+            "typeLabel": "Service page",
+            "selectionReason": "This is a primary commercial page.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "A clue to the page's place in the site structure",
+                "url": "https://fixture-acceptance-multilingual.test/blog/a",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "No structured section trail (BreadcrumbList) was found on /blog/a.",
+                "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+                "howChecked": "The structured-data markers in the saved code for /blog/a were checked and no BreadcrumbList was found.",
+                "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+                "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/pricing",
+            "typeLabel": "Pricing page",
+            "selectionReason": "This page helps a visitor decide or make contact.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/cases/localization",
+            "typeLabel": "Case study",
+            "selectionReason": "This is a representative case study.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "canonical",
+                "kind": "review",
+                "title": "Основной адрес страницы",
+                "url": "https://fixture-acceptance-multilingual.test/cases/localization",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/cases/localization"
+                ],
+                "whatFound": "Основной адрес ведёт на другую страницу",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет canonical в HTML.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "A clue to the page's place in the site structure",
+                "url": "https://fixture-acceptance-multilingual.test/blog/a",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "No structured section trail (BreadcrumbList) was found on /blog/a.",
+                "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+                "howChecked": "The structured-data markers in the saved code for /blog/a were checked and no BreadcrumbList was found.",
+                "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+                "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/blog/a",
+            "typeLabel": "Article",
+            "selectionReason": "This is a representative article.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "A clue to the page's place in the site structure",
+                "url": "https://fixture-acceptance-multilingual.test/blog/a",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "No structured section trail (BreadcrumbList) was found on /blog/a.",
+                "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+                "howChecked": "The structured-data markers in the saved code for /blog/a were checked and no BreadcrumbList was found.",
+                "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+                "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-multilingual.test/en",
+            "typeLabel": "Alternate-language control page",
+            "selectionReason": "This checks another language version.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Заголовок есть, длина: 24",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/blog/a",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing",
+                  "https://fixture-acceptance-multilingual.test/services/seo"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-multilingual.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-multilingual.test/",
+                  "https://fixture-acceptance-multilingual.test/cases/localization",
+                  "https://fixture-acceptance-multilingual.test/en",
+                  "https://fixture-acceptance-multilingual.test/pricing"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              }
+            ]
+          }
+        ],
+        "publicTechnicalResources": [
+          {
+            "type": "robots",
+            "label": "robots.txt",
+            "url": "https://fixture-acceptance-multilingual.test/robots.txt",
+            "statusCode": 200,
+            "details": [
+              "The file was read.",
+              "The important selected pages are not blocked by its rules."
+            ]
+          },
+          {
+            "type": "sitemap",
+            "label": "sitemap.xml",
+            "url": "https://fixture-acceptance-multilingual.test/sitemap.xml",
+            "statusCode": 200,
+            "details": [
+              "The XML was parsed.",
+              "All 9 sitemap URLs were processed. Accessible HTML pages: 9; eligible for further analysis: 9.",
+              "All discovered URLs belong to the checked website."
+            ]
+          }
+        ],
+        "additionalFiles": 0,
+        "additionalDocuments": 0,
+        "additionalFilesBasis": "classified_resources",
+        "nextStep": {
+          "primary": "Get a full website audit",
+          "secondary": "Repeat the free check",
+          "note": "A repeated free check is still limited to a sample of up to 10 pages."
+        },
+        "limitations": [
+          "Search inclusion, positions, impressions and CTR require access to search consoles.",
+          "Traffic and enquiries require access to analytics.",
+          "The conclusions apply only to the 6 selected pages that were checked.",
+          "Closed areas and server-side data were not checked."
+        ],
+        "disclaimer": "This is an automated check of the public website using the KILENI method. It does not replace search-console data, analytics, or a full manual audit."
+      }
+    }
+  }
+}

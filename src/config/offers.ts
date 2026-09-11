@@ -286,7 +286,7 @@ const coreOfferInputs: OfferInput[] = [
     service: "seo-promotion",
     title: t("Развитие", "Growth"),
     shortTitle: t("Развитие", "Growth"),
-    description: t("Для регулярного улучшения страниц и расширения поискового спроса.", "For regular page improvements and broader search demand."),
+    description: t("Для регулярного улучшения страниц и подготовки материалов по дополнительным поисковым запросам.", "For regular page improvements and content covering additional relevant search queries."),
     price: prices.seo.growth,
     oldPrice: null,
     priceType: "fixed",

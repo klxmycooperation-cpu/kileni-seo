@@ -484,7 +484,13 @@ function writeContractAuditPdf(
 
   function writeClientIssue(issue: AuditClientPresentation["issues"][number], index: number) {
     writer.keepTogether(126);
-    writer.paragraph(`${index + 1}. ${clientIssuePdfLabel(issue.kind, ru)} · ${issue.title}`, { bold: true, size: 9.2, lineHeight: 11.2, color: clientIssuePdfColor(issue.kind) });
+    const isPerformance = issue.checkId === "performance";
+    writer.paragraph(`${index + 1}. ${clientIssuePdfLabel(issue.kind, ru)} · ${issue.title}`, {
+      bold: true,
+      size: isPerformance ? 8.6 : 9.2,
+      lineHeight: isPerformance ? 10.4 : 11.2,
+      color: clientIssuePdfColor(issue.kind),
+    });
     writer.paragraph(`${ru ? "Страница" : "Page"}: ${issue.url}`, { size: 7.6, lineHeight: 9.1, color: rgb(.33, .36, .42) });
     writer.paragraph(`${ru ? "Что нашли" : "What was found"}: ${issue.whatFound}`, { size: 8, lineHeight: 9.6 });
     writer.paragraph(`${ru ? "Почему это важно" : "Why it matters"}: ${issue.whyImportant}`, { size: 8, lineHeight: 9.6 });

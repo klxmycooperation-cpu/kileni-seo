@@ -71,7 +71,7 @@ test("cycles the public themes in the approved Dark to Signal to Light order", a
 
   const toggle = page.locator(".site-header .theme-toggle:not(.theme-toggle--mobile)");
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "dark");
-  await expect(toggle).toHaveAttribute("aria-label", "Включить сигнальную тему");
+  await expect(toggle).toHaveAttribute("aria-label", "Включить контрастную тему");
 
   await toggle.click();
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "signal");
@@ -122,7 +122,30 @@ test("defines the required semantic tokens in every public palette", async ({ pa
   }
 });
 
-test("uses semantic colors for the key light-theme home sections", async ({ page }) => {
+test("keeps the deliverables proof dark in every theme", async ({ page }) => {
+  for (const theme of ["light", "dark", "signal"] as const) {
+    await page.addInitScript((palette) => {
+      window.localStorage.setItem("kileni:theme:v1", palette);
+    }, theme);
+    await page.goto("/");
+
+    const matchesDarkPresentation = await page.locator(".kileni-site").evaluate(() => {
+      const colorOf = (selector: string) => getComputedStyle(document.querySelector(selector)!).color;
+      const backgroundOf = (selector: string) => getComputedStyle(document.querySelector(selector)!).backgroundColor;
+      return {
+        deliverables: backgroundOf(".home-deliverables") === "rgb(7, 17, 31)",
+        heading: colorOf(".home-deliverables h2") === "rgb(247, 248, 252)",
+      };
+    });
+
+    expect(matchesDarkPresentation, theme).toEqual({
+      deliverables: true,
+      heading: true,
+    });
+  }
+});
+
+test("uses semantic colors for the remaining key light-theme home sections", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("kileni:theme:v1", "light");
   });
@@ -149,8 +172,6 @@ test("uses semantic colors for the key light-theme home sections", async ({ page
     const colorOf = (selector: string) => getComputedStyle(document.querySelector(selector)!).color;
     const backgroundOf = (selector: string) => getComputedStyle(document.querySelector(selector)!).backgroundColor;
     return {
-      deliverables: backgroundOf(".home-deliverables") === backgroundFor("--background-elevated"),
-      heading: colorOf(".home-deliverables h2") === colorFor("--text-primary"),
       directionNumber: colorOf(".home-direction-list > a > span") === colorFor("--text-muted"),
       directionBorder: getComputedStyle(document.querySelector(".home-direction-list > a")!).borderTopColor === colorFor("--border"),
       surface: backgroundOf(".home-directions") === backgroundFor("--surface"),
@@ -159,8 +180,6 @@ test("uses semantic colors for the key light-theme home sections", async ({ page
   });
 
   expect(matchesTokens).toEqual({
-    deliverables: true,
-    heading: true,
     directionNumber: true,
     directionBorder: true,
     surface: true,

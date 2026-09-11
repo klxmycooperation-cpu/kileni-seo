@@ -42,7 +42,7 @@ export function HeroScan({ locale }: { locale: Locale }) {
           <HeroFreeAuditUsageCounter locale={locale} />
           <div className="hero-entry-actions">
             <a className="button button-primary" href="#free-check">
-              {ru ? "Узнать, что мешает сайту" : "See what is holding the website back"}<span aria-hidden="true">↓</span>
+              {ru ? "Проверить сайт" : "Check your website"}<span aria-hidden="true">↓</span>
             </a>
             <a className="hero-proof-link" href="#home-cases">
               {ru ? "Посмотреть реальные результаты" : "See real results"}<span aria-hidden="true">↗</span>

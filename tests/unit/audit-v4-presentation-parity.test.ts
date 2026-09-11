@@ -49,7 +49,7 @@ describe("v4 presentation parity", () => {
       ["performance", "https://example.com/"],
       ["breadcrumbs", "https://example.com/services"],
     ]);
-    expect(web).toContain("Скорость главной страницы");
+    expect(web).toContain("Мобильная производительность главной страницы");
     expect(web).toContain("Подсказка о месте страницы в структуре сайта");
     expect(web).toContain("Критических проблем");
     expect(web).not.toContain("156 пройдено");

@@ -1,0 +1,1254 @@
+{
+  "token": "7esy5lyxOeyCSx8WYOd8Oiz7pxl-zhW3UqsHc1jbVws",
+  "normalizedDomain": "fixture-acceptance-store.test",
+  "status": "completed",
+  "terminal": true,
+  "cached": false,
+  "createdAt": 1789098173363,
+  "completedAt": 1789098173420,
+  "consentRecorded": true,
+  "pagesDiscovered": 9,
+  "pagesChecked": 5,
+  "pagesSelected": 5,
+  "coverageStatus": "sample_complete",
+  "pageLimit": 10,
+  "progress": {
+    "pagesDiscovered": 9,
+    "pagesChecked": 5,
+    "pageLimit": 10
+  },
+  "result": {
+    "resultVersion": 4,
+    "contractVersion": 3,
+    "engineVersion": "audit-pipeline-v3.1.0",
+    "auditId": "7esy5lyxOeyCSx8WYOd8Oiz7pxl-zhW3UqsHc1jbVws",
+    "createdAt": "2026-09-11T03:42:53.363Z",
+    "target": "https://fixture-acceptance-store.test/",
+    "inventorySummary": {
+      "objectsFound": 12,
+      "htmlFound": 9,
+      "eligibleHtml": 5,
+      "excludedHtml": 4,
+      "selected": 5,
+      "checked": 5,
+      "notCompleted": 0,
+      "outsideSample": 0,
+      "representedPageTypes": 3
+    },
+    "pagesDiscovered": 9,
+    "pagesEligible": 5,
+    "pagesExcluded": 4,
+    "pagesSelected": 5,
+    "pagesChecked": 5,
+    "pagesNotCompleted": 0,
+    "pagesNotCheckedTotal": 0,
+    "pagesNotCheckedReturned": 0,
+    "pagesNotCheckedTruncated": false,
+    "pagesNotCheckedUrls": [],
+    "exclusionSummary": [
+      {
+        "reason": "search_page",
+        "count": 1
+      },
+      {
+        "reason": "closed_section",
+        "count": 2
+      },
+      {
+        "reason": "technical_page",
+        "count": 1
+      }
+    ],
+    "excludedPages": [
+      {
+        "url": "https://fixture-acceptance-store.test/account",
+        "reason": "closed_section"
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/cart",
+        "reason": "technical_page"
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/login",
+        "reason": "closed_section"
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/search",
+        "reason": "search_page"
+      }
+    ],
+    "coverageStatus": "sample_complete",
+    "selectedPages": [
+      {
+        "url": "https://fixture-acceptance-store.test/",
+        "pageType": "homepage",
+        "selectionReason": "user_target",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/catalog",
+        "pageType": "category",
+        "selectionReason": "category_hub",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+        "pageType": "product",
+        "selectionReason": "detail_page",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/product/phone-a",
+        "pageType": "product",
+        "selectionReason": "detail_page",
+        "locale": "ru"
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/product/phone-b",
+        "pageType": "product",
+        "selectionReason": "detail_page",
+        "locale": "ru"
+      }
+    ],
+    "checkedPages": [
+      {
+        "url": "https://fixture-acceptance-store.test/",
+        "finalUrl": "https://fixture-acceptance-store.test/",
+        "pageType": "homepage",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "Интернет-магазин электроники",
+          "present": true,
+          "length": 28,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Каталог электроники"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-store.test/",
+          "valid": true,
+          "selfReferential": true
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/catalog",
+        "finalUrl": "https://fixture-acceptance-store.test/catalog",
+        "pageType": "category",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "Каталог смартфонов",
+          "present": true,
+          "length": 18,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Смартфоны"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-store.test/catalog",
+          "valid": true,
+          "selfReferential": true
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+        "finalUrl": "https://fixture-acceptance-store.test/product/blocked-phone",
+        "pageType": "product",
+        "statusCode": 200,
+        "noindex": true,
+        "title": {
+          "value": "Смартфон с ошибочным запретом",
+          "present": true,
+          "length": 29,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Смартфон C"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+          "valid": true,
+          "selfReferential": true
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/product/phone-a",
+        "finalUrl": "https://fixture-acceptance-store.test/product/phone-a",
+        "pageType": "product",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "Смартфон A",
+          "present": true,
+          "length": 10,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Смартфон A"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-store.test/product/phone-a",
+          "valid": true,
+          "selfReferential": true
+        }
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/product/phone-b",
+        "finalUrl": "https://fixture-acceptance-store.test/product/phone-b",
+        "pageType": "product",
+        "statusCode": 200,
+        "noindex": false,
+        "title": {
+          "value": "Смартфон B",
+          "present": true,
+          "length": 10,
+          "optimal": false
+        },
+        "description": {
+          "value": "Подробное описание страницы для посетителя и поисковой выдачи.",
+          "present": true,
+          "length": 62,
+          "optimal": false
+        },
+        "h1": {
+          "count": 1,
+          "values": [
+            "Смартфон B"
+          ]
+        },
+        "canonical": {
+          "url": "https://fixture-acceptance-store.test/product/phone-b",
+          "valid": true,
+          "selfReferential": true
+        }
+      }
+    ],
+    "technicalResources": [
+      {
+        "url": "https://fixture-acceptance-store.test/robots.txt",
+        "finalUrl": "https://fixture-acceptance-store.test/robots.txt",
+        "resourceType": "robots",
+        "pageType": null,
+        "language": null,
+        "depth": 1,
+        "statusCode": 200,
+        "contentType": "text/plain",
+        "indexabilitySignals": [
+          "canonical_missing"
+        ],
+        "authSignals": []
+      },
+      {
+        "url": "https://fixture-acceptance-store.test/sitemap.xml",
+        "finalUrl": "https://fixture-acceptance-store.test/sitemap.xml",
+        "resourceType": "sitemap",
+        "pageType": null,
+        "language": null,
+        "depth": 1,
+        "statusCode": 200,
+        "contentType": "application/xml",
+        "indexabilitySignals": [
+          "canonical_missing"
+        ],
+        "authSignals": []
+      }
+    ],
+    "clientPresentationByLocale": {
+      "ru": {
+        "summary": {
+          "htmlFound": 9,
+          "scopeLabel": "Предварительно просмотрено адресов",
+          "scopeValue": 9,
+          "checkedLabel": "Подробно проверено страниц",
+          "findingsLabel": "1 критическая проблема · 4 возможных улучшения",
+          "eligible": 5,
+          "excluded": 4,
+          "selected": 5,
+          "checked": 5,
+          "notCompleted": 0,
+          "outsideSample": 0,
+          "critical": 1,
+          "review": 0,
+          "optional": 4
+        },
+        "exclusions": [
+          {
+            "reason": "search_page",
+            "label": "Страница поиска",
+            "count": 1
+          },
+          {
+            "reason": "closed_section",
+            "label": "Закрытый раздел",
+            "count": 2
+          },
+          {
+            "reason": "technical_page",
+            "label": "Юридические и служебные страницы",
+            "count": 1
+          }
+        ],
+        "issues": [
+          {
+            "checkId": "indexability",
+            "kind": "critical",
+            "title": "Доступность страницы для поиска",
+            "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/product/blocked-phone"
+            ],
+            "whatFound": "На странице найдено правило noindex",
+            "whyImportant": "Это может помешать поисковой системе открыть или правильно обработать страницу.",
+            "howChecked": "Проверяет noindex и доступный HTML выбранной страницы.",
+            "reliability": "Вывод основан на факте, сохранённом во время загрузки страницы. После изменений проверку стоит повторить.",
+            "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+          },
+          {
+            "checkId": "title",
+            "kind": "optional",
+            "title": "Название страницы для поисковой выдачи",
+            "url": "https://fixture-acceptance-store.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/",
+              "https://fixture-acceptance-store.test/catalog",
+              "https://fixture-acceptance-store.test/product/blocked-phone",
+              "https://fixture-acceptance-store.test/product/phone-a",
+              "https://fixture-acceptance-store.test/product/phone-b"
+            ],
+            "whatFound": "Заголовок есть, длина: 28",
+            "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+            "howChecked": "Проверяет наличие и длину title.",
+            "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+            "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+          },
+          {
+            "checkId": "description",
+            "kind": "optional",
+            "title": "Описание для поисковой выдачи",
+            "url": "https://fixture-acceptance-store.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/",
+              "https://fixture-acceptance-store.test/catalog",
+              "https://fixture-acceptance-store.test/product/blocked-phone",
+              "https://fixture-acceptance-store.test/product/phone-a",
+              "https://fixture-acceptance-store.test/product/phone-b"
+            ],
+            "whatFound": "Описание есть, длина: 62",
+            "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+            "howChecked": "Проверяет наличие и длину meta description.",
+            "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+            "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+          },
+          {
+            "checkId": "commercial-structured-data",
+            "kind": "optional",
+            "title": "Разметка типа страницы",
+            "url": "https://fixture-acceptance-store.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/"
+            ],
+            "whatFound": "Структурированные данные не найдены",
+            "whyImportant": "Из-за этого поисковая система получает меньше понятных подсказок о содержимом страницы.",
+            "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+            "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+            "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+          },
+          {
+            "checkId": "breadcrumbs",
+            "kind": "optional",
+            "title": "Подсказка о месте страницы в структуре сайта",
+            "url": "https://fixture-acceptance-store.test/catalog",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/catalog",
+              "https://fixture-acceptance-store.test/product/blocked-phone",
+              "https://fixture-acceptance-store.test/product/phone-a",
+              "https://fixture-acceptance-store.test/product/phone-b"
+            ],
+            "whatFound": "На странице /catalog не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+            "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+            "howChecked": "В сохранённом коде страницы /catalog проверили список специальных меток и не нашли BreadcrumbList.",
+            "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+            "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+          }
+        ],
+        "strengths": [
+          "Все 5 проверенных страниц открылись без серверных ошибок.",
+          "Файл правил для поисковых роботов (robots.txt) и список страниц сайта (sitemap.xml) доступны и прочитаны."
+        ],
+        "pages": [
+          {
+            "url": "https://fixture-acceptance-store.test/",
+            "typeLabel": "Главная страница",
+            "selectionReason": "Это адрес, который был указан для проверки.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "Из-за этого поисковая система получает меньше понятных подсказок о содержимом страницы.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-store.test/catalog",
+            "typeLabel": "Страница раздела",
+            "selectionReason": "Проверяем страницу, которая объединяет другие материалы.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "Подсказка о месте страницы в структуре сайта",
+                "url": "https://fixture-acceptance-store.test/catalog",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "На странице /catalog не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+                "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+                "howChecked": "В сохранённом коде страницы /catalog проверили список специальных меток и не нашли BreadcrumbList.",
+                "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+                "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+            "typeLabel": "Карточка товара",
+            "selectionReason": "Проверяем детальную страницу отдельного типа.",
+            "indexability": "На странице найден явный запрет на индексирование.",
+            "issues": [
+              {
+                "checkId": "indexability",
+                "kind": "critical",
+                "title": "Доступность страницы для поиска",
+                "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/product/blocked-phone"
+                ],
+                "whatFound": "На странице найдено правило noindex",
+                "whyImportant": "Это может помешать поисковой системе открыть или правильно обработать страницу.",
+                "howChecked": "Проверяет noindex и доступный HTML выбранной страницы.",
+                "reliability": "Вывод основан на факте, сохранённом во время загрузки страницы. После изменений проверку стоит повторить.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "Подсказка о месте страницы в структуре сайта",
+                "url": "https://fixture-acceptance-store.test/catalog",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "На странице /catalog не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+                "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+                "howChecked": "В сохранённом коде страницы /catalog проверили список специальных меток и не нашли BreadcrumbList.",
+                "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+                "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-store.test/product/phone-a",
+            "typeLabel": "Карточка товара",
+            "selectionReason": "Проверяем детальную страницу отдельного типа.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "Подсказка о месте страницы в структуре сайта",
+                "url": "https://fixture-acceptance-store.test/catalog",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "На странице /catalog не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+                "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+                "howChecked": "В сохранённом коде страницы /catalog проверили список специальных меток и не нашли BreadcrumbList.",
+                "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+                "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-store.test/product/phone-b",
+            "typeLabel": "Карточка товара",
+            "selectionReason": "Проверяем детальную страницу отдельного типа.",
+            "indexability": "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Название страницы для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "Из-за этого посетителю и поисковой системе может быть сложнее понять основную тему страницы.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Задайте короткое и понятное название страницы для поисковой выдачи, затем повторите проверку."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "Это может влиять на понятность и качество страницы для посетителей.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "Это автоматический предварительный вывод. Перед изменениями его стоит подтвердить повторной проверкой.",
+                "nextStep": "Сверьте найденный факт со страницей, внесите только необходимое изменение и повторите эту же проверку."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "Подсказка о месте страницы в структуре сайта",
+                "url": "https://fixture-acceptance-store.test/catalog",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "На странице /catalog не найдена специальная разметка цепочки разделов (BreadcrumbList).",
+                "whyImportant": "Такая подсказка помогает поисковой системе понять место страницы в структуре сайта. Для посетителя её отсутствие не является поломкой.",
+                "howChecked": "В сохранённом коде страницы /catalog проверили список специальных меток и не нашли BreadcrumbList.",
+                "reliability": "Сам факт определён надёжно, но улучшение необязательное и имеет смысл только при реальной иерархии разделов.",
+                "nextStep": "Если страница входит в цепочку разделов, добавьте BreadcrumbList. Если у неё нет реальной иерархии, ничего делать не нужно."
+              }
+            ]
+          }
+        ],
+        "publicTechnicalResources": [
+          {
+            "type": "robots",
+            "label": "robots.txt",
+            "url": "https://fixture-acceptance-store.test/robots.txt",
+            "statusCode": 200,
+            "details": [
+              "Файл прочитан.",
+              "Важные выбранные страницы не заблокированы правилами файла."
+            ]
+          },
+          {
+            "type": "sitemap",
+            "label": "sitemap.xml",
+            "url": "https://fixture-acceptance-store.test/sitemap.xml",
+            "statusCode": 200,
+            "details": [
+              "XML разобран.",
+              "В sitemap найдено 10 адресов. Предварительно просмотрено 9 адресов; остальные 1 адресов не загружались в рамках бесплатной проверки.",
+              "Все обнаруженные адреса принадлежат проверяемому сайту."
+            ]
+          }
+        ],
+        "additionalFiles": 0,
+        "additionalDocuments": 0,
+        "additionalFilesBasis": "classified_resources",
+        "nextStep": {
+          "primary": "Получить полный аудит сайта",
+          "secondary": "Повторить бесплатную проверку",
+          "note": "Повторная бесплатная проверка снова ограничена выборкой до 10 страниц."
+        },
+        "limitations": [
+          "Индексирование, позиции, показы и долю переходов из поисковой выдачи (CTR) можно определить только с доступом к поисковым кабинетам.",
+          "Трафик и заявки можно определить только с доступом к системе аналитики.",
+          "Выводы относятся только к 5 выбранным и проверенным страницам.",
+          "Закрытые разделы и данные сервера не проверялись."
+        ],
+        "disclaimer": "Это автоматическая проверка публичной части сайта по методике KILENI. Она не заменяет данные Яндекс Вебмастера, Google Search Console, систем аналитики и полный ручной аудит."
+      },
+      "en": {
+        "summary": {
+          "htmlFound": 9,
+          "scopeLabel": "Addresses previewed",
+          "scopeValue": 9,
+          "checkedLabel": "Pages checked in detail",
+          "findingsLabel": "1 critical problem · 4 possible improvements",
+          "eligible": 5,
+          "excluded": 4,
+          "selected": 5,
+          "checked": 5,
+          "notCompleted": 0,
+          "outsideSample": 0,
+          "critical": 1,
+          "review": 0,
+          "optional": 4
+        },
+        "exclusions": [
+          {
+            "reason": "search_page",
+            "label": "Search page",
+            "count": 1
+          },
+          {
+            "reason": "closed_section",
+            "label": "Closed area",
+            "count": 2
+          },
+          {
+            "reason": "technical_page",
+            "label": "Legal and utility pages",
+            "count": 1
+          }
+        ],
+        "issues": [
+          {
+            "checkId": "indexability",
+            "kind": "critical",
+            "title": "Техническая доступность для поиска",
+            "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/product/blocked-phone"
+            ],
+            "whatFound": "На странице найдено правило noindex",
+            "whyImportant": "This can affect how visitors or search engines understand the page.",
+            "howChecked": "Проверяет noindex и доступный HTML выбранной страницы.",
+            "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+            "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+          },
+          {
+            "checkId": "title",
+            "kind": "optional",
+            "title": "Заголовок для поисковой выдачи",
+            "url": "https://fixture-acceptance-store.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/",
+              "https://fixture-acceptance-store.test/catalog",
+              "https://fixture-acceptance-store.test/product/blocked-phone",
+              "https://fixture-acceptance-store.test/product/phone-a",
+              "https://fixture-acceptance-store.test/product/phone-b"
+            ],
+            "whatFound": "Заголовок есть, длина: 28",
+            "whyImportant": "This can affect how visitors or search engines understand the page.",
+            "howChecked": "Проверяет наличие и длину title.",
+            "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+            "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+          },
+          {
+            "checkId": "description",
+            "kind": "optional",
+            "title": "Описание для поисковой выдачи",
+            "url": "https://fixture-acceptance-store.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/",
+              "https://fixture-acceptance-store.test/catalog",
+              "https://fixture-acceptance-store.test/product/blocked-phone",
+              "https://fixture-acceptance-store.test/product/phone-a",
+              "https://fixture-acceptance-store.test/product/phone-b"
+            ],
+            "whatFound": "Описание есть, длина: 62",
+            "whyImportant": "This can affect how visitors or search engines understand the page.",
+            "howChecked": "Проверяет наличие и длину meta description.",
+            "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+            "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+          },
+          {
+            "checkId": "commercial-structured-data",
+            "kind": "optional",
+            "title": "Разметка типа страницы",
+            "url": "https://fixture-acceptance-store.test/",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/"
+            ],
+            "whatFound": "Структурированные данные не найдены",
+            "whyImportant": "This can affect how visitors or search engines understand the page.",
+            "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+            "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+            "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+          },
+          {
+            "checkId": "breadcrumbs",
+            "kind": "optional",
+            "title": "A clue to the page's place in the site structure",
+            "url": "https://fixture-acceptance-store.test/catalog",
+            "affectedUrls": [
+              "https://fixture-acceptance-store.test/catalog",
+              "https://fixture-acceptance-store.test/product/blocked-phone",
+              "https://fixture-acceptance-store.test/product/phone-a",
+              "https://fixture-acceptance-store.test/product/phone-b"
+            ],
+            "whatFound": "No structured section trail (BreadcrumbList) was found on /catalog.",
+            "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+            "howChecked": "The structured-data markers in the saved code for /catalog were checked and no BreadcrumbList was found.",
+            "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+            "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+          }
+        ],
+        "strengths": [
+          "All 5 checked pages opened without a server error.",
+          "robots.txt and sitemap.xml were available and read."
+        ],
+        "pages": [
+          {
+            "url": "https://fixture-acceptance-store.test/",
+            "typeLabel": "Homepage",
+            "selectionReason": "This is the address submitted for the check.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "commercial-structured-data",
+                "kind": "optional",
+                "title": "Разметка типа страницы",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/"
+                ],
+                "whatFound": "Структурированные данные не найдены",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет JSON-LD на подходящих HTML-страницах.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-store.test/catalog",
+            "typeLabel": "Section page",
+            "selectionReason": "This page groups other content.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "A clue to the page's place in the site structure",
+                "url": "https://fixture-acceptance-store.test/catalog",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "No structured section trail (BreadcrumbList) was found on /catalog.",
+                "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+                "howChecked": "The structured-data markers in the saved code for /catalog were checked and no BreadcrumbList was found.",
+                "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+                "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+            "typeLabel": "Product page",
+            "selectionReason": "This is a representative detail page.",
+            "indexability": "An explicit indexing block was found on the page.",
+            "issues": [
+              {
+                "checkId": "indexability",
+                "kind": "critical",
+                "title": "Техническая доступность для поиска",
+                "url": "https://fixture-acceptance-store.test/product/blocked-phone",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/product/blocked-phone"
+                ],
+                "whatFound": "На странице найдено правило noindex",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет noindex и доступный HTML выбранной страницы.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "A clue to the page's place in the site structure",
+                "url": "https://fixture-acceptance-store.test/catalog",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "No structured section trail (BreadcrumbList) was found on /catalog.",
+                "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+                "howChecked": "The structured-data markers in the saved code for /catalog were checked and no BreadcrumbList was found.",
+                "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+                "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-store.test/product/phone-a",
+            "typeLabel": "Product page",
+            "selectionReason": "This is a representative detail page.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "A clue to the page's place in the site structure",
+                "url": "https://fixture-acceptance-store.test/catalog",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "No structured section trail (BreadcrumbList) was found on /catalog.",
+                "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+                "howChecked": "The structured-data markers in the saved code for /catalog were checked and no BreadcrumbList was found.",
+                "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+                "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+              }
+            ]
+          },
+          {
+            "url": "https://fixture-acceptance-store.test/product/phone-b",
+            "typeLabel": "Product page",
+            "selectionReason": "This is a representative detail page.",
+            "indexability": "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
+            "issues": [
+              {
+                "checkId": "title",
+                "kind": "optional",
+                "title": "Заголовок для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Заголовок есть, длина: 28",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину title.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "description",
+                "kind": "optional",
+                "title": "Описание для поисковой выдачи",
+                "url": "https://fixture-acceptance-store.test/",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/",
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "Описание есть, длина: 62",
+                "whyImportant": "This can affect how visitors or search engines understand the page.",
+                "howChecked": "Проверяет наличие и длину meta description.",
+                "reliability": "This is an automated preliminary conclusion and should be confirmed before making changes.",
+                "nextStep": "Confirm the finding on the page, make the smallest necessary change, and run the same check again."
+              },
+              {
+                "checkId": "breadcrumbs",
+                "kind": "optional",
+                "title": "A clue to the page's place in the site structure",
+                "url": "https://fixture-acceptance-store.test/catalog",
+                "affectedUrls": [
+                  "https://fixture-acceptance-store.test/catalog",
+                  "https://fixture-acceptance-store.test/product/blocked-phone",
+                  "https://fixture-acceptance-store.test/product/phone-a",
+                  "https://fixture-acceptance-store.test/product/phone-b"
+                ],
+                "whatFound": "No structured section trail (BreadcrumbList) was found on /catalog.",
+                "whyImportant": "This clue can help a search engine understand the page's place in the site structure. Its absence is not a broken feature for visitors.",
+                "howChecked": "The structured-data markers in the saved code for /catalog were checked and no BreadcrumbList was found.",
+                "reliability": "The observation itself is reliable, but this improvement is optional and only makes sense when the page has a real hierarchy.",
+                "nextStep": "If the page belongs to a real section trail, add BreadcrumbList. If it has no real hierarchy, no action is needed."
+              }
+            ]
+          }
+        ],
+        "publicTechnicalResources": [
+          {
+            "type": "robots",
+            "label": "robots.txt",
+            "url": "https://fixture-acceptance-store.test/robots.txt",
+            "statusCode": 200,
+            "details": [
+              "The file was read.",
+              "The important selected pages are not blocked by its rules."
+            ]
+          },
+          {
+            "type": "sitemap",
+            "label": "sitemap.xml",
+            "url": "https://fixture-acceptance-store.test/sitemap.xml",
+            "statusCode": 200,
+            "details": [
+              "The XML was parsed.",
+              "The sitemap contains 10 URLs. 9 addresses were previewed; the remaining 1 were not loaded by the free check.",
+              "All discovered URLs belong to the checked website."
+            ]
+          }
+        ],
+        "additionalFiles": 0,
+        "additionalDocuments": 0,
+        "additionalFilesBasis": "classified_resources",
+        "nextStep": {
+          "primary": "Get a full website audit",
+          "secondary": "Repeat the free check",
+          "note": "A repeated free check is still limited to a sample of up to 10 pages."
+        },
+        "limitations": [
+          "Search inclusion, positions, impressions and CTR require access to search consoles.",
+          "Traffic and enquiries require access to analytics.",
+          "The conclusions apply only to the 5 selected pages that were checked.",
+          "Closed areas and server-side data were not checked."
+        ],
+        "disclaimer": "This is an automated check of the public website using the KILENI method. It does not replace search-console data, analytics, or a full manual audit."
+      }
+    }
+  }
+}

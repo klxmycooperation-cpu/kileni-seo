@@ -29,7 +29,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   images: {
-    formats: ["image/avif", "image/webp"],
+    // WebP avoids expensive first-request AVIF encoding on the self-hosted server.
+    formats: ["image/webp"],
     qualities: [60, 75],
     minimumCacheTTL: 86400,
   },

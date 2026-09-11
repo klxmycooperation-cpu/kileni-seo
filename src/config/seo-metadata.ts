@@ -54,7 +54,7 @@ const publicSeoCopy = {
     },
     "web-development": {
       title: "Разработка сайтов для поиска и рекламы — KILENI",
-      description: "Проектируем и разрабатываем сайты с понятной структурой, адаптивными экранами, рабочими формами и аналитикой, готовые к рекламе и поиску.",
+      description: "Разрабатываем сайты с понятной структурой, адаптивными экранами, формами, аналитикой и базовой SEO-подготовкой.",
     },
     "yandex-ads": {
       title: "Настройка Яндекс Рекламы с аналитикой — KILENI",
@@ -160,7 +160,7 @@ const publicSeoCopy = {
     },
     "web-development": {
       title: "Web development for search and ads — KILENI",
-      description: "We design and build websites with a clear structure, responsive screens, working forms and analytics, ready for organic search and advertising.",
+      description: "We design and build websites with a clear structure, responsive layouts, working forms, analytics and basic technical SEO.",
     },
     "yandex-ads": {
       title: "Yandex Ads setup with clear analytics — KILENI",

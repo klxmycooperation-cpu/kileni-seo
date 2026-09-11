@@ -62,12 +62,12 @@ describe("client audit presentation", () => {
     const speed = presentation.issues[0]!;
     const breadcrumbs = presentation.issues[1]!;
 
-    expect(speed.title).toBe("Скорость главной страницы");
-    expect(speed.whatFound).toContain("72 из 100");
-    expect(speed.whyImportant).not.toMatch(/Lighthouse|замер|провер/u);
-    expect(speed.howChecked).toContain("Один запуск");
+    expect(speed.title).toBe("Мобильная производительность главной страницы");
+    expect(speed.whatFound).toContain("лабораторном тесте");
+    expect(speed.whyImportant).toContain("итоговый балл сам по себе не указывает на конкретную причину");
+    expect(speed.howChecked).toContain("один запуск");
     expect(speed.reliability).toContain("предварительный");
-    expect(speed.nextStep).toContain("повтор");
+    expect(speed.nextStep).toContain("Повторите тест 2–3 раза");
     expect(speed.details).toEqual(expect.arrayContaining([
       { label: "Профиль", value: "Мобильный" },
       { label: "LCP — появление главного блока", value: "2.74 с" },
@@ -382,7 +382,7 @@ describe("client audit presentation", () => {
     const serialized = JSON.stringify(presentation);
 
     expect(presentation.issues.map((issue) => issue.title)).toEqual([
-      "Homepage speed",
+      "Mobile performance of the homepage",
       "A clue to the page's place in the site structure",
     ]);
     expect(presentation.strengths).toHaveLength(4);

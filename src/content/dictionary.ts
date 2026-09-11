@@ -4,11 +4,11 @@ export type Dictionary = typeof dictionaries.ru;
 
 export const dictionaries = {
   ru: {
-    nav: { services: "Услуги", audit: "Бесплатная проверка", pricing: "Цены", cases: "Кейсы", articles: "Блог", brief: "Бриф", cta: "Узнать, что мешает сайту" },
+    nav: { services: "Услуги", audit: "Бесплатная проверка", pricing: "Цены", cases: "Кейсы", articles: "Блог", brief: "Бриф", cta: "Проверить сайт" },
     hero: {
       eyebrow: "Бесплатная SEO-проверка до 10 страниц",
       title: "Сайт есть. Пора сделать так, чтобы его находили.",
-      text: "Бесплатно проверим до 10 страниц, оценим техническое состояние сайта и покажем основные зоны риска. Без доступа к админке.",
+      text: "Бесплатно проверим до 10 выбранных публичных страниц и покажем найденные технические замечания. Доступ к админке не нужен.",
       scanWords: ["Индексация", "Структура", "Скорость", "Оптимизация"],
     },
     auditForm: {
@@ -38,11 +38,11 @@ export const dictionaries = {
     },
   },
   en: {
-    nav: { services: "Services", audit: "Free check", pricing: "Prices", cases: "Cases", articles: "Blog", brief: "Brief", cta: "See what blocks the website" },
+    nav: { services: "Services", audit: "Free check", pricing: "Prices", cases: "Cases", articles: "Blog", brief: "Brief", cta: "Check your website" },
     hero: {
       eyebrow: "Free SEO check for up to 10 pages",
       title: "Your website is live. Now make it discoverable.",
-      text: "We will check up to 10 pages, assess the technical baseline and highlight the main risk areas. No admin access required.",
+      text: "We will check up to 10 selected public pages and report the technical findings. No admin access required.",
       scanWords: ["Indexing", "Structure", "Speed", "Optimisation"],
     },
     auditForm: {

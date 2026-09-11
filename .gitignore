@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/test-results/
+/tmp/
 
 # next.js
 /.next/
@@ -45,3 +47,4 @@ next-env.d.ts
 /work/
 /data/
 /backups/
+/.pnpm-store/

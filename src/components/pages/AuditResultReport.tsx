@@ -444,12 +444,37 @@ function ClientAuditReport({
   const attentionIssues = presentation.issues.filter((issue) => issue.kind !== "optional");
   const optionalIssues = presentation.issues.filter((issue) => issue.kind === "optional");
   const confirmedDuplicates = (result.excludedPages ?? []).filter((page) => page.reason === "confirmed_duplicate" && page.primaryUrl);
+  const verdict = clientAuditVerdict(presentation.summary, locale);
 
   return <div className="result-body result-body--client">
     <section className="audit-client-overview" aria-labelledby="audit-client-heading">
+      <p className="eyebrow audit-client-overview__status">{ru ? "Проверка завершена" : "Check complete"}</p>
+
+      <section className="audit-client-verdict" data-tone={verdict.tone} aria-labelledby="audit-client-verdict-title">
+        <header className="audit-client-verdict__header">
+          <div className="audit-client-verdict__signal">
+            <span className="audit-client-verdict__icon" aria-hidden="true">{verdict.tone === "critical" ? "!" : verdict.tone === "review" ? "?" : "✓"}</span>
+            <p className="eyebrow">{ru ? "Главное по результату" : "Main result"}</p>
+          </div>
+          <div className="audit-client-verdict__meta">
+            <span className="audit-client-verdict__meta-label">{ru ? "Статус" : "Status"}</span>
+            <strong>{verdict.status}</strong>
+          </div>
+        </header>
+        <div className="audit-client-verdict__body">
+          <div className="audit-client-verdict__copy">
+            <p className="audit-client-verdict__title" id="audit-client-verdict-title">{verdict.title}</p>
+            <p className="audit-client-verdict__detail">{verdict.detail}</p>
+          </div>
+        </div>
+        <div className="audit-client-verdict__scope">
+          <span aria-hidden="true">i</span>
+          <p>{verdict.scope}</p>
+        </div>
+      </section>
+
       <div className="audit-client-overview__topline">
         <div>
-          <p className="eyebrow">{ru ? "Проверка завершена" : "Check complete"}</p>
           <h1 id="audit-client-heading">{ru ? "Краткий итог для " : "Summary for "}<span className="audit-client-heading-domain">{domain ?? (ru ? "сайта" : "the website")}</span></h1>
         </div>
         <div className="result-actions">
@@ -552,6 +577,103 @@ function ClientAuditReport({
 
     <ClientNextStep locale={locale} domain={domain} presentation={presentation} offerHref={offerHref} />
   </div>;
+}
+
+type AuditClientVerdictSummary = Pick<AuditClientPresentation["summary"], "checked" | "critical" | "review" | "optional">;
+
+export type AuditClientVerdict = {
+  tone: "critical" | "review" | "clear";
+  status: string;
+  title: string;
+  detail: string;
+  scope: string;
+};
+
+export function clientAuditVerdict(summary: AuditClientVerdictSummary, locale: Locale): AuditClientVerdict {
+  const ru = locale === "ru";
+  const scope = summary.checked === 0
+    ? (ru ? "Подробно проверенных страниц: 0." : "Pages checked in detail: 0.")
+    : ru
+      ? `Вывод относится к ${russianCount(summary.checked, "проверенной странице", "проверенным страницам", "проверенным страницам")}.`
+      : `This conclusion covers ${summary.checked} checked ${summary.checked === 1 ? "page" : "pages"}.`;
+
+  if (summary.critical > 0) {
+    const criticalFinding = `${summary.critical === 1 ? "Найдена" : russianCountForm(summary.critical) === "few" ? "Найдены" : "Найдено"} ${russianCount(summary.critical, "критическая проблема", "критические проблемы", "критических проблем")}.`;
+    return {
+      tone: "critical",
+      status: ru ? "Исправления нужны" : "Fixes are required",
+      title: ru ? "Есть ошибки, которые нужно исправить в первую очередь" : "Some errors should be fixed first",
+      detail: ru
+        ? `${criticalFinding} Начните с этих пунктов и после исправлений повторите проверку.`
+        : `${summary.critical} critical ${summary.critical === 1 ? "problem was" : "problems were"} found. Start with these items and repeat the check after fixing them.`,
+      scope,
+    };
+  }
+
+  if (summary.checked === 0) {
+    return {
+      tone: "review",
+      status: ru ? "Нужно повторить проверку" : "Repeat the check",
+      title: ru ? "Недостаточно данных для вывода" : "There is not enough data for a conclusion",
+      detail: ru
+        ? "Ни одна страница не была подробно проверена, поэтому подтвердить наличие или отсутствие ошибок нельзя."
+        : "No pages were checked in detail, so the report cannot confirm whether errors are present or absent.",
+      scope,
+    };
+  }
+
+  if (summary.review > 0) {
+    const reviewCount = summary.review === 1
+      ? "Один вывод"
+      : summary.review === 2
+        ? "Два вывода"
+        : summary.review === 3
+          ? "Три вывода"
+          : summary.review === 4
+            ? "Четыре вывода"
+            : `${summary.review} ${russianCountNoun(summary.review, "вывод", "вывода", "выводов")}`;
+    return {
+      tone: "review",
+      status: ru ? "Сначала проверить" : "Review first",
+      title: ru ? "Критических ошибок не обнаружено" : "No critical errors were found",
+      detail: ru
+        ? `Срочных исправлений не требуется. ${reviewCount} стоит проверить: после подтверждения ${summary.review === 1 ? "он может" : "они могут"} потребовать исправлений.`
+        : `No urgent fixes are required. ${summary.review} ${summary.review === 1 ? "finding needs" : "findings need"} review and may require a fix if confirmed.`,
+      scope,
+    };
+  }
+
+  return {
+    tone: "clear",
+    status: ru ? "Срочных действий нет" : "No urgent action",
+    title: ru ? "Ошибок, требующих исправления, не обнаружено" : "No errors requiring fixes were found",
+    detail: ru
+      ? summary.optional > 0
+        ? `В проверенной выборке есть только ${russianCount(summary.optional, "необязательное улучшение", "необязательных улучшения", "необязательных улучшений")}. ${summary.optional === 1 ? "Его" : "Их"} можно рассмотреть отдельно.`
+        : "В проверенной выборке нет замечаний, требующих действий."
+      : summary.optional > 0
+        ? `The checked sample contains only ${summary.optional} optional ${summary.optional === 1 ? "improvement" : "improvements"}, which can be considered separately.`
+        : "The checked sample contains no findings that require action.",
+    scope,
+  };
+}
+
+function russianCount(value: number, one: string, few: string, many: string): string {
+  return `${value} ${russianCountNoun(value, one, few, many)}`;
+}
+
+function russianCountNoun(value: number, one: string, few: string, many: string): string {
+  const form = russianCountForm(value);
+  return form === "one" ? one : form === "few" ? few : many;
+}
+
+function russianCountForm(value: number): "one" | "few" | "many" {
+  const lastTwo = Math.abs(value) % 100;
+  const last = lastTwo % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return "many";
+  if (last === 1) return "one";
+  if (last >= 2 && last <= 4) return "few";
+  return "many";
 }
 
 function ClientSummaryStats({ locale, presentation }: { locale: Locale; presentation: AuditClientPresentation }) {

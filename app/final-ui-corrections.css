@@ -1,5 +1,11 @@
 /* Verified corrections from the annotated handoff screenshots. */
 
+/* Give the closing headline room without forcing a single line on phones. */
+@media (min-width: 1200px) {
+  .kileni-site .home-10 > .warm-final-cta .shell { grid-template-columns: max-content minmax(0, 1fr) auto; gap: clamp(1.5rem, 3vw, 3rem); }
+  .kileni-site .home-10 > .warm-final-cta h2 { max-width: none; font-size: clamp(2rem, 3.2vw, 3.5rem); white-space: nowrap; }
+}
+
 /* Service offer cards share one reading rhythm and expose one action at a time. */
 .kileni-site .svc-package-grid > article {
   display: grid;
@@ -468,7 +474,33 @@ html[data-kileni-theme] .kileni-site .cp-package-brief {
 .kileni-site .svc-compact-grid article:nth-child(2) { background: #0b132b; color: #fff; }
 .kileni-site .svc-compact-grid article:nth-child(2) li { color: rgba(255, 255, 255, .74); }
 
-.kileni-site .home-deliverables { background: var(--background-elevated, #f3f6fa); }
+.kileni-site .home-deliverables {
+  /* This proof section intentionally keeps the dark presentation in every
+     site theme so the before/after board reads as one visual composition. */
+  --background: #07111f;
+  --background-elevated: #101d2f;
+  --surface: #101d2f;
+  --surface-hover: #15253b;
+  --text-primary: #f7f8fc;
+  --text-secondary: #d5ddec;
+  --text-muted: #aab6c7;
+  --border: #2b3a50;
+  --warm-ink: #f7f8fc;
+  --warm-paper: #07111f;
+  --warm-paper-bright: #0b1727;
+  --warm-muted: #aab6c7;
+  --warm-line: #2b3a50;
+  --home-ink: #f7f8fc;
+  --home-paper: #07111f;
+  --home-line: #2b3a50;
+  --cta-primary-bg: #2448d8;
+  --cta-primary-hover-bg: #3158ec;
+  --cta-primary-active-bg: #1837b5;
+  --cta-primary-text: #fff;
+  background: #07111f;
+  color: #f7f8fc;
+  color-scheme: dark;
+}
 .kileni-site .home-deliverables-grid { align-items: center; }
 .kileni-site .home-deliverable-list { gap: .8rem; overflow: visible; border: 0; border-radius: 0; background: transparent; }
 .kileni-site .home-deliverable-list li { min-height: 8.75rem; padding: 1.15rem; border: 1px solid rgba(11, 19, 43, .14); border-radius: 1rem; background: #fff; color: #0b132b; box-shadow: 0 .7rem 1.5rem rgba(11, 19, 43, .05); }
@@ -578,7 +610,16 @@ html[data-kileni-theme="signal"] .kileni-site .home-deliverable-list li:nth-chil
 
 /* Final client-feedback release: controlled headlines, readable supporting copy
    and layouts that keep their rhythm across themes and viewports. */
-.kileni-site .signal-hero .hero-title-lock { white-space: nowrap; }
+.kileni-site .signal-hero .hero-title-lock { display: block; white-space: nowrap; }
+
+/* Slightly larger supporting copy in the annotated hero, not a global zoom. */
+.kileni-site .signal-hero .hero-copy > .eyebrow { font-size: .875rem; }
+.kileni-site .signal-hero .hero-copy > .hero-lead { font-size: 1.2rem; }
+.kileni-site .signal-hero .hero-copy > .hero-honesty { font-size: .9rem; }
+.kileni-site .signal-hero .hero-copy > :is(.hero-microcopy, .hero-free-audit-usage) { font-size: .95rem; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link small { font-size: .875rem; line-height: 1.5; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link em { font-size: .95rem; }
+.kileni-site .signal-hero .scan-keywords .hero-check-link > b { font-size: .8rem; }
 
 @media (max-width: 360px) {
   .kileni-site .signal-hero .hero-copy h1 {
@@ -692,8 +733,11 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
   text-transform: none;
 }
 .kileni-site .home-fix-board {
+  --fix-muted: #b8c5d8;
+  --fix-good: #90f0bd;
+  --fix-warn: #ffd094;
   position: relative;
-  min-height: 34rem;
+  min-height: 0;
   padding: 1.15rem;
   overflow: hidden;
   border: 1px solid rgba(132, 159, 255, .28);
@@ -740,15 +784,32 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
   letter-spacing: .06em;
   text-transform: uppercase;
 }
-.kileni-site .home-fix-board > header strong { font-size: 1.12rem; }
-.kileni-site .home-fix-board > header code {
+.kileni-site .home-fix-board > header strong { max-width: 23ch; font-size: 1.5rem; line-height: 1.25; letter-spacing: -.03em; }
+.kileni-site .home-fix-board > header .home-fix-example {
+  flex-shrink: 0;
   padding: .55rem .75rem;
   border: 1px solid rgba(159, 181, 255, .3);
   border-radius: 999px;
   background: rgba(50, 79, 174, .18);
   color: #c9d5ff;
-  font: 700 .72rem/1 var(--mono);
+  font: 600 .75rem/1.4 var(--mono);
+  letter-spacing: 0;
+  text-transform: none;
 }
+.kileni-site .home-fix-comparison { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin: 1.25rem 0; }
+.kileni-site .home-fix-comparison > div { min-width: 0; padding: 1.25rem; border: 1px solid rgba(255, 208, 148, .3); border-radius: 1rem; background: #17202c; }
+.kileni-site .home-fix-comparison > .home-fix-after { border-color: rgba(144, 240, 189, .35); background: #102b29; }
+.kileni-site .home-fix-state { display: flex; align-items: center; gap: .5rem; color: var(--fix-warn); font-size: .8rem; }
+.kileni-site .home-fix-after .home-fix-state { color: var(--fix-good); }
+.kileni-site .home-fix-state i { display: grid; width: 1.4rem; height: 1.4rem; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-style: normal; font-weight: 800; }
+.kileni-site .home-fix-comparison strong { display: block; margin: .75rem 0 1rem; color: #f7f9ff; font-size: 1.3rem; letter-spacing: -.025em; }
+.kileni-site .home-fix-comparison code { color: #d7e0ed; font: .85rem/1.6 var(--mono); overflow-wrap: anywhere; }
+.kileni-site .home-fix-comparison mark { padding: .1rem .2rem; border-radius: .2rem; background: rgba(255, 208, 148, .14); color: var(--fix-warn); }
+.kileni-site .home-fix-comparison p { margin: 1rem 0 0; color: var(--fix-muted); font-size: .9rem; line-height: 1.5; }
+.kileni-site .home-fix-check { display: flex; min-height: 2.75rem; align-items: center; gap: .6rem; }
+.kileni-site .home-fix-check > span { color: var(--fix-good); font-size: 1.7rem; }
+.kileni-site .home-fix-transition { position: absolute; z-index: 2; top: 50%; left: 50%; display: grid; width: 2.4rem; height: 2.4rem; place-items: center; transform: translate(-50%, -50%); border: 1px solid #536887; border-radius: 50%; background: #091426; color: #d7e0ed; font-size: 1.1rem; }
+.kileni-site .home-fix-board > .home-fix-scope { margin: .75rem .85rem .25rem; color: var(--fix-muted); font-size: .8rem; line-height: 1.5; }
 .kileni-site .home-fix-flow {
   position: relative;
   display: grid;
@@ -776,8 +837,8 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
   gap: .85rem;
   align-items: start;
   min-width: 0;
-  min-height: 9.5rem;
-  padding: 1.15rem;
+  min-height: 7.5rem;
+  padding: .9rem;
   border: 1px solid rgba(185, 201, 255, .16);
   border-radius: 1rem;
   background: rgba(12, 29, 53, .88);
@@ -902,6 +963,8 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
   .kileni-site .home-fix-board > header,
   .kileni-site .home-fix-board > footer { align-items: flex-start; flex-direction: column; gap: .75rem; }
   .kileni-site .home-fix-flow { grid-template-columns: 1fr; }
+  .kileni-site .home-fix-comparison { grid-template-columns: 1fr; }
+  .kileni-site .home-fix-transition { transform: translate(-50%, -50%) rotate(90deg); }
   .kileni-site .home-fix-flow li { min-height: 0; }
   .kileni-site .home-fix-board > footer > b { width: 100%; justify-content: center; }
 }

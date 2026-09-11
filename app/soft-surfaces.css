@@ -486,6 +486,12 @@
   overflow: clip;
 }
 
+/* Layout grids start their text at the edge, not inside a padded card. */
+.kileni-site .about-10 .about-roles-grid.about-roles-grid,
+.kileni-site .about-10 .about-deliverables-grid.about-deliverables-grid {
+  overflow: visible;
+}
+
 .kileni-site .editorial-page .article-card.article-card,
 .kileni-site .service-10 .svc-package-grid > article,
 .kileni-site .service-10 .svc-result-fragment.svc-result-fragment,

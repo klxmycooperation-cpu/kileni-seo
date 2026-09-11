@@ -20,14 +20,14 @@ export function HomePage({ locale }: { locale: Locale }) {
   const articles = getArticles(locale);
   const process = ru
     ? [
-        { title: "Проверяем", text: "Проводим бесплатную проверку до 10 ключевых страниц: открываются ли они, доступны ли поиску и нет ли повторяющихся ошибок.", result: "Видим, что мешает сайту появляться в поиске" },
-        { title: "Объясняем", text: "Показываем, где сайт теряет видимость и обращения, и отделяем критичное от того, что может подождать.", result: "Согласуем, что исправлять в первую очередь" },
+        { title: "Проверяем", text: "Проверяем до 10 выбранных публичных страниц: ответы сервера, ограничения индексации и технические настройки.", result: "Сохраняем найденные замечания по страницам" },
+        { title: "Объясняем", text: "Показываем результаты проверки и отделяем критичные технические замечания от рекомендаций, которые можно запланировать позже.", result: "Фиксируем порядок следующих действий" },
         { title: "Исправляем", text: "Согласуем объём и по этапам внедряем нужные изменения: от структуры до контента и скорости.", result: "Фиксируем выполненные изменения" },
         { title: "Перепроверяем", text: "После внедрения повторяем те же проверки и фиксируем, что действительно изменилось.", result: "Сохраняем результат повторной проверки" },
       ]
     : [
-        { title: "Check", text: "We run a free express review of up to 10 key pages: access, indexing and visible technical risks.", result: "You see whether there are systemic growth constraints" },
-        { title: "Explain", text: "We show where visibility and enquiries are being lost, separating critical work from what can wait.", result: "We agree what should be fixed first" },
+        { title: "Check", text: "We check up to 10 selected public pages: server responses, indexing restrictions and technical settings.", result: "You receive the findings for the checked pages" },
+        { title: "Explain", text: "We explain the findings and separate critical technical issues from recommendations that can be scheduled later.", result: "We record the next actions in priority order" },
         { title: "Implement", text: "We agree the scope and implement the necessary changes in stages: structure, content and speed.", result: "We record the completed changes" },
         { title: "Recheck", text: "After implementation, we repeat the same checks and record what actually changed.", result: "We save the follow-up check result" },
       ];
@@ -48,13 +48,13 @@ export function HomePage({ locale }: { locale: Locale }) {
     ? [
         { title: "Индексация", text: "Проверяем, может ли важная страница попасть в поиск и не закрыта ли она от обхода.", href: localizedPath(locale, "glossary/indexing") },
         { title: "Структура", text: "Смотрим, точно ли заголовки, адреса и ссылки описывают содержание страниц.", href: localizedPath(locale, "glossary/on-page") },
-        { title: "Скорость", text: "Находим то, что замедляет первый экран и мешает посетителю пользоваться сайтом с телефона.", href: localizedPath(locale, "glossary/core-web-vitals") },
+        { title: "Производительность", text: "Если лабораторный тест доступен, показываем итоговую оценку и отдельные параметры без предположений о причине.", href: localizedPath(locale, "glossary/core-web-vitals") },
         { title: "Оптимизация", text: "Распределяем замечания по приоритету: что исправить сейчас, а что может подождать.", href: localizedPath(locale, "glossary/seo-audit") },
       ]
     : [
         { title: "Indexing", text: "We check whether important pages can enter search results and are open to crawling.", href: localizedPath(locale, "glossary/indexing") },
         { title: "Structure", text: "We check whether headings, URLs and page relationships are clear to visitors and search systems.", href: localizedPath(locale, "glossary/on-page") },
-        { title: "Speed", text: "We find what slows down the first screen and gets in the way on mobile devices.", href: localizedPath(locale, "glossary/core-web-vitals") },
+        { title: "Performance", text: "When a laboratory test is available, we show its score and separate metrics without guessing the cause.", href: localizedPath(locale, "glossary/core-web-vitals") },
         { title: "Optimisation", text: "We turn the findings into a clear order: what to fix now and what can wait.", href: localizedPath(locale, "glossary/seo-audit") },
       ];
   const faq = ru
@@ -143,19 +143,35 @@ export function HomePage({ locale }: { locale: Locale }) {
             </div>
             <div className="home-fix-board">
               <header>
-                <div><span>{ru ? "Индексация страницы" : "Page indexing"}</span><strong>{ru ? "Запрет в meta robots" : "Block in meta robots"}</strong></div>
-                <code>{ru ? "4 этапа проверки" : "4 verification steps"}</code>
+                <div><span>{ru ? "Индексация страницы" : "Page indexing"}</span><strong>{ru ? "От запрета — к проверенному исправлению" : "From a restriction to a verified fix"}</strong></div>
+                <span className="home-fix-example">{ru ? "Пример исправления" : "Example fix"}</span>
               </header>
+              <div className="home-fix-comparison">
+                <div className="home-fix-before">
+                  <span className="home-fix-state"><i aria-hidden="true">!</i>{ru ? "До исправления" : "Before the fix"}</span>
+                  <strong>{ru ? "Найден запрет" : "Restriction found"}</strong>
+                  <code>{'<meta name="robots"'}<br />{'content="'}<mark>noindex</mark>{'">'}</code>
+                  <p>{ru ? "Директива просит поисковую систему не включать страницу в выдачу." : "The directive tells search engines not to include the page in results."}</p>
+                </div>
+                <span className="home-fix-transition" aria-hidden="true">→</span>
+                <div className="home-fix-after">
+                  <span className="home-fix-state"><i aria-hidden="true">✓</i>{ru ? "После согласования" : "After approval"}</span>
+                  <strong>{ru ? "Запрет снят" : "Restriction removed"}</strong>
+                  <div className="home-fix-check"><span aria-hidden="true">✓</span><code>{ru ? "noindex не найден" : "noindex not found"}</code></div>
+                  <p>{ru ? "Повторяем проверку и подтверждаем, что директива удалена." : "We repeat the check to confirm that the directive has been removed."}</p>
+                </div>
+              </div>
               <ol className="home-fix-flow">
                 {(ru
-                  ? [["НАШЛИ", "Страница закрыта от поисковых систем"], ["ОБЪЯСНИЛИ", "Показываем директиву noindex и адрес страницы"], ["ИСПРАВИЛИ", "Убираем запрет после согласования"], ["ПРОВЕРИЛИ", "Повторный тест подтверждает, что страница открыта для поиска"]]
-                  : [["FOUND", "The page is blocked from search engines"], ["EXPLAINED", "We show the noindex directive and the affected URL"], ["FIXED", "We remove the block after approval"], ["VERIFIED", "The follow-up check confirms that the page is open to search"]]
+                  ? [["НАШЛИ", "Найдена директива noindex"], ["ОБЪЯСНИЛИ", "Показываем директиву noindex и адрес страницы"], ["ИСПРАВИЛИ", "Убираем запрет после согласования"], ["ПРОВЕРИЛИ", "Повторный тест подтверждает отсутствие noindex"]]
+                  : [["FOUND", "A noindex directive is present"], ["EXPLAINED", "We show the noindex directive and the affected URL"], ["FIXED", "We remove the block after approval"], ["VERIFIED", "The follow-up check confirms that noindex is absent"]]
                 ).map(([title, text], index, items) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><small>{text}</small></div><b aria-hidden="true">{index === items.length - 1 ? "✓" : "→"}</b></li>)}
               </ol>
               <footer>
-                <div><span>{ru ? "Контроль после исправления" : "Check after the fix"}</span><strong>{ru ? "Страница доступна для поиска" : "The page is open to search"}</strong></div>
+                <div><span>{ru ? "Контроль после исправления" : "Check after the fix"}</span><strong>{ru ? "Директива noindex удалена" : "The noindex directive has been removed"}</strong></div>
                 <b><span aria-hidden="true">✓</span>{ru ? "Проверено" : "Verified"}</b>
               </footer>
+              <p className="home-fix-scope">{ru ? "Отсутствие noindex само по себе не подтверждает появление страницы в поиске." : "The absence of noindex does not by itself confirm that a page appears in search."}</p>
             </div>
           </div>
         </section>
@@ -179,7 +195,7 @@ export function HomePage({ locale }: { locale: Locale }) {
         </section>
 
         <Faq title={ru ? "Перед началом работы" : "Before the work starts"} items={faq}/>
-        <section className="section warm-final-cta"><div className="shell"><p>{ru ? "Первый шаг" : "First step"}</p><h2>{ru ? "Начнём с бесплатной проверки сайта" : "Start with a free website check"}</h2><Link className="button button-light" href="#free-check">{ru ? "Узнать, что мешает сайту" : "See what is holding the website back"}<span>↗</span></Link></div></section>
+        <section className="section warm-final-cta"><div className="shell"><p>{ru ? "Первый шаг" : "First step"}</p><h2>{ru ? "Начнём с бесплатной проверки сайта" : "Start with a free website check"}</h2><Link className="button button-light" href="#free-check">{ru ? "Проверить сайт" : "Check your website"}<span>↗</span></Link></div></section>
       </div>
     </PublicShell>
   );

@@ -63,9 +63,9 @@ export function AboutPage({ locale }: { locale: Locale }) {
           <div className="shell about-hero-grid">
             <div>
               <p className="svc-kicker">KILENI · SEO</p>
-              <h1>{ru ? "SEO, разработка, аналитика, контент и маркетплейсы — в одной рабочей системе." : "SEO, development, analytics, content and marketplaces — one working system."}</h1>
+              <h1>{ru ? "Помогаем развивать сайт: от SEO-аудита до разработки и контента." : "Website support, from SEO audits to development and content."}</h1>
             </div>
-            <p>{ru ? "Нас объединяет простой принцип: найти причину, объяснить её без лишних терминов, выполнить согласованные изменения и проверить результат ещё раз." : "Our shared principle is simple: find the cause, explain it plainly, deliver the agreed changes and verify the result again."}</p>
+            <p>{ru ? "Изучаем задачу и доступные данные, объясняем выводы, согласуем изменения и проверяем результат. При необходимости подключаем специалистов по рекламе и маркетплейсам." : "We review the task and available data, explain the findings, agree the changes and verify the result. Advertising and marketplace specialists join when needed."}</p>
           </div>
         </header>
 
@@ -106,10 +106,10 @@ export function AboutPage({ locale }: { locale: Locale }) {
         <section className="about-roles" aria-labelledby="about-roles-title">
           <div className="shell about-roles-grid">
             <div>
-              <p className="svc-kicker">{ru ? "Компетенции внутри работы" : "Capabilities within the work"}</p>
-              <h2 id="about-roles-title">{ru ? "Подключаем нужные роли, а не продаём лишний пакет" : "Bring in the right roles, not an oversized package"}</h2>
-              <p>{ru ? "Состав зависит от задачи. Один проект может требовать только аналитики, другой — совместной работы дизайна, разработки и контента." : "The team shape follows the task. One project may need analysis only; another may combine design, development and content."}</p>
-              <p>{ru ? "До начала работ называем ответственного за проект и фиксируем его в предложении. Список рядом показывает функции, которые могут понадобиться, а не перечень постоянного штата." : "Before work starts, we name the person responsible for the project and record that role in the proposal. The list shows functions a project may need, not a claimed permanent staff."}</p>
+              <p className="svc-kicker">{ru ? "Состав команды" : "Project team"}</p>
+              <h2 id="about-roles-title">{ru ? "Подбираем специалистов под задачи проекта" : "We select specialists for the project tasks"}</h2>
+              <p>{ru ? "Состав команды зависит от задачи: для одного проекта достаточно аналитики, для другого нужны дизайн, разработка и контент." : "The team depends on the task: one project may need analysis only, while another needs design, development and content."}</p>
+              <p>{ru ? "До начала работ называем ответственного за проект и фиксируем его в предложении. В списке указаны функции, которые могут понадобиться в работе; это не перечень постоянных сотрудников." : "Before work starts, we name the person responsible for the project and record that role in the proposal. The list names functions that may be needed for the work; it is not a list of permanent employees."}</p>
             </div>
             <ul>{roles.map((role, index) => <li key={role}><span>{String(index + 1).padStart(2, "0")}</span>{role}</li>)}</ul>
           </div>
@@ -144,7 +144,7 @@ export function AboutPage({ locale }: { locale: Locale }) {
           <div className="shell">
             <div className="about-section-heading">
               <p className="svc-kicker">{ru ? "Как принимается работа" : "How work is accepted"}</p>
-              <h2 id="about-acceptance-title">{ru ? "Четыре критерия вместо субъективного «нравится»" : "Four criteria instead of a subjective approval"}</h2>
+              <h2 id="about-acceptance-title">{ru ? "Проверяем состав, работоспособность и подтверждение результата" : "Check scope, functionality and evidence of delivery"}</h2>
             </div>
             <AboutDisclosure summary={<>
                 <span>{ru ? "Показать 4 критерия приёмки" : "Show the 4 acceptance criteria"}</span>

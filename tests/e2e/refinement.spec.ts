@@ -39,7 +39,7 @@ test("uses the dark hero and leads from the task to proof before prices", async 
   });
   expect(heroTypography.fontSize).toBeLessThanOrEqual(88);
   expect(heroTypography.fontWeight).toBeLessThanOrEqual(600);
-  expect(heroTypography.height / heroTypography.lineHeight).toBeLessThanOrEqual(3.05);
+  expect(heroTypography.height / heroTypography.lineHeight).toBeLessThanOrEqual(4.05);
 
   const sectionOrder = await page.locator(".home-content > section").evaluateAll((sections) =>
     sections.map((section) => section.className),

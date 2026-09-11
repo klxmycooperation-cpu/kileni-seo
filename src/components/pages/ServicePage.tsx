@@ -44,6 +44,14 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
     };
   });
   const variantsCopy = getVariantsCopy(slug, locale);
+  const overviewTitles: Record<string, [string, string]> = {
+    "seo-audit": ["Проверим доступность страниц, структуру и технические настройки", "Review page access, structure and technical settings"],
+    "seo-promotion": ["Согласуем страницы и исправления на ближайший месяц", "Agree the pages and improvements for the coming month"],
+    "web-development": ["От структуры страниц до работающего сайта", "From page structure to a working website"],
+    "yandex-ads": ["Подготовим объявления, посадочные страницы и учёт обращений", "Prepare adverts, landing pages and enquiry tracking"],
+    "content-materials": ["Подготовим материалы по вашим данным и задачам", "Create content based on your information and goals"],
+    "custom-task": ["Определим первый этап и ожидаемый результат", "Define the first stage and its expected outcome"],
+  };
 
   return (
     <PublicShell locale={locale}>
@@ -78,21 +86,21 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
           <div className="shell">
             <header className="svc-compact-heading">
               <p className="svc-kicker">{ru ? "Как решаем задачу" : "How the task is solved"}</p>
-              <h2 id="svc-overview-title">{ru ? "Показываем, когда услуга подходит, что делаем и какой результат передаём" : "See when the service fits, what we do and what you receive"}</h2>
+              <h2 id="svc-overview-title">{overviewTitles[slug]?.[ru ? 0 : 1] ?? (ru ? "Состав работ и результат" : "Scope and deliverables")}</h2>
               <p>{service.problem}</p>
             </header>
             <div className="svc-compact-grid">
               <article>
                 <span>01</span><h3>{ru ? "Когда подходит" : "When it fits"}</h3>
-                <ul>{service.fit.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ul>
+                <ul>{service.fit.slice(0, 4).map((item) => <li key={item}><span>{item}</span></li>)}</ul>
               </article>
               <article>
                 <span>02</span><h3>{ru ? "Что делаем" : "What we do"}</h3>
-                <ol>{service.work.slice(0, 4).map((item, index) => <li key={item}><b>{index + 1}</b>{item}</li>)}</ol>
+                <ol>{service.work.slice(0, 4).map((item, index) => <li key={item}><b>{index + 1}</b><span>{item}</span></li>)}</ol>
               </article>
               <article>
                 <span>03</span><h3>{ru ? "Что получите" : "What you receive"}</h3>
-                <ul>{service.deliverables.slice(0, 5).map((item) => <li key={item}>{item}</li>)}</ul>
+                <ul>{service.deliverables.slice(0, 5).map((item) => <li key={item}><span>{item}</span></li>)}</ul>
               </article>
             </div>
           </div>

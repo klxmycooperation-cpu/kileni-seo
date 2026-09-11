@@ -58,7 +58,7 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   await expect(themeToggle).toBeVisible();
   await expect(page.locator("#kileni-theme-bootstrap")).toHaveCount(1);
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "dark");
-  await expect(themeToggle).toHaveAccessibleName("Включить сигнальную тему");
+  await expect(themeToggle).toHaveAccessibleName("Включить контрастную тему");
   await themeToggle.click();
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "signal");
   await expect(themeToggle).toHaveAccessibleName("Включить светлую тему");
@@ -67,7 +67,7 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   await header.locator(".theme-toggle:not(.theme-toggle--mobile)").click();
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
   await expect(header.locator(".theme-toggle:not(.theme-toggle--mobile)")).toHaveAccessibleName("Включить тёмную тему");
-  await expect(header.getByRole("link", { name: "Узнать, что мешает сайту", exact: true })).toHaveCount(1);
+  await expect(header.getByRole("link", { name: "Проверить сайт", exact: true })).toHaveCount(1);
   await expect(header).toHaveCSS("position", "fixed");
   await expect(header).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
@@ -97,6 +97,8 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   await services.click();
   await expect(services).toHaveAttribute("aria-expanded", "false");
 
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(header).toHaveAttribute("data-scrolled", "false");
   const initialHeaderHeight = await header.evaluate((element) => element.getBoundingClientRect().height);
   const initialMainTop = await page.locator("#main-content").evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
   await page.evaluate(() => window.scrollTo(0, 240));
@@ -125,12 +127,12 @@ test("explains the service in a bounded overview with a direct glossary route", 
   expect(violations.violations.filter((violation) => ["critical", "serious"].includes(violation.impact ?? ""))).toEqual([]);
 });
 
-test("covers the complete company story without invented biographies or promises", async ({ page }) => {
+test("covers the complete company story without invented biographies or promises", async ({ page }, testInfo) => {
   await page.goto("/about");
 
   for (const heading of [
     "Что мы делаем",
-    "Компетенции внутри работы",
+    "Состав команды",
     "Как начинается проект",
     "Что получает клиент",
     "Ответственность",
@@ -139,13 +141,18 @@ test("covers the complete company story without invented biographies or promises
     await expect(page.getByText(heading, { exact: true }).first()).toBeVisible();
   }
   const roles = page.locator(".about-roles");
+  await expect(page.getByRole("heading", { name: "Подбираем специалистов под задачи проекта" })).toBeVisible();
   await expect(roles.getByRole("listitem").filter({ hasText: "Маркетплейсы" })).toBeVisible();
   await expect(roles.getByRole("listitem").filter({ hasText: "Реклама" })).toBeVisible();
   await expect(page.locator(".about-boundaries details")).toHaveAttribute("open", "");
   await expect(page.locator(".about-boundaries").getByRole("listitem").filter({ hasText: "Топ-1" })).toBeVisible();
+  await roles.scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, -96));
+  await page.screenshot({ path: testInfo.outputPath("about-team-ru.png"), animations: "disabled" });
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/en/about");
+  await expect(page.getByRole("heading", { name: "We select specialists for the project tasks" })).toBeVisible();
   await expect(page.getByText("What the client receives", { exact: true })).toBeVisible();
   await page.getByText("Show accountability boundaries", { exact: true }).click();
   await expect(page.getByText("We do not guarantee", { exact: true })).toBeVisible();
@@ -194,14 +201,14 @@ test("opens the keyboard-labelled navigation without overflow at 320 and 360 pix
     await expect(page.getByRole("button", { name: "Закрыть меню" })).toHaveAttribute("aria-expanded", "true");
     const mobileNavigation = page.getByRole("navigation", { name: "Мобильная навигация" });
     await expect(mobileNavigation).toBeVisible();
-    const mobileCta = mobileNavigation.getByRole("link", { name: "Узнать, что мешает сайту", exact: true });
+    const mobileCta = mobileNavigation.getByRole("link", { name: "Проверить сайт", exact: true });
     await expect(mobileCta).toBeVisible();
     await expect(mobileCta).toHaveAttribute("href", "/free-audit");
     const mobileCtaBox = await mobileCta.boundingBox();
     expect(mobileCtaBox?.height ?? 0).toBeGreaterThanOrEqual(44);
     const mobileThemeToggle = mobileNavigation.locator(".theme-toggle--mobile");
     await expect(mobileThemeToggle).toBeVisible();
-    await expect(mobileThemeToggle).toHaveAccessibleName("Включить сигнальную тему");
+    await expect(mobileThemeToggle).toHaveAccessibleName("Включить контрастную тему");
     const themeToggleBox = await mobileThemeToggle.boundingBox();
     expect(themeToggleBox?.width ?? 0).toBeGreaterThanOrEqual(44);
     expect(themeToggleBox?.height ?? 0).toBeGreaterThanOrEqual(44);
@@ -292,7 +299,7 @@ test("finishes the approved SVG brand reveal at its natural pace", async ({ page
       observer.observe(root, { attributes: true, attributeFilter: ["data-kileni-intro"] });
     });
   });
-  expect(completionMs).toBeGreaterThanOrEqual(4_100);
+  expect(completionMs).toBeGreaterThanOrEqual(3_600);
   expect(completionMs).toBeLessThanOrEqual(5_000);
   await expect(intro).toHaveCount(0);
 

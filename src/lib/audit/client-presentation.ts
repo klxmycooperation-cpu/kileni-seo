@@ -495,24 +495,29 @@ function clientIssue(
     const ru = locale === "ru";
     const score = performanceScore(performanceObservation.performance) ?? check.reason.match(/(\d{1,3})\s*(?:из|of|\/)\s*100/iu)?.[1];
     const runCount = Math.max(1, integer(performanceObservation.runCount) || 1);
+    const page = performancePageLabel(check.targetUrl, locale);
     return {
       checkId: check.checkId,
       kind,
-      title: ru ? "Скорость главной страницы" : "Homepage speed",
+      title: ru ? `Мобильная производительность ${page}` : `Mobile performance of the ${page}`,
       url: check.targetUrl,
       affectedUrls,
-      whatFound: score
-        ? ru ? `В одном лабораторном мобильном тесте главная страница получила ${score} из 100.` : `In one laboratory mobile test, the homepage scored ${score} out of 100.`
-        : ru ? "Один лабораторный мобильный тест показал, что главная страница может загружаться медленнее ожидаемого." : "One laboratory mobile test indicated that the homepage may load more slowly than expected.",
-      whyImportant: ru ? "Если основное содержимое появляется долго, часть посетителей может уйти, не дождавшись страницы." : "If the main content appears slowly, some visitors may leave before the page is ready.",
+      whatFound: ru
+        ? `В лабораторном тесте измерена мобильная производительность ${page}.`
+        : `A laboratory mobile-performance measurement was completed for the ${page}.`,
+      whyImportant: ru
+        ? "По результатам теста показатель требует внимания, но итоговый балл сам по себе не указывает на конкретную причину."
+        : "The result needs attention, but the total score alone does not identify the cause of lower performance.",
       howChecked: runCount === 1
-        ? ru ? "Один запуск Google Lighthouse (лабораторного теста скорости) в мобильном профиле." : "One Google Lighthouse run using a laboratory mobile profile."
+        ? ru ? "Лабораторный тест Google Lighthouse в мобильном профиле: один запуск." : "One Google Lighthouse run using a laboratory mobile profile."
         : ru ? `${runCount} запуска Google Lighthouse в мобильном лабораторном профиле.` : `${runCount} Google Lighthouse runs using a laboratory mobile profile.`,
       reliability: runCount === 1
-        ? ru ? "Это предварительный результат. Один запуск не отражает скорость у всех реальных посетителей." : "This is an early result. One run does not represent the speed experienced by every real visitor."
+        ? ru ? "Это предварительный лабораторный результат одного запуска; он не описывает опыт всех посетителей." : "This is an early result. One run does not represent the speed experienced by every real visitor."
         : ru ? "Это лабораторные измерения. Они не отражают скорость у всех реальных посетителей." : "These are laboratory measurements and do not represent the speed experienced by every real visitor.",
-      nextStep: ru ? "Повторите тест 2–3 раза в одинаковых условиях. Если результат повторится, проверьте тяжёлые изображения, шрифты и скрипты первого экрана." : "Repeat the test 2–3 times under the same conditions. If the result repeats, inspect heavy images, fonts and above-the-fold scripts.",
-      details: performanceDetails(performanceObservation, locale),
+      nextStep: ru
+        ? "Повторите тест 2–3 раза в одинаковых условиях. Если результат повторяется, изучите отдельные показатели."
+        : "Repeat the test 2–3 times under the same conditions. If the result remains similar, review the separate metrics and identify what needs further investigation.",
+      details: performanceDetails(performanceObservation, locale, score),
     };
   }
   if (check.checkId === "breadcrumbs") {
@@ -551,6 +556,7 @@ function clientIssue(
 function performanceDetails(
   observation: Record<string, unknown>,
   locale: AuditLocale,
+  score?: string,
 ): { label: string; value: string }[] {
   const ru = locale === "ru";
   const details: { label: string; value: string }[] = [];
@@ -563,6 +569,7 @@ function performanceDetails(
     value: new Intl.DateTimeFormat(ru ? "ru-RU" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Moscow" }).format(new Date(observation.capturedAt)),
   });
   if (typeof observation.lighthouseVersion === "string" && observation.lighthouseVersion.trim()) details.push({ label: "Lighthouse", value: observation.lighthouseVersion.trim() });
+  if (score) details.push({ label: ru ? "Оценка производительности" : "Performance score", value: `${score} ${ru ? "из" : "out of"} 100` });
   const lcp = finite(observation.lcpMs);
   const cls = finite(observation.cls);
   const tbt = finite(observation.tbtMs);
@@ -578,6 +585,13 @@ function performanceScore(value: unknown): string | null {
   const raw = finite(value);
   if (raw === null) return null;
   return String(Math.round(raw <= 1 ? raw * 100 : raw));
+}
+
+function performancePageLabel(targetUrl: string, locale: AuditLocale): string {
+  const path = urlPath(targetUrl);
+  const homepage = path === "/";
+  if (locale === "ru") return homepage ? "главной страницы" : `страницы ${path}`;
+  return homepage ? "homepage" : `page ${path}`;
 }
 
 function finite(value: unknown): number | null {

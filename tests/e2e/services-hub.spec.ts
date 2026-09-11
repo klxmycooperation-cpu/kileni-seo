@@ -32,7 +32,7 @@ test("uses a click-controlled four-direction explorer with approved copy", async
   await developmentTab.click();
   await expect(developmentTab).toHaveAttribute("aria-selected", "true");
   await expect(page).toHaveURL(/\/services\?direction=development$/u);
-  await expect(page.getByRole("tabpanel")).toContainText("Собрать сайт под задачу бизнеса, а не просто набор страниц");
+  await expect(page.getByRole("tabpanel")).toContainText("Разработать сайт под задачу бизнеса");
   await expect(page.getByRole("tabpanel").getByRole("link", { name: "Выбрать формат сайта" })).toHaveAttribute("href", "/web-development");
   await expect(page.locator(".services-explorer__visual")).toHaveAttribute("data-direction", "development");
 });

@@ -61,7 +61,7 @@ export function ArticlesPage({ locale }: { locale: Locale }) {
           <section className="page-hero shell">
             <p className="eyebrow light">{ru ? "Блог KILENI" : "KILENI blog"}</p>
             <h1>{ru ? "Практичные статьи о поиске, сайте и продажах" : "Practical guides to search, websites and sales"}</h1>
-            <p>{ru ? "Аудит, индексация, скорость, интернет-магазин, каналы и стоимость SEO. Внутри — порядок действий, данные двух проектов и официальные источники." : "Auditing, indexing, speed, e-commerce, channels and SEO cost. Every guide gives an action order, evidence from two projects and official sources."}</p>
+            <p>{ru ? "Разбираем аудит, индексацию, производительность, продвижение интернет-магазинов и стоимость SEO. Объясняем порядок проверки и приводим примеры и источники." : "Guides to auditing, indexing, performance, e-commerce SEO and costs, with practical checks, examples and sources."}</p>
           </section>
         </div>
         <section className="section section-light article-index-section">

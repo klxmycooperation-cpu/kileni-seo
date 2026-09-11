@@ -353,11 +353,6 @@ export function AuditLiveProgress({ locale, domain, snapshot }: { locale: Locale
       <AuditStageVisual locale={locale} domain={domain} snapshot={snapshot} stage={activeStage}/>
     </section>
 
-    <section className="audit-live__data" aria-label={ru ? "Реальные показатели проверки" : "Observed audit figures"}>
-      {metrics.length > 0 ? <dl className="audit-live__metrics">{metrics.map((metric) => <div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div>)}</dl> : null}
-      {events.length > 0 ? <div className="audit-live__events"><h2>{ru ? "Последние события" : "Latest events"}</h2><ol>{events.map((event, index) => <li key={`${event.createdAt ?? index}-${event.kind}-${event.path ?? ""}`}>{eventLabel(event, snapshot, locale)}</li>)}</ol></div> : null}
-    </section>
-
     <div className="audit-live__timeline-wrap">
       <div
         className={`audit-live__progress${progress.determinate ? " is-determinate" : " is-indeterminate"}`}
@@ -369,6 +364,11 @@ export function AuditLiveProgress({ locale, domain, snapshot }: { locale: Locale
       ><span style={progress.determinate ? { width: `${progress.value}%` } : undefined}/></div>
       <ol className="audit-live__stages" aria-label={ru ? "Этапы проверки" : "Audit stages"}>{stageItems.map(({ stage, state }, index) => <li className={`is-${state}`} aria-current={state === "active" ? "step" : undefined} key={stage.key}><span aria-hidden="true">{state === "completed" ? "✓" : index + 1}</span><strong>{ru ? stage.ru : stage.en}</strong></li>)}</ol>
     </div>
+
+    <section className="audit-live__data" aria-label={ru ? "Реальные показатели проверки" : "Observed audit figures"}>
+      {metrics.length > 0 ? <dl className="audit-live__metrics">{metrics.map((metric) => <div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div>)}</dl> : null}
+      {events.length > 0 ? <div className="audit-live__events"><h2>{ru ? "Последние события" : "Latest events"}</h2><ol>{events.map((event, index) => <li key={`${event.createdAt ?? index}-${event.kind}-${event.path ?? ""}`}>{eventLabel(event, snapshot, locale)}</li>)}</ol></div> : null}
+    </section>
 
     <footer className="audit-live__footer"><p>{ru ? "Не отправляем формы, не вводим пароли и не открываем закрытые разделы." : "We do not submit forms, enter passwords, or open private sections."}</p><p>{ru ? "Можно свернуть окно — проверка продолжится." : "You can minimize this window — the audit will continue."}</p></footer>
   </article>;
