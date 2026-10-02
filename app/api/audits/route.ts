@@ -4,9 +4,9 @@ import { randomUUID } from "node:crypto";
 import { publicAuditIsEnabled, publicFormsAreEnabled, siteConfig } from "@/src/config/site";
 import { PUBLIC_AUDIT_PAGE_LIMIT } from "@/src/config/public-audit";
 import { formatOfferPrice, getOffer, localizedOffer } from "@/src/config/offers";
-import { assertPublicUrl, AUDIT_ENGINE_VERSION_V3, AuditUrlError, finalizeAuditResultV4, hasCurrentAuditCacheSemantics, normalizeAuditDomain, normalizeTargetUrl, runPublicAudit, SsrfProtectionError, type AuditEvent } from "@/src/lib/audit";
+import { assertPublicUrl, AUDIT_ENGINE_VERSION_V3, AuditUrlError, finalizeAuditResultV4, hasCurrentAuditCacheSemantics, normalizeAuditDomain, normalizeLighthouseObservation, normalizeTargetUrl, runPublicAudit, SsrfProtectionError, type AuditEvent } from "@/src/lib/audit";
 import { persistAuditCompletionWithRetry } from "@/src/lib/audit/completion-reliability";
-import { database } from "@/src/db/client";
+import { database, databaseMode } from "@/src/db/client";
 import {
   appendAuditEvent,
   auditInputsMatchForCache,
@@ -25,7 +25,7 @@ import type { AuditRequest } from "@/src/lib/security/inputs";
 import { clientIp, privateHash, sanitizeLogValue } from "@/src/lib/security/request";
 import { verifyTurnstile } from "@/src/lib/security/turnstile";
 import { purgeExpiredRateLimits } from "@/src/lib/security/rate-limit";
-import { notifyTelegram } from "@/src/lib/notifications/telegram";
+import { notifySubmission } from "@/src/lib/notifications/submission";
 import { sendEmail } from "@/src/lib/notifications/email";
 import { buildAuditResultEmail } from "@/src/lib/notifications/audit-email";
 import { deliverAuditResultEmail } from "@/src/lib/notifications/audit-delivery";
@@ -263,7 +263,7 @@ async function recordSubmissionNotifications(input: {
   request: AuditRequest;
   normalizedDomain: string;
 }): Promise<void> {
-  await notifyTelegram({
+  await notifySubmission({
     entityType: "audit",
     entityId: input.created.audit.id,
     text: [
@@ -285,7 +285,7 @@ async function recordSubmissionNotifications(input: {
       return;
     }
     const publicPath = withAuditRestore(
-      `${input.request.locale === "en" ? "/en" : ""}/audit/${encodeURIComponent(input.created.audit.publicToken)}`,
+      `/audit/${encodeURIComponent(input.created.audit.publicToken)}`,
       input.restore,
     );
     const publicUrl = process.env.APP_BASE_URL ? new URL(publicPath, process.env.APP_BASE_URL).toString() : publicPath;
@@ -324,7 +324,7 @@ async function runVercelAudit(
     const result = await runPublicAudit(audit.originalUrl, {
       maxPages: Math.min(siteConfig.audit.pageLimit, audit.pageLimit),
       concurrency: 4,
-      performance: null,
+      performance: normalizeLighthouseObservation({ status: "not_requested", source: "vercel-runtime" }),
       priorityUrls,
       signal: controller.signal,
       onEvent: async (event) => {
@@ -336,8 +336,20 @@ async function runVercelAudit(
       auditId: audit.publicToken,
       createdAt: new Date(audit.createdAt).toISOString(),
       result,
-      performance: null,
+      performance: normalizeLighthouseObservation({ status: "not_requested", source: "vercel-runtime" }),
+      storageMode: databaseMode === "ephemeral" ? "ephemeral" : "persistent",
     });
+    console.info(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      service: "audit-inline",
+      event: "lighthouse_finished",
+      auditId: audit.id,
+      storageMode: databaseMode === "ephemeral" ? "ephemeral" : "persistent",
+      lighthouseStatus: finalized.publicResult.performanceObservation?.status ?? "legacy_unknown",
+      completedAt: finalized.publicResult.performanceObservation?.completedAt ?? null,
+      durationMs: finalized.publicResult.performanceObservation?.durationMs ?? null,
+      errorCode: finalized.publicResult.performanceObservation?.errorCode ?? null,
+    }));
     await appendAuditEvent(audit.id, "analyzing_structure", { pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     onProgress?.({ status: "analyzing_structure", pagesChecked: result.pagesChecked, pagesDiscovered: result.pagesDiscovered });
     // Vercel does not provide a browser runtime for synthetic Lighthouse data.
@@ -362,6 +374,10 @@ async function runVercelAudit(
       : error instanceof Error
         ? error.message
         : "Audit failed";
+    console.error("[KILENI AUDIT] Inline audit failed", {
+      kind: error instanceof Error ? error.name : typeof error,
+      reason: reason.slice(0, 240),
+    });
     await failAuditRecord(audit.id, reason);
   } finally {
     clearTimeout(timer);

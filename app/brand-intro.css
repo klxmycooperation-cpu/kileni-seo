@@ -975,14 +975,6 @@ html[data-kileni-theme="dark"] {
   --intro-floor: #41506a;
 }
 
-html[data-kileni-theme="signal"] {
-  --intro-surface: #070b18;
-  --intro-ink: #f5f7ff;
-  --intro-muted: #a9b5cd;
-  --intro-accent: #6e8bff;
-  --intro-floor: #3d4c70;
-}
-
 .brand-intro {
   position: fixed;
   z-index: 1000;

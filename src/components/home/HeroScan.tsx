@@ -1,15 +1,19 @@
-import Link from "next/link";
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
 import { HeroAuditTool } from "./HeroAuditTool";
+import { CanvasText } from "../ui/canvas-text";
 import { HeroFreeAuditUsageCounter } from "./HeroFreeAuditUsageCounter";
+import { HomeCheckCategories } from "./HomeProcessSteps";
 
 export function HeroScan({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
+  const heroTitle = ru
+    ? "Сайт есть Пора сделать так, что бы его находили"
+    : "Your website is live. Now make it discoverable.";
   const checks = ru
     ? [
         { title: "Индексация", text: "Может ли страница попасть в поиск", slug: "indexing" },
-        { title: "Структура", text: "Точно ли заголовки описывают страницы", slug: "on-page" },
+        { title: "Структура", text: "Понятны ли заголовки и связи страниц", slug: "on-page" },
         { title: "Скорость", text: "Не мешает ли загрузка посетителю", slug: "core-web-vitals" },
         { title: "Оптимизация", text: "Что исправить в первую очередь", slug: "seo-audit" },
       ]
@@ -24,25 +28,29 @@ export function HeroScan({ locale }: { locale: Locale }) {
     <section className="hero hero-ready signal-hero" aria-labelledby="hero-title">
       <div className="shell hero-grid">
         <div className="hero-copy">
-          <p className="eyebrow">{ru ? "Бесплатная SEO-проверка до 10 страниц" : "Free SEO check for up to 10 pages"}</p>
           <h1 id="hero-title">
-            <span className="hero-title-lock">{ru ? "Сайт есть." : "Your website is live."}</span>{" "}
-            {ru ? "Пора сделать так, чтобы его находили." : "Now make it discoverable."}
+            <CanvasText className="hero-title-canvas" text={heroTitle}>
+              {ru ? <>
+                <span className="hero-title-canvas__line">{"Сайт\u00a0есть"}</span><br />
+                <span className="hero-title-canvas__line">{"Пора\u00a0сделать\u00a0так,"}</span><br />
+                <span className="hero-title-canvas__line">{"что\u00a0бы\u00a0его\u00a0находили"}</span>
+              </> : heroTitle}
+            </CanvasText>
           </h1>
           <p className="hero-lead">
             {ru
               ? "Проверим сайт и простыми словами покажем, что мешает ему появляться в поиске и что исправить в первую очередь."
-              : "We will check up to 10 pages, assess the technical baseline and highlight the main risk areas. No admin access required."}
+              : "We will check your website and explain in plain language what is preventing it from appearing in search and what to fix first."}
           </p>
-          <p className="hero-honesty">
+          <p className="hero-offer">
             {ru
-              ? "Проверка покажет, с каких исправлений стоит начать."
-              : "The check shows which improvements should come first."}
+              ? "Бесплатная SEO-проверка до 10 страниц"
+              : "Free SEO check for up to 10 pages"}
           </p>
           <HeroFreeAuditUsageCounter locale={locale} />
           <div className="hero-entry-actions">
             <a className="button button-primary" href="#free-check">
-              {ru ? "Проверить сайт" : "Check your website"}<span aria-hidden="true">↓</span>
+              {ru ? "Узнать, что мешает сайту" : "See what is holding the website back"}<span aria-hidden="true">↓</span>
             </a>
             <a className="hero-proof-link" href="#home-cases">
               {ru ? "Посмотреть реальные результаты" : "See real results"}<span aria-hidden="true">↗</span>
@@ -50,24 +58,10 @@ export function HeroScan({ locale }: { locale: Locale }) {
           </div>
           <p className="hero-microcopy">
             {ru
-              ? "Обычно 3–7 минут. Результат покажет конкретные замечания по проверенным страницам и откроется сразу на сайте."
+              ? "Обычно 1–3 минуты. Результат покажет конкретные замечания по проверенным страницам и откроется сразу на сайте."
               : "Usually 3–7 minutes. Specific URLs and a remediation plan are included in the extended audit."}
           </p>
-          <div
-            className="scan-keywords"
-            aria-label={locale === "ru" ? "Что даст проверка" : "What the check provides"}
-          >
-            {checks.map((check, index) => (
-              <Link className="hero-check-link" href={localizedPath(locale, `glossary/${check.slug}`)} key={check.slug}>
-                <b>{String(index + 1).padStart(2, "0")}</b>
-                <span>
-                  <em>{check.title}</em>
-                  <small>{check.text}</small>
-                </span>
-                <i aria-hidden="true">↗</i>
-              </Link>
-            ))}
-          </div>
+          <HomeCheckCategories locale={locale} variant="hero" items={checks.map((check) => ({ ...check, href: localizedPath(locale, `glossary/${check.slug}`) }))}/>
         </div>
         <HeroAuditTool locale={locale} />
       </div>

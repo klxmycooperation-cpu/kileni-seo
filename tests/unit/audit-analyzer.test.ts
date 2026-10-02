@@ -53,7 +53,7 @@ describe("analyzePage", () => {
       valid: true,
       selfReferential: true,
     });
-    expect(analysis.indexing).toEqual({ noindex: true, nofollow: true });
+    expect(analysis.indexing).toMatchObject({ noindex: true, nofollow: true, actual: "unavailable" });
     expect(analysis.language).toEqual({ present: true, value: "ru" });
     expect(analysis.viewport).toBe(true);
     expect(analysis.charset).toBe("utf-8");

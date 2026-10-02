@@ -1,37 +1,36 @@
-html[data-kileni-intro="pending"], html[data-kileni-intro="play"], html[data-kileni-intro="reduced"], html[data-kileni-intro="finishing"] {
+html:has(.brand-intro-v9)[data-kileni-intro="pending"], html:has(.brand-intro-v9)[data-kileni-intro="preview"], html:has(.brand-intro-v9)[data-kileni-intro="play"], html:has(.brand-intro-v9)[data-kileni-intro="reduced"], html:has(.brand-intro-v9)[data-kileni-intro="finishing"] {
   --intro-page-canvas: #f7f8fa;
   overflow: hidden;
   overscroll-behavior: none;
   background-color: var(--intro-page-canvas);
 }
 
-html[data-kileni-intro="pending"] body,
-html[data-kileni-intro="play"] body,
-html[data-kileni-intro="reduced"] body,
-html[data-kileni-intro="finishing"] body {
+html:has(.brand-intro-v9)[data-kileni-intro="pending"] body,
+html:has(.brand-intro-v9)[data-kileni-intro="preview"] body,
+html:has(.brand-intro-v9)[data-kileni-intro="play"] body,
+html:has(.brand-intro-v9)[data-kileni-intro="reduced"] body,
+html:has(.brand-intro-v9)[data-kileni-intro="finishing"] body {
   min-height: 100%;
   overscroll-behavior: none;
   background-color: var(--intro-page-canvas);
 }
 
-html[data-kileni-theme="dark"][data-kileni-intro="pending"],
-html[data-kileni-theme="dark"][data-kileni-intro="play"],
-html[data-kileni-theme="dark"][data-kileni-intro="reduced"],
-html[data-kileni-theme="dark"][data-kileni-intro="finishing"] { --intro-page-canvas: #07111f; }
+html:has(.brand-intro-v9)[data-kileni-theme="dark"][data-kileni-intro="pending"],
+html:has(.brand-intro-v9)[data-kileni-theme="dark"][data-kileni-intro="preview"],
+html:has(.brand-intro-v9)[data-kileni-theme="dark"][data-kileni-intro="play"],
+html:has(.brand-intro-v9)[data-kileni-theme="dark"][data-kileni-intro="reduced"],
+html:has(.brand-intro-v9)[data-kileni-theme="dark"][data-kileni-intro="finishing"] { --intro-page-canvas: #07111f; }
 
-html[data-kileni-theme="signal"][data-kileni-intro="pending"],
-html[data-kileni-theme="signal"][data-kileni-intro="play"],
-html[data-kileni-theme="signal"][data-kileni-intro="reduced"],
-html[data-kileni-theme="signal"][data-kileni-intro="finishing"] { --intro-page-canvas: #08150f; }
-
-html[data-kileni-intro="pending"] .site-header--home,
-html[data-kileni-intro="play"] .site-header--home,
-html[data-kileni-intro="reduced"] .site-header--home,
-html[data-kileni-intro="finishing"] .site-header--home,
-html[data-kileni-intro="pending"] .cookie-layer,
-html[data-kileni-intro="play"] .cookie-layer,
-html[data-kileni-intro="reduced"] .cookie-layer,
-html[data-kileni-intro="finishing"] .cookie-layer {
+html:has(.brand-intro-v9)[data-kileni-intro="pending"] .site-header--home,
+html:has(.brand-intro-v9)[data-kileni-intro="preview"] .site-header--home,
+html:has(.brand-intro-v9)[data-kileni-intro="play"] .site-header--home,
+html:has(.brand-intro-v9)[data-kileni-intro="reduced"] .site-header--home,
+html:has(.brand-intro-v9)[data-kileni-intro="finishing"] .site-header--home,
+html:has(.brand-intro-v9)[data-kileni-intro="pending"] .cookie-layer,
+html:has(.brand-intro-v9)[data-kileni-intro="preview"] .cookie-layer,
+html:has(.brand-intro-v9)[data-kileni-intro="play"] .cookie-layer,
+html:has(.brand-intro-v9)[data-kileni-intro="reduced"] .cookie-layer,
+html:has(.brand-intro-v9)[data-kileni-intro="finishing"] .cookie-layer {
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
@@ -71,12 +70,12 @@ html[data-kileni-intro="finishing"] .cookie-layer {
 }
 
 html[data-kileni-intro="pending"] .brand-intro-v9,
+html[data-kileni-intro="preview"] .brand-intro-v9,
 html[data-kileni-intro="play"] .brand-intro-v9,
 html[data-kileni-intro="reduced"] .brand-intro-v9,
 html[data-kileni-intro="finishing"] .brand-intro-v9 { display: block; }
 
-html[data-kileni-theme="dark"] .brand-intro-v9,
-html[data-kileni-theme="signal"] .brand-intro-v9 {
+html[data-kileni-theme="dark"] .brand-intro-v9{
   --intro-paper-center: #101d2f;
   --intro-paper-middle: #07111f;
   --intro-paper-edge: #050b14;
@@ -85,19 +84,15 @@ html[data-kileni-theme="signal"] .brand-intro-v9 {
   --intro-control-border: rgb(247 248 252 / 24%);
   --intro-control-shadow: rgb(0 0 0 / 28%);
 }
-html[data-kileni-theme="signal"] .brand-intro-v9 {
-  --intro-paper-center: #10261c;
-  --intro-paper-middle: #08150f;
-  --intro-paper-edge: #050d09;
-}
 
 html[data-kileni-intro="finishing"] .brand-intro-v9 { opacity: 0; transform: translateY(-2.5dvh); pointer-events: none; }
 .brand-intro-v9__scene {
   position: absolute;
   inset: 0;
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
   background: transparent;
 }
 .brand-intro-v9__viewport { opacity: 0; transform-box: view-box; transform-origin: 960px 540px; }
@@ -185,3 +180,29 @@ html[data-kileni-intro-ready="true"][data-kileni-intro="reduced"] .brand-intro-v
 @media (prefers-reduced-motion: reduce) { .brand-intro.brand-intro-v9 { transition-duration: 120ms; } }
 
 @keyframes kileni-v9-fallback-out { to { opacity: 0; } }
+
+/* The supplied videos have their own dark backdrop in both site themes. */
+html:has(.brand-intro-video)[data-kileni-intro] { --intro-page-canvas: #07111f; }
+html[data-kileni-theme] .brand-intro-video {
+  --intro-ink: #f7f8fc;
+  --intro-control-surface: rgb(16 29 47 / 92%);
+  --intro-control-border: rgb(247 248 252 / 24%);
+  --intro-control-shadow: rgb(0 0 0 / 28%);
+  background: #07111f;
+}
+.brand-intro-video__start,
+.brand-intro-video__poster { position: absolute; inset: 0; }
+.brand-intro-video__start img,
+.brand-intro-video__poster img,
+.brand-intro-video video { width: 100%; height: 100%; object-fit: contain; }
+/* The loading image must match frame zero, not show the logo ahead of it. */
+.brand-intro-video__poster { opacity: 0; }
+html[data-kileni-intro="preview"] .brand-intro-video__poster,
+html[data-kileni-intro="reduced"] .brand-intro-video__poster,
+html[data-kileni-intro="finishing"][data-kileni-intro-mode="lite"] .brand-intro-video__poster { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .brand-intro-video__poster { opacity: 1; }
+}
+.brand-intro-video video { opacity: 0; transition: opacity 160ms linear; }
+html[data-kileni-intro="play"] .brand-intro-video video,
+html[data-kileni-intro="finishing"][data-kileni-intro-ready="true"] .brand-intro-video video { opacity: 1; }

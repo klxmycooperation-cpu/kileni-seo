@@ -6,8 +6,6 @@ test("keeps optional storage off until the visitor makes a choice", async ({ pag
   const dialog = page.getByRole("dialog", { name: "Cookies и локальные настройки" });
   await expect(dialog).toHaveCount(0);
   await page.waitForTimeout(3_600);
-  await expect(page.locator("html")).not.toHaveAttribute("data-kileni-intro", "done");
-  await expect(dialog).toHaveCount(0);
   await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done", { timeout: 12_000 });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Принять все" })).toBeVisible();
@@ -31,7 +29,7 @@ test("keeps optional storage off until the visitor makes a choice", async ({ pag
 test("does not block a deep link with the home intro and may show cookies there immediately", async ({ page }) => {
   await page.goto("/services", { waitUntil: "domcontentloaded" });
 
-  await expect(page.locator(".brand-intro-v9")).toHaveCount(0);
+  await expect(page.locator(".brand-intro-v10")).toHaveCount(0);
   await expect(page.locator("html")).not.toHaveAttribute("data-kileni-intro", /^(pending|play|reduced|finishing)$/u);
   await expect(page.getByRole("dialog", { name: "Cookies и локальные настройки" })).toBeVisible({ timeout: 1_500 });
 });

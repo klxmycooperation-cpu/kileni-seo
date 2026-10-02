@@ -81,15 +81,6 @@ body {
   font-size: var(--h1-role-size);
 }
 
-html[data-kileni-theme="signal"] .kileni-site {
-  --cta-primary-bg: #b7f44a;
-  --cta-primary-hover-bg: #d4ff91;
-  --cta-primary-active-bg: #98d12e;
-  --cta-primary-disabled-bg: #75964f;
-  --cta-primary-text: #07110b;
-  --cta-primary-disabled-text: #07110b;
-}
-
 html[data-kileni-theme] .kileni-site :is(.button-primary, .button-small),
 html[data-kileni-theme] .kileni-site .signal-hero .audit-form .form-actions .button-primary {
   border-color: var(--cta-primary-bg);
@@ -361,7 +352,14 @@ html[data-kileni-theme] .kileni-site .signal-hero .audit-form .form-actions .but
     letter-spacing: -.045em;
   }
 
-  .kileni-site .audit-page-grid .form-heading { display: grid; gap: .45rem; }
+  .kileni-site .audit-page-grid .form-heading {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr);
+    align-items: start;
+    gap: .45rem .65rem;
+  }
+  .kileni-site .audit-page-grid .form-heading h2,
+  .kileni-site .audit-page-grid .form-limit { grid-column: 2 / -1 !important; }
   .kileni-site .audit-page-grid .form-limit { justify-self: start; }
   .kileni-site .analytics-hero-chart { padding: .8rem; }
   .kileni-site .analytics-visibility-detail__summary { font-size: .68rem; }
@@ -705,10 +703,6 @@ html[data-kileni-theme] .kileni-site .signal-hero .audit-form .form-actions .but
     color: var(--warm-paper, #f8f9fc);
   }
 
-  html[data-kileni-theme="signal"] .kileni-site .home-check-categories__controls button[data-active] span {
-    color: #10231a;
-  }
-
   .kileni-site .home-check-categories__panels {
     min-height: 8.8rem;
     margin-top: .45rem;
@@ -1013,7 +1007,7 @@ html[data-kileni-theme] .kileni-site .signal-hero .audit-form .form-actions .but
     line-height: 1.4;
   }
 
-  .kileni-site .home-case-explorer__switch { display: none; }
+  .kileni-site .home-case-explorer__tape .home-case-explorer__switch { display: flex; }
 
   .kileni-site .home-case-explorer__mobile-controls {
     display: flex;
@@ -1055,7 +1049,7 @@ html[data-kileni-theme] .kileni-site .signal-hero .audit-form .form-actions .but
   }
 
   .kileni-site .home-case-explorer__eyebrow { margin-bottom: .4rem; font-size: .56rem; }
-  .kileni-site .home-case-explorer__story h4 { font-size: 1.35rem; line-height: 1.05; }
+  .kileni-site .home-case-explorer__story h3 { font-size: 1.35rem; line-height: 1.05; }
   .kileni-site .home-case-explorer__summary { margin-top: .55rem; font-size: .76rem; line-height: 1.38; }
   .kileni-site .home-case-explorer__story ol { gap: .3rem; margin-top: .7rem; }
   .kileni-site .home-case-explorer__story li { padding: .32rem .42rem; font-size: .62rem; }

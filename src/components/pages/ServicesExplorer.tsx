@@ -10,6 +10,8 @@ import {
   type ServiceDirection,
   type ServiceDirectionId,
 } from "../../content/service-directions";
+import { marketplacePlatforms } from "../../content/marketplaces";
+import { priceToneClass } from "../price-emphasis";
 
 const directionSet = new Set<string>(serviceDirectionIds);
 
@@ -91,6 +93,7 @@ export function ServicesExplorer({ locale, directions }: { locale: Locale; direc
           <article
             aria-labelledby={`services-tab-${active.id}`}
             className="services-explorer__panel"
+            data-direction={active.id}
             id={`services-panel-${active.id}`}
             key={active.id}
             role="tabpanel"
@@ -127,7 +130,7 @@ export function ServicesExplorer({ locale, directions }: { locale: Locale; direc
             <dl className="services-explorer__facts">
               <div>
                 <dt>{active.id === "custom" ? (ru ? "Стоимость" : "Price") : (ru ? "Стартовая цена" : "Starting price")}</dt>
-                <dd>{active.price}</dd>
+                <dd className={`services-explorer__price price-emphasis ${priceToneClass(directions.indexOf(active))}`}>{active.price}</dd>
               </div>
               <div>
                 <dt>{ru ? "Срок" : "Timing"}</dt>
@@ -146,29 +149,109 @@ export function ServicesExplorer({ locale, directions }: { locale: Locale; direc
             </div>
           </article>
 
-          <ServicesDirectionVisual active={active} directions={directions} />
+          <ServicesDirectionVisual active={active} directions={directions} locale={locale} />
         </div>
       </div>
     </section>
   );
 }
 
-function MarketplaceMarks({ locale }: { locale: Locale }) {
-  const marks = [
-    { label: "Wildberries", src: "/marketplaces/wildberries.svg" },
-    { label: "Ozon", src: "/marketplaces/ozon.svg" },
-    { label: locale === "ru" ? "Яндекс Маркет" : "Yandex Market", src: "/marketplaces/yandex-market.svg" },
-  ];
+type JourneyStep = 0 | 1 | 2 | 3 | 4;
+
+const journeyStates = ["idle", "observing", "analyzing", "updating", "verified"] as const;
+
+export function ServicesHeroJourney({ locale }: { locale: Locale }) {
+  const ru = locale === "ru";
+  const stages = ru
+    ? ["Проблема", "Разбор", "Решение", "Проверяемый результат"]
+    : ["Problem", "Review", "Solution", "Verified result"];
+  const trajectoryRef = useRef<HTMLDivElement | null>(null);
+  const [step, setStep] = useState<JourneyStep>(0);
+
+  useEffect(() => {
+    const trajectory = trajectoryRef.current;
+    if (!trajectory) return;
+
+    const constrained = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 820px), (pointer: coarse)").matches;
+    const timers: number[] = [];
+    const play = () => {
+      setStep(0);
+      [1, 2, 3, 4].forEach((nextStep, index) => {
+        timers.push(window.setTimeout(() => setStep(nextStep as JourneyStep), 420 + index * 430));
+      });
+    };
+
+    if (constrained || typeof IntersectionObserver === "undefined") {
+      setStep(4);
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      observer.disconnect();
+      play();
+    }, { threshold: 0.3 });
+    observer.observe(trajectory);
+
+    return () => {
+      observer.disconnect();
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, []);
+
+  const state = journeyStates[step];
   return (
-    <div className="services-explorer__marketplace-marks" aria-label={locale === "ru" ? "Поддерживаемые площадки" : "Supported marketplaces"}>
-      {marks.map((mark) => <span key={mark.src}><Image alt={mark.label} height={32} src={mark.src} unoptimized width={150} /></span>)}
+    <div className="services-hub__trajectory" data-journey-state={state} data-journey-step={step} ref={trajectoryRef} role="img" aria-label={stages.join(" — ")}>
+      <div className="services-hub__trajectory-heading">
+        <span>{ru ? "Как переходим от задачи к проверенному результату" : "How we move from the task to a verified result"}</span>
+        <b>{ru ? "От вопроса к проверке" : "From question to verification"}</b>
+      </div>
+      <svg aria-hidden="true" className="services-hero__journey" viewBox="0 0 720 270">
+        <path className="services-hero__guide" d="M70 182C174 182 176 78 286 78S402 204 510 204 594 118 650 118" />
+        <path className="services-hero__line" pathLength="1" d="M70 182C174 182 176 78 286 78S402 204 510 204 594 118 650 118" />
+        <g className="services-hero__node services-hero__node--1" data-node-state={step > 1 ? "complete" : step === 1 ? "active" : "pending"} data-stage={stages[0]}><circle cx="70" cy="182" r="22" /><path d="M61 173L79 191M79 173L61 191" /><text x="70" y="226">{stages[0]}</text></g>
+        <g className="services-hero__node services-hero__node--2" data-node-state={step > 2 ? "complete" : step === 2 ? "active" : "pending"} data-stage={stages[1]}><circle cx="286" cy="78" r="28" /><path d="M274 78H298M286 66V90" /><text x="286" y="42">{stages[1]}</text></g>
+        <g className="services-hero__node services-hero__node--3" data-node-state={step > 3 ? "complete" : step === 3 ? "active" : "pending"} data-stage={stages[2]}><rect height="48" rx="12" width="64" x="478" y="180" /><path d="M493 204H527" /><text x="510" y="226">{stages[2]}</text></g>
+        <g className="services-hero__node services-hero__node--4" data-node-state={step === 4 ? "active" : "pending"} data-stage={stages[3]}><circle cx="650" cy="118" r="25" /><path d="M638 118L646 126 663 108" /><text x="650" y="158">{stages[3]}</text></g>
+      </svg>
+      <ol>
+        {stages.map((stage, index) => <li key={stage}><span>{String(index + 1).padStart(2, "0")}</span>{stage}</li>)}
+      </ol>
+      <p><span aria-hidden="true">✓</span>{ru ? "Результат можно проверить" : "The result can be verified"}</p>
     </div>
   );
 }
 
-function ServicesDirectionVisual({ active, directions }: { active: ServiceDirection; directions: readonly ServiceDirection[] }) {
+export function MarketplaceMarks({ locale }: { locale: Locale }) {
+  const marks = marketplacePlatforms.map((platform) => ({ label: locale === "ru" ? platform.name : platform.nameEn, src: platform.iconSrc, width: platform.iconWidth, height: platform.iconHeight }));
   return (
-    <figure className="services-explorer__visual" data-direction={active.id}>
+    <div className="services-explorer__marketplace-marks" aria-label={locale === "ru" ? "Поддерживаемые площадки" : "Supported marketplaces"}>
+      {marks.map((mark) => <span key={mark.src}><Image alt={mark.label} decoding="async" height={mark.height} loading="eager" src={mark.src} unoptimized width={mark.width} /></span>)}
+    </div>
+  );
+}
+
+function ServicesDirectionVisual({ active, directions, locale }: { active: ServiceDirection; directions: readonly ServiceDirection[]; locale: Locale }) {
+  const [visualStep, setVisualStep] = useState<JourneyStep>(active.id === "seo" ? 0 : 4);
+
+  useEffect(() => {
+    const constrained = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 820px), (pointer: coarse)").matches;
+    if (active.id !== "seo" || constrained) {
+      setVisualStep(4);
+      return;
+    }
+
+    const timers: number[] = [];
+    setVisualStep(0);
+    [1, 2, 3, 4].forEach((nextStep, index) => {
+      timers.push(window.setTimeout(() => setVisualStep(nextStep as JourneyStep), 320 + index * 360));
+    });
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [active.id]);
+
+  const visualState = journeyStates[visualStep];
+  return (
+    <figure className="services-explorer__visual" data-direction={active.id} data-visual-state={visualState} data-visual-step={visualStep}>
       <div className="services-explorer__visual-heading">
         <span>{active.visual.label}</span>
         <b>{String(serviceDirectionIds.indexOf(active.id) + 1).padStart(2, "0")} / 04</b>
@@ -185,7 +268,7 @@ function ServicesDirectionVisual({ active, directions }: { active: ServiceDirect
             data-active={direction.id === active.id ? "true" : "false"}
             key={direction.id}
           >
-            {direction.id === "seo" ? <SeoVisual /> : null}
+            {direction.id === "seo" ? <SeoVisual locale={locale} visualStep={visualStep} /> : null}
             {direction.id === "development" ? <DevelopmentVisual /> : null}
             {direction.id === "marketplaces" ? <MarketplaceVisual /> : null}
             {direction.id === "custom" ? <CustomVisual /> : null}
@@ -200,16 +283,15 @@ function ServicesDirectionVisual({ active, directions }: { active: ServiceDirect
   );
 }
 
-function SeoVisual() {
+function SeoVisual({ locale, visualStep }: { locale: Locale; visualStep: JourneyStep }) {
+  const labels = locale === "ru"
+    ? ["Проверка страницы", "Внесённые правки", "Повторная проверка"]
+    : ["Page check", "Changes applied", "Repeat check"];
   return <>
-    <rect className="services-explorer__shape" height="92" rx="10" width="106" x="54" y="258" />
-    <path className="services-explorer__shape-line" d="M76 282H138M76 302H124M76 322H132" />
-    <circle className="services-explorer__shape services-explorer__shape--accent" cx="224" cy="112" r="46" />
-    <path className="services-explorer__shape-line" d="M202 112L218 128 247 93" />
-    <rect className="services-explorer__shape" height="104" rx="12" width="116" x="326" y="256" />
-    <path className="services-explorer__shape-line" d="M350 328L372 304 392 316 420 280" />
-    <circle className="services-explorer__shape services-explorer__shape--verified" cx="504" cy="176" r="22" />
-    <path className="services-explorer__shape-line services-explorer__shape-line--verified" d="M494 176L501 183 515 168" />
+    <g className="services-seo__stage services-seo__stage--1" data-stage-state={visualStep > 1 ? "complete" : visualStep === 1 ? "active" : "pending"} data-stage={labels[0]}><rect className="services-explorer__shape" height="92" rx="10" width="106" x="54" y="258" /><path className="services-explorer__shape-line" d="M76 282H138M76 302H124M76 322H132" /><text x="107" y="370">{labels[0]}</text></g>
+    <g className="services-seo__stage services-seo__stage--2" data-stage-state={visualStep > 2 ? "complete" : visualStep === 2 ? "active" : "pending"} data-stage={labels[1]}><circle className="services-explorer__shape services-explorer__shape--accent" cx="224" cy="112" r="46" /><path className="services-explorer__shape-line" d="M202 112L218 128 247 93" /><text x="224" y="48">{labels[1]}</text></g>
+    <g className="services-seo__stage services-seo__stage--3" data-stage-state={visualStep > 3 ? "complete" : visualStep === 3 ? "active" : "pending"} data-stage={labels[2]}><rect className="services-explorer__shape" height="104" rx="12" width="116" x="326" y="256" /><path className="services-explorer__shape-line" d="M350 328L372 304 392 316 420 280" /><text x="384" y="370">{labels[2]}</text></g>
+    <g className="services-seo__stage services-seo__stage--4" data-stage-state={visualStep === 4 ? "active" : "pending"}><circle className="services-explorer__shape services-explorer__shape--verified" cx="504" cy="176" r="22" /><path className="services-explorer__shape-line services-explorer__shape-line--verified" d="M494 176L501 183 515 168" /></g>
   </>;
 }
 

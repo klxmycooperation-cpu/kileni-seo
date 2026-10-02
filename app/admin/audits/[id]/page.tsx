@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 
 import { validUuid } from "@/app/api/_lib/http";
 import { AdminCopyButton } from "@/src/components/admin/AdminCopyButton";
-import { AdminClientMessage } from "@/src/components/admin/AdminClientMessage";
 import { AdminEntityControls } from "@/src/components/admin/AdminEntityControls";
 import { AdminBack, AdminDate, AdminEmpty, AdminJson } from "@/src/components/admin/AdminUi";
 import { AdminContactActions } from "../../_components/EntityUi";
@@ -49,7 +48,7 @@ export default async function AdminAuditDetailPage({ params }: { params: Promise
     : audit.status === "queued"
       ? [{ value: "failed", label: "Отменить до запуска" }]
       : [];
-  const publicPath = `${audit.locale === "en" ? "/en" : ""}/audit/${audit.publicToken}`;
+  const publicPath = `/audit/${audit.publicToken}`;
 
   return <>
     <AdminBack href="/admin/audits">Все аудиты</AdminBack>
@@ -78,16 +77,6 @@ export default async function AdminAuditDetailPage({ params }: { params: Promise
         <a href={audit.originalUrl} target="_blank" rel="noreferrer">Открыть сайт ↗</a>
       </div>
     </section>
-
-    {["completed", "partial"].includes(audit.status) && (detail.publicResult || detail.fullResult) ? (
-      <section className="admin-section" aria-labelledby="audit-client-message-heading">
-        <header className="admin-section__heading">
-          <div><p className="admin-kicker">Сообщение клиенту</p><h2 id="audit-client-message-heading">Подготовить текст по результатам аудита</h2></div>
-          <p>Текст собирается только из сохранённых результатов этой проверки и не отправляется автоматически.</p>
-        </header>
-        <AdminClientMessage auditId={id}/>
-      </section>
-    ) : null}
 
     <AuditOverview audit={audit} issues={issues} queue={detail.queue} contract={contract}/>
 

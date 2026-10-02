@@ -8,7 +8,7 @@ test("lead form recovers from a lost response and preserves entered data", async
   const submit = page.getByRole("button", { name: "Отправить заявку" });
   await expect(submit).toBeEnabled();
   await page.getByRole("textbox", { name: "Имя", exact: true }).fill("QA local test");
-  await page.getByRole("textbox", { name: "Телефон или e-mail" }).fill(contact);
+  await page.getByRole("textbox", { name: "E-mail" }).fill(contact);
   await page.locator('.lead-form input[name="consent"]').check();
   await page.route("**/api/leads", (route) => route.abort("connectionfailed"));
   await submit.click();
@@ -52,7 +52,7 @@ test("audit form creates an audit visible to admin", async ({ page }, testInfo) 
   await page.goto("/free-audit");
   await page.getByRole("button", { name: "Только необходимые", exact: true }).click();
   await page.getByLabel("Адрес сайта").fill(site);
-  await page.getByRole("button", { name: "Проверить сайт бесплатно" }).click();
+  await page.getByRole("button", { name: "Проверить бесплатно до 10 репрезентативных страниц сайта" }).click();
   await expect(page.getByLabel("Email (необязательно)")).toBeVisible();
   await page.getByLabel(/Я имею отношение к сайту/u).check();
   await page.getByRole("button", { name: "Запустить проверку" }).click();

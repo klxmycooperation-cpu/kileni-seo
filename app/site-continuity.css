@@ -1,0 +1,99 @@
+/* One continuous route canvas. Section surfaces stay transparent so the page
+   no longer breaks into differently coloured horizontal slabs. */
+.kileni-site .site-tracing-beam__content {
+  background:
+    radial-gradient(60rem 34rem at 84% 7%, rgba(65, 100, 255, .11), transparent 72%),
+    radial-gradient(48rem 30rem at 12% 42%, rgba(67, 123, 176, .055), transparent 76%),
+    linear-gradient(180deg, #07111f 0%, #081321 48%, #07111f 100%);
+}
+
+.kileni-site main {
+  border-color: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.kileni-site .site-footer {
+  --footer-blend-top: #07111f;
+  border-color: transparent !important;
+  background-color: #050911 !important;
+  background-image: linear-gradient(180deg, var(--footer-blend-top) 0, #07101d 18%, #050911 62%, #060a12 100%) !important;
+}
+
+/* Intro completion and the skip link focus the main landmark. A page-sized
+   focus ring reads as a section seam, while the skip link itself stays visible. */
+.kileni-site main:focus,
+.kileni-site main:focus-visible {
+  outline: none;
+}
+
+.kileni-site .site-footer {
+  border-top-width: 0 !important;
+}
+
+/* The base colour matches the route canvas at the top edge. The blurred light
+   appears only below it, so the footer reads as a surface without a hard join. */
+.kileni-site .site-footer::before {
+  inset: -4rem -8% -2rem;
+  background:
+    radial-gradient(48rem 19rem at 82% 18%, rgba(91, 123, 215, .34), transparent 70%),
+    radial-gradient(34rem 18rem at 18% 42%, rgba(141, 88, 54, .2), transparent 72%);
+  filter: blur(38px) saturate(118%);
+  opacity: .78;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, .18) 5rem, #000 12rem, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, .18) 5rem, #000 12rem, #000 100%);
+}
+
+.kileni-site .site-footer::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background-image: linear-gradient(to right, rgba(137, 164, 218, .075) 1px, transparent 1px);
+  background-position: 50% 0;
+  background-size: clamp(4rem, 8vw, 8rem) 100%;
+  content: "";
+  opacity: .58;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, .22) 4rem, #000 11rem, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, .22) 4rem, #000 11rem, #000 100%);
+  pointer-events: none;
+}
+
+html[data-kileni-theme="light"] .kileni-site .site-footer {
+  --footer-blend-top: #f7f8fb;
+  background-image: linear-gradient(
+    180deg,
+    var(--footer-blend-top) 0,
+    #eef2f8 3rem,
+    #1a2942 8rem,
+    #07101d 12rem,
+    #050911 68%,
+    #060a12 100%
+  ) !important;
+}
+
+.kileni-site main > :not(.brand-intro),
+.kileni-site main > :not(.brand-intro) > :is(header, section) {
+  background-color: transparent !important;
+}
+
+.kileni-site main > :not(.brand-intro) > :is(header, section) {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+.kileni-site main > .home-content > :is(
+  .home-entry-route,
+  .home-process-section,
+  .home-articles,
+  .home-deliverables,
+  .home-directions,
+  .warm-final-cta
+) {
+  background-image: none !important;
+}
+
+.kileni-site main > .home-content > .home-pin-cta {
+  background-image:
+    radial-gradient(circle at 50% 42%, rgba(159, 180, 255, .15), transparent 68%) !important;
+  border-block-color: transparent !important;
+}

@@ -30,7 +30,7 @@ describe("public audit methodology", () => {
       expect(getAuditCheck(check.slug)).toBe(check);
       expect(check.sourceUrl).toMatch(/^https:\/\//u);
       expect(check.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
-      for (const locale of ["ru", "en"] as const) {
+      for (const locale of ["ru"] as const) {
         const copy = check[locale];
         expect(copy.title.length).toBeGreaterThan(5);
         expect(copy.summary.length).toBeGreaterThanOrEqual(70);
@@ -49,11 +49,7 @@ describe("public audit methodology", () => {
 
     const ru = getAuditCheckMetadata("ru", "http-status");
     expect(ru?.alternates?.canonical).toBe("/checks/http-status");
-    expect(ru?.alternates?.languages).toEqual({
-      ru: "/checks/http-status",
-      en: "/en/checks/http-status",
-      "x-default": "/checks/http-status",
-    });
+    expect(ru?.alternates?.languages).toBeUndefined();
     expect(ru?.description?.length).toBeGreaterThanOrEqual(70);
     expect(ru?.description?.length).toBeLessThanOrEqual(160);
     expect(getAuditCheckMetadata("en", "missing")).toBeNull();
@@ -62,7 +58,7 @@ describe("public audit methodology", () => {
   it("uses each check's complete summary instead of mechanically cut descriptions", () => {
     const descriptions = new Set<string>();
     for (const check of auditChecks) {
-      for (const locale of ["ru", "en"] as const) {
+      for (const locale of ["ru"] as const) {
         const description = getAuditCheckMetadata(locale, check.slug)?.description;
 
         expect(description).toBe(check[locale].summary);
@@ -79,7 +75,7 @@ describe("public audit methodology", () => {
   it("gives every localized detail page a distinct search title", () => {
     const titles = new Set<string>();
     for (const check of auditChecks) {
-      for (const locale of ["ru", "en"] as const) {
+      for (const locale of ["ru"] as const) {
         const value = getAuditCheckMetadata(locale, check.slug)?.title;
         const title = typeof value === "object" && value && "absolute" in value ? value.absolute : "";
         expect(title.length).toBeGreaterThanOrEqual(30);

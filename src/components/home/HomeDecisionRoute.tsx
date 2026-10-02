@@ -5,6 +5,7 @@ import { useId, useState } from "react";
 import { formatOfferPrice, getOffer, localizedOffer, offerBriefHref } from "../../config/offers";
 import type { Locale } from "../../config/site";
 import { localizedPath } from "../../config/site";
+import { priceToneClass } from "../price-emphasis";
 
 type DecisionRouteProps = {
   locale: Locale;
@@ -44,21 +45,21 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
         },
         {
           number: "02",
-          title: "Полный SEO-аудит",
+          title: fullAudit.title,
           eyebrow: "Когда нужна ясность",
-          description: "Разбираем причины, приоритеты и порядок исправлений — чтобы команда не тратила время на случайные доработки.",
+          description: "Разбираем причины, приоритеты и порядок исправлений.",
           price: formatOfferPrice(getOffer("seo-audit-200")!, locale),
           timing: fullAudit.duration,
           scope: fullAudit.scope,
           details: fullAudit.features.slice(0, 3),
           href: offerBriefHref("seo-audit-200", locale),
-          cta: "Выбрать полный аудит",
+          cta: "Выбрать технический аудит",
         },
         {
           number: "03",
           title: "Аудит и внедрение",
           eyebrow: "Когда нужна реализация",
-          description: "Согласуем объём, внесём изменения и повторим проверку после внедрения.",
+          description: "Согласуем объём, вносим изменения и повторно проверяем результат.",
           price: formatOfferPrice(getOffer("seo-audit-implementation")!, locale),
           timing: implementation.duration,
           scope: implementation.scope,
@@ -82,7 +83,7 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
         },
         {
           number: "02",
-          title: "Full SEO audit",
+          title: fullAudit.title,
           eyebrow: "When you need clarity",
           description: "We turn issues into priorities and an implementation order, so your team can stop guessing.",
           price: formatOfferPrice(getOffer("seo-audit-200")!, locale),
@@ -90,13 +91,13 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
           scope: fullAudit.scope,
           details: fullAudit.features.slice(0, 3),
           href: offerBriefHref("seo-audit-200", locale),
-          cta: "Choose the full audit",
+          cta: "Choose the technical audit",
         },
         {
           number: "03",
           title: "Audit with implementation",
           eyebrow: "When execution matters",
-          description: "We agree the scope, implement the work and repeat the check after delivery.",
+          description: "We agree the scope, implement the work and verify the result instead of leaving you with a list.",
           price: formatOfferPrice(getOffer("seo-audit-implementation")!, locale),
           timing: implementation.duration,
           scope: implementation.scope,
@@ -121,11 +122,15 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
     <section id="home-levels" className="home-decision" aria-labelledby="decision-heading">
       <div className="home-decision__intro" id="home-formats">
         <p className="section-label">{ru ? "Какой объём выбрать" : "Choose the right scope"}</p>
-        <h2 id="decision-heading">{ru ? "Начните с того объёма, который нужен сейчас" : "Start with the level that fits the task now"}</h2>
-        <p>{ru ? "Можно ограничиться проверкой, перейти к полному аудиту или сразу обсудить внедрение. Состав и цена каждого формата указаны отдельно." : "Start with a check, move to a full audit, or discuss implementation straight away. Each format lists its scope and price."}</p>
+        <h2 id="decision-heading">
+          {ru
+            ? <span className="decision-heading-ru"><span className="decision-heading-ru__line">Начните</span>{" "}<span className="decision-heading-ru__line">с того объёма,</span>{" "}<span className="decision-heading-ru__line">который</span>{" "}<span className="decision-heading-ru__line">нужен сейчас</span></span>
+            : "Start with the level that fits the task now"}
+        </h2>
+        <p>{ru ? "Можно ограничиться проверкой ключевых страниц, получить технический аудит или сразу обсудить исправления. Состав и цена каждого варианта указаны отдельно." : "Start with a key-page review, choose a technical audit or discuss implementation. Each option has its own scope and price."}</p>
       </div>
 
-      <div className="home-decision__body">
+      <div className="home-decision__body" data-dashboard-surface="tier-selector">
         <div className="home-decision__tabs" role="tablist" aria-label={ru ? "Выбор формата работы" : "Choose a format"} data-mobile-route-tabs>
           {options.map((option, index) => (
             <button
@@ -177,22 +182,24 @@ export function HomeDecisionRoute({ locale }: DecisionRouteProps) {
                 <p>{option.eyebrow}</p>
                 <h3>{option.title}</h3>
               </div>
-              <b>{option.price}</b>
+              <b className={`home-decision__price price-emphasis ${priceToneClass(index)}`}>{option.price}</b>
             </div>
-            <p className="home-decision__description">{option.description}</p>
-            <dl>
-              <div>
-                <dt>{ru ? "Объём" : "Scope"}</dt>
-                <dd>{option.scope}</dd>
-              </div>
-              <div>
-                <dt>{ru ? "Срок" : "Timing"}</dt>
-                <dd>{option.timing}</dd>
-              </div>
-            </dl>
-            <ul>
-              {option.details.map((detail) => <li key={detail}>{detail}</li>)}
-            </ul>
+            <div className="home-decision__content">
+              <p className="home-decision__description">{option.description}</p>
+              <dl>
+                <div>
+                  <dt>{ru ? "Объём" : "Scope"}</dt>
+                  <dd>{option.scope}</dd>
+                </div>
+                <div>
+                  <dt>{ru ? "Срок" : "Timing"}</dt>
+                  <dd>{option.timing}</dd>
+                </div>
+              </dl>
+              <ul>
+                {option.details.map((detail) => <li key={detail}>{detail}</li>)}
+              </ul>
+            </div>
             <Link className="home-decision__cta" href={option.href}>
               {option.cta}<span aria-hidden="true">↗</span>
             </Link>

@@ -59,7 +59,7 @@ for (const viewport of viewports) {
 
       expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewportWidth);
       expect(geometry.titleFits).toBe(true);
-      expect(geometry.titleLines).toBeLessThanOrEqual(viewport.width < 768 ? 5 : 4);
+      expect(geometry.titleLines).toBeLessThanOrEqual(viewport.width < 768 ? 5 : 3);
       expect(geometry.titleStartsAfterHeader).toBe(true);
       expect(geometry.headerFits).toBe(true);
 

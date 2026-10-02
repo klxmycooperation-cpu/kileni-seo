@@ -1,6 +1,6 @@
 import { assertIsolatedPreviewEnvironment } from "../scripts/runtime-isolation.mjs";
 import type { AuditEvent, PublicAuditRun } from "../src/lib/audit/index";
-import { finalizeAuditResultV4, runPublicAudit } from "../src/lib/audit/index";
+import { finalizeAuditResultV4, normalizeLighthouseObservation, runPublicAudit } from "../src/lib/audit/index";
 import { completeAuditReliably } from "../src/lib/audit/completion-reliability";
 import { toAuditProgressTransition } from "../src/lib/audit/progress-event";
 import { acquireNextAudit, appendAuditEvent, completeAuditRecord, failAuditRecord, failStaleAudits, heartbeatWorker, parseAuditPriorityUrls, purgeExpiredAudits, type AuditRow, type AuditStatus } from "../src/db/queries";
@@ -8,6 +8,7 @@ import { deliverAuditResultEmail, retryPendingAuditEmails } from "../src/lib/not
 import { notifyTelegram } from "../src/lib/notifications/telegram";
 import { runMobileLighthouse } from "../src/lib/performance/lighthouse";
 import { purgeExpiredRateLimits } from "../src/lib/security/rate-limit";
+import { databaseMode } from "../src/db/client";
 
 assertIsolatedPreviewEnvironment();
 
@@ -29,35 +30,51 @@ async function runWorker(): Promise<void> {
   let lastStaleCheck = 0;
   let lastEmailCheck = 0;
   while (!shutdown.signal.aborted) {
-    if (Date.now() - lastRetentionCheck >= 24 * 60 * 60 * 1_000) {
-      const purgedAudits = await purgeExpiredAudits(retentionDays);
-      const purgedRateLimits = await purgeExpiredRateLimits();
-      log("retention_check", { retentionDays, purgedAudits, purgedRateLimits });
-      lastRetentionCheck = Date.now();
+    try {
+      if (Date.now() - lastRetentionCheck >= 24 * 60 * 60 * 1_000) {
+        try {
+          const purgedAudits = await purgeExpiredAudits(retentionDays);
+          const purgedRateLimits = await purgeExpiredRateLimits();
+          log("retention_check", { retentionDays, purgedAudits, purgedRateLimits });
+          lastRetentionCheck = Date.now();
+        } catch (error) {
+          // Retention is housekeeping, not a prerequisite for serving new audits.
+          // Retry it in five minutes without taking the worker loop down.
+          lastRetentionCheck = Date.now() - 24 * 60 * 60 * 1_000 + 5 * 60 * 1_000;
+          log("retention_check_failed", { reason: errorName(error), code: errorCode(error) });
+        }
+      }
+      if (Date.now() - lastStaleCheck >= 60_000) {
+        try {
+          const recovered = await failStaleAudits(Math.max(15 * 60 * 1_000, auditTimeoutMs + 2 * 60 * 1_000));
+          if (recovered) log("stale_audits_recovered", { recovered });
+        } catch (error) {
+          log("stale_audit_check_failed", { reason: errorName(error), code: errorCode(error) });
+        }
+        lastStaleCheck = Date.now();
+      }
+      if (Date.now() - lastHeartbeat >= 10_000) {
+        await heartbeatWorker({ pid: process.pid, state: "idle" });
+        lastHeartbeat = Date.now();
+      }
+      if (Date.now() - lastEmailCheck >= 30_000) {
+        await retryPendingAuditEmails().catch((error: unknown) => {
+          log("audit_email_retry_failed", { reason: errorName(error), code: errorCode(error) });
+        });
+        lastEmailCheck = Date.now();
+      }
+      const audit = await acquireNextAudit();
+      if (!audit) {
+        await wait(pollIntervalMs, shutdown.signal);
+        continue;
+      }
+      await heartbeatWorker({ pid: process.pid, state: "working", auditId: audit.id });
+      await processAudit(audit);
+      lastHeartbeat = 0;
+    } catch (error) {
+      log("worker_iteration_failed", { reason: errorName(error), code: errorCode(error) });
+      await wait(Math.max(pollIntervalMs, 5_000), shutdown.signal);
     }
-    if (Date.now() - lastStaleCheck >= 60_000) {
-      const recovered = await failStaleAudits(Math.max(15 * 60 * 1_000, auditTimeoutMs + 2 * 60 * 1_000));
-      if (recovered) log("stale_audits_recovered", { recovered });
-      lastStaleCheck = Date.now();
-    }
-    if (Date.now() - lastHeartbeat >= 10_000) {
-      await heartbeatWorker({ pid: process.pid, state: "idle" });
-      lastHeartbeat = Date.now();
-    }
-    if (Date.now() - lastEmailCheck >= 30_000) {
-      await retryPendingAuditEmails().catch((error: unknown) => {
-        log("audit_email_retry_failed", { reason: errorName(error), code: errorCode(error) });
-      });
-      lastEmailCheck = Date.now();
-    }
-    const audit = await acquireNextAudit();
-    if (!audit) {
-      await wait(pollIntervalMs, shutdown.signal);
-      continue;
-    }
-    await heartbeatWorker({ pid: process.pid, state: "working", auditId: audit.id });
-    await processAudit(audit);
-    lastHeartbeat = 0;
   }
   await heartbeatWorker({ pid: process.pid, state: "stopped" });
   log("worker_stopped", {});
@@ -101,8 +118,25 @@ async function processAudit(audit: AuditRow): Promise<void> {
     await transition("analyzing_structure", { ...samplePayload, eventKind: "structure_checked" });
     await transition("running_performance", { ...samplePayload, eventKind: "performance_started" });
     const lighthouse = controller.signal.aborted
-      ? { performance: null, pagesAttempted: 0, pagesChecked: 0 }
+      ? {
+          performance: normalizeLighthouseObservation({
+            status: "timed_out",
+            source: "lighthouse",
+            errorCode: "AUDIT_TIMEOUT",
+          }),
+          pagesAttempted: 1,
+          pagesChecked: 0,
+        }
       : await runMobileLighthouse(initial.pages.map((page) => page.url).slice(0, 1), { signal: controller.signal });
+
+    log("lighthouse_finished", {
+      auditId: audit.id,
+      storageMode: databaseMode === "ephemeral" ? "ephemeral" : "persistent",
+      lighthouseStatus: lighthouse.performance?.status ?? "legacy_unknown",
+      completedAt: lighthouse.performance?.completedAt ?? null,
+      durationMs: lighthouse.performance?.durationMs ?? null,
+      errorCode: lighthouse.performance?.errorCode ?? null,
+    });
 
     await transition("finalizing_report", { ...samplePayload, eventKind: "report_building" });
     const result = attachPerformance(initial, lighthouse.performance, controller.signal.aborted || lighthouse.pagesChecked < lighthouse.pagesAttempted);
@@ -111,6 +145,7 @@ async function processAudit(audit: AuditRow): Promise<void> {
       createdAt: new Date(audit.createdAt).toISOString(),
       result,
       performance: lighthouse.performance,
+      storageMode: databaseMode === "ephemeral" ? "ephemeral" : "persistent",
     });
     const completion = await completeAuditReliably({
       persist: () => completeAuditRecord(audit.id, {
@@ -184,7 +219,7 @@ function attachPerformance(
 async function sendCompletionNotifications(audit: AuditRow, pagesChecked: number, partial: boolean): Promise<void> {
   const publicBase = process.env.APP_BASE_URL;
   const adminBase = process.env.ADMIN_BASE_URL || publicBase;
-  const publicPath = `${audit.locale === "en" ? "/en" : ""}/audit/${encodeURIComponent(audit.publicToken)}`;
+  const publicPath = `/audit/${encodeURIComponent(audit.publicToken)}`;
   const publicUrl = publicBase ? new URL(publicPath, publicBase).toString() : publicPath;
   const adminUrl = adminBase ? new URL(`/admin/audits/${encodeURIComponent(audit.id)}`, adminBase).toString() : `/admin/audits/${audit.id}`;
   const failures: unknown[] = [];

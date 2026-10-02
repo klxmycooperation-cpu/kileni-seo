@@ -176,7 +176,7 @@ function stageCopy(snapshot: AuditLiveSnapshot, locale: Locale): { title: string
   };
   if (stage === 2) return {
     title: ru ? "Выбираем страницы" : "Selecting pages",
-    description: ru ? "Берём разные типы страниц, чтобы бесплатная десятка показывала сайт целиком, а не повторяла один раздел." : "Choosing different page types so the free sample represents the site instead of repeating one section.",
+    description: ru ? "Берём разные типы страниц, чтобы бесплатная выборка отражала разные разделы, а не повторяла один шаблон." : "Choosing different page types so the free sample covers different sections instead of repeating one template.",
     shortStatus: ru ? "Формируем выборку" : "Building the sample",
   };
   if (stage === 3) {
@@ -233,7 +233,7 @@ function eventLabel(event: AuditLiveEvent, snapshot: AuditLiveSnapshot, locale: 
   if (event.kind === "page_started") return ru ? `Проверяем ${path || "страницу"}.` : `Checking ${path || "a page"}.`;
   if (event.kind === "page_checked") return ru ? `Проверена ${path || "страница"}.` : `Checked ${path || "a page"}.`;
   if (event.kind === "page_failed") return ru ? `Не удалось проверить ${path || "страницу"}.` : `Could not check ${path || "a page"}.`;
-  return ru ? "Получены новые данные." : "New audit data received.";
+        return ru ? "Получены новые данные проверки." : "New check data received.";
 }
 
 function technicalStatus(status: AuditLiveSnapshot["robotsStatus"] | AuditLiveSnapshot["sitemapStatus"], locale: Locale): string | null {
@@ -353,6 +353,11 @@ export function AuditLiveProgress({ locale, domain, snapshot }: { locale: Locale
       <AuditStageVisual locale={locale} domain={domain} snapshot={snapshot} stage={activeStage}/>
     </section>
 
+    <section className="audit-live__data" aria-label={ru ? "Реальные показатели проверки" : "Observed audit figures"}>
+      {metrics.length > 0 ? <dl className="audit-live__metrics">{metrics.map((metric) => <div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div>)}</dl> : null}
+      {events.length > 0 ? <div className="audit-live__events"><h2>{ru ? "Последние события" : "Latest events"}</h2><ol>{events.map((event, index) => <li key={`${event.createdAt ?? index}-${event.kind}-${event.path ?? ""}`}>{eventLabel(event, snapshot, locale)}</li>)}</ol></div> : null}
+    </section>
+
     <div className="audit-live__timeline-wrap">
       <div
         className={`audit-live__progress${progress.determinate ? " is-determinate" : " is-indeterminate"}`}
@@ -362,15 +367,10 @@ export function AuditLiveProgress({ locale, domain, snapshot }: { locale: Locale
         aria-valuemax={100}
         {...(progress.determinate ? { "aria-valuenow": progress.value } : {})}
       ><span style={progress.determinate ? { width: `${progress.value}%` } : undefined}/></div>
-      <ol className="audit-live__stages" aria-label={ru ? "Этапы проверки" : "Audit stages"}>{stageItems.map(({ stage, state }, index) => <li className={`is-${state}`} aria-current={state === "active" ? "step" : undefined} key={stage.key}><span aria-hidden="true">{state === "completed" ? "✓" : index + 1}</span><strong>{ru ? stage.ru : stage.en}</strong></li>)}</ol>
+      <ol className="audit-live__stages" aria-label={ru ? "Этапы проверки" : "Check stages"}>{stageItems.map(({ stage, state }, index) => <li className={`is-${state}`} aria-current={state === "active" ? "step" : undefined} key={stage.key}><span aria-hidden="true">{state === "completed" ? "✓" : index + 1}</span><strong>{ru ? stage.ru : stage.en}</strong></li>)}</ol>
     </div>
 
-    <section className="audit-live__data" aria-label={ru ? "Реальные показатели проверки" : "Observed audit figures"}>
-      {metrics.length > 0 ? <dl className="audit-live__metrics">{metrics.map((metric) => <div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div>)}</dl> : null}
-      {events.length > 0 ? <div className="audit-live__events"><h2>{ru ? "Последние события" : "Latest events"}</h2><ol>{events.map((event, index) => <li key={`${event.createdAt ?? index}-${event.kind}-${event.path ?? ""}`}>{eventLabel(event, snapshot, locale)}</li>)}</ol></div> : null}
-    </section>
-
-    <footer className="audit-live__footer"><p>{ru ? "Не отправляем формы, не вводим пароли и не открываем закрытые разделы." : "We do not submit forms, enter passwords, or open private sections."}</p><p>{ru ? "Можно свернуть окно — проверка продолжится." : "You can minimize this window — the audit will continue."}</p></footer>
+    <footer className="audit-live__footer"><p>{ru ? "Не отправляем формы, не вводим пароли и не открываем закрытые разделы." : "We do not submit forms, enter passwords, or open private sections."}</p><p>{ru ? "Можно свернуть окно — проверка продолжится." : "You can minimize this window — the check will continue."}</p></footer>
   </article>;
 }
 
@@ -402,7 +402,7 @@ export function AuditLiveOverlay({ locale, domain, snapshot }: { locale: Locale;
       <div>
         <p>{displayDomain(domain) || (ru ? "Бесплатная SEO-проверка" : "Free SEO check")}</p>
         <h1 id="audit-live-minimized-heading">{ru ? "Проверка продолжается" : "The audit is still running"}</h1>
-        <p>{ru ? "Откройте ход проверки в правом нижнем углу." : "Open the audit progress in the bottom-right corner."}</p>
+        <p>{ru ? "Откройте ход проверки в правом нижнем углу." : "Open the check progress in the bottom-right corner."}</p>
       </div>
     </section>
     {createPortal(<button className="audit-live-float" type="button" onClick={() => setMinimized(false)} aria-label={ru ? "Открыть ход проверки" : "Open audit progress"}><span className="audit-live-float__pulse"/><span>{ru ? "Проверка сайта идёт" : "Website audit in progress"}</span>{progress.determinate ? <strong>{Math.min(snapshot.pagesChecked ?? 0, snapshot.pagesSelected ?? 0)} / {snapshot.pagesSelected ?? 0}</strong> : <strong>{copy.shortStatus}</strong>}</button>, document.body)}

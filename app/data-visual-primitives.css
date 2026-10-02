@@ -1,0 +1,514 @@
+/* Shared visual primitives for existing data interfaces.
+   This layer deliberately changes surfaces only: no component measurements,
+   spacing or grids are declared here. */
+.kileni-site {
+  --data-panel: linear-gradient(145deg, color-mix(in srgb, var(--analytics-surface) 96%, #ffffff 4%), var(--analytics-surface));
+  --data-panel-raised: linear-gradient(145deg, color-mix(in srgb, var(--analytics-soft) 78%, #ffffff 22%), var(--analytics-soft));
+  --data-inset: color-mix(in srgb, var(--analytics-soft) 58%, transparent);
+  --data-line: color-mix(in srgb, var(--analytics-line) 78%, var(--analytics-blue) 22%);
+  --data-line-lit: color-mix(in srgb, var(--analytics-blue) 42%, var(--analytics-line));
+  --data-highlight: color-mix(in srgb, var(--analytics-blue) 15%, transparent);
+  --data-inner-light: inset 0 1px 0 rgba(255, 255, 255, .68);
+  --data-depth: 0 1rem 2.8rem color-mix(in srgb, var(--analytics-text) 9%, transparent);
+}
+
+html[data-kileni-theme="dark"] .kileni-site{
+  --data-panel: linear-gradient(145deg, color-mix(in srgb, var(--analytics-surface) 93%, #35518d 7%), var(--analytics-surface));
+  --data-panel-raised: linear-gradient(145deg, color-mix(in srgb, var(--analytics-soft) 88%, #2a4780 12%), var(--analytics-soft));
+  --data-inset: color-mix(in srgb, var(--analytics-soft) 76%, #071225 24%);
+  --data-line: color-mix(in srgb, var(--analytics-line) 69%, #7395e8 31%);
+  --data-line-lit: color-mix(in srgb, var(--analytics-blue) 60%, #a7b9ff 40%);
+  --data-highlight: color-mix(in srgb, var(--analytics-blue) 17%, transparent);
+  --data-inner-light: inset 0 1px 0 rgba(205, 221, 255, .13);
+  --data-depth: 0 1.1rem 3rem rgba(0, 0, 0, .28);
+}
+
+/* DataPanel / MetricCard */
+.kileni-site :is(.analytics-card, .analytics-score-card, .analytics-time-card, .analytics-errors-card) {
+  border-color: var(--data-line);
+  background: var(--data-panel);
+  box-shadow: var(--data-depth), var(--data-inner-light), inset 0 -1.5rem 2.8rem color-mix(in srgb, var(--analytics-text) 3%, transparent);
+}
+
+.kileni-site :is(.analytics-card, .analytics-score-card, .analytics-time-card, .analytics-errors-card):hover {
+  border-color: var(--data-line-lit);
+  box-shadow: 0 1.2rem 3.2rem color-mix(in srgb, var(--analytics-text) 12%, transparent), var(--data-inner-light), inset 0 -1.5rem 2.8rem color-mix(in srgb, var(--analytics-text) 3%, transparent);
+}
+
+/* ChartShell */
+.kileni-site .analytics-visibility-detail {
+  position: relative;
+  isolation: isolate;
+  border-color: var(--data-line);
+  background: var(--data-inset);
+  box-shadow: var(--data-inner-light), inset 0 0 0 1px color-mix(in srgb, var(--analytics-blue) 5%, transparent), inset 0 -1rem 2rem color-mix(in srgb, var(--analytics-text) 5%, transparent);
+}
+
+.kileni-site .analytics-visibility-detail::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 82% 0, var(--data-highlight), transparent 34%);
+  content: "";
+  pointer-events: none;
+}
+
+.kileni-site .analytics-visibility-detail > * { position: relative; z-index: 1; }
+.kileni-site .analytics-visibility-detail__grid { stroke: color-mix(in srgb, var(--analytics-grid) 75%, var(--analytics-blue) 25%); }
+.kileni-site .analytics-visibility-detail__line,
+.kileni-site .analytics-chart__line { filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--analytics-blue) 35%, transparent)); }
+.kileni-site .analytics-visibility-detail__point,
+.kileni-site .analytics-chart__point { filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--analytics-blue) 55%, transparent)); }
+.kileni-site .analytics-chart--errors .analytics-chart__point { filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--analytics-success) 48%, transparent)); }
+
+.kileni-site .analytics-visibility-detail__tooltip,
+.kileni-site .analytics-chart__tooltip {
+  border-color: var(--data-line-lit);
+  background: var(--data-panel-raised);
+  box-shadow: 0 .7rem 1.6rem color-mix(in srgb, var(--analytics-text) 16%, transparent), var(--data-inner-light);
+}
+
+/* StatTile / DataBadge */
+.kileni-site :is(.analytics-visibility-detail__chips > span, .analytics-hero-chart__statuses span) {
+  border-color: color-mix(in srgb, var(--data-line) 84%, transparent);
+  background: color-mix(in srgb, var(--data-panel-raised) 78%, transparent);
+  box-shadow: var(--data-inner-light), 0 .42rem 1rem color-mix(in srgb, var(--analytics-text) 5%, transparent);
+}
+
+.kileni-site .analytics-delta,
+.kileni-site .cp-package-badge {
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 .35rem .8rem color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.kileni-site .analytics-score-bar > i {
+  background: color-mix(in srgb, var(--analytics-line) 84%, var(--analytics-text) 16%);
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--analytics-text) 14%, transparent);
+}
+
+.kileni-site .analytics-score-bar > i > b {
+  background: linear-gradient(90deg, var(--analytics-blue), color-mix(in srgb, var(--analytics-blue) 64%, #b8caff 36%));
+  box-shadow: 0 0 .7rem color-mix(in srgb, var(--analytics-blue) 43%, transparent);
+}
+
+.kileni-site .analytics-gauge__track { stroke: color-mix(in srgb, var(--analytics-line) 86%, var(--analytics-text) 14%); }
+.kileni-site .analytics-gauge__value { filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--analytics-blue) 44%, transparent)); }
+
+/* Segmented controls and compact pricing controls retain their exact layout. */
+.kileni-site .cp-category-tabs button {
+  border-radius: .7rem;
+  transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.kileni-site .cp-category-tabs button:hover,
+.kileni-site .cp-category-tabs button:focus-visible {
+  background: var(--data-highlight);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--analytics-blue) 16%, transparent);
+}
+
+.kileni-site .cp-tier-card {
+  box-shadow: 0 .9rem 2rem rgba(0, 0, 0, .16), var(--data-inner-light), inset 0 -1.6rem 2.8rem rgba(0, 0, 0, .08);
+}
+
+.kileni-site .cp-tier-card[data-featured] {
+  box-shadow: 0 1rem 2.35rem rgba(7, 14, 31, .27), var(--data-inner-light), inset 0 -1.6rem 2.8rem rgba(20, 37, 75, .035);
+}
+
+.kileni-site .cp-tier-card-summary {
+  box-shadow: var(--data-inner-light), inset 0 -1rem 1.7rem rgba(0, 0, 0, .07);
+}
+
+.kileni-site .cp-tier-card[data-featured] .cp-tier-card-summary {
+  box-shadow: 0 .55rem 1.1rem rgba(12, 22, 44, .07), var(--data-inner-light), inset 0 -1rem 1.7rem rgba(20, 37, 75, .025);
+}
+
+/* Existing result rows become a restrained table surface without changing row rhythm. */
+.kileni-site .svc-result-fragment {
+  border-color: color-mix(in srgb, var(--svc-ink) 74%, var(--svc-accent) 26%);
+  border-radius: 1rem;
+  box-shadow: var(--data-depth), var(--data-inner-light);
+  overflow: hidden;
+}
+
+.kileni-site .svc-result-fragment dl > div { transition: background-color 160ms ease; }
+.kileni-site .svc-result-fragment dl > div:hover { background: color-mix(in srgb, var(--svc-accent) 5%, transparent); }
+
+/* Service cards on the SEO-audit page retain their current grid and copy. */
+.kileni-site .svc-compact-grid article,
+.kileni-site .svc-assurance-grid > article {
+  border-radius: .9rem;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--svc-paper) 94%, #ffffff 6%), var(--svc-paper));
+  box-shadow: var(--data-inner-light), inset 0 -1.25rem 2.2rem color-mix(in srgb, var(--svc-ink) 4%, transparent);
+}
+
+html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-grid article, .svc-assurance-grid > article){
+  background: linear-gradient(145deg, color-mix(in srgb, var(--svc-paper) 91%, #28497f 9%), var(--svc-paper));
+}
+
+/* Existing marketing and case data panels use the same surface vocabulary. */
+.kileni-site .marketing-dashboard {
+  border-color: var(--data-line);
+  background: linear-gradient(145deg, color-mix(in srgb, #091626 88%, #28497f 12%), #091626);
+  box-shadow: var(--data-depth), var(--data-inner-light), inset 0 -2rem 3rem rgba(0, 0, 0, .16);
+}
+
+.kileni-site .marketing-dashboard__metrics article,
+.kileni-site .home-case-explorer__results div {
+  box-shadow: var(--data-inner-light), inset 0 -1rem 1.8rem color-mix(in srgb, var(--analytics-text) 4%, transparent);
+}
+
+.kileni-site .marketing-dashboard__chart {
+  border-color: var(--data-line);
+  border-radius: .75rem;
+  box-shadow: var(--data-inner-light), inset 0 -1rem 1.9rem rgba(0, 0, 0, .18);
+}
+
+.kileni-site .marketing-dashboard__line { filter: drop-shadow(0 2px 3px rgba(87, 119, 255, .42)); }
+.kileni-site .marketing-dashboard__chart circle { filter: drop-shadow(0 1px 3px rgba(92, 121, 255, .6)); }
+.kileni-site .home-case-explorer__results { box-shadow: var(--data-depth), var(--data-inner-light); }
+
+/* Filters and search controls: visual treatment only, their measurements stay in their source styles. */
+.kileni-site .article-topic-filter button,
+.kileni-site .services-explorer__tabs button {
+  box-shadow: var(--data-inner-light);
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
+}
+
+.kileni-site .article-topic-filter button:hover,
+.kileni-site .article-topic-filter button[aria-pressed="true"],
+.kileni-site .services-explorer__tabs button:hover,
+.kileni-site .services-explorer__tabs button[aria-selected="true"] {
+  box-shadow: 0 .45rem 1.1rem color-mix(in srgb, var(--analytics-text) 10%, transparent), var(--data-inner-light);
+}
+
+.kileni-site .glossary-search {
+  border-color: var(--data-line);
+  background: var(--data-panel);
+  box-shadow: var(--data-depth), var(--data-inner-light);
+}
+
+.kileni-site .glossary-search :is(input, button) {
+  border-color: var(--data-line);
+  box-shadow: var(--data-inner-light), inset 0 .45rem .9rem color-mix(in srgb, var(--analytics-text) 3%, transparent);
+}
+
+.kileni-site .glossary-search button:hover { background: var(--data-highlight); }
+
+/* SEO audit result primitives: data remains exactly as returned by the audit. */
+.kileni-site :is(.audit-completion-metrics, .audit-inline-statuses, .audit-status-grid, .audit-page-table-wrap, .audit-check-group) {
+  border-color: color-mix(in srgb, var(--audit-line) 72%, var(--analytics-blue) 28%);
+  border-radius: .9rem;
+  box-shadow: var(--data-depth), var(--data-inner-light);
+  overflow: hidden;
+}
+
+.kileni-site :is(.audit-completion-metrics > div, .audit-inline-statuses li, .audit-status-grid article) {
+  background: color-mix(in srgb, var(--audit-soft) 76%, var(--analytics-surface) 24%);
+  box-shadow: var(--data-inner-light), inset 0 -1rem 1.8rem color-mix(in srgb, var(--audit-ink) 4%, transparent);
+}
+
+.kileni-site .audit-check-card {
+  border-color: color-mix(in srgb, var(--audit-line) 72%, var(--analytics-blue) 28%);
+  border-radius: .9rem;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--audit-soft) 86%, var(--analytics-surface) 14%), var(--audit-soft));
+  box-shadow: var(--data-depth), var(--data-inner-light), inset 0 -1rem 1.8rem color-mix(in srgb, var(--audit-ink) 4%, transparent);
+}
+
+.kileni-site .audit-check-card:hover { border-color: var(--data-line-lit); }
+
+.kileni-site .audit-check-status {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 .25rem .65rem color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.kileni-site .audit-page-table-wrap { background: var(--data-panel); }
+.kileni-site .audit-page-table thead th { background: color-mix(in srgb, var(--audit-soft) 75%, var(--analytics-blue) 8%); }
+.kileni-site .audit-page-table tbody tr { transition: background-color 150ms ease; }
+.kileni-site .audit-page-table tbody tr:hover { background: color-mix(in srgb, var(--analytics-blue) 5%, transparent); }
+
+.kileni-site .audit-check-group > summary {
+  background: color-mix(in srgb, var(--audit-soft) 85%, var(--analytics-surface) 15%);
+  box-shadow: var(--data-inner-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site :is(.analytics-card, .analytics-score-card, .analytics-time-card, .analytics-errors-card, .cp-category-tabs button, .svc-result-fragment dl > div, .article-topic-filter button, .services-explorer__tabs button, .audit-page-table tbody tr) { transition: none; }
+}
+
+/* The existing chart and form stay in their present grid cells, but now read
+   as a deliberately layered interface instead of two flat neighbouring blocks. */
+.kileni-site .signal-hero .hero-audit-surface {
+  border-color: color-mix(in srgb, var(--analytics-blue) 37%, var(--data-line));
+  background:
+    radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--analytics-blue) 20%, transparent), transparent 31%),
+    linear-gradient(145deg, color-mix(in srgb, var(--analytics-surface) 92%, #28497f 8%), var(--analytics-surface));
+  box-shadow: 0 1.5rem 3.8rem color-mix(in srgb, #020817 42%, transparent), var(--data-inner-light), inset 0 -2rem 3rem color-mix(in srgb, #020817 16%, transparent);
+}
+
+.kileni-site .signal-hero .hero-audit-visual.analytics-card,
+.kileni-site .signal-hero .audit-form {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--analytics-blue) 7%, transparent), transparent 42%),
+    var(--data-inset);
+  box-shadow: var(--data-inner-light), inset 0 0 0 1px color-mix(in srgb, var(--analytics-blue) 10%, transparent), inset 0 -1.4rem 2.8rem color-mix(in srgb, #020817 13%, transparent);
+}
+
+.kileni-site .signal-hero .analytics-visibility-detail {
+  background:
+    radial-gradient(circle at 78% 0, color-mix(in srgb, var(--analytics-blue) 23%, transparent), transparent 37%),
+    linear-gradient(155deg, color-mix(in srgb, var(--analytics-soft) 84%, #12254a 16%), var(--analytics-soft));
+}
+
+.kileni-site .signal-hero .analytics-visibility-detail__chips > span,
+.kileni-site .signal-hero .analytics-hero-chart__statuses span {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--analytics-blue) 13%, var(--data-panel-raised)), var(--data-panel-raised));
+}
+
+.kileni-site .signal-hero .analytics-visibility-detail__point {
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 .45rem color-mix(in srgb, var(--analytics-blue) 74%, transparent));
+}
+
+.kileni-site .signal-hero .analytics-visibility-detail__end-tag rect {
+  filter: drop-shadow(0 .3rem .55rem color-mix(in srgb, var(--analytics-success) 40%, transparent));
+}
+
+/* Existing content cards share the data-panel treatment without changing their layout. */
+.kileni-site :is(.home-task-grid > a, .home-level-card, .home-direction-list > a, .home-deliverable-list li) {
+  border-color: color-mix(in srgb, var(--data-line) 82%, transparent);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--analytics-blue) 7%, transparent), transparent 44%),
+    linear-gradient(145deg, var(--data-panel-raised), var(--data-inset));
+  box-shadow: var(--data-inner-light), inset 0 -1.25rem 2.4rem color-mix(in srgb, #020817 8%, transparent);
+}
+
+.kileni-site :is(.home-task-grid > a, .home-level-card, .home-direction-list > a):hover {
+  border-color: var(--data-line-lit);
+  box-shadow: 0 .85rem 2rem color-mix(in srgb, #020817 18%, transparent), var(--data-inner-light), inset 0 -1.25rem 2.4rem color-mix(in srgb, #020817 8%, transparent);
+}
+
+.kileni-site .home-decision__tab:is([aria-selected="true"], [data-active="true"]) {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--analytics-blue) 32%, var(--data-panel-raised)), var(--data-panel-raised));
+  border-color: var(--data-line-lit);
+  color: var(--analytics-text);
+  box-shadow: 0 .55rem 1.4rem color-mix(in srgb, var(--analytics-blue) 20%, transparent), var(--data-inner-light);
+}
+
+.kileni-site .home-decision__tab:is([aria-selected="true"], [data-active="true"]) span {
+  color: color-mix(in srgb, var(--analytics-text) 68%, transparent);
+}
+
+.kileni-site .home-decision__tab:is([aria-selected="true"], [data-active="true"]) strong {
+  color: var(--analytics-text);
+}
+
+.kileni-site .home-decision__panel,
+.kileni-site .home-case-explorer__results {
+  border-color: var(--data-line);
+  background:
+    radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--analytics-blue) 15%, transparent), transparent 30%),
+    var(--data-panel);
+}
+
+.kileni-site :is(.button-primary, .button--primary, .audit-form button[type="submit"]) {
+  border-color: color-mix(in srgb, var(--analytics-blue) 74%, #b9c9ff 26%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--analytics-blue) 88%, #7f9cff 12%), var(--analytics-blue));
+  box-shadow: 0 .6rem 1.35rem color-mix(in srgb, var(--analytics-blue) 28%, transparent), inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+.kileni-site :is(.button-primary, .button--primary, .audit-form button[type="submit"]):hover {
+  box-shadow: 0 .85rem 1.7rem color-mix(in srgb, var(--analytics-blue) 38%, transparent), inset 0 1px 0 rgba(255,255,255,.34);
+}
+
+/* Shared public-card skin. It intentionally only changes the material of
+   components that already exist on the content, service and editorial routes. */
+.kileni-site :is(.article-card, .glossary-item, .marketplace-card, .cp-narrative-case, .home-case-story, .svc-result-fragment) {
+  border-color: var(--data-line);
+  background:
+    radial-gradient(circle at 86% 0, color-mix(in srgb, var(--analytics-blue) 11%, transparent), transparent 34%),
+    linear-gradient(145deg, var(--data-panel-raised), var(--data-inset));
+  box-shadow: var(--data-inner-light), inset 0 -1.4rem 2.6rem color-mix(in srgb, #020817 8%, transparent);
+}
+
+.kileni-site :is(.article-card, .glossary-item, .marketplace-card, .cp-narrative-case, .home-case-story, .svc-result-fragment):is(:hover, :focus-within) {
+  border-color: var(--data-line-lit);
+  box-shadow: 0 1rem 2.4rem color-mix(in srgb, #020817 17%, transparent), var(--data-inner-light), inset 0 -1.4rem 2.6rem color-mix(in srgb, #020817 8%, transparent);
+}
+
+.kileni-site :is(.audit-form, .lead-form, .brief-wizard, .calculator, .estimate-panel) :is(input, textarea, select) {
+  border-color: color-mix(in srgb, var(--data-line) 88%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--analytics-blue) 5%, transparent), transparent), var(--data-inset);
+  box-shadow: var(--data-inner-light), inset 0 .45rem .9rem color-mix(in srgb, #020817 9%, transparent);
+}
+
+.kileni-site :is(.audit-form, .lead-form, .brief-wizard, .calculator, .estimate-panel) :is(input, textarea, select):focus {
+  border-color: var(--data-line-lit);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--analytics-blue) 19%, transparent), var(--data-inner-light), inset 0 .45rem .9rem color-mix(in srgb, #020817 9%, transparent);
+}
+
+/* Final public-surface pass. These selectors intentionally arrive after the
+   legacy route styles and only change material, lighting and corner finish. */
+.kileni-site {
+  --premium-surface: #0c192a;
+  --premium-surface-deep: #081321;
+  --premium-line: rgba(133, 161, 219, .22);
+  --premium-line-lit: rgba(137, 173, 255, .48);
+  --premium-blue-glow: rgba(74, 111, 255, .14);
+  --premium-cyan-glow: rgba(78, 187, 211, .11);
+  --premium-teal-glow: rgba(69, 205, 157, .09);
+  --premium-warm-glow: rgba(217, 167, 111, .08);
+  --premium-shadow: 0 1.15rem 3rem rgba(0, 0, 0, .22), inset 0 1px 0 rgba(216, 230, 255, .09), inset 0 -1.35rem 2.5rem rgba(0, 0, 0, .11);
+}
+
+.kileni-site main :is(
+  .home-entry-route__list > a,
+  .home-decision__body,
+  .home-article-carousel__card,
+  .home-deliverable-list li,
+  .home-direction-list > a,
+  .article-card,
+  .glossary-item,
+  .marketplace-card,
+  .cp-narrative-case
+) {
+  background-color: var(--premium-surface);
+  background-image:
+    radial-gradient(circle at 88% 0, var(--premium-blue-glow), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 48%);
+  box-shadow: var(--premium-shadow);
+}
+
+.kileni-site main .home-entry-route__list > a:nth-child(2n) {
+  background-image:
+    radial-gradient(circle at 88% 0, var(--premium-cyan-glow), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 48%);
+}
+
+.kileni-site main .home-entry-route__list > a:nth-child(3n),
+.kileni-site main .home-deliverable-list li:nth-child(3n) {
+  background-image:
+    radial-gradient(circle at 88% 0, var(--premium-teal-glow), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 48%);
+}
+
+.kileni-site main :is(.home-entry-route__list > a, .home-article-carousel__card, .article-card, .glossary-item, .marketplace-card) {
+  border-color: var(--premium-line);
+  border-radius: 1.25rem;
+}
+
+.kileni-site main :is(.home-entry-route__list > a, .home-article-carousel__card, .article-card, .glossary-item, .marketplace-card):is(:hover, :focus-within) {
+  border-color: var(--premium-line-lit);
+  box-shadow: 0 1.35rem 3.4rem rgba(0, 0, 0, .29), inset 0 1px 0 rgba(224, 234, 255, .13), 0 0 2.2rem rgba(72, 111, 255, .08);
+}
+
+/* Editorial route styles use a higher-specificity background shorthand loaded
+   with the page chunk, so keep the shared material explicit here. */
+.kileni-site main .editorial-page .article-index-grid .article-card.article-card {
+  background-color: var(--premium-surface) !important;
+  background-image:
+    radial-gradient(circle at 88% 0, var(--premium-warm-glow), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 48%) !important;
+  box-shadow: var(--premium-shadow) !important;
+}
+
+.kileni-site main .pricing-10 .cp-tier-card {
+  background-image:
+    radial-gradient(circle at 86% 0, var(--premium-cyan-glow), transparent 35%),
+    linear-gradient(145deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0) 50%);
+  box-shadow: var(--premium-shadow);
+}
+
+.kileni-site main .pricing-10 .cp-tier-card[data-featured] {
+  background-image:
+    radial-gradient(circle at 82% 0, rgba(89, 115, 255, .14), transparent 37%),
+    linear-gradient(145deg, rgba(255, 255, 255, .96), rgba(240, 244, 255, .97));
+  box-shadow: 0 1.15rem 3rem rgba(30, 55, 125, .24), 0 0 2.2rem rgba(82, 113, 255, .14), inset 0 1px 0 #fff;
+}
+
+/* Service routes keep their existing grid and footprint, while the visual
+   hierarchy now matches the comparison cards on the pricing route. */
+.kileni-site main .service-10 .svc-package-grid > article {
+  position: relative;
+  isolation: isolate;
+  border-color: var(--premium-line);
+  border-radius: 1.25rem;
+  background-color: var(--premium-surface);
+  background-image:
+    radial-gradient(circle at 86% 0, var(--premium-cyan-glow), transparent 35%),
+    linear-gradient(145deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0) 50%);
+  box-shadow: var(--premium-shadow);
+  overflow: hidden;
+}
+
+.kileni-site main .service-10 .svc-package-grid > article::before {
+  position: absolute;
+  z-index: -1;
+  top: .7rem;
+  right: .7rem;
+  left: .7rem;
+  height: 13.4rem;
+  border: 1px solid rgba(202, 217, 255, .1);
+  border-radius: .95rem;
+  background: rgba(5, 12, 24, .26);
+  box-shadow: inset 0 1px 0 rgba(216, 230, 255, .05);
+  content: "";
+  pointer-events: none;
+}
+
+.kileni-site main .service-10 .svc-package-grid > article.featured {
+  border-color: rgba(111, 140, 255, .74);
+  background-image:
+    radial-gradient(circle at 82% 0, rgba(81, 116, 255, .19), transparent 39%),
+    linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, 0) 52%);
+  box-shadow: 0 1.2rem 3.1rem rgba(0, 0, 0, .27), 0 0 2.25rem rgba(75, 108, 255, .16), inset 0 1px 0 rgba(222, 232, 255, .13);
+}
+
+.kileni-site main .service-10 .svc-package-grid > article[data-selected] {
+  border-color: rgba(111, 140, 255, .9);
+  box-shadow: 0 1.2rem 3.1rem rgba(0, 0, 0, .27), 0 0 2.5rem rgba(75, 108, 255, .19), inset 0 1px 0 rgba(222, 232, 255, .13);
+}
+
+.kileni-site main .service-10 .svc-package-limit {
+  border-color: rgba(151, 176, 231, .17);
+  background-image: linear-gradient(145deg, rgba(4, 11, 23, .52), rgba(14, 30, 52, .42));
+  box-shadow: inset 0 1px 0 rgba(210, 225, 255, .05), inset 0 -.8rem 1.6rem rgba(0, 0, 0, .09);
+}
+
+.kileni-site main .service-10 .svc-package-actions > :is(button, a) {
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+.kileni-site main .service-10 .svc-package-actions > a {
+  box-shadow: 0 .55rem 1.25rem rgba(65, 100, 255, .2), inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+
+.kileni-site main .marketplace-offer-grid > .marketplace-offer {
+  border: 1px solid var(--premium-line);
+  border-radius: 1.25rem;
+  background-color: var(--premium-surface);
+  background-image:
+    radial-gradient(circle at 86% 0, var(--premium-teal-glow), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0) 50%);
+  box-shadow: var(--premium-shadow);
+  overflow: hidden;
+}
+
+.kileni-site main .marketplace-offer-grid > .marketplace-offer[data-featured] {
+  border-color: rgba(111, 140, 255, .74);
+  background-image:
+    radial-gradient(circle at 82% 0, rgba(81, 116, 255, .18), transparent 39%),
+    linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, 0) 52%);
+  box-shadow: 0 1.2rem 3.1rem rgba(0, 0, 0, .27), 0 0 2.25rem rgba(75, 108, 255, .16), inset 0 1px 0 rgba(222, 232, 255, .13);
+}
+
+.kileni-site main .marketplace-offer-grid > .marketplace-offer[data-selected] {
+  border-color: rgba(111, 140, 255, .9);
+  box-shadow: 0 1.2rem 3.1rem rgba(0, 0, 0, .27), 0 0 2.5rem rgba(75, 108, 255, .19), inset 0 1px 0 rgba(222, 232, 255, .13);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site main :is(.home-entry-route__list > a, .home-article-carousel__card, .article-card, .glossary-item, .marketplace-card, .svc-package-grid > article) {
+    transition: none;
+  }
+}

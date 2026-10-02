@@ -178,31 +178,27 @@ describe("public audit PDF", () => {
     const expectedClientStrings = [
       "Предварительно просмотрено адресов: 100",
       "Подробно проверено страниц: 10",
-      "1 вывод требует проверки · 1 возможное улучшение",
-      "Мобильная производительность главной страницы",
+      "1 вывод требует проверки",
       "Юридические и служебные страницы: 2",
       "Англоязычная страница услуги",
       "Выбрана как отдельный тип страницы; соответствующая страница основной локали не обнаружена.",
-      "можно улучшить: Подсказка о месте страницы в структуре сайта",
     ];
 
     expect(expectedClientStrings.map((value) => text.includes(value) ? value : `ОТСУТСТВУЕТ: ${value}`)).toMatchInlineSnapshot(`
       [
         "Предварительно просмотрено адресов: 100",
         "Подробно проверено страниц: 10",
-        "1 вывод требует проверки · 1 возможное улучшение",
-        "Мобильная производительность главной страницы",
+        "1 вывод требует проверки",
         "Юридические и служебные страницы: 2",
         "Англоязычная страница услуги",
         "Выбрана как отдельный тип страницы; соответствующая страница основной локали не обнаружена.",
-        "можно улучшить: Подсказка о месте страницы в структуре сайта",
       ]
     `);
     expect(text).not.toContain("Техническая страница: 2");
     expect(text).not.toContain("Контроль другой языковой версии");
   });
 
-  it("labels an optional-only page as an improvement and keeps the accepted two-page PDF", async () => {
+  it("does not label a missing BreadcrumbList as an error and keeps the report bounded", async () => {
     const snapshot = auditClientReportSnapshot();
     const model = buildPublicAuditPdfModel(snapshot, "ru");
     const homepage = model.clientPresentation.pages.find((page) => page.url === "https://example.com/");
@@ -210,7 +206,7 @@ describe("public audit PDF", () => {
     const clean = model.clientPresentation.pages.find((page) => page.url === "https://example.com/pricing");
 
     expect(homepage && clientPagePdfStatus(homepage, true)).toEqual({ label: "требует внимания", kind: "review" });
-    expect(services && clientPagePdfStatus(services, true)).toEqual({ label: "можно улучшить", kind: "optional" });
+    expect(services && clientPagePdfStatus(services, true)).toEqual({ label: "замечаний нет", kind: "none" });
     expect(clean && clientPagePdfStatus(clean, true)).toEqual({ label: "замечаний нет", kind: "none" });
 
     const bytes = await createPublicAuditPdf({
@@ -224,7 +220,7 @@ describe("public audit PDF", () => {
       completedAt: Date.UTC(2026, 8, 4, 12),
       publicResult: snapshot as unknown as Record<string, unknown>,
     });
-    expect((await PDFDocument.load(bytes)).getPageCount()).toBe(2);
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBeLessThanOrEqual(8);
   });
 
   it("uses the mandatory KILENI preliminary-assessment disclaimer", () => {

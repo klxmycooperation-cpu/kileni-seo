@@ -1,0 +1,251 @@
+/* Shared visual primitives for public routes. They sit on top of the existing
+   templates without owning their content, layout or interactive controls. */
+.kileni-site {
+  --kileni-depth-shadow: 0 1.4rem 3.5rem rgb(10 16 32 / 12%);
+  --kileni-depth-shadow-soft: 0 .85rem 2.2rem rgb(10 16 32 / 7%);
+  --kileni-glass-surface: color-mix(in srgb, var(--surface, #fff) 82%, transparent);
+  --kileni-line-soft: color-mix(in srgb, var(--border, #dfe3e9) 72%, transparent);
+  --kileni-line-bright: color-mix(in srgb, var(--brand, #4164ff) 46%, var(--border, #dfe3e9));
+  --kileni-gradient-brand: linear-gradient(135deg, var(--brand, #4164ff), color-mix(in srgb, var(--brand, #4164ff) 48%, #8f7cff));
+  --kileni-highlight: color-mix(in srgb, var(--brand, #4164ff) 18%, transparent);
+  --kileni-highlight-soft: color-mix(in srgb, var(--brand, #4164ff) 8%, transparent);
+  --kileni-grid-line: color-mix(in srgb, var(--text-primary, currentColor) 7%, transparent);
+  --kileni-surface-sheen: linear-gradient(145deg, color-mix(in srgb, var(--surface, #fff) 26%, transparent), transparent 54%);
+  --kileni-motion-fast: 180ms;
+  --kileni-motion-base: 420ms;
+  --kileni-motion-slow: 2s;
+  position: relative;
+  isolation: isolate;
+}
+
+.kileni-site > :is(main, .site-footer) {
+  position: relative;
+  z-index: 1;
+}
+
+.kileni-site > .site-header { z-index: 100; }
+
+.kileni-site > .kileni-visual-backdrop {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  contain: strict;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.kileni-visual-backdrop__grid,
+.kileni-visual-backdrop__glow {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.kileni-visual-backdrop__grid {
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--kileni-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--kileni-grid-line) 1px, transparent 1px);
+  background-size: clamp(3.5rem, 7vw, 7rem) clamp(3.5rem, 7vw, 7rem);
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 38%), transparent 58%);
+  opacity: .26;
+}
+
+.kileni-visual-backdrop__glow {
+  top: -18rem;
+  right: -14rem;
+  width: min(54rem, 78vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--kileni-highlight), transparent 67%);
+  filter: blur(14px);
+  opacity: .72;
+}
+
+.kileni-site :is(.glass-surface, .surface-glass) {
+  border: 1px solid var(--kileni-line-soft);
+  background: var(--kileni-glass-surface);
+  box-shadow: var(--kileni-depth-shadow);
+  backdrop-filter: blur(18px);
+}
+
+/* Header and footer keep their established dimensions, but now use the same
+   depth and line vocabulary on every public route. */
+.kileni-site .site-header {
+  border-bottom-color: var(--kileni-line-soft);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--brand, #4164ff) 7%, transparent);
+  backdrop-filter: blur(18px) saturate(118%);
+}
+
+.kileni-site .site-header[data-scrolled="true"] {
+  box-shadow: 0 .8rem 2rem rgb(5 10 24 / 10%), 0 1px 0 var(--kileni-line-soft);
+}
+
+.kileni-site .site-header::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 4%, var(--kileni-line-bright) 42%, transparent 82%);
+  content: "";
+  opacity: .48;
+  pointer-events: none;
+}
+
+.kileni-site .site-footer {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  border-top-color: var(--kileni-line-soft);
+}
+
+.kileni-site .site-footer::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(to right, color-mix(in srgb, currentColor 6%, transparent) 1px, transparent 1px) 50% 0 / clamp(4rem, 8vw, 8rem) 100%,
+    radial-gradient(circle at 84% 2%, var(--kileni-highlight), transparent 32rem);
+  content: "";
+  opacity: .52;
+  pointer-events: none;
+}
+
+/* Page canvases stay continuous in the dark interface. Structural cards and
+   controls retain their own surfaces; only full-width section backdrops stop
+   creating hard horizontal joins while the reader scrolls. */
+html[data-kileni-theme="dark"] .kileni-site :is(.section-light, .section-soft) {
+  background: transparent;
+}
+
+html[data-kileni-theme="dark"] .kileni-site .editorial-page {
+  --article-soft: var(--article-paper);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .editorial-page :is(.article-index-section, .article-related-section) {
+  background: var(--article-paper);
+}
+
+html[data-kileni-theme="dark"] .kileni-site :is(.services-10, .service-10, .pricing-10, .about-10) {
+  --svc-soft: var(--svc-paper);
+}
+
+html[data-kileni-theme="dark"] .kileni-site :is(.svc-buyer-questions, .pricing-redesign .cp-extras-section, .pricing-redesign .cp-request-section) {
+  background: var(--svc-paper);
+  color: var(--svc-ink);
+}
+
+/* The generic light pricing treatment runs earlier in the cascade. Restore
+   readable copy after its pale-text assumptions are removed for dark mode. */
+html[data-kileni-theme="dark"] .kileni-site .pricing-10 :is(.cp-extras-section, .cp-request-section) {
+  background: var(--svc-paper);
+  color: var(--svc-ink);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .pricing-10 .cp-extras-section :is(h2, li, .cp-kicker) {
+  color: var(--svc-ink);
+}
+
+html[data-kileni-theme="dark"] .kileni-site .pricing-10 .cp-extras-section li {
+  color: var(--svc-muted) !important;
+}
+
+html[data-kileni-theme="dark"] .kileni-site .pricing-10 .cp-request-grid > div :is(h2, .cp-kicker) {
+  color: var(--svc-ink);
+}
+
+/* A quiet technical field ties together generic, service and editorial hero
+   families. Existing illustrations and copy remain the dominant layer. */
+.kileni-site :is(.page-dark-top, .services-hub__hero, .seo-hub__hero, .marketplace-hero, .marketplace-detail-hero, .glossary-hero, .cp-cases-index-hero, .cp-case-detail-hero, .editorial-index-top) {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+
+.kileni-site :is(.page-dark-top, .services-hub__hero, .seo-hub__hero, .marketplace-hero, .marketplace-detail-hero, .glossary-hero, .cp-cases-index-hero, .cp-case-detail-hero, .editorial-index-top)::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background:
+    linear-gradient(to right, var(--kileni-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--kileni-grid-line) 1px, transparent 1px),
+    radial-gradient(circle at 82% 12%, var(--kileni-highlight-soft), transparent 32rem);
+  background-size: clamp(4rem, 8vw, 8rem) clamp(4rem, 8vw, 8rem), clamp(4rem, 8vw, 8rem) clamp(4rem, 8vw, 8rem), auto;
+  content: "";
+  mask-image: linear-gradient(105deg, transparent 4%, rgb(0 0 0 / 32%) 48%, transparent 100%);
+  opacity: .46;
+  pointer-events: none;
+}
+
+.kileni-site :is(.page-dark-top, .services-hub__hero, .seo-hub__hero, .marketplace-hero, .marketplace-detail-hero, .glossary-hero, .cp-cases-index-hero, .cp-case-detail-hero, .editorial-index-top) > * {
+  position: relative;
+  z-index: 1;
+}
+
+.kileni-site :is(.page-hero, .services-hub__hero-layout, .seo-hub__hero-grid, .marketplace-hero, .marketplace-detail-hero, .glossary-hero, .cp-cases-title, .cp-case-detail-title) {
+  border-bottom-color: var(--kileni-line-soft);
+}
+
+/* Only passive, content-led surfaces are shared here. Audit forms/reports,
+   service explorers and other specialised interfaces keep their own owners. */
+.kileni-site :is(.marketplace-card, .glossary-item, .article-card, .cp-narrative-case) {
+  background-image: var(--kileni-surface-sheen);
+  border-color: var(--kileni-line-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border, #dfe3e9) 18%, transparent);
+  transition:
+    background-color var(--kileni-motion-fast) ease,
+    border-color var(--kileni-motion-fast) ease,
+    box-shadow var(--kileni-motion-fast) ease,
+    transform var(--kileni-motion-fast) ease;
+}
+
+.kileni-site :is(.marketplace-card, .glossary-item, .article-card, .cp-narrative-case):is(:hover, :focus-within) {
+  border-color: var(--kileni-line-bright);
+  box-shadow: var(--kileni-depth-shadow-soft), inset 0 0 0 1px var(--kileni-line-soft);
+}
+
+.kileni-site :is(.checks-source, .marketplace-docs, .marketplace-cta, .glossary-cta, .article-cta, .cp-case-next-step) {
+  border-color: var(--kileni-line-soft);
+  background-image: var(--kileni-surface-sheen);
+  box-shadow: var(--kileni-depth-shadow-soft);
+}
+
+.kileni-site :where(a, button, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus, var(--brand, #4164ff));
+  outline-offset: 4px;
+}
+
+@media (max-width: 560px) {
+  .kileni-visual-backdrop__grid {
+    background-size: 4rem 4rem;
+    opacity: .18;
+  }
+
+  .kileni-visual-backdrop__glow {
+    top: -10rem;
+    right: -12rem;
+    width: 34rem;
+  }
+
+  .kileni-site :is(.page-dark-top, .services-hub__hero, .seo-hub__hero, .marketplace-hero, .marketplace-detail-hero, .glossary-hero, .cp-cases-index-hero, .cp-case-detail-hero, .editorial-index-top)::after {
+    background-size: 4rem 4rem, 4rem 4rem, auto;
+    opacity: .34;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site {
+    --kileni-motion-fast: 1ms;
+    --kileni-motion-base: 1ms;
+    --kileni-motion-slow: 1ms;
+  }
+
+  .kileni-site :is(.glass-surface, .surface-glass),
+  .kileni-site .site-header { backdrop-filter: none; }
+
+  .kileni-site :is(.marketplace-card, .glossary-item, .article-card, .cp-narrative-case) {
+    scroll-behavior: auto;
+    transition-duration: 1ms;
+  }
+}

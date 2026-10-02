@@ -13,13 +13,13 @@ test("explains project responsibility without presenting a fictional permanent t
   await page.goto("/about");
 
   await expect(page.getByText(/До начала работ называем ответственного за проект/u)).toBeVisible();
-  await expect(page.getByText(/не перечень постоянных сотрудников/u)).toBeVisible();
+  await expect(page.getByText(/не перечень постоянного штата/u)).toBeVisible();
 });
 
-test("shows editorial provenance and update date on a glossary detail", async ({ page }) => {
+test("does not show editorial provenance or update date on glossary details", async ({ page }) => {
   await page.goto("/glossary/search-crawler");
 
-  const provenance = page.locator(".glossary-provenance");
-  await expect(provenance).toContainText("Редакция KILENI");
-  await expect(provenance).toContainText(/Обновлено:\s+\d{1,2}\s+\p{L}+\s+2026/iu);
+  await expect(page.locator(".glossary-provenance")).toHaveCount(0);
+  await expect(page.getByText("Редакция KILENI", { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/^Обновлено:/u)).toHaveCount(0);
 });

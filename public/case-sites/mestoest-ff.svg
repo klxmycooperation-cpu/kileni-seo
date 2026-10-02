@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Место Есть">
+  <defs>
+    <linearGradient id="mesto" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4668ff"/>
+      <stop offset="1" stop-color="#64d7b0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0b1728"/>
+  <path d="M14 18h36v29H14z" fill="none" stroke="url(#mesto)" stroke-width="4"/>
+  <path d="M20 26h24M20 34h24M32 18v29" fill="none" stroke="#eef4ff" stroke-width="3" stroke-linecap="round"/>
+  <path d="M18 47h28" fill="none" stroke="#64d7b0" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -12,6 +12,12 @@ type HomeCaseExplorerProps = {
   cases: CaseStudy[];
 };
 
+type ResultRow = {
+  label: string;
+  kind: "score" | "pages" | "mobilePerformance" | "performance" | "cls" | "images" | "text";
+  text?: string;
+};
+
 function useAnimatedNumber(from: number, to: number, enabled: boolean, duration = 2_800) {
   // The server and first client render always contain the verified final value.
   // Animation is progressive enhancement and may only change the visual value
@@ -84,32 +90,48 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
   const [metricsRun, setMetricsRun] = useState(0);
   const [interactive, setInteractive] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const caseRailRef = useRef<HTMLDivElement>(null);
   const baseId = useId().replace(/:/g, "");
   const item = cases[active];
+  const home = item.home;
   const isEco = item.slug === "eco-santeh";
-  const logo = `/case-sites/${item.slug}.ico`;
+  const logo = home?.logoPath ?? `/case-sites/${item.slug}.ico`;
   const scoreFrom = item.before;
   const scoreTo = item.after;
 
-  const resultRows = isEco
+  const resultRows: ResultRow[] = home
+    ? home.metrics.map((metric) => ({ label: metric.label, kind: "text", text: metric.value }))
+    : isEco
     ? ru
-      ? [["Готовность сайта", "score"], ["Страницы открываются", "pages"], ["Скорость на телефоне", "mobilePerformance"], ["Скорость на компьютере", "performance"]]
-      : [["Technical readiness", "score"], ["Pages returning HTTP 200", "pages"], ["Mobile Performance", "mobilePerformance"], ["Desktop Performance", "performance"]]
+      ? [{ label: "Готовность сайта", kind: "score" }, { label: "Страницы открываются", kind: "pages" }, { label: "Скорость на телефоне", kind: "mobilePerformance" }, { label: "Скорость на компьютере", kind: "performance" }]
+      : [{ label: "Technical readiness", kind: "score" }, { label: "Pages returning HTTP 200", kind: "pages" }, { label: "Mobile Performance", kind: "mobilePerformance" }, { label: "Desktop Performance", kind: "performance" }]
     : ru
-      ? [["Готовность сайта", "score"], ["Страницы открываются", "pages"], ["Стабильность первого экрана", "cls"], ["Изображения без размеров", "images"]]
-      : [["Technical readiness", "score"], ["Pages returning HTTP 200", "pages"], ["First-screen CLS", "cls"], ["Images without dimensions", "images"]];
+      ? [{ label: "Готовность сайта", kind: "score" }, { label: "Страницы открываются", kind: "pages" }, { label: "Стабильность первого экрана", kind: "cls" }, { label: "Изображения без размеров", kind: "images" }]
+      : [{ label: "Technical readiness", kind: "score" }, { label: "Pages returning HTTP 200", kind: "pages" }, { label: "First-screen CLS", kind: "cls" }, { label: "Images without dimensions", kind: "images" }];
 
-  const steps = isEco
+  const steps = home?.steps ?? (isEco
     ? ru ? ["Шаблоны", "Адреса", "Заголовки и описания", "Контрольная проверка"] : ["Templates", "URLs", "Metadata", "Recheck"]
-    : ru ? ["Проверка", "Первый экран", "Данные для поиска", "Контрольная проверка"] : ["Diagnostics", "First screen", "JSON-LD", "Recheck"];
-  const chartPoints = isEco ? "24,129 156,118 262,97 382,84 505,58 628,34" : "24,142 156,113 262,93 382,77 505,62 628,44";
+    : ru ? ["Проверка", "Первый экран", "Данные для поиска", "Контрольная проверка"] : ["Diagnostics", "First screen", "JSON-LD", "Recheck"]);
+  const chartPoints = home?.chartPoints ?? (isEco ? "24,129 156,118 262,97 382,84 505,58 628,34" : "24,142 156,113 262,93 382,77 505,62 628,44");
+  const chartTitle = home?.chartTitle ?? (ru ? "Изменение итоговой шкалы проекта" : "Change in the project score");
+  const chartStartLabel = home?.chartStartLabel ?? String(scoreFrom);
+  const chartEndLabel = home?.chartEndLabel ?? String(scoreTo);
+  const chartAriaLabel = home?.chartAriaLabel ?? `${resultRows[0].label} ${scoreFrom} → ${scoreTo}`;
+  const chartPointList = chartPoints.split(" ").map((point) => {
+    const [x, y] = point.split(",").map(Number);
+    return { x, y };
+  });
   const tabId = (index: number) => `${baseId}-case-tab-${index}`;
   const panelId = `${baseId}-case-panel`;
 
   function moveCase(index: number, focusTab = false) {
     const next = (index + cases.length) % cases.length;
     setActive(next);
-    if (focusTab) window.requestAnimationFrame(() => document.getElementById(tabId(next))?.focus());
+    window.requestAnimationFrame(() => {
+      const tab = document.getElementById(tabId(next));
+      tab?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      if (focusTab) tab?.focus();
+    });
   }
 
   useEffect(() => {
@@ -147,45 +169,43 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
         <p>{ru ? "Показываем конкретные изменения до и после — без обещаний продаж и нарисованной статистики." : "We show concrete before-and-after changes without sales promises or invented statistics."}</p>
       </header>
 
-      <div className="home-case-explorer__switch" role="tablist" aria-label={ru ? "Выбор кейса" : "Choose a case"}>
-        {cases.map((study, index) => (
-          <button
-            id={tabId(index)}
-            key={study.slug}
-            type="button"
-            role="tab"
-            aria-selected={active === index}
-            aria-controls={panelId}
-            tabIndex={active === index ? 0 : -1}
-            onClick={() => setActive(index)}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-                event.preventDefault();
-                moveCase(index + 1, true);
-              } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-                event.preventDefault();
-                moveCase(index - 1, true);
-              } else if (event.key === "Home") {
-                event.preventDefault();
-                moveCase(0, true);
-              } else if (event.key === "End") {
-                event.preventDefault();
-                moveCase(cases.length - 1, true);
-              }
-            }}
-            disabled={!interactive}
-          >
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <Image src={`/case-sites/${study.slug}.ico`} width={42} height={42} alt="" unoptimized loading="lazy" />
-            <strong>{study.domain}</strong>
-          </button>
-        ))}
-      </div>
-
-      <div className="home-case-explorer__mobile-controls" aria-label={ru ? "Переключение кейсов" : "Switch cases"} data-mobile-case-controls>
-        <button type="button" onClick={() => moveCase(active - 1)} aria-label={ru ? "Предыдущий кейс" : "Previous case"}>←</button>
-        <span aria-live="polite">{String(active + 1).padStart(2, "0")} / {String(cases.length).padStart(2, "0")}</span>
-        <button type="button" onClick={() => moveCase(active + 1)} aria-label={ru ? "Следующий кейс" : "Next case"}>→</button>
+      <div className="home-case-explorer__tape" data-mobile-case-controls>
+        <button type="button" className="home-case-explorer__tape-control" onClick={() => moveCase(active - 1)} aria-label={ru ? "Предыдущий кейс" : "Previous case"} disabled={!interactive}>←</button>
+        <div ref={caseRailRef} className="home-case-explorer__switch" role="tablist" aria-label={ru ? "Лента кейсов" : "Case carousel"}>
+          {cases.map((study, index) => (
+            <button
+              id={tabId(index)}
+              key={study.slug}
+              type="button"
+              role="tab"
+              aria-selected={active === index}
+              aria-controls={panelId}
+              tabIndex={active === index ? 0 : -1}
+              onClick={() => moveCase(index)}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                  event.preventDefault();
+                  moveCase(index + 1, true);
+                } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                  event.preventDefault();
+                  moveCase(index - 1, true);
+                } else if (event.key === "Home") {
+                  event.preventDefault();
+                  moveCase(0, true);
+                } else if (event.key === "End") {
+                  event.preventDefault();
+                  moveCase(cases.length - 1, true);
+                }
+              }}
+              disabled={!interactive}
+            >
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <Image src={study.home?.logoPath ?? `/case-sites/${study.slug}.ico`} width={220} height={48} alt="" data-logo-fit={study.home?.logoFit} unoptimized loading="lazy" />
+              <strong>{study.domain}</strong>
+            </button>
+          ))}
+        </div>
+        <button type="button" className="home-case-explorer__tape-control" onClick={() => moveCase(active + 1)} aria-label={ru ? "Следующий кейс" : "Next case"} disabled={!interactive}>→</button>
       </div>
 
       <article
@@ -197,18 +217,14 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
         data-case={item.slug}
       >
         <div className="home-case-explorer__identity">
-          <Image src={logo} width={64} height={64} alt="" unoptimized loading="lazy" />
-          <div>
-            <p>{ru ? "Кейс" : "Case"} {String(active + 1).padStart(2, "0")} · {item.period}</p>
-            <h3>{item.domain}</h3>
-          </div>
-          <span>{ru ? "Контрольная проверка" : "Control check"} <b>✓</b></span>
+          <Image src={logo} width={220} height={48} alt="" data-logo-fit={home?.logoFit} unoptimized loading="lazy" />
+          <span>{home?.status ?? (ru ? "Контрольная проверка" : "Control check")} <b>✓</b></span>
         </div>
 
         <div className="home-case-explorer__story">
           <div>
             <p className="home-case-explorer__eyebrow">{ru ? "Задача" : "Task"}</p>
-            <h4>{item.task}</h4>
+            <h3>{item.task}</h3>
             <p className="home-case-explorer__summary">{item.lead}</p>
             <ol>
               {steps.map((step, index) => <li key={step}><span>{String(index + 1).padStart(2, "0")}</span>{step}</li>)}
@@ -216,8 +232,8 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
           </div>
 
           <div className="home-case-explorer__chart-wrap">
-            <p>{ru ? "Изменение итоговой шкалы проекта" : "Change in the project score"}</p>
-            <svg key={`${item.slug}-${metricsRun}`} className="home-case-explorer__chart" viewBox="0 0 652 176" role="img" aria-label={`${resultRows[0][0]} ${scoreFrom} → ${scoreTo}`}>
+            <p>{chartTitle}</p>
+            <svg key={`${item.slug}-${metricsRun}`} className="home-case-explorer__chart" viewBox="0 0 652 176" role="img" aria-label={chartAriaLabel}>
               <defs>
                 <linearGradient id="case-area" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#4668ff" stopOpacity=".24" />
@@ -227,35 +243,56 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
               {[35, 70, 105, 140].map((line) => <line key={line} x1="24" y1={line} x2="628" y2={line} />)}
               <path className="home-case-explorer__chart-area" d={"M " + chartPoints + " L 628 152 L 24 152 Z"} />
               <polyline className="home-case-explorer__chart-line" points={chartPoints} />
-              {chartPoints.split(" ").map((point) => {
-                const [cx, cy] = point.split(",");
-                return <circle key={point} cx={cx} cy={cy} r="5" />;
+              {chartPointList.map(({ x, y }) => {
+                return <circle key={`${x}-${y}`} cx={x} cy={y} r="5" />;
               })}
-              <text x="24" y="171">{scoreFrom}</text>
-              <text x="594" y="171">{scoreTo}</text>
+              {home?.chartMarkers?.map((marker, index) => {
+                const point = chartPointList[index];
+                if (!point) return null;
+                const markerX = Math.min(604, Math.max(48, point.x));
+                const markerY = Math.max(16, point.y - 20);
+                const markerWidth = Math.max(44, marker.label.length * 9 + 16);
+                return (
+                  <g
+                    className={`home-case-explorer__chart-marker home-case-explorer__chart-marker--${marker.tone}`}
+                    key={`${marker.label}-${index}`}
+                    transform={`translate(${markerX} ${markerY})`}
+                  >
+                    <rect x={-markerWidth / 2} y="-13" width={markerWidth} height="22" rx="7" />
+                    <text x="0" y="2" textAnchor="middle">{marker.label}</text>
+                  </g>
+                );
+              })}
+              <text x="24" y="171">{chartStartLabel}</text>
+              <text x="628" y="171" textAnchor="end">{chartEndLabel}</text>
             </svg>
           </div>
         </div>
 
         <dl className="home-case-explorer__results">
-          {resultRows.map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
+          {resultRows.map((row) => (
+            <div key={row.label}>
+              <dt>{row.label}</dt>
               <dd>
-                {value === "score" && <AnimatedScore key={`${item.slug}-${metricsRun}-score`} from={scoreFrom} to={scoreTo} enabled={metricsVisible} />}
-                {value === "pages" && <AnimatedMetric key={`${item.slug}-${metricsRun}-pages`} from={0} to={isEco ? 509 : 575} suffix={` / ${isEco ? 509 : 575}`} enabled={metricsVisible} />}
-                {value === "mobilePerformance" && <AnimatedScore key={`${item.slug}-${metricsRun}-mobile-performance`} from={36} to={57} enabled={metricsVisible} />}
-                {value === "performance" && <AnimatedMetric key={`${item.slug}-${metricsRun}-performance`} from={0} to={99} suffix=" / 100" enabled={metricsVisible} />}
-                {value === "cls" && <AnimatedMetric key={`${item.slug}-${metricsRun}-cls`} from={0.519} to={0.0001} enabled={metricsVisible} format={(metric) => Math.abs(metric - 0.0001) < 0.0002 ? (ru ? "0,0001" : "0.0001") : metric.toLocaleString(ru ? "ru-RU" : "en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} />}
-                {value === "images" && <AnimatedScore key={`${item.slug}-${metricsRun}-images`} from={20_314} to={25} enabled={metricsVisible} />}
+                {row.kind === "text" && row.text}
+                {row.kind === "score" && <AnimatedScore key={`${item.slug}-${metricsRun}-score`} from={scoreFrom} to={scoreTo} enabled={metricsVisible} />}
+                {row.kind === "pages" && <AnimatedMetric key={`${item.slug}-${metricsRun}-pages`} from={0} to={isEco ? 509 : 575} suffix={` / ${isEco ? 509 : 575}`} enabled={metricsVisible} />}
+                {row.kind === "mobilePerformance" && <AnimatedScore key={`${item.slug}-${metricsRun}-mobile-performance`} from={36} to={57} enabled={metricsVisible} />}
+                {row.kind === "performance" && <AnimatedMetric key={`${item.slug}-${metricsRun}-performance`} from={0} to={99} suffix=" / 100" enabled={metricsVisible} />}
+                {row.kind === "cls" && <AnimatedMetric key={`${item.slug}-${metricsRun}-cls`} from={0.519} to={0.0001} enabled={metricsVisible} format={(metric) => Math.abs(metric - 0.0001) < 0.0002 ? (ru ? "0,0001" : "0.0001") : metric.toLocaleString(ru ? "ru-RU" : "en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} />}
+                {row.kind === "images" && <AnimatedScore key={`${item.slug}-${metricsRun}-images`} from={20_314} to={25} enabled={metricsVisible} />}
               </dd>
             </div>
           ))}
         </dl>
 
         <footer>
-          <p>{ru ? "Цифры относятся к этому проекту и подтверждены повторной проверкой." : "These figures apply to this project and were confirmed by a repeat check."}</p>
-          <Link href={localizedPath(locale, `cases/${item.slug}`)}>{ru ? "Открыть разбор с доказательствами" : "Open the evidence review"} <span aria-hidden="true">↗</span></Link>
+          <p>{home?.footer ?? (ru ? "Цифры относятся к этому проекту и подтверждены повторной проверкой." : "These figures apply to this project and were confirmed by a repeat check.")}</p>
+          {home?.external ? (
+            <a href={home.href} target="_blank" rel="noreferrer">{home.linkLabel} <span aria-hidden="true">↗</span></a>
+          ) : (
+            <Link href={home?.href ?? localizedPath(locale, `cases/${item.slug}`)}>{home?.linkLabel ?? (ru ? "Открыть разбор с доказательствами" : "Open the evidence review")} <span aria-hidden="true">↗</span></Link>
+          )}
         </footer>
       </article>
     </section>

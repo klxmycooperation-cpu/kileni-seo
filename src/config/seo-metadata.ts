@@ -54,7 +54,7 @@ const publicSeoCopy = {
     },
     "web-development": {
       title: "Разработка сайтов для поиска и рекламы — KILENI",
-      description: "Разрабатываем сайты с понятной структурой, адаптивными экранами, формами, аналитикой и базовой SEO-подготовкой.",
+      description: "Проектируем и разрабатываем сайты с понятной структурой, адаптивными экранами, рабочими формами и аналитикой, готовые к рекламе и поиску.",
     },
     "yandex-ads": {
       title: "Настройка Яндекс Рекламы с аналитикой — KILENI",
@@ -87,6 +87,14 @@ const publicSeoCopy = {
     "cases/zasorservice": {
       title: "SEO-кейс засорсервис.рф: результат — KILENI",
       description: "Разбор работ для засорсервис.рф: структура, технические исправления, контроль доступности страниц и проверяемые результаты после внедрения.",
+    },
+    "cases/mestoest-ff": {
+      title: "SEO-кейс mestoest-ff.ru: фулфилмент — KILENI",
+      description: "Разбор продвижения mestoest-ff.ru: структура услуг фулфилмента, локальные страницы для Подольска, выполненные изменения и ограничения данных о позициях.",
+    },
+    "cases/kamenmis": {
+      title: "SEO-кейс kamenmis.ru: мастерская камня — KILENI",
+      description: "Разбор работ для kamenmis.ru: структура изделий из камня, страницы материалов и портфолио, контроль видимости и ограничения опубликованных данных.",
     },
     brief: {
       title: "Бриф на SEO, сайт или рекламу — KILENI",
@@ -121,115 +129,9 @@ const publicSeoCopy = {
       description: "Запустите бесплатную SEO-проверку до 10 публичных страниц: получите статусы проверок, конкретные замечания по URL и ссылку на результат.",
     },
   },
-  en: {
-    "": {
-      title: "SEO audits, growth and web development — KILENI",
-      description: "KILENI audits and improves websites, grows organic visibility, sets up advertising, and prepares product listings for major marketplaces.",
-    },
-    services: {
-      title: "SEO, web and advertising services — KILENI",
-      description: "Choose a clear task: SEO audit, ongoing growth, website development, Yandex Ads, content production, or a scoped first stage for a custom project.",
-    },
-    seo: {
-      title: "SEO audits and ongoing growth — KILENI",
-      description: "Compare a one-time SEO audit with ongoing search growth, from a free check to implementation and monthly website improvements.",
-    },
-    "seo-audit": {
-      title: "Website SEO audit with an action plan — KILENI",
-      description: "We review technical access, indexing, structure and key pages, rank findings by impact, and define practical acceptance checks for every fix.",
-    },
-    "seo-promotion": {
-      title: "Ongoing SEO growth with a clear scope — KILENI",
-      description: "We improve the website and build useful pages within an agreed scope, then repeat the same checks to show what changed after implementation.",
-    },
-    marketplaces: {
-      title: "Product listings for marketplaces — KILENI",
-      description: "We prepare platform-specific product listings for Wildberries, Ozon and Yandex Market, including attributes, copy and a media plan.",
-    },
-    "marketplaces/wildberries": {
-      title: "Wildberries product listing services — KILENI",
-      description: "We build Wildberries listings from verified product attributes, a clear title, useful image sequence and accurate copy without unsupported claims.",
-    },
-    "marketplaces/ozon": {
-      title: "Ozon product listing services — KILENI",
-      description: "We prepare Ozon listings with the right category, complete attributes, a concise title, useful copy and a media sequence that supports comparison.",
-    },
-    "marketplaces/yandex-market": {
-      title: "Yandex Market product listings — KILENI",
-      description: "We adapt product data to Yandex Market, complete the attributes used in filters and comparison, and check the listing before catalogue delivery.",
-    },
-    "web-development": {
-      title: "Web development for search and ads — KILENI",
-      description: "We design and build websites with a clear structure, responsive layouts, working forms, analytics and basic technical SEO.",
-    },
-    "yandex-ads": {
-      title: "Yandex Ads setup with clear analytics — KILENI",
-      description: "We group search demand by intent, prepare ads and landing pages, configure measurable goals, and separate service fees from the advertising budget.",
-    },
-    "content-materials": {
-      title: "Website content and production materials — KILENI",
-      description: "We create articles, landing pages and supporting materials for one defined task, using verified facts, search demand and an agreed acceptance criterion.",
-    },
-    "custom-task": {
-      title: "Scoping a custom digital project — KILENI",
-      description: "We clarify the current state, dependencies and required outcome, then propose a self-contained first stage with explicit boundaries and acceptance checks.",
-    },
-    pricing: {
-      title: "SEO, website and advertising prices — KILENI",
-      description: "Compare KILENI service prices and scope for SEO audits, ongoing growth, web development, advertising, content and individually estimated projects.",
-    },
-    calculator: {
-      title: "Digital services cost calculator — KILENI",
-      description: "Choose the task and project parameters to see a preliminary cost range for SEO, web development, advertising or content before a detailed discussion.",
-    },
-    cases: {
-      title: "SEO and web development case studies — KILENI",
-      description: "Review KILENI project evidence: the original task, implemented changes, repeated checks and concrete measurements recorded after delivery.",
-    },
-    "cases/eco-santeh": {
-      title: "eco-santeh.ru SEO case study — KILENI",
-      description: "See how recurring template issues were fixed for eco-santeh.ru, 509 pages were checked, and the outcome was confirmed by a repeated technical crawl.",
-    },
-    "cases/zasorservice": {
-      title: "Zasorservice SEO case study — KILENI",
-      description: "A practical review of structure, technical fixes and page availability checks completed for засорсервис.рф, with evidence captured after delivery.",
-    },
-    brief: {
-      title: "Brief us on SEO, a website or ads — KILENI",
-      description: "Describe your website, product or project in a short KILENI brief. We will clarify the task and agree the scope, timing, price and exclusions first.",
-    },
-    blog: {
-      title: "Practical SEO and digital marketing blog — KILENI",
-      description: "Practical KILENI guides to indexing, SEO audits, organic growth, website speed, Yandex Ads and product listing work for major marketplaces.",
-    },
-    glossary: {
-      title: "SEO and digital marketing glossary — KILENI",
-      description: "Plain-language definitions for SEO, web development, analytics, advertising and marketplace terms, with context on where each one appears in practice.",
-    },
-    about: {
-      title: "About KILENI: approach and company details",
-      description: "Learn how KILENI scopes work, verifies delivery and records limitations, and find the company owner details, required legal information and contacts.",
-    },
-    contacts: {
-      title: "Contact KILENI by phone or MAX",
-      description: "Call KILENI or use MAX to discuss SEO, website development, advertising or marketplace product listings and agree a practical next step.",
-    },
-    privacy: {
-      title: "KILENI personal data processing policy",
-      description: "The KILENI policy explains what personal data is processed, for which purposes and legal grounds, for how long, and how visitors can exercise their rights.",
-    },
-    consent: {
-      title: "Consent to personal data processing — KILENI",
-      description: "Terms of consent for KILENI forms, including the data categories, processing purposes, operator actions, duration and the procedure for withdrawing consent.",
-    },
-    "free-audit": {
-      title: "Free website SEO check for 10 pages — KILENI",
-      description: "Run a free SEO check of up to 10 public pages and receive check statuses, URL-specific findings and a shareable result without admin access.",
-    },
-  },
-} satisfies Record<Locale, Record<PublicRoutePath, SeoCopy>>;
+} satisfies Record<"ru", Record<PublicRoutePath, SeoCopy>>;
 
-const ARTICLE_SEO_TITLES: Record<Locale, Record<string, string>> = {
+const ARTICLE_SEO_TITLES: Record<"ru", Record<string, string>> = {
   ru: {
     "seo-audit-when-you-need-it": "SEO-аудит сайта: когда он нужен и что даёт",
     "wildberries-ozon-product-card": "Карточка товара для Wildberries и Ozon",
@@ -239,15 +141,7 @@ const ARTICLE_SEO_TITLES: Record<Locale, Record<string, string>> = {
     "seo-ecommerce-promotion": "SEO интернет-магазина: с каких страниц начать",
     "seo-promotion-cost": "Стоимость SEO-продвижения: из чего она складывается",
   },
-  en: {
-    "seo-audit-when-you-need-it": "SEO audits: when you need one and what it delivers",
-    "wildberries-ozon-product-card": "Product listings for Wildberries and Ozon",
-    "why-website-is-not-in-search": "Why a website is not indexed: a practical check",
-    "seo-vs-yandex-ads": "SEO or Yandex Ads: which should a business choose?",
-    "website-speed-loading": "How to diagnose and improve website loading speed",
-    "seo-ecommerce-promotion": "E-commerce SEO: which pages to build first",
-    "seo-promotion-cost": "How much SEO costs and what the price includes",
-  },
+
 };
 
 /**
@@ -273,6 +167,8 @@ const PUBLIC_ROUTE_LAST_MODIFIED = {
   cases: "2026-08-24",
   "cases/eco-santeh": "2026-08-24",
   "cases/zasorservice": "2026-08-24",
+  "cases/mestoest-ff": "2026-10-01",
+  "cases/kamenmis": "2026-10-01",
   brief: "2026-08-24",
   blog: "2026-08-24",
   glossary: "2026-08-24",
@@ -292,29 +188,27 @@ export function isPublicRoutePath(path: string): path is PublicRoutePath {
 }
 
 export function buildPublicMetadata(locale: Locale, path: PublicRoutePath): Metadata {
-  const copy = publicSeoCopy[locale][path];
+  const copy = publicSeoCopy.ru[path];
   return buildMetadata(locale, path, copy);
 }
 
 export function buildArticleMetadata(locale: Locale, article: Article): Metadata {
   const path = `blog/${article.slug}`;
-  const title = ARTICLE_SEO_TITLES[locale][article.slug] ?? article.title;
+  const title = ARTICLE_SEO_TITLES.ru[article.slug] ?? article.title;
   const canonical = absoluteLocalizedUrl(locale, path);
   const image = absoluteUrl(article.hero.src);
-  const languages = alternateLanguageUrls(path);
 
   return {
     title: { absolute: title },
     description: article.description,
-    alternates: { canonical, languages },
+    alternates: { canonical },
     openGraph: {
       type: "article",
       siteName: siteConfig.name,
       title,
       description: article.description,
       url: canonical,
-      locale: locale === "ru" ? "ru_RU" : "en_US",
-      alternateLocale: locale === "ru" ? ["en_US"] : ["ru_RU"],
+      locale: "ru_RU",
       publishedTime: article.date,
       modifiedTime: article.date,
       authors: [article.author],
@@ -333,21 +227,19 @@ export function buildArticleMetadata(locale: Locale, article: Article): Metadata
 
 function buildMetadata(locale: Locale, path: string, copy: SeoCopy): Metadata {
   const canonical = absoluteLocalizedUrl(locale, path);
-  const languages = alternateLanguageUrls(path);
   const image = absoluteUrl("/brand/kileni-og.png");
 
   return {
     title: { absolute: copy.title },
     description: copy.description,
-    alternates: { canonical, languages },
+    alternates: { canonical },
     openGraph: {
       type: "website",
       siteName: siteConfig.name,
       title: copy.title,
       description: copy.description,
       url: canonical,
-      locale: locale === "ru" ? "ru_RU" : "en_US",
-      alternateLocale: locale === "ru" ? ["en_US"] : ["ru_RU"],
+      locale: "ru_RU",
       images: [{ url: image, width: 1200, height: 630, alt: "KILENI" }],
     },
     twitter: {
@@ -356,15 +248,6 @@ function buildMetadata(locale: Locale, path: string, copy: SeoCopy): Metadata {
       description: copy.description,
       images: [image],
     },
-  };
-}
-
-function alternateLanguageUrls(path: string): Record<"ru" | "en" | "x-default", string> {
-  const ru = absoluteLocalizedUrl("ru", path);
-  return {
-    ru,
-    en: absoluteLocalizedUrl("en", path),
-    "x-default": ru,
   };
 }
 

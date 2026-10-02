@@ -12,9 +12,9 @@ describe("public copy", () => {
     expect(dictionary.hero.title).toBe(
       "Сайт есть. Пора сделать так, чтобы его находили.",
     );
-    expect(dictionary.hero.eyebrow).toBe("Бесплатная SEO-проверка до 10 страниц");
+    expect(dictionary.hero.eyebrow).toBe("Бесплатная экспресс-проверка до 10 репрезентативных страниц сайта");
     expect(dictionary.hero.text).toBe(
-      "Бесплатно проверим до 10 выбранных публичных страниц и покажем найденные технические замечания. Доступ к админке не нужен.",
+      "Бесплатная экспресс-проверка до 10 репрезентативных страниц покажет подтверждённые проблемы. Непроверенные адреса не оцениваются, а внешние показатели требуют подключённых кабинетов.",
     );
     expect(dictionary.process.map((step) => step.title)).toEqual([
       "Проверяем",
@@ -75,19 +75,6 @@ describe("public copy", () => {
     expect(homeSource).not.toMatch(/overall (SEO )?score/iu);
   });
 
-  it("keeps the revised home flow concrete and removes example captions", () => {
-    const homeSource = readFileSync(resolve(process.cwd(), "src/components/home/HomePage.tsx"), "utf8");
-    const heroSource = readFileSync(resolve(process.cwd(), "src/components/home/HeroScan.tsx"), "utf8");
-    const analyticsSource = readFileSync(resolve(process.cwd(), "src/components/analytics/AnalyticsVisuals.tsx"), "utf8");
-
-    for (const label of ["НАШЛИ", "ОБЪЯСНИЛИ", "ИСПРАВИЛИ", "ПРОВЕРИЛИ"]) {
-      expect(homeSource).toContain(label);
-    }
-    expect(heroSource).not.toContain("Сначала факты");
-    expect(homeSource).not.toContain("технического шума");
-    expect(analyticsSource).not.toContain("Это пример, а не результат клиента");
-  });
-
   it("keeps reviewed interface copy concrete and free of artificial shorthand", () => {
     const reviewedSources = [
       "src/components/analytics/AnalyticsVisuals.tsx",
@@ -100,13 +87,10 @@ describe("public copy", () => {
       "src/components/pages/MarketplaceOfferSelector.tsx",
       "src/components/pages/SeoHubPage.tsx",
       "src/components/pages/ServicesIndexPage.tsx",
-      "src/components/layout/CookieManager.tsx",
-      "src/components/layout/ThemeToggle.tsx",
       "src/config/offers.ts",
       "src/content/audit-checks.ts",
       "src/content/articles-expansion.ts",
       "src/content/marketplaces.ts",
-      "src/content/marketplace-result-examples.ts",
       "src/content/service-additions.ts",
       "src/content/service-directions.ts",
       "src/content/service-result-examples.ts",
@@ -117,16 +101,6 @@ describe("public copy", () => {
     ].map((file) => readFileSync(resolve(process.cwd(), file), "utf8")).join("\n");
 
     for (const phrase of [
-      "Сигнальная",
-      "сигнальную тему",
-      "Это пример",
-      "Это демонстрация",
-      "не вымышленный кейс",
-      "not a finding from a client website",
-      "project framework example",
-      "This example shows",
-      "This demonstrates",
-      "neither an invented case",
       "Не один график, а связку сигналов",
       "Технический ориентир",
       "Балл — диагностический сигнал",

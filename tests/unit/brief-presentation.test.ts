@@ -15,8 +15,8 @@ describe("понятное представление брифа", () => {
   it("показывает выбранное предложение без sourceOffer, slug и camelCase", () => {
     const entries = briefPresentationEntries({
       sourceOffer: "seo-audit-200",
-      selectedOfferTitle: "Аудит до 200 страниц",
-      selectedOfferPrice: "39 900 ₽",
+      selectedOfferTitle: "Технический SEO-аудит",
+      selectedOfferPrice: "29 000 ₽",
       selectedOfferScope: "До 200 страниц",
       selectedOfferDuration: "5–7 рабочих дней",
       selectedOfferResult: "Подробный список задач с доказательствами",
@@ -26,7 +26,7 @@ describe("понятное представление брифа", () => {
     expect(entries).toContainEqual({
       key: "selectedOffer",
       label: "Выбранное предложение",
-      value: "Аудит до 200 страниц",
+      value: "Технический SEO-аудит",
     });
     expect(entries).toContainEqual({
       key: "auditComment",
@@ -41,7 +41,7 @@ describe("понятное представление брифа", () => {
     const entries = briefPresentationEntries({
       company: "KILENI",
       sourceOffer: "seo-audit-200",
-      selectedOfferPrice: "39 900 ₽",
+      selectedOfferPrice: "29 000 ₽",
     }, "audit", "ru", { offerDetails: "exclude" });
 
     expect(entries).toEqual([
@@ -52,14 +52,14 @@ describe("понятное представление брифа", () => {
   it("собирает письмо без внутренних кодов и технических имён полей", () => {
     const copy = formatBriefEmailCopy("ru", "audit", {
       sourceOffer: "seo-audit-200",
-      selectedOfferTitle: "Аудит до 200 страниц",
-      selectedOfferPrice: "39 900 ₽",
+      selectedOfferTitle: "Технический SEO-аудит",
+      selectedOfferPrice: "29 000 ₽",
       generatedLooks: "yes",
     });
 
     expect(copy).toContain("направлению «SEO-аудит»");
-    expect(copy).toContain("Выбранное предложение: Аудит до 200 страниц");
-    expect(copy).toContain("Стоимость: 39 900 ₽");
+    expect(copy).toContain("Выбранное предложение: Технический SEO-аудит");
+    expect(copy).toContain("Стоимость: 29 000 ₽");
     expect(copy).not.toMatch(/sourceOffer|selectedOffer|generatedLooks|seo-audit-200/u);
   });
 

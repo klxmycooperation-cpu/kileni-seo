@@ -36,6 +36,7 @@ export type ServiceResultExample = {
   whyThisOption: string[];
   whyKileniTitle: string;
   whyKileni: string[];
+  disclaimer: string;
 };
 
 const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
@@ -43,7 +44,7 @@ const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
     slug: "seo-audit",
     eyebrow: "Пример результата",
     title: "Одна строка аудита должна объяснять проблему и способ приёмки",
-    lead: "Рабочую запись можно передать разработчику и использовать для повторной проверки.",
+    lead: "Не обезличенный список предупреждений, а рабочая запись, которую можно передать разработчику и проверить повторно.",
     fragment: {
       title: "Фрагмент таблицы аудита",
       caption: "Обезличенный пример формата одной находки.",
@@ -82,6 +83,7 @@ const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Отделяем подтверждённую проблему от наблюдения, которое требует данных",
       "Передаём критерий приёмки и остаёмся в согласованных границах проверки",
     ],
+    disclaimer: "Это пример структуры результата, а не находка на сайте клиента. Фактический состав зависит от доступных страниц, данных и согласованной глубины проверки.",
   },
   "seo-promotion": {
     slug: "seo-promotion",
@@ -125,6 +127,7 @@ const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Не приписываем работе динамику, которую нельзя подтвердить данными",
       "Показываем ограничения и согласуем следующий объём до его выполнения",
     ],
+    disclaimer: "Пример показывает формат отчётности. Направление и глубина работ определяются после диагностики, а поисковая динамика оценивается только по доступным данным.",
   },
   "web-development": {
     slug: "web-development",
@@ -170,6 +173,7 @@ const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Проверяем мобильные состояния, формы и обязательные условия запуска",
       "Заранее фиксируем интеграции, исключения и состав передачи",
     ],
+    disclaimer: "Это пример состава проекта. Технология, количество экранов, интеграции и срок определяются только после согласования задачи и входных материалов.",
   },
   "yandex-ads": {
     slug: "yandex-ads",
@@ -214,6 +218,7 @@ const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Отделяем стоимость работы от бюджета рекламной системы",
       "Фиксируем логику изменений и не подменяем обращения кликами",
     ],
+    disclaimer: "Фрагмент иллюстрирует структуру настройки. Стоимость обращения и объём спроса зависят от рынка, страницы, бюджета и периода наблюдения.",
   },
   "content-materials": {
     slug: "content-materials",
@@ -258,6 +263,7 @@ const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Отделяем факты клиента от редакторских допущений",
       "Убираем повторы и передаём понятный список вопросов на согласование",
     ],
+    disclaimer: "Это демонстрация редакторской структуры. Темы, источники и глубина материала определяются после брифа и проверки доступных фактов.",
   },
   "custom-task": {
     slug: "custom-task",
@@ -302,6 +308,7 @@ const ru: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Показываем неизвестные, риски и зависимости до оценки",
       "Предлагаем первый самостоятельный результат с явной приёмкой",
     ],
+    disclaimer: "Пример показывает способ постановки нестандартной задачи. Реальный состав, срок и цена появляются только после проверки входных данных и согласования работ.",
   },
 };
 
@@ -310,7 +317,7 @@ const en: Record<ServiceResultExampleSlug, ServiceResultExample> = {
     slug: "seo-audit",
     eyebrow: "Result example",
     title: "Each audit row should explain the issue and how to accept the fix",
-    lead: "This working record can be handed to a developer and used for the follow-up check.",
+    lead: "Not an anonymous warning list, but a working record that can be handed to a developer and verified again.",
     fragment: {
       title: "Audit table fragment",
       caption: "An anonymised example of one finding.",
@@ -349,6 +356,7 @@ const en: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Confirmed issues are separated from observations that need more data",
       "Acceptance criteria and the agreed audit boundary are documented",
     ],
+    disclaimer: "This is a format example, not a finding from a client website. Actual scope depends on accessible pages, available data and the agreed audit depth.",
   },
   "seo-promotion": {
     slug: "seo-promotion",
@@ -392,6 +400,7 @@ const en: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "We do not attribute movement that the available data cannot support",
       "Constraints are shown and the next scope is agreed before delivery",
     ],
+    disclaimer: "This example shows the reporting format. Work depth follows diagnosis, while search movement is interpreted only from accessible and agreed data sources.",
   },
   "web-development": {
     slug: "web-development",
@@ -437,6 +446,7 @@ const en: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Mobile states, forms and mandatory launch signals are tested",
       "Integrations, exclusions and handover contents are recorded in advance",
     ],
+    disclaimer: "This is a project framework example. Technology, screen count, integrations and timing are confirmed only after the task and source materials are agreed.",
   },
   "yandex-ads": {
     slug: "yandex-ads",
@@ -481,6 +491,7 @@ const en: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Service fees stay separate from media spend",
       "The change logic is recorded and clicks are not presented as enquiries",
     ],
+    disclaimer: "The fragment illustrates setup structure. Enquiry cost and demand volume depend on the market, landing page, media spend and observation period.",
   },
   "content-materials": {
     slug: "content-materials",
@@ -525,6 +536,7 @@ const en: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Client facts are separated from editorial assumptions",
       "Repetition is removed and verification questions are handed over clearly",
     ],
+    disclaimer: "This demonstrates an editorial structure. Topics, sources and depth are confirmed after the brief and a review of accessible evidence.",
   },
   "custom-task": {
     slug: "custom-task",
@@ -569,6 +581,7 @@ const en: Record<ServiceResultExampleSlug, ServiceResultExample> = {
       "Unknowns, risks and dependencies are shown before estimation",
       "The first independent result includes explicit acceptance criteria",
     ],
+    disclaimer: "This example shows how a non-standard task is framed. Actual scope, timing and price appear only after input review and boundary agreement.",
   },
 };
 

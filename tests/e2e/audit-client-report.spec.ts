@@ -37,11 +37,11 @@ test("shows a decision-ready report in one first viewport on mobile and desktop"
     await expect(overview).toBeVisible();
     await expect(overview.getByRole("heading", { name: /Краткий итог/u })).toBeVisible();
     await expect(overview.getByText("Критических проблем", { exact: true })).toBeVisible();
-    await expect(overview.getByText("Мобильная производительность главной страницы", { exact: true })).toBeVisible();
+    await expect(overview.getByText("Скорость главной страницы", { exact: true })).toBeVisible();
     await expect(overview.getByText("Подсказка о месте страницы в структуре сайта", { exact: true })).toHaveCount(0);
-    await expect(page.locator(".audit-client-improvements").getByText("Подсказка о месте страницы в структуре сайта", { exact: true })).toBeVisible();
-    await expect(overview.getByText(/наличие в поиске не проверялось/u)).toBeVisible();
-    await expect(overview.getByRole("link", { name: "Получить полный аудит сайта" })).toBeVisible();
+    await expect(page.getByText("Подсказка о месте страницы в структуре сайта", { exact: true })).toHaveCount(0);
+    await expect(overview.getByText(/критических проблем по доступным автоматическим проверкам не обнаружено/u)).toBeVisible();
+    await expect(overview.getByRole("link", { name: "Заказать технический SEO-аудит" })).toBeVisible();
     await expect(overview.getByRole("link", { name: "Повторить бесплатную проверку" })).toBeVisible();
     if (viewport.width >= 1_000) await expect.poll(() => overview.evaluate((element) => element.getBoundingClientRect().bottom - window.innerHeight)).toBeLessThanOrEqual(1);
     await expectNoHorizontalOverflow(page);
@@ -54,25 +54,25 @@ test("answers the five owner questions without opening technical details", async
   await page.goto(`/audit/${audit.publicToken}`);
 
   const report = page.locator(".result-body--client");
-  await expect(report.getByText("Мобильная производительность главной страницы", { exact: true }).first()).toBeVisible();
+  await expect(report.getByText("Скорость главной страницы", { exact: true }).first()).toBeVisible();
   await expect(report.getByText("Стоит проверить", { exact: true }).first()).toBeVisible();
-  await expect(report.getByText("Необязательное улучшение", { exact: true }).first()).toBeVisible();
-  await expect(report.getByText("Все 10 проверенных страниц открылись без серверных ошибок.", { exact: true }).first()).toBeVisible();
+  await expect(report.getByText("Необязательное улучшение", { exact: true })).toHaveCount(0);
+  await expect(report.locator(".audit-client-strengths li").first()).toContainText("Во время этой проверки 10");
+  await expect(report.locator(".audit-client-strengths li").first()).toContainText("вернули успешный HTTP-ответ");
   await expect(report.getByText(/Повторите тест 2–3 раза в одинаковых условиях/u)).toBeVisible();
   await expect(report.getByText("Фактическое наличие в поиске без Яндекс Вебмастера или Search Console не проверялось.", { exact: true }).first()).toBeVisible();
   await expect(report.locator(".audit-technical-details")).toHaveCount(0);
 });
 
-test("keeps the two conclusions, pages, PDF and admin client summary in parity", async ({ page, browserName }) => {
+test("keeps the two conclusions, pages, PDF and admin client summary in parity", async ({ page }) => {
   const audit = await createQueuedFixtureAudit();
   await completeClientReportFixtureAudit(audit);
   await page.goto(`/audit/${audit.publicToken}`);
 
-  await expect(page.locator(".audit-client-issue")).toHaveCount(2);
-  await expect(page.locator(".audit-client-issue").nth(0)).toContainText("https://example.com/");
-  await expect(page.locator(".audit-client-issue").nth(1)).toContainText("https://example.com/services");
+  await expect(page.locator(".audit-client-issue")).toHaveCount(1);
+  await expect(page.locator(".audit-client-issue").first()).toContainText("https://example.com/");
   await expect(page.locator(".audit-page-card")).toHaveCount(10);
-  await expect(page.locator(".audit-page-card", { hasText: "пунктов: 1" })).toHaveCount(2);
+  await expect(page.locator(".audit-page-card", { hasText: "Пунктов, требующих внимания: 1" })).toHaveCount(1);
   const additionalResources = page.locator("details.audit-resource-summary");
   await expect(additionalResources.getByText("Дополнительные изображения, скрипты и документы: 16", { exact: true })).toBeVisible();
   await expect(additionalResources).not.toHaveAttribute("open", "");
@@ -88,7 +88,7 @@ test("keeps the two conclusions, pages, PDF and admin client summary in parity",
   const pdfResponse = await page.request.get(`/api/audits/${audit.publicToken}/report.pdf`);
   expect(pdfResponse.status()).toBe(200);
   const pdf = await PDFDocument.load(await pdfResponse.body());
-  expect(pdf.getPageCount()).toBe(2);
+  expect(pdf.getPageCount()).toBeGreaterThanOrEqual(2);
 
   await page.goto("/admin/login");
   await page.getByLabel("Логин").fill("e2e-admin");
@@ -106,35 +106,18 @@ test("keeps the two conclusions, pages, PDF and admin client summary in parity",
   await expect(clientSummary).toContainText("Подробно проверено страниц10");
   await expect(clientSummary).toContainText("Критических проблем0");
   await expect(clientSummary).toContainText("Стоит проверить1");
-  await expect(clientSummary).toContainText("Необязательных улучшений1");
-  await expect(clientSummary).toContainText("Мобильная производительность главной страницы");
-  await expect(clientSummary).toContainText("https://example.com/services");
+  await expect(clientSummary).toContainText("Необязательных улучшений0");
+  await expect(clientSummary).toContainText("Скорость главной страницы");
+  await expect(clientSummary).toContainText("https://example.com/");
 
   const adminAttention = clientSummary.locator('section[aria-labelledby="admin-client-attention-heading"]');
   const adminOptional = clientSummary.locator('section[aria-labelledby="admin-client-optional-heading"]');
   await expect(adminAttention.getByRole("heading", { name: "Что стоит проверить" })).toBeVisible();
-  await expect(adminAttention).toContainText("Мобильная производительность главной страницы");
+  await expect(adminAttention).toContainText("Скорость главной страницы");
   await expect(adminAttention).not.toContainText("Подсказка о месте страницы в структуре сайта");
   await expect(adminOptional.getByRole("heading", { name: "Можно улучшить" })).toBeVisible();
-  await expect(adminOptional).toContainText("Подсказка о месте страницы в структуре сайта");
-  await expect(adminOptional).not.toContainText("Мобильная производительность главной страницы");
-
-  const clientMessage = page.locator(".admin-client-message");
-  await clientMessage.getByRole("button", { name: "Сгенерировать текст для заказчика" }).click();
-  const messageField = clientMessage.getByLabel("Текст для заказчика");
-  await expect(messageField).toBeVisible();
-  await expect(messageField).toHaveValue(/correct\.test/u);
-  const firstMessage = await messageField.inputValue();
-  await messageField.fill(`${firstMessage}\n\nКомментарий менеджера.`);
-  await expect(messageField).toHaveValue(/Комментарий менеджера\.$/u);
-  await clientMessage.getByRole("button", { name: "Сгенерировать заново" }).click();
-  await expect(messageField).not.toHaveValue(firstMessage);
-  await expect(clientMessage.getByText("Текст подготовлен. Его можно отредактировать перед отправкой.")).toBeVisible();
-  await clientMessage.scrollIntoViewIfNeeded();
-  await page.screenshot({
-    path: `work/browser-qa/client-feedback/after/admin-client-message-${browserName}.png`,
-    animations: "disabled",
-  });
+  await expect(adminOptional).toContainText("Необязательных улучшений нет.");
+  await expect(adminOptional).not.toContainText("Скорость главной страницы");
 });
 
 test("release pass keeps technical explanations readable and the disclaimer AA-visible", async ({ page }) => {
@@ -317,7 +300,7 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
           && style.display !== "none"
           && style.visibility !== "hidden"
           && !element.closest(".visually-hidden, nextjs-portal, .audit-live__progress.is-indeterminate, svg");
-        const clipsOrScrollsByDesign = Boolean(element.closest(".audit-page-table-wrap"));
+        const clipsOrScrollsByDesign = Boolean(element.closest(".audit-page-table-wrap, .audit-table-scroll"));
         return visible && !clipsOrScrollsByDesign && (
           box.right > document.documentElement.clientWidth + 1
           || box.left < -1

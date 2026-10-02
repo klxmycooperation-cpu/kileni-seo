@@ -165,10 +165,16 @@ test("does not change streamed brief content before React finishes hydration", a
 
   await page.goto("/brief");
   await expect(page.getByRole("heading", {
-    name: "Расскажите о задаче — соберём предложение без лишних работ",
+    name: "Расскажите о задаче Соберём предложение",
     exact: true,
   })).toBeVisible();
   await page.waitForTimeout(500);
 
   expect(hydrationErrors).toEqual([]);
+});
+
+test("leaves the interactive brief untouched while enhancing page copy", async ({ page }) => {
+  await page.goto("/brief");
+  await expect(page.locator("#main-content [data-glossary-enhanced]").first()).toBeAttached();
+  await expect(page.locator(".brief-wizard [data-glossary-enhanced]")).toHaveCount(0);
 });

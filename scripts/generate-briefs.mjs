@@ -68,7 +68,7 @@ function questionRows(questions, locale) {
   }));
 }
 
-for (const locale of ["ru", "en"]) {
+for (const locale of ["ru"]) {
   for (const [type, localized] of Object.entries(briefs)) {
     const content = localized[locale];
     const fileBase = `${locale}-${type}-brief`;

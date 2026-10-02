@@ -9,6 +9,7 @@ import { briefServices, commonBriefQuestions, qLabel, serviceQuestions, type Bri
 import { readAuditLeadHandoff } from "../../lib/audit/lead-handoff";
 import { BRIEF_DRAFT_KEY, parseBriefDraft, resolveBriefOfferState, type BriefDraftV2 } from "../../lib/brief/offer-state";
 import { briefPresentationEntries } from "../../lib/brief/presentation";
+import { priceToneClass } from "../price-emphasis";
 import { useCsrf } from "./useCsrf";
 import { TurnstileField } from "./TurnstileField";
 import { ConsentNotice } from "./ConsentNotice";
@@ -84,10 +85,11 @@ export function BriefWizard({ locale }: { locale: Locale }) {
     previousStep.current = step;
     const heading = headingRef.current;
     if (!heading) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     heading.focus({ preventScroll: true });
     heading.scrollIntoView({
       block: "start",
-      behavior: "auto",
+      behavior: reducedMotion ? "auto" : "smooth",
     });
   }, [draftReady, step]);
 
@@ -265,7 +267,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
           : (ru ? "Спасибо. Бриф уже в работе." : "Thank you. The brief is in our queue.");
 
   return (
-    <div className="brief-wizard" data-visual-keyboard={visualKeyboardOpen ? "open" : undefined}>
+    <div className="brief-wizard" data-glossary-skip data-visual-keyboard={visualKeyboardOpen ? "open" : undefined}>
       <aside
         className="brief-compass"
         aria-label={ru ? "Состав и стоимость выбранной услуги" : "Selected service scope and price"}
@@ -317,6 +319,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
                   return (
                     <button
                       type="button"
+                      disabled={!draftReady}
                       className={service === item.id ? "selected" : ""}
                       aria-label={label}
                       aria-pressed={service === item.id}
@@ -326,7 +329,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
                       <span className="brief-choice-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                       <span className="brief-choice-title">{label}</span>
                       <span className="brief-choice-copy">{ru ? item.textRu : item.textEn}</span>
-                      <strong className="brief-choice-price">{briefGuide(item.id, locale).price}</strong>
+                      <strong className={`brief-choice-price price-emphasis ${priceToneClass(index)}`}>{briefGuide(item.id, locale).price}</strong>
                     </button>
                   );
                 })}
@@ -358,10 +361,10 @@ export function BriefWizard({ locale }: { locale: Locale }) {
                   {invalidField === "name" && <small className="brief-field-error">{ru ? "Напишите, как к вам обращаться." : "Tell us how to address you."}</small>}
                 </label>
                 <label data-question-number="02" data-question-key="contact">
-                  <span>{ru ? "Телефон или e-mail" : "Phone or email"}</span>
-                  <input name="contact" maxLength={254} type="text" placeholder={ru ? "+7 999 123-45-67 или name@example.ru" : "+1 555 123 4567 or name@example.com"} required aria-invalid={invalidField === "contact"} value={answers.contact ?? ""} onChange={(event) => update("contact", event.target.value)} />
+                  <span>{ru ? "E-mail" : "Email"}</span>
+                  <input name="contact" maxLength={160} type="email" inputMode="email" autoComplete="email" placeholder={ru ? "name@example.ru" : "name@example.com"} required aria-invalid={invalidField === "contact"} value={answers.contact ?? ""} onChange={(event) => update("contact", event.target.value)} />
                   <small>{ru ? "Нужен только для ответа по этому брифу." : "Used only to reply to this brief."}</small>
-                  {invalidField === "contact" && <small className="brief-field-error">{ru ? "Укажите корректный телефон или e-mail." : "Enter a valid phone number or email."}</small>}
+                  {invalidField === "contact" && <small className="brief-field-error">{ru ? "Укажите корректный e-mail." : "Enter a valid email address."}</small>}
                 </label>
                 <label className="check-field" data-question-key="consent">
                   <input type="checkbox" checked={answers.consent === "yes"} onChange={(event) => update("consent", event.target.checked ? "yes" : "")} />
@@ -393,7 +396,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
                   <div className="brief-review-head">
                     <p>{ru ? "Вы выбрали" : "Selected service"}</p>
                     <strong>{localizedSelectedOffer?.title ?? serviceLabel(service, locale)}</strong>
-                    <span>{guide.price}</span>
+                    <span className={`price-emphasis ${priceToneClass(Math.max(briefServices.findIndex((item) => item.id === service), 0))}`}>{guide.price}</span>
                   </div>
                   {localizedSelectedOffer && (
                     <dl className="brief-offer-facts" aria-label={ru ? "Параметры выбранного предложения" : "Selected offer details"}>
@@ -427,7 +430,7 @@ export function BriefWizard({ locale }: { locale: Locale }) {
         {status && step < 4 && <p className="form-error" role="status">{status}</p>}
         {step < 4 && (
           <div className="wizard-actions">
-            <button type="button" className="button button-secondary" disabled={!draftReady || step === 0} onClick={() => setStep((value) => Math.max(0, value - 1))}>
+            <button type="button" className="button button-secondary" disabled={step === 0} onClick={() => setStep((value) => Math.max(0, value - 1))}>
               {ru ? "Назад" : "Back"}
             </button>
             {step < 3 ? (
@@ -522,9 +525,9 @@ function ServiceGuide({ locale, service, offer, guide }: { locale: Locale; servi
   return (
     <section className="brief-service-guide brief-mobile-summary" aria-live="polite" aria-label={ru ? "Условия выбранной услуги" : "Selected service details"}>
       <h2 className="visually-hidden">{ru ? "Условия выбранной услуги" : "Selected service details"}</h2>
-      <div className="brief-service-summary">
+      <div className={`brief-service-summary${offer ? " brief-service-summary--with-price" : ""}`}>
         <strong>{offer?.title ?? serviceLabel(service, locale)}</strong>
-        <span>{guide.price}</span>
+        {offer ? <span className={`price-emphasis ${priceToneClass(Math.max(briefServices.findIndex((item) => item.id === service), 0))}`}>{guide.price}</span> : null}
       </div>
       <details
         className="brief-service-details"
@@ -538,13 +541,19 @@ function ServiceGuide({ locale, service, offer, guide }: { locale: Locale; servi
             <h3>{ru ? "За что вы платите" : "What you are paying for"}</h3>
             <ul>{guide.included.map((item) => <li key={item}>{item}</li>)}</ul>
           </div>
+          {offer && offer.exclusions.length > 0 && (
+            <div>
+              <h3>{ru ? "Что не входит" : "What is not included"}</h3>
+              <ul>{offer.exclusions.map((item) => <li key={item}>{item}</li>)}</ul>
+            </div>
+          )}
           <div>
             <h3>{ru ? "Что подготовить" : "Prepare"}</h3>
             <ul>{guide.prepare.map((item) => <li key={item}>{item}</li>)}</ul>
           </div>
           <small>{contract}</small>
           {offer ? (
-            <Link href={`${locale === "en" ? "/en" : ""}/pricing?category=${encodeURIComponent(offer.category)}&offer=${encodeURIComponent(offer.id)}`}>
+            <Link href={`/pricing?category=${encodeURIComponent(offer.category)}&offer=${encodeURIComponent(offer.id)}`}>
               {ru ? "Изменить тариф" : "Change offer"}
             </Link>
           ) : null}
@@ -650,7 +659,7 @@ export function briefStepIssue(step: number, service: BriefService, answers: Ans
     }
   }
   if (step === 3 && !isValidBriefContact(answers.contact ?? "")) {
-    return { key: "contact", message: ru ? "Проверьте контакт: нужен телефон или e-mail." : "Check the contact: enter a phone number or email." };
+    return { key: "contact", message: ru ? "Проверьте e-mail." : "Check the email address." };
   }
   if (step === 3 && answers.consent !== "yes") {
     return { key: "consent", message: ru ? "Подтвердите согласие на обработку данных, чтобы отправить бриф." : "Confirm data processing consent to send the brief." };
@@ -660,10 +669,7 @@ export function briefStepIssue(step: number, service: BriefService, answers: Ans
 
 export function isValidBriefContact(value: string): boolean {
   const contact = value.trim();
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(contact)) return true;
-  if (!/^\+?[\d\s()-]+$/u.test(contact)) return false;
-  const digits = contact.replace(/\D/gu, "");
-  return digits.length >= 10 && digits.length <= 15;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(contact);
 }
 
 function requiredKeysForStep(step: number, service: BriefService): string[] {

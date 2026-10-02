@@ -24,6 +24,8 @@ export function PublicRoute({ locale, parts }: { locale: Locale; parts: string[]
   if (path === "pricing") return <PricingPage locale={locale}/>;
   if (path === "calculator") return <CalculatorPage locale={locale}/>;
   if (path === "cases") return <CasesPage locale={locale}/>;
+  if (path === "cases/mestoest-ff") return <CasePage locale={locale} slug="mestoest-ff"/>;
+  if (path === "cases/kamenmis") return <CasePage locale={locale} slug="kamenmis"/>;
   if (path === "cases/eco-santeh") return <CasePage locale={locale} slug="eco-santeh"/>;
   if (path === "cases/zasorservice") return <CasePage locale={locale} slug="zasorservice"/>;
   if (path === "brief") return <BriefPage locale={locale}/>;

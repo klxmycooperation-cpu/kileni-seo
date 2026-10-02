@@ -11,6 +11,12 @@ const libsqlTraceIncludes = process.env.VERCEL
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Keep the supervised localhost preview visually identical to the site.
+  // Compile and runtime errors still surface in the terminal and error overlay.
+  devIndicators: false,
+  // The desktop preview may open the same local server through 127.0.0.1.
+  // Allow that origin so client bundles and HMR do not get blocked with 403.
+  allowedDevOrigins: ["127.0.0.1"],
   // Route modules initialize the local SQLite fallback while Next collects
   // build metadata. Keep that phase single-worker so parallel collectors do
   // not race over the same temporary database file in clean Docker builds.
@@ -29,8 +35,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   images: {
-    // WebP avoids expensive first-request AVIF encoding on the self-hosted server.
-    formats: ["image/webp"],
+    formats: ["image/avif", "image/webp"],
     qualities: [60, 75],
     minimumCacheTTL: 86400,
   },
@@ -48,8 +53,6 @@ const nextConfig: NextConfig = {
       { source: "/where-to-buy", destination: "/contacts", permanent: true },
       { source: "/articles", destination: "/blog", permanent: true },
       { source: "/articles/:slug", destination: "/blog/:slug", permanent: true },
-      { source: "/en/articles", destination: "/en/blog", permanent: true },
-      { source: "/en/articles/:slug", destination: "/en/blog/:slug", permanent: true },
     ];
   },
 };

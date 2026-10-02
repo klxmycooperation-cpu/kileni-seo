@@ -20,9 +20,38 @@ export function TurnstileField({ onToken, resetKey = 0 }: { onToken: (token: str
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    const configured = document.body.dataset.turnstileSiteKey?.trim();
-    setSiteKey(configured || null);
-    if (!configured) onToken("turnstile-disabled");
+    // Static pages cannot carry configuration added when a Docker image starts.
+    // Fetch only the public key at runtime and keep submission blocked on error.
+    const controller = new AbortController();
+    let active = true;
+    const timer = window.setTimeout(() => controller.abort(), 8_000);
+    onToken(undefined);
+    void fetch("/api/public/turnstile-key", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Verification configuration unavailable");
+        const config: unknown = await response.json();
+        if (!config || typeof config !== "object" || !("siteKey" in config)
+          || (config.siteKey !== null && typeof config.siteKey !== "string")) {
+          throw new Error("Invalid verification configuration");
+        }
+        if (!active) return;
+        const configured = typeof config.siteKey === "string" ? config.siteKey.trim() : null;
+        if (config.siteKey !== null && !configured) throw new Error("Empty verification key");
+        setSiteKey(configured);
+        if (!configured) onToken("turnstile-disabled");
+      })
+      .catch(() => {
+        if (active) {
+          setLoadError(true);
+          onToken(undefined);
+        }
+      })
+      .finally(() => window.clearTimeout(timer));
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearTimeout(timer);
+    };
   }, [onToken]);
 
   const render = useCallback(() => {
@@ -60,11 +89,11 @@ export function TurnstileField({ onToken, resetKey = 0 }: { onToken: (token: str
     onToken(undefined);
   }, [onToken, resetKey]);
 
-  if (!siteKey) return null;
+  if (!siteKey && !loadError) return null;
   return (
     <div className="turnstile-field" aria-label="Human verification">
-      <Script id="cloudflare-turnstile" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onLoad={() => { setLoadError(false); render(); }} onError={() => { setLoadError(true); onToken(undefined); }}/>
-      <div id={elementId}/>
+      {siteKey && <Script id="cloudflare-turnstile" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onLoad={() => { setLoadError(false); render(); }} onError={() => { setLoadError(true); onToken(undefined); }}/>}
+      {siteKey && <div id={elementId}/>}
       {loadError && <p className="turnstile-field__error" role="alert">Не удалось загрузить защиту формы. Отключите блокировщик для этой страницы и <button type="button" onClick={() => window.location.reload()}>повторите</button>.</p>}
     </div>
   );

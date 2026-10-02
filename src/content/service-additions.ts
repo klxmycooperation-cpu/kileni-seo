@@ -42,7 +42,7 @@ const ru: Record<string, AdditionalService> = {
       faq: [{ q: "Можно не знать точное решение?", a: "Да. Опишите ситуацию и желаемый результат; вариант решения предложим после уточнения." }, { q: "Можно начать с малого?", a: "Да. Первый этап должен давать самостоятельный проверяемый результат." }, { q: "Когда появится цена?", a: "После короткого брифа и списка обязательных входных данных." }],
     },
     diagnosis: ["Фиксируем текущее состояние", "Отделяем обязательное от желательного", "Проверяем зависимости и риски", "Выделяем первый принимаемый результат"],
-    visual: { kind: "build-system", label: "Как определяем первый этап", summary: "Уточняем текущую ситуацию и цель, после чего согласуем состав работ и способ приёмки.", signals: [{ label: "ситуация", value: "СЕЙЧАС" }, { label: "цель", value: "НУЖНО" }, { label: "работа", value: "ДЕЛАЕМ" }, { label: "проверка", value: "ГОТОВО" }] },
+    visual: { kind: "build-system", variant: "scope-definition", label: "Как определяем первый этап", summary: "Уточняем текущую ситуацию и цель, после чего согласуем состав работ и способ приёмки.", signals: [{ label: "ситуация", value: "СЕЙЧАС" }, { label: "цель", value: "НУЖНО" }, { label: "работа", value: "ДЕЛАЕМ" }, { label: "проверка", value: "ГОТОВО" }] },
   },
 };
 
@@ -65,7 +65,7 @@ const en: Record<string, AdditionalService> = {
       { name: "Project", priceKey: "individual", description: "Several stages with checkpoints.", limit: "Estimated after the first stage", features: ["Stages", "Limits", "Checkpoints", "Handover"] },
     ], faq: [{ q: "Can the exact solution be unknown?", a: "Yes. Describe the situation and desired result; we will propose an approach after clarifying the constraints." }, { q: "Can we start small?", a: "Yes. The first stage should produce an independent result you can verify." }, { q: "When is price confirmed?", a: "After the short brief and a list of required inputs." }] },
     diagnosis: ["Record the current state", "Separate mandatory and optional scope", "Review dependencies and risks", "Define the first acceptable result"],
-    visual: { kind: "build-system", label: "How we define the first stage", summary: "We clarify the current situation and required outcome, then agree the first stage and its acceptance check.", signals: [{ label: "Situation", value: "RECORDED" }, { label: "Outcome", value: "AGREED" }, { label: "First stage", value: "SCOPED" }, { label: "Acceptance", value: "DEFINED" }] },
+    visual: { kind: "build-system", variant: "scope-definition", label: "How we define the first stage", summary: "We clarify the current situation and required outcome, then agree the first stage and its acceptance check.", signals: [{ label: "Situation", value: "RECORDED" }, { label: "Outcome", value: "AGREED" }, { label: "First stage", value: "SCOPED" }, { label: "Acceptance", value: "DEFINED" }] },
   },
 };
 

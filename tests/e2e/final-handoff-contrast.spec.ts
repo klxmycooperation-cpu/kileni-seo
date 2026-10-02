@@ -7,7 +7,7 @@ import { createQueuedFixtureAudit } from "./audit-fixture";
 import { auditClientReportSnapshot } from "../unit/fixtures/audit-client-report-snapshot";
 
 const evidence = resolve(process.env.QA_EVIDENCE_ROOT ?? "tmp/e2e/final-handoff", "contrast");
-for (const theme of ["dark", "signal", "light"]) {
+for (const theme of ["dark", "light"]) {
   test(`calculator consent is readable after scrolling in ${theme}`, async ({ page }, testInfo) => {
     await mkdir(evidence, { recursive: true });
     await page.setViewportSize({ width: 390, height: 844 });

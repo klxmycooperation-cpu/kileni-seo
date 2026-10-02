@@ -13,6 +13,7 @@ assertIsolatedPreviewEnvironment();
 const legalDefaults = JSON.parse(readFileSync(new URL("../src/config/legal-defaults.json", import.meta.url), "utf8"));
 
 const production = process.env.NODE_ENV === "production";
+const isolatedPreview = ["1", "true"].includes(process.env.KILENI_ISOLATED_PREVIEW?.trim().toLowerCase());
 const configuredForms = process.env.FORMS_ENABLED?.trim();
 const legal = {
   name: process.env.LEGAL_NAME?.trim() || legalDefaults.name,
@@ -76,7 +77,7 @@ if (!adminHashMatch || !Number.isInteger(adminHashCost) || adminHashCost < 10 ||
 }
 
 const adminSessionSecret = process.env.ADMIN_SESSION_SECRET ?? "";
-if (Buffer.byteLength(adminSessionSecret, "utf8") < 32 || adminSessionSecret.includes("replace-with")) {
+if (Buffer.byteLength(adminSessionSecret, "utf8") < 32 || /replace-with|change-me|example|placeholder/iu.test(adminSessionSecret)) {
   failures.push("ADMIN_SESSION_SECRET: must contain at least 32 non-placeholder bytes");
 }
 
@@ -101,11 +102,12 @@ for (const [name, value] of [["LEGAL_POLICY_URL", legal.policyUrl], ["LEGAL_CONS
 
 if (!legalEnvironmentIsComplete) failures.push("LEGAL_*: operator details are incomplete");
 
-if (process.env.APP_BASE_URL && !isProductionBaseUrl(process.env.APP_BASE_URL)) {
+if (process.env.APP_BASE_URL && !isProductionBaseUrl(process.env.APP_BASE_URL)
+  && !(isolatedPreview && isLoopbackPreviewUrl(process.env.APP_BASE_URL))) {
   failures.push("APP_BASE_URL: must be a public HTTPS origin");
 }
 
-if (formsEnabled && process.env.AUDIT_ENABLED !== "false") {
+if (formsEnabled && process.env.AUDIT_ENABLED !== "false" && !isolatedPreview) {
   const siteKey = process.env.TURNSTILE_SITE_KEY?.trim();
   const secretKey = process.env.TURNSTILE_SECRET_KEY?.trim();
   if (!siteKey || !secretKey) failures.push("TURNSTILE_SITE_KEY/TURNSTILE_SECRET_KEY: both are required while the public audit is enabled");
@@ -148,4 +150,11 @@ function isProductionBaseUrl(value) {
   } catch {
     return false;
   }
+}
+
+function isLoopbackPreviewUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+  } catch { return false; }
 }

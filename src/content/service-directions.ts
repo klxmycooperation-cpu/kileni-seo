@@ -76,10 +76,10 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
     {
       id: "development",
       label: "Разработка сайтов",
-      title: "Разработать сайт под задачу бизнеса",
+      title: "Собрать сайт под задачу бизнеса, а не просто набор страниц",
       problem: "Нужен новый сайт, но пока неясно, какие страницы, функции и материалы действительно помогут клиенту сделать выбор.",
       promise: "Сначала соберём структуру и прототип, затем разработаем адаптивный сайт и передадим исходники.",
-      journey: ["Старт", "Бизнес (рекомендуем)", "Максимум"],
+      journey: ["Лендинг", "Сайт компании", "Каталог товаров"],
       actions: [
         "Уточняем задачу и путь клиента",
         "Собираем структуру и прототип",
@@ -87,7 +87,7 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
         "Разрабатываем, подключаем формы и проверяем",
       ],
       outcomes: [
-        "Рабочие версии для телефона и компьютера",
+        "Рабочая мобильная и desktop-версия",
         "Подключённые формы и измерение обращений",
         "Панель управления содержимым",
         "Исходники и инструкция по запуску",
@@ -214,7 +214,7 @@ const directionCopy: Record<Locale, readonly DirectionCopy[]> = {
       title: "Build a website around the business task, not a pile of pages",
       problem: "You need a new website, but the pages, features and content that will help customers choose are not yet clear.",
       promise: "We define the structure and prototype first, then build a responsive website and hand over the source code.",
-      journey: ["Start", "Business (recommended)", "Maximum"],
+      journey: ["Landing page", "Company website", "Product catalogue"],
       actions: [
         "Clarify the task and customer journey",
         "Build the structure and prototype",

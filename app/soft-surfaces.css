@@ -257,7 +257,7 @@
   filter: blur(2px);
   opacity: .8;
   pointer-events: none;
-  animation: kileni-hero-orbit 11s ease-in-out infinite alternate;
+  transform: translate3d(0, 0, 0);
 }
 
 .kileni-site .signal-hero .hero-grid {
@@ -268,7 +268,7 @@
 .kileni-site .signal-hero .hero-copy > .eyebrow,
 .kileni-site .signal-hero .hero-copy > h1,
 .kileni-site .signal-hero .hero-copy > .hero-lead,
-.kileni-site .signal-hero .hero-copy > .hero-honesty,
+.kileni-site .signal-hero .hero-copy > .hero-offer,
 .kileni-site .signal-hero .hero-copy > .hero-free-audit-usage,
 .kileni-site .signal-hero .hero-copy > .hero-actions {
   animation: kileni-hero-rise .7s cubic-bezier(.22, 1, .36, 1) both;
@@ -276,7 +276,7 @@
 
 .kileni-site .signal-hero .hero-copy > h1 { animation-delay: .06s; }
 .kileni-site .signal-hero .hero-copy > .hero-lead { animation-delay: .12s; }
-.kileni-site .signal-hero .hero-copy > .hero-honesty { animation-delay: .18s; }
+.kileni-site .signal-hero .hero-copy > .hero-offer { animation-delay: .18s; }
 .kileni-site .signal-hero .hero-copy > .hero-free-audit-usage { animation-delay: .23s; }
 .kileni-site .signal-hero .hero-copy > .hero-actions { animation-delay: .28s; }
 
@@ -335,7 +335,7 @@
   .kileni-site .signal-hero .hero-copy > .eyebrow,
   .kileni-site .signal-hero .hero-copy > h1,
   .kileni-site .signal-hero .hero-copy > .hero-lead,
-  .kileni-site .signal-hero .hero-copy > .hero-honesty,
+  .kileni-site .signal-hero .hero-copy > .hero-offer,
   .kileni-site .signal-hero .hero-copy > .hero-free-audit-usage,
   .kileni-site .signal-hero .hero-copy > .hero-actions,
   .kileni-site .signal-hero .hero-tool {
@@ -484,12 +484,6 @@
 .kileni-site .about-10 .about-next-grid.about-next-grid {
   border-radius: var(--kileni-radius-lg);
   overflow: clip;
-}
-
-/* Layout grids start their text at the edge, not inside a padded card. */
-.kileni-site .about-10 .about-roles-grid.about-roles-grid,
-.kileni-site .about-10 .about-deliverables-grid.about-deliverables-grid {
-  overflow: visible;
 }
 
 .kileni-site .editorial-page .article-card.article-card,

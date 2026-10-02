@@ -19,7 +19,7 @@ import {
   glossarySitemapPaths,
 } from "../../src/lib/seo/glossary-metadata";
 
-const locales: Locale[] = ["ru", "en"];
+const locales: Locale[] = ["ru"];
 const originalPrelaunchMode = process.env.PRELAUNCH_MODE;
 
 function metadataTitle(metadata: Metadata): string {
@@ -55,7 +55,7 @@ afterEach(() => {
 });
 
 describe("public SEO metadata", () => {
-  it("provides unique complete metadata for every current RU and EN public route", () => {
+  it("provides unique complete metadata for every current Russian public route", () => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
 
@@ -66,15 +66,13 @@ describe("public SEO metadata", () => {
         const description = metadataDescription(metadata);
         const routePath = localizedPath(locale, path);
         const canonical = new URL(routePath, "https://kileni-seo.ru").toString();
-        const ru = new URL(localizedPath("ru", path), "https://kileni-seo.ru").toString();
-        const en = new URL(localizedPath("en", path), "https://kileni-seo.ru").toString();
 
         expect(title.length, `${locale}:${path || "home"} title length`).toBeGreaterThanOrEqual(30);
         expect(title.length, `${locale}:${path || "home"} title length`).toBeLessThanOrEqual(60);
         expect(description.length, `${locale}:${path || "home"} description length`).toBeGreaterThanOrEqual(70);
         expect(description.length, `${locale}:${path || "home"} description length`).toBeLessThanOrEqual(160);
         expect(metadataUrl(metadata.alternates?.canonical)).toBe(canonical);
-        expect(metadata.alternates?.languages).toEqual({ ru, en, "x-default": ru });
+        expect(metadata.alternates?.languages).toBeUndefined();
         expect(metadata.openGraph?.title).toBe(title);
         expect(metadata.openGraph?.description).toBe(description);
         expect(metadataUrl(metadata.openGraph?.url)).toBe(canonical);
@@ -90,16 +88,12 @@ describe("public SEO metadata", () => {
   it("keeps public contact and free-audit metadata aligned with the approved product contract", () => {
     const metadata = [
       buildPublicMetadata("ru", "contacts"),
-      buildPublicMetadata("en", "contacts"),
       buildPublicMetadata("ru", "free-audit"),
-      buildPublicMetadata("en", "free-audit"),
     ];
     const copy = metadata.map((item) => `${metadataTitle(item)} ${metadataDescription(item)}`).join(" ");
 
     expect(copy).toContain("телефон и MAX");
-    expect(copy).toContain("phone or MAX");
     expect(copy).toContain("конкретные замечания по URL");
-    expect(copy).toContain("URL-specific findings");
     expect(copy).not.toMatch(/Telegram|e-mail|overall (SEO )?score|общ(ую|ая) оценк/iu);
   });
 
@@ -151,11 +145,11 @@ describe("public SEO metadata", () => {
 });
 
 describe("public sitemap", () => {
-  it("publishes the SEO hub as a canonical RU and EN route", () => {
+  it("publishes the SEO hub as a canonical Russian route", () => {
     expect(publicRoutes).toContain("seo");
     const urls = sitemap().map((entry) => entry.url);
     expect(urls).toContain("https://kileni-seo.ru/seo");
-    expect(urls).toContain("https://kileni-seo.ru/en/seo");
+    expect(urls.every(url => !new URL(url).pathname.startsWith("/en"))).toBe(true);
   });
 
   it("does not publish the retired Megamarket route or language alternates", () => {
@@ -177,13 +171,13 @@ describe("public sitemap", () => {
     }
   });
 
-  it("publishes localized canonical URLs with truthful lastmod and no artificial ranking hints", () => {
+  it("publishes Russian canonical URLs with truthful lastmod and no artificial ranking hints", () => {
     const entries = sitemap();
     const byUrl = new Map(entries.map((entry) => [entry.url, entry]));
 
     expect(byUrl.size).toBe(entries.length);
     expect(entries).toHaveLength(
-      2 * (publicRoutes.length + articleSlugs.length + auditCheckSitemapEntries.length + glossarySitemapPaths.length),
+      publicRoutes.length + articleSlugs.length + auditCheckSitemapEntries.length + glossarySitemapPaths.length,
     );
     for (const entry of entries) {
       expect(entry).not.toHaveProperty("priority");
@@ -194,24 +188,22 @@ describe("public sitemap", () => {
 
     for (const path of publicRoutes) {
       const ru = new URL(localizedPath("ru", path), "https://kileni-seo.ru").toString();
-      const en = new URL(localizedPath("en", path), "https://kileni-seo.ru").toString();
-      for (const url of [ru, en]) {
+      for (const url of [ru]) {
         const entry = byUrl.get(url);
         expect(entry, url).toBeDefined();
         expect(entry?.lastModified).toBe(publicRouteLastModified(path));
-        expect(entry?.alternates?.languages).toEqual({ ru, en, "x-default": ru });
+        expect(entry?.alternates?.languages).toBeUndefined();
       }
     }
 
     for (const slug of articleSlugs) {
       const article = getArticle("ru", slug)!;
       const ru = new URL(`/blog/${slug}`, "https://kileni-seo.ru").toString();
-      const en = new URL(`/en/blog/${slug}`, "https://kileni-seo.ru").toString();
-      for (const url of [ru, en]) {
+      for (const url of [ru]) {
         const entry = byUrl.get(url);
         expect(entry, url).toBeDefined();
         expect(entry?.lastModified).toBe(article.date);
-        expect(entry?.alternates?.languages).toEqual({ ru, en, "x-default": ru });
+        expect(entry?.alternates?.languages).toBeUndefined();
       }
     }
 
@@ -232,12 +224,11 @@ function expectLocalizedSitemapPair(
   lastModified: string,
 ): void {
   const ru = new URL(localizedPath("ru", path), "https://kileni-seo.ru").toString();
-  const en = new URL(localizedPath("en", path), "https://kileni-seo.ru").toString();
-  for (const url of [ru, en]) {
+  for (const url of [ru]) {
     const entry = byUrl.get(url);
     expect(entry, url).toBeDefined();
     expect(entry?.lastModified).toBe(lastModified);
-    expect(entry?.alternates?.languages).toEqual({ ru, en, "x-default": ru });
+    expect(entry?.alternates?.languages).toBeUndefined();
   }
 }
 

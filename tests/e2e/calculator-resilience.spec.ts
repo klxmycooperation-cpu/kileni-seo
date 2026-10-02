@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
   // instead of the calculator's network-error path.
   await expect(page.getByRole("button", { name: "Отправить расчёт" })).toBeEnabled();
   await page.getByRole("textbox", { name: "Имя", exact: true }).fill("QA test — do not contact");
-  await page.getByRole("textbox", { name: "Телефон или e-mail" }).fill("qa@example.test");
+  await page.getByRole("textbox", { name: "E-mail" }).fill("qa@example.test");
   await page.locator('.estimate-panel input[name="consent"]').check();
 });
 

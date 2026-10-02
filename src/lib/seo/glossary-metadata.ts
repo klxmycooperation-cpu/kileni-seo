@@ -16,7 +16,7 @@ export function glossaryDetailPath(locale: Locale, slug: string): string {
 }
 
 /**
- * Integration hook for the RU and EN catch-all routes.
+ * Integration hook for the Russian catch-all route.
  * Draft terms remain useful from the glossary hub but must stay out of search
  * until their term-specific copy passes editorial review.
  */
@@ -29,8 +29,6 @@ export function getGlossaryDetailMetadata(
 
   const copy = term[locale];
   const canonical = glossaryDetailPath(locale, term.slug);
-  const russian = glossaryDetailPath("ru", term.slug);
-  const english = glossaryDetailPath("en", term.slug);
   const description = `${copy.term}: ${copy.definition}`;
   const title = locale === "ru"
     ? `${copy.term}: что означает термин в digital`
@@ -41,7 +39,6 @@ export function getGlossaryDetailMetadata(
     description,
     alternates: {
       canonical,
-      languages: { ru: russian, en: english, "x-default": russian },
     },
     ...(term.indexable ? {} : { robots: { index: false, follow: true } }),
     openGraph: {
@@ -50,7 +47,7 @@ export function getGlossaryDetailMetadata(
       title,
       description,
       url: canonical,
-      locale: locale === "ru" ? "ru_RU" : "en_GB",
+      locale: "ru_RU",
       images: [{ url: "/brand/kileni-og.png", width: 1200, height: 630, alt: "KILENI" }],
     },
   };

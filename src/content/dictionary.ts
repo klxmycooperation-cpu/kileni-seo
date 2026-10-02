@@ -4,19 +4,20 @@ export type Dictionary = typeof dictionaries.ru;
 
 export const dictionaries = {
   ru: {
-    nav: { services: "Услуги", audit: "Бесплатная проверка", pricing: "Цены", cases: "Кейсы", articles: "Блог", brief: "Бриф", cta: "Проверить сайт" },
+    nav: { services: "Услуги", audit: "Бесплатная проверка", pricing: "Цены", cases: "Кейсы", articles: "Блог", brief: "Бриф", cta: "Узнать, что мешает сайту" },
     hero: {
-      eyebrow: "Бесплатная SEO-проверка до 10 страниц",
+      eyebrow: "Бесплатная экспресс-проверка до 10 репрезентативных страниц сайта",
       title: "Сайт есть. Пора сделать так, чтобы его находили.",
-      text: "Бесплатно проверим до 10 выбранных публичных страниц и покажем найденные технические замечания. Доступ к админке не нужен.",
+      text: "Бесплатная экспресс-проверка до 10 репрезентативных страниц покажет подтверждённые проблемы. Непроверенные адреса не оцениваются, а внешние показатели требуют подключённых кабинетов.",
       scanWords: ["Индексация", "Структура", "Скорость", "Оптимизация"],
     },
     auditForm: {
-      title: "Бесплатная предварительная проверка",
+      title: "Бесплатная экспресс-проверка",
+      limit: "Бесплатно проверим до 10 репрезентативных страниц сайта",
       url: "Адрес сайта", name: "Ваше имя", contact: "Email (необязательно)",
       consent: "Согласен на обработку данных и получение ответа.",
       authority: "Я имею отношение к сайту или вправе запросить проверку его публичной части.",
-      submit: "Проверить сайт бесплатно", details: "Что именно проверяется?", pending: "Отправляем сайт на проверку…",
+      submit: "Проверить бесплатно до 10 репрезентативных страниц сайта", details: "Что именно проверяется?", pending: "Отправляем сайт на проверку…",
     },
     scenarios: [
       { title: "Проверить сайт", text: "Найдём главные ошибки и покажем, что исправлять сначала.", href: "/seo-audit", code: "01" },
@@ -27,7 +28,7 @@ export const dictionaries = {
     ],
     process: [
       { title: "Проверяем", text: "Собираем публичные страницы и фиксируем исходное состояние без доступа к админке." },
-      { title: "Объясняем", text: "Отделяем важные риски от второстепенных и определяем порядок действий." },
+      { title: "Объясняем", text: "Отделяем важные риски от второстепенных и показываем понятный порядок действий." },
       { title: "Исправляем", text: "После согласования состава и цены вносим только подтверждённые изменения." },
       { title: "Перепроверяем", text: "Повторяем те же проверки и показываем, что действительно изменилось." },
     ],
@@ -38,18 +39,18 @@ export const dictionaries = {
     },
   },
   en: {
-    nav: { services: "Services", audit: "Free check", pricing: "Prices", cases: "Cases", articles: "Blog", brief: "Brief", cta: "Check your website" },
+    nav: { services: "Services", audit: "Free check", pricing: "Prices", cases: "Cases", articles: "Blog", brief: "Brief", cta: "See what blocks the website" },
     hero: {
-      eyebrow: "Free SEO check for up to 10 pages",
+      eyebrow: "Free express check of up to 10 representative website pages",
       title: "Your website is live. Now make it discoverable.",
-      text: "We will check up to 10 selected public pages and report the technical findings. No admin access required.",
+      text: "A free express check of up to 10 representative pages shows confirmed issues. Unchecked addresses are not assessed, and external metrics require connected accounts.",
       scanWords: ["Indexing", "Structure", "Speed", "Optimisation"],
     },
     auditForm: {
-      title: "Free preliminary website check", url: "Website address", name: "Your name", contact: "Email (optional)",
+      title: "Free express check", limit: "We check up to 10 representative website pages for free", url: "Website address", name: "Your name", contact: "Email (optional)",
       consent: "I agree to personal data processing and receiving a response.",
       authority: "I am associated with this website or authorized to request a check of its public pages.",
-      submit: "Check my website", details: "What is checked?", pending: "Sending the website for review…",
+      submit: "Check up to 10 representative website pages for free", details: "What is checked?", pending: "Sending the website for review…",
     },
     scenarios: [
       { title: "Check a website", text: "Find the main issues and decide what to fix first.", href: "/seo-audit", code: "01" },

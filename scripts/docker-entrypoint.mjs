@@ -1,10 +1,15 @@
 import Database from "better-sqlite3";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { assertIsolatedPreviewEnvironment } from "./runtime-isolation.mjs";
 
 assertIsolatedPreviewEnvironment();
+execFileSync(process.execPath, [fileURLToPath(new URL("./validate-launch.mjs", import.meta.url))], {
+  env: { ...process.env, NODE_ENV: "production" }, stdio: "inherit",
+});
 
 const databasePath = resolve(process.env.DATABASE_PATH ?? "/data/kileni.sqlite");
 const migrationPath = resolve(process.env.MIGRATION_SQL_PATH ?? "/app/runtime/migration.sql");

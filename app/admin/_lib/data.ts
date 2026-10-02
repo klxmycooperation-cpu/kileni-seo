@@ -9,12 +9,146 @@ import {
   type AdminListQa,
 } from "@/src/db/admin-entity-metadata";
 import { moscowDayKey } from "@/src/lib/analytics/page-views";
+import { adminNotificationEmailConfigured } from "@/src/lib/notifications/submission";
+import type { AdminFeedItem, AdminNotificationSnapshot } from "@/src/lib/notifications/admin-feed";
 
 type SqlValue = string | number | null;
+
+export type AdminRequestEntityType = "lead" | "brief" | "audit";
+export type AdminRequestState = "new" | "active" | "closed" | "notification_failed";
+
+export type AdminRequestCenterFilters = {
+  query?: string;
+  entityType?: string;
+  state?: string;
+  from?: string;
+  to?: string;
+};
+
+export type AdminRequestCenterItem = {
+  id: string;
+  entityType: AdminRequestEntityType;
+  name: string;
+  contact: string;
+  contactType: string;
+  subject: string;
+  status: string;
+  createdAt: number;
+  notificationChannel: string | null;
+  notificationStatus: string | null;
+  notificationError: string | null;
+  notifications: Array<{ channel: string; status: string; error: string | null }>;
+};
 
 async function rows<T>(sql: string, args: SqlValue[] = []): Promise<T[]> {
   const result = await database.execute({ sql, args });
   return result.rows as unknown as T[];
+}
+
+const adminRequestsCte = `WITH request_records AS (
+  SELECT leads.id AS id,'lead' AS entityType,leads.name AS name,leads.contact AS contact,
+    leads.contact_type AS contactType,COALESCE(NULLIF(leads.target,''),NULLIF(leads.service,''),'Заявка') AS subject,
+    leads.status AS status,leads.created_at AS createdAt
+  FROM leads
+  WHERE NOT EXISTS (SELECT 1 FROM admin_entity_metadata metadata WHERE metadata.entity_type='lead' AND metadata.entity_id=leads.id AND (metadata.archived_at IS NOT NULL OR metadata.qa_label IS NOT NULL))
+  UNION ALL
+  SELECT brief_submissions.id,'brief',brief_submissions.name,brief_submissions.contact,'',
+    COALESCE(NULLIF(brief_submissions.service,''),'Бриф'),brief_submissions.status,brief_submissions.created_at
+  FROM brief_submissions
+  WHERE NOT EXISTS (SELECT 1 FROM admin_entity_metadata metadata WHERE metadata.entity_type='brief' AND metadata.entity_id=brief_submissions.id AND (metadata.archived_at IS NOT NULL OR metadata.qa_label IS NOT NULL))
+  UNION ALL
+  SELECT audits.id,'audit',audits.name,audits.contact,audits.contact_type,audits.normalized_domain,audits.status,audits.created_at
+  FROM audits
+  WHERE NOT EXISTS (SELECT 1 FROM admin_entity_metadata metadata WHERE metadata.entity_type='audit' AND metadata.entity_id=audits.id AND (metadata.archived_at IS NOT NULL OR metadata.qa_label IS NOT NULL))
+), mapped_notifications AS (
+  SELECT notification.*,
+    CASE WHEN notification.entity_type='calculator' THEN 'lead' ELSE notification.entity_type END AS requestType,
+    CASE WHEN notification.entity_type='calculator' THEN calculator.lead_id ELSE notification.entity_id END AS requestId
+  FROM notification_events notification
+  LEFT JOIN calculator_requests calculator ON notification.entity_type='calculator' AND calculator.id=notification.entity_id
+), ranked_notifications AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY requestType,requestId,channel ORDER BY updated_at DESC,created_at DESC,id DESC) AS channelRank
+  FROM mapped_notifications
+), requests_with_notifications AS (
+  SELECT request_records.*,
+    (SELECT notification.channel FROM ranked_notifications notification
+      WHERE notification.requestType=request_records.entityType AND notification.requestId=request_records.id
+      ORDER BY notification.updated_at DESC,notification.created_at DESC,notification.id DESC LIMIT 1) AS notificationChannel,
+    (SELECT notification.status FROM ranked_notifications notification
+      WHERE notification.requestType=request_records.entityType AND notification.requestId=request_records.id
+      ORDER BY notification.updated_at DESC,notification.created_at DESC,notification.id DESC LIMIT 1) AS notificationStatus,
+    (SELECT notification.error FROM ranked_notifications notification
+      WHERE notification.requestType=request_records.entityType AND notification.requestId=request_records.id
+      ORDER BY notification.updated_at DESC,notification.created_at DESC,notification.id DESC LIMIT 1) AS notificationError,
+    EXISTS (SELECT 1 FROM ranked_notifications notification
+      WHERE notification.requestType=request_records.entityType AND notification.requestId=request_records.id AND notification.channelRank=1 AND notification.status='failed') AS hasNotificationFailure,
+    (SELECT json_group_array(json_object('channel',notification.channel,'status',notification.status,'error',notification.error))
+      FROM ranked_notifications notification
+      WHERE notification.requestType=request_records.entityType AND notification.requestId=request_records.id AND notification.channelRank=1) AS notificationsJson
+  FROM request_records
+)`;
+
+export async function adminRequestCenter(filters: AdminRequestCenterFilters): Promise<AdminRequestCenterItem[]> {
+  const clauses: string[] = [];
+  const parameters: SqlValue[] = [];
+  const query = cleanSearch(filters.query);
+  const entityType = cleanRequestEntityType(filters.entityType);
+  const state = cleanRequestState(filters.state);
+  const from = parseDateBoundary(filters.from, false);
+  const to = parseDateBoundary(filters.to, true);
+
+  if (query) {
+    const like = `%${escapeLike(query)}%`;
+    clauses.push("(name LIKE ? ESCAPE '\\' OR contact LIKE ? ESCAPE '\\' OR subject LIKE ? ESCAPE '\\')");
+    parameters.push(like, like, like);
+  }
+  if (entityType) {
+    clauses.push("entityType=?");
+    parameters.push(entityType);
+  }
+  if (state === "new") {
+    clauses.push("((entityType IN ('lead','brief') AND status='new') OR (entityType='audit' AND status='queued'))");
+  } else if (state === "active") {
+    clauses.push("((entityType IN ('lead','brief') AND status NOT IN ('new','won','lost')) OR (entityType='audit' AND status NOT IN ('queued','completed','partial','failed')))");
+  } else if (state === "closed") {
+    clauses.push("((entityType IN ('lead','brief') AND status IN ('won','lost')) OR (entityType='audit' AND status IN ('completed','partial','failed')))");
+  } else if (state === "notification_failed") {
+    clauses.push("hasNotificationFailure=1");
+  }
+  if (from !== undefined) {
+    clauses.push("createdAt>=?");
+    parameters.push(from);
+  }
+  if (to !== undefined) {
+    clauses.push("createdAt<=?");
+    parameters.push(to);
+  }
+
+  const result = await rows<Omit<AdminRequestCenterItem, "notifications"> & { notificationsJson: string }>(`${adminRequestsCte}
+    SELECT id,entityType,name,contact,contactType,subject,status,createdAt,notificationChannel,notificationStatus,notificationError,notificationsJson
+    FROM requests_with_notifications${clauses.length ? ` WHERE ${clauses.join(" AND ")}` : ""}
+    ORDER BY createdAt DESC,id DESC LIMIT 200`, parameters);
+  return result.map(({ notificationsJson, ...item }) => ({ ...item, createdAt: Number(item.createdAt), notifications: JSON.parse(notificationsJson) as AdminRequestCenterItem["notifications"] }));
+}
+
+export async function adminAttentionSummary(): Promise<{ newCount: number; failedNotificationCount: number; attentionCount: number }> {
+  const summary = (await rows<{ newCount: number; failedNotificationCount: number; attentionCount: number }>(`${adminRequestsCte}
+    SELECT
+      SUM(CASE WHEN (entityType IN ('lead','brief') AND status='new') OR (entityType='audit' AND status='queued') THEN 1 ELSE 0 END) AS newCount,
+      SUM(hasNotificationFailure) AS failedNotificationCount,
+      SUM(CASE WHEN ((entityType IN ('lead','brief') AND status='new') OR (entityType='audit' AND status='queued')) OR hasNotificationFailure=1 THEN 1 ELSE 0 END) AS attentionCount
+    FROM requests_with_notifications`))[0];
+  const newCount = Number(summary?.newCount) || 0;
+  const failedNotificationCount = Number(summary?.failedNotificationCount) || 0;
+  return { newCount, failedNotificationCount, attentionCount: Number(summary?.attentionCount) || 0 };
+}
+
+export async function adminNotificationSnapshot(): Promise<AdminNotificationSnapshot> {
+  const [summary, latest] = await Promise.all([
+    adminAttentionSummary(),
+    rows<AdminFeedItem>(`${adminRequestsCte} SELECT id,entityType,createdAt FROM request_records ORDER BY createdAt DESC,id DESC LIMIT 20`),
+  ]);
+  return { ...summary, latest: latest.map((item) => ({ ...item, createdAt: Number(item.createdAt) })), emailConfigured: adminNotificationEmailConfigured(), checkedAt: Date.now() };
 }
 
 export async function adminAuditList(
@@ -304,6 +438,14 @@ function cleanSearch(value?: string): string | undefined {
 
 function cleanStatus(value?: string): string | undefined {
   return value && /^[a-z_]{2,40}$/u.test(value) ? value : undefined;
+}
+
+function cleanRequestEntityType(value?: string): AdminRequestEntityType | undefined {
+  return value === "lead" || value === "brief" || value === "audit" ? value : undefined;
+}
+
+function cleanRequestState(value?: string): AdminRequestState | undefined {
+  return value === "new" || value === "active" || value === "closed" || value === "notification_failed" ? value : undefined;
 }
 
 function escapeLike(value: string): string {

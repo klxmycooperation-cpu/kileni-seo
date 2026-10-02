@@ -135,11 +135,7 @@ describe("versioned database migrations", () => {
       });
     } finally {
       client.close();
-      // libsql 0.5.29 retains transaction-owned file handles until process exit.
-      // Unix can unlink an open file, but Windows reports EPERM here.
-      if (process.platform !== "win32") {
-        rmSync(directory, { recursive: true, force: true });
-      }
+      rmSync(directory, { recursive: true, force: true });
     }
   });
 });

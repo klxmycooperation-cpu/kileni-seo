@@ -5,6 +5,58 @@ import { auditClientReportSnapshot } from "./fixtures/audit-client-report-snapsh
 import { auditV4Snapshot } from "./fixtures/audit-v4-snapshot";
 
 describe("sanitizePublicAuditResult", () => {
+  it("exposes bounded technical and Lighthouse evidence without raw transport data", () => {
+    const source = auditClientReportSnapshot();
+    const sanitized = sanitizePublicAuditResult({
+      ...source,
+      technicalFileSummary: {
+        robots: {
+          url: "https://example.com/robots.txt",
+          finalUrl: "https://example.com/robots.txt",
+          statusCode: null,
+          loadedAt: "2026-09-15T10:00:00.000Z",
+          userAgent: "ZingSEOAudit",
+          matchingDecision: "unavailable: request failed",
+          reason: "network timeout",
+          body: "private response body",
+        },
+        sitemap: {
+          url: "https://example.com/sitemap.xml",
+          statusCode: 200,
+          parsed: false,
+          urlCount: 12,
+          prefetchedCount: 5,
+          skippedByTechnicalLimit: 7,
+          externalHostCount: 1,
+          fetchErrors: ["response was not a sitemap XML document"],
+        },
+      },
+      performanceObservation: {
+        status: "insufficient_data",
+        reason: "one laboratory recheck only",
+        finalUrl: "https://example.com/",
+        capturedAt: "2026-09-15T10:00:00.000Z",
+        strategy: "mobile",
+        deviceProfile: "mobile",
+        lighthouseVersion: "12.8.2",
+        runCount: 1,
+        fcpMs: 900,
+        lcpMs: 2100,
+        cls: 0.04,
+        tbtMs: 180,
+        speedIndexMs: 1600,
+      },
+    });
+
+    expect(sanitized).toMatchObject({
+      technicalFileSummary: {
+        robots: { statusCode: null, matchingDecision: "unavailable: request failed" },
+        sitemap: { urlCount: 12, prefetchedCount: 5, externalHostCount: 1 },
+      },
+      performanceObservation: { status: "insufficient_data", runCount: 1, speedIndexMs: 1600 },
+    });
+    expect(JSON.stringify(sanitized)).not.toContain("private response body");
+  });
   it("keeps the complete bounded outside-sample URL list for grouping in web and inspection in API", () => {
     const source = auditClientReportSnapshot();
     const pagesNotCheckedUrls = Array.from({ length: 88 }, (_, index) => `https://example.com/services/page-${index + 1}`);
@@ -48,7 +100,10 @@ describe("sanitizePublicAuditResult", () => {
     expect(sanitized).not.toHaveProperty("checks");
     expect(sanitized).not.toHaveProperty("findings");
     expect(sanitized).not.toHaveProperty("resultSummary");
-    expect(JSON.stringify(sanitized)).not.toMatch(/not_applicable|not_run|insufficient_data/u);
+    expect(JSON.stringify(sanitized)).not.toMatch(/not_applicable|insufficient_data/u);
+    expect(sanitized).toMatchObject({
+      clientPresentationByLocale: { ru: { performance: { status: "legacy_unknown" } } },
+    });
     expect(sanitized?.technicalResources).toHaveLength(2);
     expect((sanitized?.clientPresentationByLocale as { ru?: { limitations?: unknown[] } })?.ru?.limitations).toHaveLength(4);
     expect(Object.isFrozen(sanitized)).toBe(true);

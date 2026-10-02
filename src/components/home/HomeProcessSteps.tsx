@@ -52,13 +52,42 @@ export function HomeMobileDisclosure({
 export function HomeCheckCategories({
   locale,
   items,
+  variant = "section",
 }: {
   locale: "ru" | "en";
   items: CheckCategory[];
+  variant?: "section" | "hero";
 }) {
   const baseId = useId().replace(/:/g, "");
-  const [active, setActive] = useState(0);
   const ru = locale === "ru";
+  const iconPaths = [
+    "M15.5 15.5 21 21M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z",
+    "M9 3h6v5H9zM3 16h6v5H3zM15 16h6v5h-6zM12 8v4M6 16v-4h12v4",
+    "M4 18a9 9 0 1 1 16 0M12 14l5-6M5 11l2 1M12 5v2M19 11l-2 1M10 18h4",
+    "M4 6h8M16 6h4M4 12h2M10 12h10M4 18h10M18 18h2M12 4v4M6 10v4M14 16v4",
+  ];
+  const content = (
+    <ul className="home-check-overview__list" aria-label={ru ? "Что проверяем" : "What we check"}>
+      {items.map((item, index) => (
+        <li key={item.title}>
+          <Link href={item.href}>
+            <i className="home-check-overview__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d={iconPaths[index]} />
+              </svg>
+            </i>
+            <div className="home-check-overview__copy">
+              <strong>{item.title}</strong>
+              <small>{item.text}</small>
+            </div>
+            <svg className="home-check-overview__arrow" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M4 12 12 4M4 4h8v8" /></svg>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+
+  if (variant === "hero") return <div className="scan-keywords hero-check-overview">{content}</div>;
 
   return (
     <section className="home-check-categories" id="home-checks" aria-labelledby={`${baseId}-title`} data-mobile-check-categories>
@@ -67,29 +96,7 @@ export function HomeCheckCategories({
           <p>{ru ? "Что проверяем" : "What we check"}</p>
           <h2 id={`${baseId}-title`}>{ru ? "Четыре группы проверок" : "Four groups of checks"}</h2>
         </header>
-        <div className="home-check-categories__controls">
-          {items.map((item, index) => (
-            <button
-              key={item.title}
-              type="button"
-              aria-expanded={active === index}
-              aria-controls={`${baseId}-panel-${index}`}
-              data-active={active === index || undefined}
-              onClick={() => setActive(index)}
-            >
-              <span>{String(index + 1).padStart(2, "0")}</span>{item.title}
-            </button>
-          ))}
-        </div>
-        <div className="home-check-categories__panels" aria-live="polite">
-          {items.map((item, index) => (
-            <div id={`${baseId}-panel-${index}`} key={item.title} hidden={active !== index} data-check={index}>
-              <strong>{item.title}</strong>
-              <p>{item.text}</p>
-              <Link href={item.href}>{ru ? "Подробнее о проверке" : "Read about this check"}<span aria-hidden="true">↗</span></Link>
-            </div>
-          ))}
-        </div>
+        {content}
       </div>
     </section>
   );
@@ -112,7 +119,9 @@ export function HomeProcessSteps({ steps }: { steps: ProcessStep[] }) {
       frame = 0;
       if (mobile.matches || reducedMotion.matches) return;
       const storyBox = story.getBoundingClientRect();
-      if (storyBox.bottom <= 0 || storyBox.top >= window.innerHeight) return;
+      const inView = storyBox.bottom > 0 && storyBox.top < window.innerHeight;
+      story.dataset.inView = inView ? "true" : "false";
+      if (!inView) return;
       const readingLine = window.innerHeight * 0.46;
       let next = 0;
       chapters.forEach((chapter, index) => {
@@ -131,6 +140,7 @@ export function HomeProcessSteps({ steps }: { steps: ProcessStep[] }) {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
       if (frame) window.cancelAnimationFrame(frame);
+      delete story.dataset.inView;
     };
   }, []);
 
@@ -142,6 +152,22 @@ export function HomeProcessSteps({ steps }: { steps: ProcessStep[] }) {
     const next = (index + steps.length) % steps.length;
     setActiveStep(next);
     window.requestAnimationFrame(() => document.getElementById(tabId(next))?.focus());
+  }
+
+  function selectMobileStep(index: number) {
+    setActiveStep(index);
+    window.requestAnimationFrame(() => {
+      const panel = document.getElementById("home-process-mobile-panel");
+      if (!panel || !window.matchMedia("(max-width: 760px)").matches) return;
+      const box = panel.getBoundingClientRect();
+      const fullyVisible = box.top >= 0 && box.bottom <= window.innerHeight;
+      if (!fullyVisible) {
+        panel.scrollIntoView({
+          block: "center",
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        });
+      }
+    });
   }
 
   return (
@@ -156,7 +182,7 @@ export function HomeProcessSteps({ steps }: { steps: ProcessStep[] }) {
             aria-selected={activeStep === index}
             aria-controls="home-process-mobile-panel"
             tabIndex={activeStep === index ? 0 : -1}
-            onClick={() => setActiveStep(index)}
+            onClick={() => selectMobileStep(index)}
             onKeyDown={(event) => {
               if (event.key === "ArrowRight" || event.key === "ArrowDown") {
                 event.preventDefault();
@@ -186,7 +212,7 @@ export function HomeProcessSteps({ steps }: { steps: ProcessStep[] }) {
         data-stage={activeStep}
         data-mobile-process-panel
       >
-        <div className="home-process-board" data-stage={activeStep} aria-hidden="true">
+        <div className="home-process-board" data-stage={activeStep} data-dashboard-surface="workflow" aria-hidden="true">
           <div className="home-process-board__header"><span>KILENI / workflow</span><i /></div>
           <div className="home-process-board__screen">
             <div className="home-process-board__phase home-process-board__phase--audit">

@@ -21,6 +21,8 @@ export type MarketplacePlatform = {
   nameEn: string;
   mark: string;
   iconSrc: string;
+  iconWidth: number;
+  iconHeight: number;
   color: string;
   ru: MarketplaceCopy;
   en: MarketplaceCopy;
@@ -29,7 +31,7 @@ export type MarketplacePlatform = {
 
 export const marketplacePlatforms: MarketplacePlatform[] = [
   {
-    id: "wildberries", name: "Wildberries", nameEn: "Wildberries", mark: "WB", iconSrc: "/marketplaces/wildberries.svg", color: "#7b2cff",
+    id: "wildberries", name: "Wildberries", nameEn: "Wildberries", mark: "WB", iconSrc: "/marketplaces/wildberries.svg", iconWidth: 500, iconHeight: 75, color: "#7b2cff",
     ru: {
       lead: "Проверяем реальную карточку Wildberries: категорию, характеристики, название и порядок изображений. Затем передаём готовую таблицу полей и точное задание на медиа.",
       visibility: ["верно ли выбрана категория товара", "заполнены ли характеристики, по которым покупатель ставит фильтры", "соответствуют ли название и изображения фактическому товару"],
@@ -57,7 +59,7 @@ export const marketplacePlatforms: MarketplacePlatform[] = [
     docs: [{ label: "Wildberries: инструкции продавца", labelEn: "Wildberries seller documentation", url: "https://seller.wildberries.ru/instructions/ru" }],
   },
   {
-    id: "ozon", name: "Ozon", nameEn: "Ozon", mark: "OZON", iconSrc: "/marketplaces/ozon.svg", color: "#005bff",
+    id: "ozon", name: "Ozon", nameEn: "Ozon", mark: "OZON", iconSrc: "/marketplaces/ozon.svg", iconWidth: 485, iconHeight: 106, color: "#005bff",
     ru: {
       lead: "Проверяем тип и категорию товара на Ozon, обязательные характеристики, текст и медиа. На выходе — файлы, которые можно проверить до загрузки в кабинет.",
       visibility: ["подходит ли выбранный тип и категория товара", "заполнены ли поля, которые участвуют в фильтрах", "нет ли в названии и описании неподтверждённых свойств"],
@@ -85,7 +87,7 @@ export const marketplacePlatforms: MarketplacePlatform[] = [
     docs: [{ label: "Ozon: руководство по контенту товара", labelEn: "Ozon product content guide", url: "https://docs.ozon.ru/global/products/" }],
   },
   {
-    id: "yandex-market", name: "Яндекс Маркет", nameEn: "Yandex Market", mark: "Я", iconSrc: "/marketplaces/yandex-market.svg", color: "#ffcc00",
+    id: "yandex-market", name: "Яндекс Маркет", nameEn: "Yandex Market", mark: "Я", iconSrc: "/marketplaces/yandex-market.svg", iconWidth: 194, iconHeight: 37, color: "#ffcc00",
     ru: {
       lead: "Сверяем предложение с категорией Яндекс Маркета: название, производителя, параметры и изображения. Передаём данные в формате, который можно проверить до загрузки.",
       visibility: ["привязано ли предложение к точной категории", "хватает ли параметров для сравнения с похожими товарами", "соответствуют ли изображения товару и требованиям площадки"],

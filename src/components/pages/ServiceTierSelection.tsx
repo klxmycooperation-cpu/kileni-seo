@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { Locale } from "../../config/site";
+import { priceToneClass } from "../price-emphasis";
 
 type TierView = {
   id: string;
@@ -13,6 +14,7 @@ type TierView = {
   duration: string;
   current: string;
   note?: string;
+  highlights?: Array<{ value: string; label: string }>;
   features: string[];
   featured: boolean;
   briefHref: string;
@@ -31,15 +33,19 @@ export function useSelectedServiceTier(): string {
   return useContext(TierContext).selectedTier?.label ?? "";
 }
 
+export function useSelectedServiceOfferId(): string {
+  return useContext(TierContext).selectedTier?.id ?? "";
+}
+
 export function ServiceTierSelector({ locale, tiers }: { locale: Locale; tiers: TierView[] }) {
   const { selectedTier, selectTier } = useContext(TierContext);
   const ru = locale === "ru";
   return (
     <div className="svc-package-grid">
-      {tiers.map((tier) => {
+      {tiers.map((tier, index) => {
         const selected = selectedTier?.id === tier.id;
         return (
-          <article className={tier.featured ? "featured" : ""} data-offer-id={tier.id} data-selected={selected || undefined} key={tier.id}>
+          <article className={tier.featured ? "featured" : ""} data-has-highlights={tier.highlights?.length ? "true" : undefined} data-offer-id={tier.id} data-selected={selected || undefined} key={tier.id}>
             <div className="svc-package-badge-slot">
               {tier.featured && <span className="svc-package-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
             </div>
@@ -49,8 +55,18 @@ export function ServiceTierSelector({ locale, tiers }: { locale: Locale; tiers: 
               <p>{tier.description}</p>
             </div>
             <p className="svc-package-limit"><span>{ru ? "Объём тарифа" : "Package scope"}</span><b>{tier.limit}</b></p>
-            <strong className="svc-package-price">{tier.current}</strong>
+            <strong className={`svc-package-price price-emphasis ${priceToneClass(index)}`}>{tier.current}</strong>
             <small className="svc-package-note">{tier.note ?? ""}</small>
+            {tier.highlights && tier.highlights.length > 0 && (
+              <div className="svc-package-highlights" aria-label={ru ? "Ключевые параметры" : "Key details"}>
+                {tier.highlights.map((highlight) => (
+                  <div className="svc-package-highlight" key={`${highlight.value}-${highlight.label}`}>
+                    <strong>{highlight.value}</strong>
+                    <span>{highlight.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="svc-package-included">
               <span>{ru ? "Что получите" : "What you receive"}</span>
               <ul>{tier.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>

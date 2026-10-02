@@ -4,12 +4,16 @@ import Link from "next/link";
 import type { Locale } from "../../config/site";
 import { legalDocumentsAreComplete, legalOperatorSummary, localizedPath, siteConfig } from "../../config/site";
 import { LeadForm } from "../forms/LeadForm";
+import { Logo } from "../brand/Logo";
 import { PublicContactLinks } from "../contact/PublicContactLinks";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
-import { AboutDisclosure } from "./AboutDisclosure";
+import { CanvasText } from "../ui/canvas-text";
+import { AboutStory } from "./AboutStory";
 
-export function AboutPage({ locale }: { locale: Locale }) {
+// Kept temporarily as a rollback reference while the new company story is accepted.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function LegacyAboutPage({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
   const actions = ru
     ? ["Проверяем", "Проектируем", "Исправляем", "Создаём", "Публикуем", "Измеряем", "Перепроверяем"]
@@ -57,109 +61,84 @@ export function AboutPage({ locale }: { locale: Locale }) {
 
   return (
     <PublicShell locale={locale}>
-      <div className="about-10">
-        <header className="about-hero">
+      <div className="about-v2">
+        <header className="about-v2-hero">
           <Breadcrumbs locale={locale} items={[{ label: ru ? "О компании" : "About" }]} />
-          <div className="shell about-hero-grid">
-            <div>
-              <p className="svc-kicker">KILENI · SEO</p>
-              <h1>{ru ? "Помогаем развивать сайт: от SEO-аудита до разработки и контента." : "Website support, from SEO audits to development and content."}</h1>
-            </div>
-            <p>{ru ? "Изучаем задачу и доступные данные, объясняем выводы, согласуем изменения и проверяем результат. При необходимости подключаем специалистов по рекламе и маркетплейсам." : "We review the task and available data, explain the findings, agree the changes and verify the result. Advertising and marketplace specialists join when needed."}</p>
+          <div className="shell about-v2-hero__inner">
+            <div className="about-v2-hero__brand"><Logo locale={locale} inverted /></div>
+            <p className="about-v2-kicker">{ru ? "О компании" : "About KILENI"}</p>
+            <h1 className="about-v2-hero__title">{ru ? "Разбираемся, что мешает сайту, и работаем с SEO, разработкой, аналитикой, контентом и карточками товаров." : "We find what is holding a site back and work on SEO, development, analytics, content and product listings."}</h1>
+            <p className="about-v2-hero__lead">{ru ? "Нас объединяет простой принцип: найти причину, объяснить её без лишних терминов, выполнить согласованные изменения и проверить результат ещё раз." : "Our shared principle is simple: find the cause, explain it plainly, deliver the agreed changes and verify the result again."}</p>
+            <div className="about-v2-motion" aria-hidden="true"><i/><i/><i/></div>
           </div>
         </header>
 
-        <section className="about-actions" aria-labelledby="about-actions-title">
+        <section className="about-v2-section about-v2-method" aria-labelledby="about-method-title">
+          <div className="shell about-v2-section__layout">
+            <header className="about-v2-section__heading">
+              <p>{ru ? "Как мы работаем" : "How we work"}</p>
+              <h2 id="about-method-title">{ru ? "От проверки до повторного контроля" : "From the first audit to the repeat check"}</h2>
+            </header>
+            <ol className="about-v2-method__steps">
+              {actions.map((action, index) => <li key={action}><span>{String(index + 1).padStart(2, "0")}</span><strong>{action}</strong><i aria-hidden="true"/></li>)}
+            </ol>
+          </div>
+        </section>
+
+        <section className="about-v2-section about-v2-journey" aria-labelledby="about-journey-title">
+          <div className="shell about-v2-journey__layout">
+            <header className="about-v2-section__heading">
+              <p>{ru ? "Как начинается проект" : "How a project starts"}</p>
+              <h2 id="about-journey-title">{ru ? "Сначала договариваемся о результате, составе, цене и сроке" : "First agree the outcome, scope, price and timing"}</h2>
+            </header>
+            <ol className="about-v2-journey__route">
+              {projectStart.map((stage, index) => <li key={stage}><span>{String(index + 1).padStart(2, "0")}</span><strong>{stage}</strong></li>)}
+            </ol>
+          </div>
+        </section>
+
+        <section className="about-v2-section about-v2-team" aria-labelledby="about-team-title">
+          <div className="shell about-v2-team__layout">
+            <header className="about-v2-section__heading">
+              <p>{ru ? "Компетенции внутри работы" : "Capabilities within the work"}</p>
+              <h2 id="about-team-title">{ru ? "Подключаем нужные роли, а не продаём лишний пакет" : "Bring in the right roles, not an oversized package"}</h2>
+              <p>{ru ? "Состав зависит от задачи. Один проект может требовать только аналитики, другой — совместной работы дизайна, разработки и контента." : "The team shape follows the task. One project may need analysis only; another may combine design, development and content."}</p>
+              <p>{ru ? "До начала работ называем ответственного за проект и фиксируем его в предложении. Список рядом показывает функции, которые могут понадобиться, а не перечень постоянного штата." : "Before work starts, we name the person responsible for the project and record that role in the proposal. The list shows functions a project may need, not a claimed permanent staff."}</p>
+            </header>
+            <ul className="about-v2-role-list">{roles.map((role, index) => <li key={role}><span>{String(index + 1).padStart(2, "0")}</span><strong>{role}</strong></li>)}</ul>
+          </div>
+        </section>
+
+        <section className="about-v2-section about-v2-handover" aria-labelledby="about-handover-title">
           <div className="shell">
-            <div className="about-section-heading">
-              <p className="svc-kicker">{ru ? "Что мы делаем" : "What we do"}</p>
-              <h2 id="about-actions-title">{ru ? "От проверки до повторного контроля" : "From the first audit to the repeat check"}</h2>
+            <header className="about-v2-section__heading about-v2-section__heading--wide">
+              <p>{ru ? "Что получает клиент" : "What the client receives"}</p>
+              <h2 id="about-handover-title">{ru ? "Не россыпь файлов, а понятная передача результата" : "A structured handover, not a pile of files"}</h2>
+            </header>
+            <ol className="about-v2-deliverables">{deliverables.map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><p>{text}</p></div></li>)}</ol>
+            <div className="about-v2-acceptance">
+              <p>{ru ? "Как принимается работа" : "How work is accepted"}</p>
+              <h2>{ru ? "Четыре критерия вместо субъективного «нравится»" : "Four criteria instead of a subjective approval"}</h2>
+              <ol>{acceptance.map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><strong>{title}</strong><p>{text}</p></li>)}</ol>
             </div>
-            <AboutDisclosure summary={<>
-                <span>{ru ? "Показать 7 этапов работы" : "Show the 7 work stages"}</span>
-                <small>{ru ? `${actions.slice(0, 3).join(", ")} и ещё 4 этапа` : `${actions.slice(0, 3).join(", ")}, and 4 more stages`}</small>
-              </>}>
-              <ol className="about-action-list">
-                {actions.map((action, index) => <li key={action}><span>{String(index + 1).padStart(2, "0")}</span><strong>{action}</strong></li>)}
-              </ol>
-            </AboutDisclosure>
           </div>
         </section>
 
-        <section className="about-process" aria-labelledby="about-process-title">
-          <div className="shell">
-            <div className="about-section-heading">
-              <p className="svc-kicker">{ru ? "Как начинается проект" : "How a project starts"}</p>
-              <h2 id="about-process-title">{ru ? "Сначала договариваемся о результате, составе, цене и сроке" : "First agree the outcome, scope, price and timing"}</h2>
-            </div>
-            <AboutDisclosure summary={<>
-                <span>{ru ? "Показать путь до начала работ" : "Show the path to project start"}</span>
-                <small>{ru ? `${projectStart.slice(0, 3).join(", ")} и ещё 4 этапа` : `${projectStart.slice(0, 3).join(", ")}, and 4 more stages`}</small>
-              </>}>
-              <ol className="about-start-route">
-                {projectStart.map((stage, index) => <li key={stage}><span>{String(index + 1).padStart(2, "0")}</span><strong>{stage}</strong></li>)}
-              </ol>
-            </AboutDisclosure>
-          </div>
-        </section>
-
-        <section className="about-roles" aria-labelledby="about-roles-title">
-          <div className="shell about-roles-grid">
-            <div>
-              <p className="svc-kicker">{ru ? "Состав команды" : "Project team"}</p>
-              <h2 id="about-roles-title">{ru ? "Подбираем специалистов под задачи проекта" : "We select specialists for the project tasks"}</h2>
-              <p>{ru ? "Состав команды зависит от задачи: для одного проекта достаточно аналитики, для другого нужны дизайн, разработка и контент." : "The team depends on the task: one project may need analysis only, while another needs design, development and content."}</p>
-              <p>{ru ? "До начала работ называем ответственного за проект и фиксируем его в предложении. В списке указаны функции, которые могут понадобиться в работе; это не перечень постоянных сотрудников." : "Before work starts, we name the person responsible for the project and record that role in the proposal. The list names functions that may be needed for the work; it is not a list of permanent employees."}</p>
-            </div>
-            <ul>{roles.map((role, index) => <li key={role}><span>{String(index + 1).padStart(2, "0")}</span>{role}</li>)}</ul>
-          </div>
-        </section>
-
-        <section className="about-deliverables" aria-labelledby="about-deliverables-title">
-          <div className="shell about-deliverables-grid">
-            <div><p className="svc-kicker">{ru ? "Что получает клиент" : "What the client receives"}</p><h2 id="about-deliverables-title">{ru ? "Материалы собраны для передачи и приёмки" : "Materials prepared for handover and acceptance"}</h2></div>
-            <ol className="about-deliverable-flow">{deliverables.map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><p>{text}</p></div></li>)}</ol>
-          </div>
-        </section>
-
-        <section className="about-boundaries" aria-labelledby="about-boundaries-title">
-          <div className="shell">
-            <div className="about-section-heading">
-              <p className="svc-kicker">{ru ? "Ответственность" : "Accountability"}</p>
-              <h2 id="about-boundaries-title">{ru ? "Что гарантируем — и чего обещать не будем" : "What we guarantee — and what we will not promise"}</h2>
-            </div>
-            <AboutDisclosure summary={<>
-                <span>{ru ? "Показать границы ответственности" : "Show accountability boundaries"}</span>
-                <small>{ru ? "Что входит в нашу ответственность, а что зависит не только от нас" : "What we control and what depends on external factors"}</small>
-              </>}>
-              <div className="about-boundary-grid">
+        <section className="about-v2-section about-v2-final" aria-labelledby="about-final-title">
+          <div className="shell about-v2-final__layout">
+            <div className="about-v2-final__commitments">
+              <p>{ru ? "Ответственность" : "Accountability"}</p>
+              <h2 id="about-final-title">{ru ? "Что гарантируем — и чего обещать не будем" : "What we guarantee — and what we will not promise"}</h2>
+              <div>
                 <article><h3>{ru ? "Гарантируем" : "We guarantee"}</h3><ul>{guarantees.map((item) => <li key={item}>{item}</li>)}</ul></article>
                 <article><h3>{ru ? "Не гарантируем" : "We do not guarantee"}</h3><ul>{noGuarantees.map((item) => <li key={item}>{item}</li>)}</ul></article>
               </div>
-            </AboutDisclosure>
-          </div>
-        </section>
-
-        <section className="about-acceptance" aria-labelledby="about-acceptance-title">
-          <div className="shell">
-            <div className="about-section-heading">
-              <p className="svc-kicker">{ru ? "Как принимается работа" : "How work is accepted"}</p>
-              <h2 id="about-acceptance-title">{ru ? "Проверяем состав, работоспособность и подтверждение результата" : "Check scope, functionality and evidence of delivery"}</h2>
             </div>
-            <AboutDisclosure summary={<>
-                <span>{ru ? "Показать 4 критерия приёмки" : "Show the 4 acceptance criteria"}</span>
-                <small>{acceptance.map(([title]) => title).join(", ")}</small>
-              </>}>
-              <ol className="about-acceptance-grid">{acceptance.map(([title, text], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{title}</h3><p>{text}</p></li>)}</ol>
-            </AboutDisclosure>
-          </div>
-        </section>
-
-        <section className="about-next">
-          <div className="shell about-next-grid">
-            <div><p className="svc-kicker">{ru ? "Нестандартная задача" : "A non-standard task"}</p><h2>{ru ? "Не нашли подходящую услугу? Изучим задачу и предложим решение." : "Cannot find the right service? We will review the task and propose a solution."}</h2></div>
-            <div className="about-next-actions">
+            <div className="about-v2-final__cta">
+              <p>{ru ? "Нестандартная задача" : "A non-standard task"}</p>
+              <h2>{ru ? "Не нашли подходящую услугу? Изучим задачу и предложим решение." : "Cannot find the right service? We will review the task and propose a solution."}</h2>
               <Link className="button button-primary" href={localizedPath(locale, "brief")}>{ru ? "Заполнить короткий бриф" : "Complete the short brief"}<span aria-hidden="true">↗</span></Link>
+              <Link className="about-free-audit-link" href={localizedPath(locale, "free-audit")}>{ru ? "Начать с бесплатной проверки" : "Start with a free check"}<span aria-hidden="true">↗</span></Link>
               <PublicContactLinks locale={locale} variant="compact" primaryOnly />
             </div>
           </div>
@@ -167,6 +146,10 @@ export function AboutPage({ locale }: { locale: Locale }) {
       </div>
     </PublicShell>
   );
+}
+
+export function AboutPage({ locale }: { locale: Locale }) {
+  return <PublicShell locale={locale}><AboutStory locale={locale} breadcrumbs={<Breadcrumbs locale={locale} items={[{ label: locale === "ru" ? "О компании" : "About" }]}/>}/></PublicShell>;
 }
 
 export function ContactsPage({ locale }: { locale: Locale }) {
@@ -177,7 +160,7 @@ export function ContactsPage({ locale }: { locale: Locale }) {
         <Breadcrumbs locale={locale} items={[{ label: ru ? "Контакты" : "Contact" }]} />
         <section className="page-hero shell">
           <p className="eyebrow light">{ru ? "Контакты" : "Contact"}</p>
-          <h1>{ru ? "Расскажите, что нужно сделать" : "Tell us what needs to be done"}</h1>
+          <h1><CanvasText text={ru ? "Расскажите, что нужно сделать" : "Tell us what needs to be done"} lineGap={7} animationDuration={10}/></h1>
           <p>{ru ? "Позвоните или напишите в удобный мессенджер. Для подробной задачи оставьте короткую заявку." : "Call or use your preferred messenger. For a detailed task, send a short request."}</p>
         </section>
       </div>
@@ -224,7 +207,7 @@ export function LegalPage({ locale, kind }: { locale: Locale; kind: "privacy" | 
         <article className="section legal-copy shell">
           <p>{ru ? `Настоящим я свободно, своей волей и в своём интересе даю ${legal.name} (ИНН ${legal.inn}, ОГРНИП ${legal.ogrnip}) согласие на обработку данных, которые я укажу в форме сайта KILENI.` : `I freely consent to ${legal.name} processing the data I submit through a KILENI form.`}</p>
           <h2>{ru ? "Какие данные" : "Data covered"}</h2>
-          <p>{ru ? "Имя; номер телефона или e-mail; адрес проверяемого сайта, карточки или проекта; комментарий; ответы брифа; выбранный тариф; переданные мной файлы; технические сведения о согласии, источнике обращения и защите формы." : "Name; phone number or email; website, listing or project address; comment; brief answers; selected package; submitted files; and technical consent, attribution and form-security records."}</p>
+          <p>{ru ? "В текущих формах — имя, e-mail, адрес проверяемого сайта, карточки или проекта, комментарий, ответы брифа, выбранный тариф и переданные мной файлы; также сохраняются технические сведения о согласии, источнике обращения и защите формы. В более ранних обращениях контакт мог быть указан номером телефона, поэтому такие записи обрабатываются на том же правовом основании." : "Current forms collect a name, email, website, listing or project address, comment, brief answers, selected package and submitted files, together with technical consent, attribution and form-security records. Earlier requests may contain a phone number, and those records are processed on the same legal basis."}</p>
           <h2>{ru ? "Цели" : "Purposes"}</h2>
           <p>{ru ? "Ответить на обращение, выполнить запрошенную бесплатную проверку, подготовить расчёт или предложение, связать результат проверки с моим обращением и согласовать возможные работы. Согласие не включает рекламную рассылку." : "To answer the request, run the requested free check, prepare an estimate or proposal, connect the audit result with the request and agree possible work. This consent does not cover advertising messages."}</p>
           <h2>{ru ? "Действия и способы обработки" : "Processing operations"}</h2>
@@ -254,7 +237,7 @@ export function LegalPage({ locale, kind }: { locale: Locale; kind: "privacy" | 
         <h2>{ru ? "1. Оператор и область действия" : "1. Operator and scope"}</h2>
         <p>{ru ? `Оператор: ${operator}. ИП зарегистрирован ${legal.registrationDate}, регистрирующий орган — ${legal.registrationAuthority}. Политика применяется к сайту KILENI и его формам.` : `Operator: ${operator}. This policy applies to the KILENI website and its forms.`}</p>
         <h2>{ru ? "2. Какие данные обрабатываются" : "2. Data processed"}</h2>
-        <p>{ru ? "Имя; номер телефона или e-mail; адрес сайта, карточки или проекта; комментарий; выбранная услуга и тариф; ответы брифа; файлы, которые пользователь прикрепил сам; UTM-параметры; версия и время согласия; необратимый хеш IP-адреса и User-Agent для ограничения злоупотреблений. Платёжные данные сайт не собирает." : "Name; phone number or email; website, listing or project address; comment; selected service and package; brief answers; files submitted by the user; UTM parameters; consent version and time; and irreversible IP and User-Agent hashes for abuse prevention. The website does not collect payment data."}</p>
+        <p>{ru ? "В текущих формах обрабатываются имя, e-mail, адрес сайта, карточки или проекта, комментарий, выбранная услуга и тариф, ответы брифа и файлы, которые пользователь прикрепил сам; также сохраняются UTM-параметры, версия и время согласия, необратимый хеш IP-адреса и User-Agent для ограничения злоупотреблений. В более ранних обращениях контакт мог быть указан номером телефона, поэтому такие записи обрабатываются на том же правовом основании. Платёжные данные сайт не собирает." : "Current forms process a name, email, website, listing or project address, comment, selected service and package, brief answers and files submitted by the user, together with UTM parameters, consent version and time, and irreversible IP and User-Agent hashes for abuse prevention. Earlier requests may contain a phone number, and those records are processed on the same legal basis. The website does not collect payment data."}</p>
         <h2>{ru ? "3. Цели и действия" : "3. Purposes and operations"}</h2>
         <p>{ru ? "Данные используются, чтобы ответить на обращение, выполнить бесплатную проверку, подготовить расчёт или предложение, защитить формы, сохранить историю согласованного проекта и исполнить договор. Основания: отдельное согласие пользователя, действия по его запросу до заключения договора и исполнение заключённого договора. Юридически значимые решения автоматически не принимаются; рекламная рассылка без отдельного согласия не ведётся." : "Data is used to answer requests, run the free check, prepare an estimate or proposal, protect forms, retain agreed project history and perform a contract. Grounds include the user's separate consent, pre-contract steps requested by the user and contract performance. No legally significant automated decisions or advertising mailings are made."}</p>
         <h2>{ru ? "4. Хранение и безопасность" : "4. Retention and security"}</h2>

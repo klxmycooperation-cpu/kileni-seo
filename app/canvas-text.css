@@ -1,0 +1,31 @@
+.canvas-text {
+  display: inline;
+  color: transparent !important;
+  background-color: #7f9df2;
+  background-image:
+    linear-gradient(112deg, rgb(216 231 255 / 22%) 0%, rgb(216 231 255 / 22%) 25%, rgb(246 250 255 / 84%) 38%, rgb(100 141 255 / 20%) 49%, rgb(231 240 255 / 72%) 62%, rgb(119 156 255 / 18%) 78%, rgb(216 231 255 / 26%) 100%),
+    var(--canvas-text-pattern, linear-gradient(105deg, #b6cbff, #7198ff, #a7c0ff));
+  background-position: 0% 50%, 50% 50%;
+  background-repeat: no-repeat;
+  background-size: 240% 100%, 100% 100%;
+  background-blend-mode: screen, normal;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  animation: canvas-text-sheen 5.5s linear infinite;
+  animation-play-state: paused;
+}
+
+.canvas-text[data-canvas-active="true"] { animation-play-state: running; }
+
+@keyframes canvas-text-sheen {
+  to { background-position: 240% 50%, 50% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-text {
+    background-image: linear-gradient(105deg, #dce7ff 0%, #6f9aff 46%, #b9cdfd 100%) !important;
+    animation: none;
+  }
+}

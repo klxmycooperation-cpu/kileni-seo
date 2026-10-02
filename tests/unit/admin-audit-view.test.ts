@@ -47,7 +47,8 @@ describe("представление аудита в админке", () => {
     });
     expect(view?.technicalResources.map((item) => item.resourceType))
       .toEqual(["robots", "sitemap"]);
-    expect(JSON.stringify(view)).not.toMatch(/"score"|"grade"/u);
+    expect(view).not.toHaveProperty("score");
+    expect(view).not.toHaveProperty("grade");
   });
 
   it("извлекает полный инвентарь и причины решений из служебного снимка", () => {

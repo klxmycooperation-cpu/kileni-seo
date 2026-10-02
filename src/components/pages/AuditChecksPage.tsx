@@ -11,6 +11,7 @@ import {
 } from "../../content/audit-checks";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
+import { CanvasText } from "../ui/canvas-text";
 import { CompactPageToc } from "./CompactPageToc";
 
 const categoryOrder: readonly AuditCheckCategory[] = [
@@ -29,7 +30,7 @@ export function AuditChecksIndexPage({ locale }: { locale: Locale }) {
         <Breadcrumbs locale={locale} items={[{ label: ru ? "Методика аудита" : "Audit methodology" }]}/>
         <section className="glossary-hero shell">
           <p className="section-kicker">{ru ? "30 проверок бесплатного аудита" : "30 checks in the free audit"}</p>
-          <h1>{ru ? "Что именно проверяет KILENI" : "What KILENI actually checks"}</h1>
+          <h1><CanvasText text={ru ? "Что именно проверяет KILENI" : "What KILENI actually checks"} lineGap={7} animationDuration={10}/></h1>
           <p>{ru ? "Показываем, что именно проверяет система, когда результат считается успешным, как исправить проблему и чего нельзя подтвердить автоматически. Скрытых псевдопоказателей нет." : "See what the system checks, what counts as a pass, how to fix a problem and what cannot be confirmed automatically. No hidden vanity metrics."}</p>
         </section>
         <CompactPageToc
@@ -103,7 +104,7 @@ export function AuditCheckPage({ locale, slug }: { locale: Locale; slug: string 
         <Breadcrumbs locale={locale} items={[{ label: ru ? "Методика аудита" : "Audit methodology", path: "checks" }, { label: copy.title }]}/>
         <section className="glossary-hero shell checks-detail-hero">
           <p className="section-kicker">{auditCheckCategoryLabels[locale][check.category]}</p>
-          <h1>{copy.title}</h1>
+          <h1><CanvasText text={copy.title} lineGap={7} animationDuration={10}/></h1>
           <p>{copy.summary}</p>
         </section>
         <section className="glossary-grid shell checks-detail-grid" aria-label={ru ? `Критерии проверки: ${copy.title}` : `Check criteria: ${copy.title}`}>

@@ -14,13 +14,13 @@ describe("offer catalog", () => {
     expect(ids).toContain("seo-audit-200");
   });
 
-  it("keeps the approved 200-page audit as one canonical offer", () => {
+  it("keeps the full technical audit as one canonical offer", () => {
     const offer = getOffer("seo-audit-200");
     expect(offer).toMatchObject({
       id: "seo-audit-200",
       service: "seo-audit",
       briefType: "audit",
-      price: 39_900,
+      price: 29_000,
       pageLimit: 200,
       billingUnit: "project",
       recommended: true,
@@ -31,9 +31,83 @@ describe("offer catalog", () => {
       stackingPolicy: "not-applicable",
     });
     expect(localizedOffer(offer!, "ru")).toMatchObject({
-      title: "Аудит до 200 страниц",
+      title: "Технический SEO-аудит",
       duration: "5–7 рабочих дней",
     });
+    expect(localizedOffer(offer!, "ru").scope).toContain("200 страниц");
+  });
+
+  it("names the paid audits by their result while keeping page limits visible", () => {
+    expect(offersForService("seo-audit")
+      .filter((offer) => ["seo-audit-50", "seo-audit-200", "seo-audit-500"].includes(offer.id))
+      .map((offer) => localizedOffer(offer, "ru").title))
+      .toEqual(["Проверка ключевых страниц", "Технический SEO-аудит", "SEO-аудит с планом продвижения"]);
+    for (const id of ["seo-audit-50", "seo-audit-200", "seo-audit-500"]) {
+      const offer = getOffer(id)!;
+      expect(localizedOffer(offer, "ru").scope).toContain(String(offer.pageLimit));
+    }
+  });
+
+  it("distinguishes the catalogue from online payment and delivery", () => {
+    const offer = getOffer("development-max")!;
+    const localized = localizedOffer(offer, "ru");
+    expect(offer.price).toBe(80_000);
+    expect(localized.title).toBe("Каталог товаров");
+    expect(localized.scope).toMatch(/каталог.*100 товаров.*заявк/iu);
+    expect(localized.exclusions.join(" ")).toMatch(/оплат.*доставк/iu);
+  });
+
+  it("describes the deliverable of every audit package shown on the service page", () => {
+    expect(localizedOffer(getOffer("seo-audit-free")!, "ru").description).toBe(
+      "Получите список найденных проблем на открытых страницах и поймёте, нужна ли более подробная проверка.",
+    );
+    expect(localizedOffer(getOffer("seo-audit-200")!, "ru").description).toBe(
+      "Проверим ошибки, которые затрагивают разные страницы сайта, и передадим разработчику задачи с адресами и критериями проверки.",
+    );
+    expect(localizedOffer(getOffer("seo-audit-implementation")!, "ru").description).toBe(
+      "Проверим сайт, внесём согласованные исправления, покажем список изменений и повторно проверим затронутые страницы.",
+    );
+  });
+
+  it("includes the agreed fixes in the audit with implementation and caps them at 12 hours", () => {
+    const offer = getOffer("seo-audit-implementation")!;
+    const details = localizedOffer(offer, "ru");
+    expect(details.exclusions.join(" ")).toMatch(/сверх 12 часов/iu);
+    expect(details.exclusions.join(" ")).not.toMatch(/внедрение исправлений не входит/iu);
+    expect(offer.scopeContract).toMatchObject({ kind: "seo-audit", implementationHours: 12 });
+  });
+
+  it("records the published company-site limits and source handover in the contract", () => {
+    expect(getOffer("development-business")).toMatchObject({
+      pageLimit: 10,
+      scopeContract: { kind: "web-development", pages: 10, templates: 5, repository: "included" },
+    });
+    for (const id of ["development-start", "development-business", "development-max"]) {
+      expect(getOffer(id)?.scopeContract).toMatchObject({
+        kind: "web-development",
+        repository: "included",
+        ownership: "included",
+        warranty: "included",
+        supportBoundary: "excluded",
+      });
+    }
+  });
+
+  it("sets an explicit deliverable and unit for every calculator addition", () => {
+    expect(getOffer("marketplace-video-addon")).toMatchObject({
+      price: 7_000,
+      billingUnit: "sku",
+      scopeContract: { kind: "marketplaces", skus: 1 },
+    });
+    expect(localizedOffer(getOffer("marketplace-video-addon")!, "ru").scope).toMatch(/15 секунд.*раунд правок/iu);
+    expect(getOffer("marketplace-analytics-addon")).toMatchObject({
+      price: 2_500,
+      billingUnit: "month",
+      scopeContract: { kind: "marketplaces", skus: 10 },
+    });
+    expect(localizedOffer(getOffer("marketplace-analytics-addon")!, "ru").result).toMatch(/отчёт.*10 артикул/iu);
+    expect(localizedOffer(getOffer("development-account-addon")!, "ru").scope).toMatch(/один тип пользователя/iu);
+    expect(localizedOffer(getOffer("development-integrations-addon")!, "ru").scope).toMatch(/одна система.*одн.*сущность/iu);
   });
 
   it("does not invent a price for an individually scoped task", () => {
@@ -66,21 +140,21 @@ describe("offer catalog", () => {
       "marketplace-pack-10",
     ].map((id) => [id, getOffer(id)?.price]))).toEqual({
       "seo-audit-free": 0,
-      "seo-audit-50": 24_900,
-      "seo-audit-200": 39_900,
-      "seo-audit-500": 69_900,
-      "seo-audit-implementation": 49_900,
-      "seo-promotion-start": 34_900,
-      "seo-promotion-growth": 44_900,
-      "seo-promotion-team": 69_900,
-      "development-start": 59_900,
-      "development-business": 99_900,
-      "development-max": 189_900,
-      "yandex-ads-setup": 14_900,
-      "yandex-ads-support": 14_900,
-      "content-article": 4_900,
+      "seo-audit-50": 9_000,
+      "seo-audit-200": 29_000,
+      "seo-audit-500": 59_000,
+      "seo-audit-implementation": 49_000,
+      "seo-promotion-start": 25_000,
+      "seo-promotion-growth": 35_000,
+      "seo-promotion-team": 60_000,
+      "development-start": 30_000,
+      "development-business": 70_000,
+      "development-max": 80_000,
+      "yandex-ads-setup": 15_000,
+      "yandex-ads-support": 12_000,
+      "content-article": 5_000,
       "custom-task-consultation": null,
-      "marketplace-pack-10": 39_900,
+      "marketplace-pack-10": 18_000,
     });
   });
 
@@ -160,13 +234,13 @@ describe("offer catalog", () => {
     expect(getOffer("marketplace-video-addon")).toMatchObject({
       availability: "calculator-addon",
       service: "marketplaces",
-      price: 9_000,
+      price: 7_000,
       billingUnit: "sku",
     });
     expect(getOffer("development-account-addon")).toMatchObject({
       availability: "calculator-addon",
       service: "web-development",
-      price: 140_000,
+      price: 150_000,
     });
     expect(offersForService("marketplaces").some((offer) => offer.id.endsWith("-addon"))).toBe(false);
     expect(offersForService("web-development").some((offer) => offer.id.endsWith("-addon"))).toBe(false);
@@ -185,7 +259,7 @@ describe("offer catalog", () => {
       service: "marketplaces",
       briefType: "marketplaces",
       platform: "ozon",
-      price: 4_900,
+      price: 2_500,
       billingUnit: "sku",
     });
     expect(getOffer("marketplace-wildberries-optimization")?.id).not.toBe("marketplace-ozon-optimization");
@@ -196,7 +270,7 @@ describe("offer catalog", () => {
     expect(getOffer("marketplace-pack-10")).toMatchObject({
       service: "marketplaces",
       briefType: "marketplaces",
-      price: 39_900,
+      price: 18_000,
       pageLimit: 10,
       billingUnit: "project",
     });

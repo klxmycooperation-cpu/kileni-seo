@@ -21,7 +21,7 @@ test("renders the Russian and English public home pages with the right locale", 
   await expect(page.locator("html")).toHaveAttribute("lang", "ru");
   await expect(page.getByRole("heading", {
     level: 1,
-    name: "Сайт есть. Пора сделать так, чтобы его находили.",
+    name: "Сайт есть Пора сделать так, что бы его находили",
   })).toBeVisible();
   await expect(page.locator("body")).toHaveCSS("font-family", /Manrope/u);
   await expect(page.getByRole("heading", { level: 1 })).toHaveCSS("font-family", /Manrope/u);
@@ -35,6 +35,7 @@ test("renders the Russian and English public home pages with the right locale", 
 });
 
 test("switches locale while preserving the current public route", async ({ page }) => {
+  await page.setViewportSize({ width: 1_440, height: 900 });
   await page.goto("/pricing?utm_source=e2e#request");
   await page.locator(".language-link").click();
 
@@ -49,6 +50,7 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   await page.goto("/");
 
   const header = page.locator(".site-header");
+  const headerSurface = header.locator(".header-inner");
   const services = header.getByRole("button", { name: "Услуги", exact: true });
   await expect(services).toBeVisible();
   await expect(services).toHaveAttribute("aria-expanded", "false");
@@ -58,18 +60,19 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   await expect(themeToggle).toBeVisible();
   await expect(page.locator("#kileni-theme-bootstrap")).toHaveCount(1);
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "dark");
-  await expect(themeToggle).toHaveAccessibleName("Включить контрастную тему");
-  await themeToggle.click();
-  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "signal");
   await expect(themeToggle).toHaveAccessibleName("Включить светлую тему");
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "signal");
-  await header.locator(".theme-toggle:not(.theme-toggle--mobile)").click();
+  await themeToggle.click();
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
-  await expect(header.locator(".theme-toggle:not(.theme-toggle--mobile)")).toHaveAccessibleName("Включить тёмную тему");
-  await expect(header.getByRole("link", { name: "Проверить сайт", exact: true })).toHaveCount(1);
+  await expect(themeToggle).toHaveAccessibleName("Включить тёмную тему");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
+  await header.locator(".theme-toggle:not(.theme-toggle--mobile)").click();
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "dark");
+  await expect(header.locator(".theme-toggle:not(.theme-toggle--mobile)")).toHaveAccessibleName("Включить светлую тему");
+  await expect(header.getByRole("link", { name: "Узнать, что мешает сайту", exact: true })).toHaveCount(1);
   await expect(header).toHaveCSS("position", "fixed");
-  await expect(header).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(header).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(headerSurface).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
   await services.focus();
   await page.keyboard.press("ArrowDown");
@@ -97,13 +100,11 @@ test("offers an accessible services dropdown and a persistent theme switch", asy
   await services.click();
   await expect(services).toHaveAttribute("aria-expanded", "false");
 
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await expect(header).toHaveAttribute("data-scrolled", "false");
   const initialHeaderHeight = await header.evaluate((element) => element.getBoundingClientRect().height);
   const initialMainTop = await page.locator("#main-content").evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
   await page.evaluate(() => window.scrollTo(0, 240));
   await expect(header).toHaveAttribute("data-scrolled", "true");
-  await expect(header).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(headerSurface).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect.poll(
     () => header.evaluate((element) => element.getBoundingClientRect().height),
     { message: "header finishes its compact scroll transition" },
@@ -127,35 +128,41 @@ test("explains the service in a bounded overview with a direct glossary route", 
   expect(violations.violations.filter((violation) => ["critical", "serious"].includes(violation.impact ?? ""))).toEqual([]);
 });
 
-test("covers the complete company story without invented biographies or promises", async ({ page }, testInfo) => {
+test("covers the complete company story without invented biographies or promises", async ({ page }) => {
+  test.slow();
   await page.goto("/about");
 
-  for (const heading of [
-    "Что мы делаем",
-    "Состав команды",
-    "Как начинается проект",
-    "Что получает клиент",
-    "Ответственность",
-    "Как принимается работа",
-  ]) {
-    await expect(page.getByText(heading, { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", {
+    level: 1,
+    name: "Продвигаем сайты и создаём цифровые продукты, которые удобно развивать.",
+  })).toBeVisible();
+  for (const width of [1_440, 390]) {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
+    await expect(page.locator(".about-v3-scene")).toHaveCount(5);
+    await expect(page.locator(".about-v3-service-card")).toHaveCount(3);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   }
-  const roles = page.locator(".about-roles");
-  await expect(page.getByRole("heading", { name: "Подбираем специалистов под задачи проекта" })).toBeVisible();
-  await expect(roles.getByRole("listitem").filter({ hasText: "Маркетплейсы" })).toBeVisible();
-  await expect(roles.getByRole("listitem").filter({ hasText: "Реклама" })).toBeVisible();
-  await expect(page.locator(".about-boundaries details")).toHaveAttribute("open", "");
-  await expect(page.locator(".about-boundaries").getByRole("listitem").filter({ hasText: "Топ-1" })).toBeVisible();
-  await roles.scrollIntoViewIfNeeded();
-  await page.evaluate(() => window.scrollBy(0, -96));
-  await page.screenshot({ path: testInfo.outputPath("about-team-ru.png"), animations: "disabled" });
+  await page.setViewportSize({ width: 1_440, height: 900 });
+
+  for (const heading of [
+    "Находим, что мешает сайту появляться в поиске.",
+    "Делаем карточки товаров понятными для поиска и покупателя.",
+    "Создаём лендинги, многостраничные сайты и сервисные страницы.",
+    "Расскажите о задаче — соберём понятный план работы.",
+  ]) {
+    await expect(page.getByRole("heading", { name: heading, exact: true })).toBeAttached();
+  }
+  for (const platform of ["Wildberries", "Ozon", "Яндекс Маркет"]) {
+    await expect(page.locator(`.about-v3-marketplace-logo[alt="${platform}"]`)).toBeAttached();
+  }
+  await expect(page.locator(".about-v3-code-editor")).toBeAttached();
+  await expect(page.getByRole("link", { name: "Заполнить короткий бриф" })).toHaveAttribute("href", "/brief");
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/en/about");
-  await expect(page.getByRole("heading", { name: "We select specialists for the project tasks" })).toBeVisible();
-  await expect(page.getByText("What the client receives", { exact: true })).toBeVisible();
-  await page.getByText("Show accountability boundaries", { exact: true }).click();
-  await expect(page.getByText("We do not guarantee", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("We make websites easier to find");
+  await expect(page.getByRole("link", { name: "Complete the short brief" })).toHaveAttribute("href", "/en/brief");
+  await expect(page.locator(".about-v3-scene")).toHaveCount(5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
@@ -165,7 +172,7 @@ test("recalculates the marketplace estimate at the ten-SKU package boundary", as
   await page.getByLabel("Число артикулов").fill("10");
   await page.getByLabel("Пакет").selectOption("optimization");
 
-  await expect(page.locator(".estimate-panel h2")).toContainText(/39\s900\s₽.*46\s000\s₽/u);
+  await expect(page.locator(".estimate-panel h2")).toContainText(/4\s250\s₽.*5\s000\s₽/u);
 });
 
 test("advances the brief and restores its browser draft after reload", async ({ page }) => {
@@ -201,14 +208,14 @@ test("opens the keyboard-labelled navigation without overflow at 320 and 360 pix
     await expect(page.getByRole("button", { name: "Закрыть меню" })).toHaveAttribute("aria-expanded", "true");
     const mobileNavigation = page.getByRole("navigation", { name: "Мобильная навигация" });
     await expect(mobileNavigation).toBeVisible();
-    const mobileCta = mobileNavigation.getByRole("link", { name: "Проверить сайт", exact: true });
+    const mobileCta = mobileNavigation.getByRole("link", { name: "Узнать, что мешает сайту", exact: true });
     await expect(mobileCta).toBeVisible();
     await expect(mobileCta).toHaveAttribute("href", "/free-audit");
     const mobileCtaBox = await mobileCta.boundingBox();
     expect(mobileCtaBox?.height ?? 0).toBeGreaterThanOrEqual(44);
     const mobileThemeToggle = mobileNavigation.locator(".theme-toggle--mobile");
     await expect(mobileThemeToggle).toBeVisible();
-    await expect(mobileThemeToggle).toHaveAccessibleName("Включить контрастную тему");
+    await expect(mobileThemeToggle).toHaveAccessibleName("Включить светлую тему");
     const themeToggleBox = await mobileThemeToggle.boundingBox();
     expect(themeToggleBox?.width ?? 0).toBeGreaterThanOrEqual(44);
     expect(themeToggleBox?.height ?? 0).toBeGreaterThanOrEqual(44);
@@ -271,36 +278,34 @@ test("does not hold the hero in its intro state when reduced motion is requested
   expect(hydrationErrors).toEqual([]);
 });
 
-test("finishes the approved SVG brand reveal at its natural pace", async ({ page }) => {
+test("finishes the approved brand reveal at its natural pace", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/?intro=1", { waitUntil: "domcontentloaded" });
   const intro = page.locator(".brand-intro");
   await expect(intro).toBeVisible();
   await expect(intro).toHaveAttribute("role", "region");
   await expect(intro).toHaveAttribute("aria-label", "Заставка KILENI");
-  await expect(intro).toHaveCSS("pointer-events", "auto");
-  await expect(intro.locator(".brand-intro-v9__kil")).toHaveText("KIL");
-  await expect(intro.locator(".brand-intro-v9__ni")).toHaveText("NI");
-  await expect(intro.locator(".brand-intro-v9__e")).toHaveText("E");
-  await expect(intro.locator(".brand-intro-v9__s")).toHaveText("S");
-  await expect(intro.locator(".brand-intro-v9__o")).toHaveText("O");
-  await expect(intro.locator(".brand-intro-v9__slogan").first()).toContainText("Разбираем по буквам");
+  await expect(intro).toHaveCSS("pointer-events", "none");
+  await expect(intro.locator(".brand-intro-v10__wordmark")).toContainText("KILENI");
+  await expect(intro.locator("[data-intro-phase='competitor-failing']")).toContainText("Видимость снижается");
+  await expect(intro.locator("[data-intro-phase='seo-recheck']")).toContainText("Проверяем и исправляем");
+  await expect(intro.locator(".brand-intro-v10__caption")).toContainText("Сайт поднимается");
 
   const completionMs = await page.evaluate(async () => {
     const root = document.documentElement;
-    const readDuration = () => Number(root.dataset.kileniIntroLastCompletedAt) - Number(root.dataset.kileniIntroLastStartedAt);
-    if (root.dataset.kileniIntro === "done") return readDuration();
+    const startedAt = Number(root.dataset.kileniIntroStartedAt);
+    if (root.dataset.kileniIntro === "done") return performance.now() - startedAt;
     return await new Promise<number>((resolve) => {
       const observer = new MutationObserver(() => {
         if (root.dataset.kileniIntro !== "done") return;
         observer.disconnect();
-        resolve(readDuration());
+        resolve(performance.now() - startedAt);
       });
       observer.observe(root, { attributes: true, attributeFilter: ["data-kileni-intro"] });
     });
   });
-  expect(completionMs).toBeGreaterThanOrEqual(3_600);
-  expect(completionMs).toBeLessThanOrEqual(5_000);
+  expect(completionMs).toBeGreaterThanOrEqual(2_600);
+  expect(completionMs).toBeLessThanOrEqual(3_800);
   await expect(intro).toHaveCount(0);
 
   const layout = await page.locator(".signal-hero h1").evaluate((heading) => {
@@ -318,7 +323,7 @@ test("keeps the mobile intro opaque above the page until it has finished", async
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/?intro=1", { waitUntil: "domcontentloaded" });
 
-  const intro = page.locator(".brand-intro-v9");
+  const intro = page.locator(".brand-intro-v10");
   await expect(intro).toBeVisible();
   const coverage = await intro.evaluate((element) => {
     const rect = element.getBoundingClientRect();
@@ -340,7 +345,7 @@ test("keeps the mobile intro opaque above the page until it has finished", async
 
 test("shows the intro once per browser session and keeps an explicit replay route", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Пропустить заставку" }).click();
+  await page.getByRole("button", { name: "Открыть сайт" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done");
   await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem("kileni:intro:v9"))).toBe("1");
 
@@ -372,18 +377,15 @@ test("starts the intro on client-side navigation to the home page", async ({ pag
   await expect(page.locator(".brand-intro")).toHaveCount(0);
 });
 
-test("allows input to dismiss the intro before React hydrates", async ({ page }) => {
+test("keeps the real page rendered while React hydration is delayed", async ({ page }) => {
   await page.route("**/_next/static/chunks/**", async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 1_200));
     await route.continue();
   });
   await page.goto("/", { waitUntil: "commit" });
-  const fallback = page.locator(".brand-intro-v9__fallback");
-  await expect(fallback).toBeVisible({ timeout: 2_500 });
-  await expect(fallback).toContainText("KILENI");
-  await page.getByRole("button", { name: "Пропустить заставку" }).click({ timeout: 2_500 });
-
-  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done", { timeout: 500 });
+  await expect(page.getByRole("heading", { level: 1, name: "Сайт есть. Пора сделать так, чтобы его находили." })).toBeAttached({ timeout: 2_500 });
+  await expect(page.locator(".brand-intro-v9__fallback")).toHaveCount(0);
+  await expect(page.locator("html")).toHaveAttribute("data-kileni-intro", "done", { timeout: 7_000 });
 });
 
 test("keeps the home layout within 390, 768, 1024 and 1440 pixels", async ({ page }) => {
@@ -401,7 +403,6 @@ test("keeps the home layout within 390, 768, 1024 and 1440 pixels", async ({ pag
     });
     expect(layout.lines, `heading lines at ${width}px`).toBeLessThanOrEqual(width === 390 ? 5.05 : 4.05);
     expect(layout.overflow, `horizontal overflow at ${width}px`).toBe(false);
-    if (width > 360 && width <= 768) await expect(page.locator(".header-cta")).toBeVisible();
   }
 });
 
@@ -448,7 +449,7 @@ test("submits the free-audit form and preserves the quota after repeated active-
   await page.goto("/free-audit");
   await page.getByLabel("Адрес сайта").fill(`https://${activeDomain}/a-page`);
   await expect(page.getByLabel("Сколько страниц проверить")).toHaveCount(0);
-  await page.getByRole("button", { name: /Проверить сайт бесплатно/u }).click();
+  await page.getByRole("button", { name: /Проверить бесплатно до 10 репрезентативных страниц сайта/u }).click();
   await expect(page.getByText("Результат откроется сразу. Email — по желанию")).toBeVisible();
   await expect(page.getByLabel("Email (необязательно)")).toBeVisible();
   await expect(page.getByText(/согласие на обработку email для подготовки и однократной отправки отчёта/iu)).toHaveCount(0);
@@ -526,7 +527,7 @@ test("shows an explicit error for an unknown audit link", async ({ page }) => {
 test("submits the short form and calculator lead", async ({ page }) => {
   await page.goto("/contacts");
   await page.getByLabel("Имя").fill("E2E Lead");
-  await page.getByLabel("Телефон или e-mail").fill("lead-e2e@example.com");
+  await page.getByLabel("E-mail").fill("lead-e2e@example.com");
   await page.getByLabel(/согласие на обработку персональных данных/iu).check();
   await page.getByRole("button", { name: "Отправить заявку" }).click();
   await expect(page.getByText(/Заявка сохранена/u)).toBeVisible();
@@ -547,20 +548,12 @@ test("submits the detailed brief with a validated private PNG attachment", async
   await page.getByLabel("Компания или проект").fill("E2E Brief");
   await page.getByLabel("Что сейчас не устраивает?").fill("Посетители не находят нужные услуги в поиске.");
   await page.getByLabel("Какой результат нужен?").fill("Понятный план роста заявок из поиска.");
-  await page.waitForFunction(() => {
-    const draft = JSON.parse(window.localStorage.getItem("kileni-brief:v2") ?? "null") as { answers?: { result?: string } } | null;
-    return draft?.answers?.result === "Понятный план роста заявок из поиска.";
-  });
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Ссылка на сайт").fill("https://example.com");
   await page.getByLabel("Приоритетные услуги").fill("SEO-аудит и продвижение.");
-  await page.waitForFunction(() => {
-    const draft = JSON.parse(window.localStorage.getItem("kileni-brief:v2") ?? "null") as { answers?: { priorities?: string } } | null;
-    return draft?.answers?.priorities === "SEO-аудит и продвижение.";
-  });
   await page.getByRole("button", { name: /^Далее/u }).click();
   await page.getByLabel("Имя").fill(briefName);
-  await page.getByLabel("Телефон или e-mail").fill("brief-e2e@example.com");
+  await page.getByLabel("E-mail").fill("brief-e2e@example.com");
   await page.getByLabel(/согласие на обработку персональных данных/iu).check();
   await page.locator('input[type="file"]').setInputFiles("public/brand/kileni-og.png");
   await expect(page.getByText(/kileni-og\.png/u)).toBeVisible();

@@ -20,6 +20,7 @@ export type PublicAuditSnapshot = AuditProgressSnapshot & {
 export function buildStoredPublicAuditSnapshot(audit: AuditRow): PublicAuditSnapshot {
   const terminal = isTerminal(audit.status);
   const result = sanitizePublicAuditResult(safeJsonParse(audit.publicResultJson));
+  warnAboutLegacyLighthouseGap(audit, result);
   const pageLimit = Math.min(siteConfig.audit.pageLimit, audit.pageLimit);
   const coverage = terminal && audit.status !== "failed" && result
     ? derivePublicAuditCoverage({
@@ -51,6 +52,25 @@ export function buildStoredPublicAuditSnapshot(audit: AuditRow): PublicAuditSnap
     result,
     ...(audit.status === "failed" ? { errorSummary: audit.errorSummary } : {}),
   };
+}
+
+function warnAboutLegacyLighthouseGap(audit: AuditRow, result: Record<string, unknown> | null): void {
+  if (!result || result.performanceObservation !== undefined) return;
+  const checks = Array.isArray(result.checks) ? result.checks : [];
+  const summaryMentionsLighthouse = checks.some((value) => {
+    if (!value || typeof value !== "object") return false;
+    const check = value as Record<string, unknown>;
+    return check.checkId === "performance" && typeof check.reason === "string" && /\d{1,3}\s*(?:из|of|\/)\s*100/iu.test(check.reason);
+  });
+  if (!summaryMentionsLighthouse) return;
+  console.warn(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    service: "audit-report",
+    event: "lighthouse_summary_without_observation",
+    auditId: audit.id,
+    storageMode: "persistent",
+    lighthouseStatus: "legacy_summary_only",
+  }));
 }
 
 export function buildRestoredPublicAuditSnapshot(restored: AuditRestoreSnapshot): PublicAuditSnapshot {

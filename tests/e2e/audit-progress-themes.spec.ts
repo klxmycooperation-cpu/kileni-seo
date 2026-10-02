@@ -12,7 +12,7 @@ const themes: ReadonlyArray<{
 }> = [
   { name: "light", label: "Светлая", shell: "rgb(247, 248, 251)", resultSurface: "rgb(255, 255, 255)" },
   { name: "dark", label: "Тёмная", shell: "rgb(7, 17, 31)", resultSurface: "rgb(11, 23, 39)" },
-  { name: "signal", label: "Контрастная", shell: "rgb(7, 11, 24)", resultSurface: "rgb(12, 20, 40)" },
+  { name: "signal", label: "Сигнальная", shell: "rgb(7, 11, 24)", resultSurface: "rgb(12, 20, 40)" },
 ] as const;
 
 const auditViewports = [

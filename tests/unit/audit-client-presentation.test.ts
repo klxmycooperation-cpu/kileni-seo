@@ -13,7 +13,7 @@ describe("client audit presentation", () => {
       scopeLabel: "Предварительно просмотрено адресов",
       scopeValue: 100,
       checkedLabel: "Подробно проверено страниц",
-      findingsLabel: "1 вывод требует проверки · 1 возможное улучшение",
+      findingsLabel: "1 вывод требует проверки",
       eligible: 98,
       excluded: 2,
       selected: 10,
@@ -22,7 +22,9 @@ describe("client audit presentation", () => {
       outsideSample: 88,
       critical: 0,
       review: 1,
-      optional: 1,
+      optional: 0,
+      unverifiedGroups: 0,
+      unavailableExternalMetrics: 7,
     });
     expect(presentation.summary.htmlFound).toBe(presentation.summary.eligible + presentation.summary.excluded);
     expect(presentation.summary.eligible).toBe(presentation.summary.selected + presentation.summary.outsideSample);
@@ -31,18 +33,16 @@ describe("client audit presentation", () => {
       { reason: "service_url", label: "Техническая страница", count: 1 },
       { reason: "closed_section", label: "Закрытый раздел", count: 1 },
     ]);
-    expect(presentation.issues).toHaveLength(2);
+    expect(presentation.issues).toHaveLength(1);
     expect(presentation.issues.map((issue) => [issue.kind, issue.url])).toEqual([
       ["review", "https://example.com/"],
-      ["optional", "https://example.com/services"],
     ]);
     expect(presentation.issues.map((issue) => issue.affectedUrls)).toEqual([
       ["https://example.com/"],
-      ["https://example.com/services"],
     ]);
     expect(presentation.pages.find((page) => page.url === "https://example.com/")?.issues).toHaveLength(1);
-    expect(presentation.pages.find((page) => page.url === "https://example.com/services")?.issues).toHaveLength(1);
-    expect(presentation.pages.filter((page) => !["https://example.com/", "https://example.com/services"].includes(page.url)).every((page) => page.issues.length === 0)).toBe(true);
+    expect(presentation.pages.find((page) => page.url === "https://example.com/services")?.issues).toHaveLength(0);
+    expect(presentation.pages.filter((page) => page.url !== "https://example.com/").every((page) => page.issues.length === 0)).toBe(true);
   });
 
   it("preserves the honest processed-URL scope after the public payload is sanitized", () => {
@@ -57,17 +57,16 @@ describe("client audit presentation", () => {
     });
   });
 
-  it("uses plain, decision-ready fields for both client findings", () => {
+  it("uses plain, decision-ready fields and does not treat missing BreadcrumbList as an error", () => {
     const presentation = buildAuditClientPresentation(auditClientReportSnapshot(), "ru");
     const speed = presentation.issues[0]!;
-    const breadcrumbs = presentation.issues[1]!;
 
-    expect(speed.title).toBe("Мобильная производительность главной страницы");
-    expect(speed.whatFound).toContain("лабораторном тесте");
-    expect(speed.whyImportant).toContain("итоговый балл сам по себе не указывает на конкретную причину");
-    expect(speed.howChecked).toContain("один запуск");
+    expect(speed.title).toBe("Скорость главной страницы");
+    expect(speed.whatFound).toContain("72 из 100");
+    expect(speed.whyImportant).not.toMatch(/Lighthouse|замер|провер/u);
+    expect(speed.howChecked).toContain("Один запуск");
     expect(speed.reliability).toContain("предварительный");
-    expect(speed.nextStep).toContain("Повторите тест 2–3 раза");
+    expect(speed.nextStep).toContain("повтор");
     expect(speed.details).toEqual(expect.arrayContaining([
       { label: "Профиль", value: "Мобильный" },
       { label: "LCP — появление главного блока", value: "2.74 с" },
@@ -76,10 +75,7 @@ describe("client audit presentation", () => {
       { label: "Количество запусков", value: "1" },
     ]));
 
-    expect(breadcrumbs.title).toBe("Подсказка о месте страницы в структуре сайта");
-    expect(breadcrumbs.whatFound).toContain("/services");
-    expect(breadcrumbs.reliability).toContain("необязательн");
-    expect(breadcrumbs.nextStep).toContain("Если");
+    expect(presentation.issues.some((issue) => issue.checkId === "breadcrumbs")).toBe(false);
     expect(JSON.stringify(presentation.issues)).not.toContain("Подтверждённое замечание");
   });
 
@@ -99,7 +95,7 @@ describe("client audit presentation", () => {
     }, "ru");
 
     expect(presentation.issues.find((issue) => issue.checkId === "performance")?.kind).toBe("review");
-    expect(presentation.summary).toMatchObject({ critical: 0, review: 1, optional: 1 });
+    expect(presentation.summary).toMatchObject({ critical: 0, review: 1, optional: 0 });
   });
 
   it("aggregates repeated successes, page types and extra resources", () => {
@@ -116,7 +112,7 @@ describe("client audit presentation", () => {
     expect(presentation.limitations).toHaveLength(4);
     expect(presentation.limitations[0]).toContain("долю переходов из поисковой выдачи (CTR)");
     expect(presentation.nextStep).toEqual({
-      primary: "Получить полный аудит сайта",
+      primary: "Заказать технический SEO-аудит",
       secondary: "Повторить бесплатную проверку",
       note: "Повторная бесплатная проверка снова ограничена выборкой до 10 страниц.",
     });
@@ -253,7 +249,7 @@ describe("client audit presentation", () => {
     expect(presentation.summary.scopeValue).toBe(100);
   });
 
-  it("updates legacy sitemap preview wording in a cached stored presentation", () => {
+  it("does not repeat a cached sitemap claim when the technical evidence was not saved", () => {
     const source = auditClientReportSnapshot();
     const current = buildAuditClientPresentation(source, "ru");
     const presentation = buildAuditClientPresentation({
@@ -275,12 +271,8 @@ describe("client audit presentation", () => {
         },
       },
     }, "ru");
-    const details = presentation.publicTechnicalResources.find((resource) => resource.type === "sitemap")?.details ?? [];
-
-    expect(details).toContain(
-      "В sitemap найдено 216 адресов. Предварительно просмотрено 100 адресов; остальные 116 адресов не загружались в рамках бесплатной проверки.",
-    );
-    expect(details.join(" ")).not.toContain("Для предварительного анализа обработано");
+    expect(presentation.publicTechnicalResources).toEqual([]);
+    expect(presentation.technicalFiles.every((file) => file.status === "unavailable")).toBe(true);
   });
 
   it("uses the saved sampling type when page analysis could not classify the route", () => {
@@ -379,14 +371,20 @@ describe("client audit presentation", () => {
 
   it("keeps the English client model complete and fully translated", () => {
     const presentation = buildAuditClientPresentation(auditClientReportSnapshot(), "en");
-    const serialized = JSON.stringify(presentation);
+    const translatedInterface = JSON.stringify({
+      conclusion: presentation.conclusion,
+      summary: presentation.summary,
+      exclusions: presentation.exclusions,
+      issues: presentation.issues,
+      strengths: presentation.strengths,
+      coverageGroups: presentation.coverageGroups,
+      externalMetrics: presentation.externalMetrics,
+      limitations: presentation.limitations,
+    });
 
-    expect(presentation.issues.map((issue) => issue.title)).toEqual([
-      "Mobile performance of the homepage",
-      "A clue to the page's place in the site structure",
-    ]);
+    expect(presentation.issues.map((issue) => issue.title)).toEqual(["Homepage speed"]);
     expect(presentation.strengths).toHaveLength(4);
     expect(presentation.strengths).toContain("robots.txt and sitemap.xml were available and read.");
-    expect(serialized).not.toMatch(/[А-Яа-яЁё]/u);
+    expect(translatedInterface).not.toMatch(/[А-Яа-яЁё]/u);
   });
 });

@@ -23,7 +23,7 @@ const viewports = [
   { name: "desktop-1440x900", width: 1_440, height: 900 },
 ] as const;
 
-const themes = ["dark", "signal", "light"] as const;
+const themes = ["dark", "light"] as const;
 
 test.use({ video: "on" });
 
@@ -98,7 +98,7 @@ test.describe("recorded audit journey", () => {
     await copyButton.click();
     await expect(page.getByRole("button", { name: "Ссылка скопирована" }).first()).toBeVisible();
 
-    const mainCta = page.getByRole("link", { name: "Получить полный аудит сайта" }).first();
+    const mainCta = page.getByRole("link", { name: "Заказать технический SEO-аудит" }).first();
     await mainCta.hover();
     await mainCta.focus();
     await expect(mainCta).toBeFocused();
@@ -160,7 +160,7 @@ test.describe("visual matrices", () => {
     const clientSummary = page.locator('section[aria-labelledby="audit-client-summary-heading"]');
     await expect(clientSummary).toContainText("Предварительно просмотрено адресов100");
     await expect(clientSummary).toContainText("Стоит проверить1");
-    await expect(clientSummary).toContainText("Необязательных улучшений1");
+    await expect(clientSummary).toContainText("Необязательных улучшений0");
     await clientSummary.scrollIntoViewIfNeeded();
     await page.evaluate(() => window.scrollBy(0, -96));
     await screenshot(page, resolve(adminDirectory, "client-summary-1440x900.png"));

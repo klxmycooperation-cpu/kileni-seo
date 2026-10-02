@@ -130,6 +130,15 @@ export function AuditProgressPage({
   }, [audit, connection, load, loadError, pollAttempt]);
   const auditIsDone = audit?.status === "completed" || audit?.status === "partial";
   useEffect(() => {
+    if (!auditIsDone && audit?.status !== "failed") return;
+    try {
+      const active = JSON.parse(sessionStorage.getItem("kileni:active-audit:v1") ?? "null") as { token?: string } | null;
+      // A viewed result must not reopen when the visitor returns to the form.
+      // Keep a different audit intact if it is still running in another tab.
+      if (active?.token === token) sessionStorage.removeItem("kileni:active-audit:v1");
+    } catch { /* The report also works when browser storage is unavailable. */ }
+  }, [auditIsDone, audit?.status, token]);
+  useEffect(() => {
     if (audit && !auditIsDone && audit.status !== "failed") setHasShownRunning(true);
   }, [audit, auditIsDone]);
   const holdCompletedScene = Boolean(auditIsDone && audit?.result && hasShownRunning && !completionRevealed);
@@ -193,11 +202,11 @@ export function AuditProgressPage({
           <small className="audit-snapshot-note">{ru ? "Результат фиксирует состояние сайта на дату проверки и не меняется после последующих обновлений сайта." : "This result records the website state at the audit date and does not change after later website updates."}</small>
           <div className="audit-summary-actions">
             {hasActionableFindings ? <>
-              <Link className="button button-primary" href={briefOfferHref(locale, audit.normalizedDomain, "seo-audit-200", token)}>{ru ? "Получить полный аудит" : "Get a full audit"}</Link>
+              <Link className="button button-primary" href={briefOfferHref(locale, audit.normalizedDomain, "seo-audit-200", token)}>{ru ? "Заказать технический аудит" : "Request a technical audit"}</Link>
               <Link className="button button-secondary" href={briefOfferHref(locale, audit.normalizedDomain, "seo-audit-implementation", token)}>{ru ? "Обсудить исправления" : "Discuss fixes"}</Link>
             </> : <>
               {completedNotChecked > 0 ? <Link className="button button-primary" href={briefOfferHref(locale, audit.normalizedDomain, "seo-audit-200", token)}>{ru ? "Проверить остальные страницы" : "Check the remaining pages"}</Link> : null}
-              <Link className="button button-secondary" href={briefOfferHref(locale, audit.normalizedDomain, "seo-audit-200", token)}>{ru ? "Получить полный аудит" : "Get a full audit"}</Link>
+              <Link className="button button-secondary" href={briefOfferHref(locale, audit.normalizedDomain, "seo-audit-200", token)}>{ru ? "Заказать технический аудит" : "Request a technical audit"}</Link>
             </>}
             <Link className="button button-secondary audit-rerun-link" href={freeAuditHref(locale, audit.normalizedDomain)}>{ru ? "Проверить сайт ещё раз" : "Check the website again"}</Link>
           </div>

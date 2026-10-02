@@ -124,7 +124,7 @@ function useCountUp(value: number, ready: boolean, reducedMotion: boolean, durat
     const startedAt = performance.now();
     let frame = 0;
     const render = (now: number) => {
-      const progress = Math.min((now - startedAt) / duration, 1);
+      const progress = Math.min(Math.max((now - startedAt) / duration, 0), 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplay(Math.round(value * eased));
       if (progress < 1) frame = requestAnimationFrame(render);
@@ -321,6 +321,13 @@ function VisibilityChart({ locale }: { locale: Locale }) {
   const chartId = useId().replace(/:/g, "");
   const ru = locale === "ru";
   const [hovered, setHovered] = useState<number | null>(null);
+  const [animationRun, setAnimationRun] = useState(0);
+
+  useEffect(() => {
+    if (!ready || reducedMotion || !inViewport) return;
+    const timer = window.setInterval(() => setAnimationRun((run) => run + 1), 15_000);
+    return () => window.clearInterval(timer);
+  }, [inViewport, ready, reducedMotion]);
   const points = ru
     ? [
       { label: "Мар", value: 34, detail: "Старт замера" }, { label: "", value: 37, detail: "Первые правки" },
@@ -340,7 +347,7 @@ function VisibilityChart({ locale }: { locale: Locale }) {
       { label: "", value: 66, detail: "Relevance strengthened" }, { label: "", value: 64, detail: "Planned dip" },
       { label: "Aug", value: 68, detail: "Current reference" },
     ];
-  const frame = { left: 48, top: 25, width: 462, height: 174 };
+  const frame = { left: 20, top: 25, width: 520, height: 174 };
   const pointAt = (value: number, index: number) => ({
     x: frame.left + (index / (points.length - 1)) * frame.width,
     y: frame.top + ((100 - value) / 100) * frame.height,
@@ -364,19 +371,30 @@ function VisibilityChart({ locale }: { locale: Locale }) {
     .join("; ");
 
   return (
-    <div className="analytics-hero-chart" ref={ref} data-testid="hero-search-visibility" data-ready={ready ? "true" : "false"} data-in-viewport={inViewport ? "true" : "false"}>
+    <div className="analytics-hero-chart" ref={ref} data-testid="hero-search-visibility" data-ready={ready ? "true" : "false"} data-in-viewport={inViewport ? "true" : "false"} data-visualisation-run={animationRun}>
       <header className="analytics-hero-chart__header">
         <p>{ru ? "Поисковая видимость" : "Search visibility"}</p>
+        <span className="analytics-hero-chart__mode"><i aria-hidden="true" />{ru ? "Обзор за месяц" : "Monthly overview"}</span>
       </header>
-      <div className="analytics-hero-chart__metric"><strong>{number}%</strong><span className="analytics-delta">↑17%</span><p>{ru ? "средняя видимость" : "average visibility"}</p></div>
-      <div className="analytics-visibility-detail">
-        <svg viewBox="0 0 560 238" role="group" aria-labelledby={`${chartId}-title ${chartId}-description`}>
+      <div className="analytics-hero-chart__metric">
+        <div className="analytics-hero-chart__metric-primary"><p>{ru ? "средняя видимость" : "average visibility"}</p><strong>{number}%</strong></div>
+        <div className="analytics-hero-chart__metric-change"><span>{ru ? "Изменение" : "Change"}</span><b className="analytics-delta">↑17%</b><small>{ru ? "за период" : "over the period"}</small></div>
+        <div className="analytics-hero-chart__metric-context"><span>{ru ? "Доступны поиску" : "Indexed"}</span><b>92/100</b><small>{ru ? "проверенных страниц" : "checked pages"}</small></div>
+      </div>
+      <div className="analytics-visibility-detail" key={animationRun}>
+        <div className="analytics-chart-chrome" aria-hidden="true"><span>{ru ? "Динамика" : "Trend"}</span><b>{ru ? "Март — август" : "March — August"}</b><i /></div>
+        <svg viewBox="0 0 560 238" preserveAspectRatio="xMidYMid meet" role="group" aria-labelledby={`${chartId}-title ${chartId}-description`}>
           <title id={`${chartId}-title`}>{chartTitle}</title>
           <desc id={`${chartId}-description`}>{chartDescription}</desc>
           <defs>
-            <linearGradient id="visibility-area" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={`${chartId}-area`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" className="analytics-visibility-detail__area-top" />
               <stop offset="100%" className="analytics-visibility-detail__area-bottom" />
+            </linearGradient>
+            <linearGradient id={`${chartId}-line`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#7694ff" />
+              <stop offset="58%" stopColor="#66c7ff" />
+              <stop offset="100%" stopColor="#70e1b0" />
             </linearGradient>
           </defs>
           <rect className="analytics-visibility-detail__target-zone" x={frame.left} y={pointAt(75, 0).y} width={frame.width} height={pointAt(60, 0).y - pointAt(75, 0).y} rx="5" />
@@ -387,8 +405,9 @@ function VisibilityChart({ locale }: { locale: Locale }) {
               <text className="analytics-visibility-detail__axis" x="0" y={pointAt(value, 0).y + 4}>{value}%</text>
             </g>
           ))}
-          <path className="analytics-visibility-detail__area" d={area} fill="url(#visibility-area)" />
-          <path className="analytics-visibility-detail__line" d={path} pathLength="100" />
+          <path className="analytics-visibility-detail__area" d={area} fill={`url(#${chartId}-area)`} />
+          <path className="analytics-visibility-detail__line-glow" d={path} pathLength="100" style={{ stroke: `url(#${chartId}-line)` }} />
+          <path className="analytics-visibility-detail__line" d={path} pathLength="100" style={{ stroke: `url(#${chartId}-line)` }} />
           <path className="analytics-visibility-detail__projection" d={`M${plotted.at(-2)?.x} ${plotted.at(-2)?.y} L${plotted.at(-1)?.x} ${plotted.at(-1)?.y} L${frame.left + frame.width + 17} ${Math.max(frame.top, (plotted.at(-1)?.y ?? 0) - 8)}`} />
           {[{ index: 4, label: ru ? "структура" : "structure" }, { index: 7, label: ru ? "контент" : "content" }].map((stage) => {
             const point = plotted[stage.index];
@@ -396,7 +415,7 @@ function VisibilityChart({ locale }: { locale: Locale }) {
           })}
           {plotted.map((point, index) => (
             <g
-              className="analytics-visibility-detail__point-wrap"
+              className={`analytics-visibility-detail__point-wrap analytics-visibility-detail__point-wrap--${index >= 10 ? "mint" : index >= 7 ? "cyan" : index >= 4 ? "amber" : "blue"}`}
               key={`${point.label}-${index}`}
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered(null)}
@@ -407,6 +426,24 @@ function VisibilityChart({ locale }: { locale: Locale }) {
               <circle className="analytics-visibility-detail__point" cx={point.x} cy={point.y} r={index === plotted.length - 1 ? "4.8" : "2.8"} />
             </g>
           ))}
+          {[
+            { index: 0, tone: "blue", offset: -17 },
+            { index: 6, tone: "amber", offset: 24 },
+            { index: 9, tone: "cyan", offset: -17 },
+          ].map(({ index, tone, offset }) => {
+            const point = plotted[index];
+            return (
+              <g
+                aria-hidden="true"
+                className={`analytics-visibility-detail__value-tag analytics-visibility-detail__value-tag--${tone}`}
+                key={`${tone}-${point.value}`}
+                transform={`translate(${point.x} ${point.y + offset})`}
+              >
+                <rect x="-19" y="-12" width="38" height="18" rx="6" />
+                <text x="0" y="1">{point.value}%</text>
+              </g>
+            );
+          })}
           {hovered !== null && <g className="analytics-visibility-detail__tooltip" transform={`translate(${tooltipX} ${tooltipY})`}><rect x="-42" y="-19" width="84" height="33" rx="7" /><text x="0" y="-6">{active.label || (ru ? "Этап" : "Stage")}</text><text className="analytics-visibility-detail__tooltip-value" x="0" y="7">{active.value}%</text></g>}
           <g className="analytics-visibility-detail__end-tag" transform={`translate(${plotted.at(-1)?.x ?? 0} ${(plotted.at(-1)?.y ?? 0) - 26})`}><rect x="-18" y="-14" width="40" height="20" rx="6" /><text x="2" y="0">68%</text></g>
           {plotted.filter((point) => point.label).map((point) => <text className="analytics-visibility-detail__month" key={point.label} x={point.x} y="226">{point.label}</text>)}
@@ -417,7 +454,7 @@ function VisibilityChart({ locale }: { locale: Locale }) {
         {chips.map((chip, index) => <span key={chip.label} style={{ "--chip-delay": `${1080 + index * 75}ms` } as CSSProperties}><small>{chip.label}</small><strong>{chip.value}</strong></span>)}
       </div>
       <div className="analytics-hero-chart__statuses" aria-label={ru ? "Положительные изменения" : "Positive signals"}>
-        {(ru ? ["Показы в поиске ↑", "Переходы ↑", "Ошибки ↓"] : ["Visibility ↑", "CTR ↑", "Errors ↓"]).map((status, index) => (
+        {(ru ? ["Показы ↑", "Переходы ↑", "Ошибки ↓", "Страницы ↑", "Скорость ↑"] : ["Visibility ↑", "CTR ↑", "Errors ↓", "Pages ↑", "Speed ↑"]).map((status, index) => (
           <span key={status} style={{ "--status-delay": `${1180 + index * 120}ms` } as CSSProperties}><i aria-hidden="true" />{status}</span>
         ))}
       </div>
@@ -429,8 +466,13 @@ export function HeroSearchVisibilityVisual({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
 
   return (
-    <figure className="hero-audit-visual analytics-card analytics-card--hero" aria-label={ru ? "Поисковая видимость" : "Search visibility"} data-visualisation-run="0">
+    <figure className="hero-audit-visual analytics-card analytics-card--hero" aria-label={ru ? "Поисковая видимость" : "Search visibility"}>
       <VisibilityChart locale={locale} />
+      <figcaption className="analytics-demo-caption">
+        {ru
+          ? "График показывает, как может меняться видимость сайта после исправлений. Это пример, а не результат клиента."
+          : "The chart shows how a website's search visibility can change after improvements. This is an example, not a client result."}
+      </figcaption>
     </figure>
   );
 }
@@ -575,48 +617,48 @@ export function SeoPromotionMetricsVisual({ locale }: { locale: Locale }) {
 export function CaseErrorsVisual({ locale }: { locale: Locale }) {
   const { ref, ready, reducedMotion } = useVisualReveal();
   const ru = locale === "ru";
-  const remaining = useCountUp(25, ready, reducedMotion);
-  const resolved = useCountUp(20289, ready, reducedMotion);
+  const current = useCountUp(27842, ready, reducedMotion);
+  const growth = useCountUp(15742, ready, reducedMotion);
   const points: Point[] = ru
     ? [
-      { label: "P1", value: 20314, tooltip: "20 314" }, { label: "", value: 18500, tooltip: "18 500" },
-      { label: "Шаблоны", value: 14820, tooltip: "14 820" }, { label: "", value: 14100, tooltip: "14 100" },
-      { label: "", value: 11300, tooltip: "11 300" }, { label: "Внедрение", value: 7200, tooltip: "7 200" },
-      { label: "", value: 6900, tooltip: "6 900" }, { label: "", value: 4100, tooltip: "4 100" },
-      { label: "Проверка", value: 1160, tooltip: "1 160" }, { label: "", value: 780, tooltip: "780" },
-      { label: "", value: 430, tooltip: "430" }, { label: "", value: 200, tooltip: "200" },
-      { label: "P4", value: 25, tooltip: "25" },
+      { label: "Мар", value: 12100, tooltip: "12 100" }, { label: "", value: 13040, tooltip: "13 040" },
+      { label: "Апр", value: 12820, tooltip: "12 820" }, { label: "", value: 15100, tooltip: "15 100" },
+      { label: "Май", value: 16800, tooltip: "16 800" }, { label: "", value: 16420, tooltip: "16 420" },
+      { label: "Июн", value: 19030, tooltip: "19 030" }, { label: "", value: 20500, tooltip: "20 500" },
+      { label: "Июл", value: 20180, tooltip: "20 180" }, { label: "", value: 23220, tooltip: "23 220" },
+      { label: "", value: 24600, tooltip: "24 600" }, { label: "", value: 24170, tooltip: "24 170" },
+      { label: "Авг", value: 27842, tooltip: "27 842" },
     ]
     : [
-      { label: "P1", value: 20314, tooltip: "20,314" }, { label: "", value: 18500, tooltip: "18,500" },
-      { label: "Templates", value: 14820, tooltip: "14,820" }, { label: "", value: 14100, tooltip: "14,100" },
-      { label: "", value: 11300, tooltip: "11,300" }, { label: "Implementation", value: 7200, tooltip: "7,200" },
-      { label: "", value: 6900, tooltip: "6,900" }, { label: "", value: 4100, tooltip: "4,100" },
-      { label: "Review", value: 1160, tooltip: "1,160" }, { label: "", value: 780, tooltip: "780" },
-      { label: "", value: 430, tooltip: "430" }, { label: "", value: 200, tooltip: "200" },
-      { label: "P4", value: 25, tooltip: "25" },
+      { label: "Mar", value: 12100, tooltip: "12,100" }, { label: "", value: 13040, tooltip: "13,040" },
+      { label: "Apr", value: 12820, tooltip: "12,820" }, { label: "", value: 15100, tooltip: "15,100" },
+      { label: "May", value: 16800, tooltip: "16,800" }, { label: "", value: 16420, tooltip: "16,420" },
+      { label: "Jun", value: 19030, tooltip: "19,030" }, { label: "", value: 20500, tooltip: "20,500" },
+      { label: "Jul", value: 20180, tooltip: "20,180" }, { label: "", value: 23220, tooltip: "23,220" },
+      { label: "", value: 24600, tooltip: "24,600" }, { label: "", value: 24170, tooltip: "24,170" },
+      { label: "Aug", value: 27842, tooltip: "27,842" },
     ];
   return (
-    <article className="analytics-card analytics-errors-card" ref={ref} data-ready={ready ? "true" : "false"} aria-label={ru ? "Снижение технических ошибок" : "Technical error reduction"}>
+    <article className="analytics-card analytics-errors-card" ref={ref} data-ready={ready ? "true" : "false"} aria-label={ru ? "Рост переходов и поисковой видимости" : "Growth in search visits and visibility"}>
       <header className="analytics-metric-header">
-        <p>{ru ? "Ошибки на сайте" : "Site errors"}</p>
-        <div><strong>{remaining}</strong><span className="analytics-delta analytics-delta--lower">↓99.9%</span></div>
-        <small>{ru ? "изображения без заданных размеров · засорсервис.рф" : "images without fixed dimensions · zasorservice.rf"}</small>
+        <p>{ru ? "Переходы из поиска" : "Visits from search"}</p>
+        <div><strong>{localeNumber(current, locale)}</strong><span className="analytics-delta analytics-delta--higher">↑130%</span></div>
+        <small>{ru ? "посетителей в месяц · пример динамики после изменений" : "monthly visitors · example trend after improvements"}</small>
       </header>
       <DetailedTrendChart
         locale={locale}
         points={points}
         ready={ready}
-        ariaLabel={ru ? "Снижение количества технических ошибок" : "Reduction in technical errors"}
-        yTicks={[{ label: "25K", value: 25000 }, { label: "15K", value: 15000 }, { label: "5K", value: 5000 }, { label: "0", value: 0 }]}
-        target={{ from: 0, to: 1000, label: ru ? "контроль" : "control" }}
-        stages={[{ index: 2, label: ru ? "шаблоны" : "templates" }, { index: 6, label: ru ? "внедрение" : "implementation" }]}
-        chips={ru ? [{ label: "Готовность", value: "37 → 80", success: true }, { label: "Страницы", value: "575/575", success: true }, { label: "CLS", value: "0,519 → 0,0001", success: true }, { label: "Контроль", value: "пройден", success: true }] : [{ label: "Readiness", value: "37 → 80", success: true }, { label: "Pages", value: "575/575", success: true }, { label: "CLS", value: "0.519 → 0.0001", success: true }, { label: "Control", value: "passed", success: true }]}
-        statuses={ru ? ["Ошибки ↓", "Проверено ✓", "Стабильность ↑"] : ["Errors ↓", "Verified ✓", "Stability ↑"]}
-        finalLabel="25"
-        kind="errors"
+        ariaLabel={ru ? "Рост переходов из поиска по месяцам" : "Monthly growth in visits from search"}
+        yTicks={[{ label: "30K", value: 30000 }, { label: "20K", value: 20000 }, { label: "10K", value: 10000 }, { label: "0", value: 0 }]}
+        target={{ from: 22000, to: 28000, label: ru ? "целевой диапазон" : "target range" }}
+        stages={[{ index: 4, label: ru ? "структура" : "structure" }, { index: 8, label: ru ? "контент" : "content" }]}
+        chips={ru ? [{ label: "Переходы", value: "12 100 → 27 842", success: true }, { label: "Страницы", value: "575/575", success: true }, { label: "Видимость", value: "34% → 68%", success: true }, { label: "Контроль", value: "пройден", success: true }] : [{ label: "Visits", value: "12,100 → 27,842", success: true }, { label: "Pages", value: "575/575", success: true }, { label: "Visibility", value: "34% → 68%", success: true }, { label: "Control", value: "passed", success: true }]}
+        statuses={ru ? ["Показы растут", "Переходы растут", "Видимость растёт"] : ["Impressions are up", "Visits are up", "Visibility is up"]}
+        finalLabel={ru ? "27 842" : "27,842"}
+        kind="blue"
       />
-      <footer><p><i aria-hidden="true" />{ru ? "Устранено" : "Resolved"}<strong>{localeNumber(resolved, locale)}</strong></p><p className="analytics-case-errors__control"><span>✓</span>{ru ? "Контрольная проверка" : "Follow-up check"}</p></footer>
+      <footer><p><i aria-hidden="true" />{ru ? "Рост за период" : "Growth during the period"}<strong>+{localeNumber(growth, locale)}</strong></p><p className="analytics-case-errors__control"><span>✓</span>{ru ? "Динамика перепроверена" : "Trend rechecked"}</p></footer>
     </article>
   );
 }

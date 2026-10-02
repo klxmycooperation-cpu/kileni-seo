@@ -32,6 +32,16 @@ const V4_EXCLUSION_REASON_VALUES = new Set(["search_page", "closed_section", "te
 const MAX_V4_CHECKS = 2_000;
 const MAX_V4_FINDINGS = 5;
 const MAX_V4_TECHNICAL_RESOURCES = 100;
+const MAX_V4_DISCOVERY_DECISIONS = 2_000;
+const COVERAGE_GROUP_VALUES = new Set([
+  "home", "commercial_service", "catalog_sections", "articles", "cases",
+  "glossary_methodology", "contacts_conversion", "utility_legal", "other",
+]);
+const DISCOVERY_OUTCOME_VALUES = new Set(["selected", "unchecked", "excluded"]);
+const DISCOVERY_SOURCE_VALUES = new Set(["root", "link", "sitemap", "priority", "technical", "unknown"]);
+const DISCOVERY_RESOURCE_TYPE_VALUES = new Set([...V4_RESOURCE_TYPE_VALUES, "html"]);
+const LIGHTHOUSE_STATUS_VALUES = new Set(["not_requested", "running", "completed", "failed", "timed_out", "legacy_summary_only", "not_persisted", "legacy_unknown"]);
+const LEGACY_LIGHTHOUSE_STATUS_VALUES = new Set(["not_run", "insufficient_data"]);
 const PAGE_TYPE_VALUES = new Set(["homepage", "commercial", "conversion_support", "hub", "detail", "case", "article", "unique", "alternate_locale"]);
 const SELECTION_REASON_VALUES = new Set(["homepage", "primary_commercial", "commercial_different_template", "conversion_support", "category_hub", "detail_page", "case_page", "article_page", "unique_template", "additional_important", "alternate_locale_control"]);
 
@@ -102,26 +112,74 @@ function sanitizePublicAuditContractV4(value: Record<string, unknown>): Record<s
   const technicalResources = value.technicalResources
     .slice(0, MAX_V4_TECHNICAL_RESOURCES)
     .flatMap(sanitizeTechnicalResourceV4);
+  const technicalResourceTotals = (value.technicalResources as unknown[]).slice(0, 10_000).reduce<{
+    additionalFiles: number;
+    additionalDocuments: number;
+  }>((totals, item) => {
+    if (!isRecord(item) || typeof item.resourceType !== "string") return totals;
+    if (["document", "image", "script"].includes(item.resourceType)) totals.additionalFiles += 1;
+    if (item.resourceType === "document") totals.additionalDocuments += 1;
+    return totals;
+  }, { additionalFiles: 0, additionalDocuments: 0 });
+  const coverageGroups = value.coverageGroups === undefined
+    ? undefined
+    : sanitizeCoverageGroupsV4(value.coverageGroups, value.pagesDiscovered, value.pagesEligible, value.pagesSelected, value.pagesChecked);
+  const rawDiscoveredUrlDecisions = value.discoveredUrlDecisions;
+  const rawDiscoveredUrlDecisionCount = Array.isArray(rawDiscoveredUrlDecisions)
+    ? rawDiscoveredUrlDecisions.length
+    : null;
+  const discoveredUrlDecisions = rawDiscoveredUrlDecisions === undefined
+    ? undefined
+    : sanitizeDiscoveredUrlDecisionsV4(rawDiscoveredUrlDecisions);
+  const discoveredUrlDecisionsTotal = rawDiscoveredUrlDecisions === undefined
+    ? undefined
+    : rawDiscoveredUrlDecisionCount === null
+      ? null
+      : value.discoveredUrlDecisionsTotal === undefined
+        ? rawDiscoveredUrlDecisionCount
+        : integer(value.discoveredUrlDecisionsTotal, rawDiscoveredUrlDecisionCount, 1_000_000)
+        ? value.discoveredUrlDecisionsTotal
+        : null;
+  if (value.coverageGroups !== undefined && !coverageGroups) return null;
+  if (value.discoveredUrlDecisions !== undefined && (!discoveredUrlDecisions || discoveredUrlDecisionsTotal === null)) return null;
+  let presentationChecks: Array<Record<string, unknown>> = [];
+  let presentationFindings: Array<Record<string, unknown>> = [];
+  let presentationCategories: Array<Record<string, unknown>> = [];
+  let presentationResultSummary: Record<string, unknown> | undefined;
+  let presentationLimitations: string[] = [];
   if (!hasStoredClientModel) {
     const rawChecks = value.checks as unknown[];
     const rawFindings = value.findings as unknown[];
     const rawCategories = value.categorySummary as unknown[];
     const checks = rawChecks.slice(0, MAX_V4_CHECKS).flatMap(sanitizeCheckV4);
+    const findings = rawFindings.slice(0, MAX_V4_FINDINGS).flatMap(sanitizeFindingV4);
+    const categories = rawCategories.slice(0, MAX_V3_CATEGORIES).flatMap(sanitizeCategorySummaryV4);
+    const resultSummary = sanitizeResultSummaryV4(value.resultSummary);
+    const limitations = textArray(value.limitations, 20, 1_000);
     if (checks.length !== rawChecks.length) return null;
-    if (!sanitizeResultSummaryV4(value.resultSummary)) return null;
-    if (rawFindings.slice(0, MAX_V4_FINDINGS).flatMap(sanitizeFindingV4).length !== Math.min(rawFindings.length, MAX_V4_FINDINGS)) return null;
-    if (rawCategories.slice(0, MAX_V3_CATEGORIES).flatMap(sanitizeCategorySummaryV4).length !== Math.min(rawCategories.length, MAX_V3_CATEGORIES)) return null;
+    if (!resultSummary || !limitations) return null;
+    if (findings.length !== Math.min(rawFindings.length, MAX_V4_FINDINGS)) return null;
+    if (categories.length !== Math.min(rawCategories.length, MAX_V3_CATEGORIES)) return null;
+    presentationChecks = checks;
+    presentationFindings = findings;
+    presentationCategories = categories;
+    presentationResultSummary = resultSummary;
+    presentationLimitations = limitations;
   }
   const exclusionSummary = sanitizeExclusionSummaryV4(value.exclusionSummary, pagesExcluded);
   if (!exclusionSummary) return null;
   const excludedPages = sanitizeExcludedPagesV4(value.excludedPages, pagesExcluded);
   if (!excludedPages) return null;
-  const clientPresentationByLocale = {
-    ru: buildAuditClientPresentation(value, "ru"),
-    en: buildAuditClientPresentation(value, "en"),
-  };
+  const technicalFileSummary = value.technicalFileSummary === undefined
+    ? undefined
+    : sanitizeTechnicalFileSummaryV4(value.technicalFileSummary);
+  const performanceObservation = value.performanceObservation === undefined
+    ? undefined
+    : sanitizePerformanceObservationV4(value.performanceObservation);
+  if (value.technicalFileSummary !== undefined && !technicalFileSummary) return null;
+  if (value.performanceObservation !== undefined && value.performanceObservation !== null && performanceObservation === null) return null;
 
-  return deepFreeze({
+  const publicCore = {
     resultVersion: 4,
     contractVersion: 3,
     engineVersion,
@@ -145,8 +203,253 @@ function sanitizePublicAuditContractV4(value: Record<string, unknown>): Record<s
     selectedPages,
     checkedPages,
     technicalResources,
+    ...(coverageGroups ? { coverageGroups } : {}),
+    ...(discoveredUrlDecisions && discoveredUrlDecisionsTotal !== undefined && discoveredUrlDecisionsTotal !== null ? {
+      discoveredUrlDecisions,
+      discoveredUrlDecisionsTotal,
+      discoveredUrlDecisionsTruncated: discoveredUrlDecisionsTotal > discoveredUrlDecisions.length,
+    } : {}),
+    ...(technicalFileSummary ? { technicalFileSummary } : {}),
+    ...(performanceObservation !== undefined ? { performanceObservation } : {}),
+  };
+  const presentationSource = {
+    ...publicCore,
+    technicalResourceTotals,
+    ...(hasStoredClientModel
+      ? { clientPresentationByLocale: value.clientPresentationByLocale }
+      : {
+          checks: presentationChecks,
+          findings: presentationFindings,
+          categorySummary: presentationCategories,
+          resultSummary: presentationResultSummary,
+          limitations: presentationLimitations,
+        }),
+  };
+  const clientPresentationByLocale = {
+    ru: buildAuditClientPresentation(presentationSource, "ru"),
+    en: buildAuditClientPresentation(presentationSource, "en"),
+  };
+
+  return deepFreeze({
+    ...publicCore,
     clientPresentationByLocale,
   });
+}
+
+function sanitizeTechnicalFileSummaryV4(value: unknown): Record<string, unknown> | null {
+  if (!isRecord(value)) return null;
+  const result: Record<string, unknown> = {};
+  if (value.robots !== undefined) {
+    const robots = sanitizeTechnicalFileRecord(value.robots, "robots");
+    if (!robots) return null;
+    result.robots = robots;
+  }
+  if (value.sitemap !== undefined) {
+    const sitemap = sanitizeTechnicalFileRecord(value.sitemap, "sitemap");
+    if (!sitemap) return null;
+    result.sitemap = sitemap;
+  }
+  return result;
+}
+
+function sanitizeTechnicalFileRecord(value: unknown, kind: "robots" | "sitemap"): Record<string, unknown> | null {
+  if (!isRecord(value)) return null;
+  const url = publicUrl(value.url);
+  if (!url) return null;
+  const finalUrl = value.finalUrl === undefined ? undefined : publicUrl(value.finalUrl);
+  const loadedAt = value.loadedAt === undefined ? undefined : isoTimestamp(value.loadedAt);
+  const statusCode = value.statusCode === null || value.statusCode === undefined
+    ? value.statusCode === null ? null : undefined
+    : integer(value.statusCode, 100, 599) ? value.statusCode : null;
+  if (finalUrl === null || loadedAt === null || statusCode === null && value.statusCode !== null) return null;
+  const result: Record<string, unknown> = { url };
+  if (finalUrl) result.finalUrl = finalUrl;
+  if (loadedAt) result.loadedAt = loadedAt;
+  if (statusCode !== undefined) result.statusCode = statusCode;
+  const status = text(value.status, 30);
+  if (status) result.status = status;
+  const reason = text(value.reason ?? value.unavailableReason, 240);
+  if (reason) result.reason = reason;
+  if (kind === "robots") {
+    if (value.read !== undefined && typeof value.read !== "boolean") return null;
+    if (value.read !== undefined) result.read = value.read;
+    if (value.selectedPagesNotBlocked !== undefined && value.selectedPagesNotBlocked !== null && typeof value.selectedPagesNotBlocked !== "boolean") return null;
+    if (value.selectedPagesNotBlocked !== undefined) result.selectedPagesNotBlocked = value.selectedPagesNotBlocked;
+    const userAgent = text(value.userAgent, 120);
+    if (userAgent) result.userAgent = userAgent;
+    if (value.matchingDecision !== undefined) {
+      const decision = text(value.matchingDecision, 160);
+      if (!decision) return null;
+      result.matchingDecision = decision;
+    }
+    const sitemapUrls = value.sitemapUrls === undefined ? undefined : uniqueUrls(value.sitemapUrls as unknown[], 20);
+    if (value.sitemapUrls !== undefined && !sitemapUrls) return null;
+    if (sitemapUrls) result.sitemapUrls = sitemapUrls;
+  } else {
+    for (const field of [
+      "urlCount", "discoveredUrls", "prefetchedCount", "skippedByTechnicalLimit", "externalHostCount",
+      "loadedUrls", "notLoadedUrls", "htmlUrls", "redirectUrls", "documentUrls", "technicalResourceUrls", "errorUrls",
+    ] as const) {
+      if (value[field] !== undefined) {
+        if (!integer(value[field], 0, 1_000_000)) return null;
+        result[field] = value[field];
+      }
+    }
+    if (value.parsed !== undefined && typeof value.parsed !== "boolean") return null;
+    if (value.parsed !== undefined) result.parsed = value.parsed;
+    if (value.siteUrlsOnly !== undefined && value.siteUrlsOnly !== null && typeof value.siteUrlsOnly !== "boolean") return null;
+    if (value.siteUrlsOnly !== undefined) result.siteUrlsOnly = value.siteUrlsOnly;
+    const errors = value.fetchErrors === undefined ? undefined : textArray(value.fetchErrors, 20, 240);
+    if (value.fetchErrors !== undefined && !errors) return null;
+    if (errors) result.fetchErrors = errors;
+  }
+  return result;
+}
+
+function sanitizePerformanceObservationV4(value: unknown): Record<string, unknown> | null | undefined {
+  if (value === null) return null;
+  if (!isRecord(value)) return undefined;
+  const status = value.status === undefined ? undefined : text(value.status, 30);
+  const reason = value.reason === undefined ? undefined : text(value.reason, 240);
+  if (value.status !== undefined && (!status || (!LIGHTHOUSE_STATUS_VALUES.has(status) && !LEGACY_LIGHTHOUSE_STATUS_VALUES.has(status))) || value.reason !== undefined && !reason) return null;
+  const result: Record<string, unknown> = {};
+  if (status) result.status = status;
+  if (reason) result.reason = reason;
+  for (const field of ["performance", "accessibility", "fcpMs", "lcpMs", "cls", "tbtMs", "speedIndexMs"] as const) {
+    if (value[field] !== undefined) {
+      const maximum = field === "cls" ? 10 : 100_000;
+      if (value[field] !== null && !finiteNumber(value[field], 0, maximum)) return null;
+      result[field] = value[field];
+    }
+  }
+  const finalUrl = value.finalUrl === undefined ? undefined : publicUrl(value.finalUrl);
+  if (finalUrl === null) return null;
+  if (finalUrl) result.finalUrl = finalUrl;
+  for (const field of ["capturedAt", "startedAt", "completedAt"] as const) {
+    const timestamp = value[field] === undefined ? undefined : isoTimestamp(value[field]);
+    if (timestamp === null) return null;
+    if (timestamp) result[field] = timestamp;
+  }
+  if (value.durationMs !== undefined && !finiteNumber(value.durationMs, 0, 600_000)) return null;
+  if (value.durationMs !== undefined) result.durationMs = value.durationMs;
+  if (value.runCount !== undefined && !integer(value.runCount, 0, 100)) return null;
+  if (value.runCount !== undefined) result.runCount = value.runCount;
+  for (const field of ["profile", "strategy", "deviceProfile", "networkProfile", "lighthouseVersion", "source", "errorCode"] as const) {
+    if (value[field] !== undefined) {
+      const textValue = text(value[field], 120);
+      if (!textValue) return null;
+      result[field] = textValue;
+    }
+  }
+  if (value.errorMessage !== undefined) {
+    const errorMessage = text(value.errorMessage, 240);
+    if (!errorMessage) return null;
+    result.errorMessage = /authorization|bearer|cookie|token|password|secret/iu.test(errorMessage)
+      ? "Lighthouse execution failed"
+      : errorMessage;
+  }
+  if (value.runs !== undefined) {
+    if (!Array.isArray(value.runs) || value.runs.length > 10) return null;
+    const runs = value.runs.flatMap((entry) => sanitizeLighthouseRun(entry));
+    if (runs.length !== value.runs.length) return null;
+    result.runs = runs;
+  }
+  return result;
+}
+
+function sanitizeLighthouseRun(value: unknown): Record<string, unknown>[] {
+  if (!isRecord(value)) return [];
+  const result: Record<string, unknown> = {};
+  if (value.status !== undefined) {
+    const status = text(value.status, 30);
+    if (!status || !LIGHTHOUSE_STATUS_VALUES.has(status)) return [];
+    result.status = status;
+  }
+  if (value.finalUrl !== undefined) {
+    const finalUrl = publicUrl(value.finalUrl);
+    if (!finalUrl) return [];
+    result.finalUrl = finalUrl;
+  }
+  for (const field of ["capturedAt", "startedAt", "completedAt"] as const) {
+    if (value[field] === undefined) continue;
+    const timestamp = isoTimestamp(value[field]);
+    if (!timestamp) return [];
+    result[field] = timestamp;
+  }
+  for (const field of ["performance", "fcpMs", "lcpMs", "cls", "tbtMs", "speedIndexMs"] as const) {
+    if (value[field] === undefined) continue;
+    const maximum = field === "cls" ? 10 : 100_000;
+    if (value[field] !== null && !finiteNumber(value[field], 0, maximum)) return [];
+    result[field] = value[field];
+  }
+  if (value.durationMs !== undefined) {
+    if (!finiteNumber(value.durationMs, 0, 600_000)) return [];
+    result.durationMs = value.durationMs;
+  }
+  return [result];
+}
+
+function sanitizeCoverageGroupsV4(
+  value: unknown,
+  pagesDiscovered: number,
+  pagesEligible: number,
+  pagesSelected: number,
+  pagesChecked: number,
+): Array<Record<string, number | string>> | null {
+  if (!Array.isArray(value) || value.length !== 9) return null;
+  const seen = new Set<string>();
+  const result: Array<Record<string, number | string>> = [];
+  let foundTotal = 0;
+  let eligibleTotal = 0;
+  let selectedTotal = 0;
+  let checkedTotal = 0;
+  for (const item of value) {
+    if (!isRecord(item) || typeof item.group !== "string" || !COVERAGE_GROUP_VALUES.has(item.group) || seen.has(item.group)) return null;
+    seen.add(item.group);
+    if (!integer(item.found, 0, pagesDiscovered) || !integer(item.eligible, 0, pagesEligible) ||
+        !integer(item.selected, 0, pagesSelected) || !integer(item.checked, 0, pagesChecked) ||
+        !integer(item.unchecked, 0, pagesEligible) || item.eligible > item.found ||
+        item.selected > item.eligible || item.checked > item.selected || item.unchecked !== item.eligible - item.checked) return null;
+    foundTotal += item.found;
+    eligibleTotal += item.eligible;
+    selectedTotal += item.selected;
+    checkedTotal += item.checked;
+    result.push({ group: item.group, found: item.found, eligible: item.eligible, selected: item.selected, checked: item.checked, unchecked: item.unchecked });
+  }
+  return seen.size === 9 && foundTotal === pagesDiscovered && eligibleTotal === pagesEligible &&
+    selectedTotal === pagesSelected && checkedTotal === pagesChecked ? result : null;
+}
+
+function sanitizeDiscoveredUrlDecisionsV4(value: unknown): Array<Record<string, unknown>> | null {
+  if (!Array.isArray(value)) return null;
+  const result: Array<Record<string, unknown>> = [];
+  for (const item of value.slice(0, MAX_V4_DISCOVERY_DECISIONS)) {
+    if (!isRecord(item)) return null;
+    const url = publicUrl(item.url);
+    const finalUrl = publicUrl(item.finalUrl);
+    const resourceType = typeof item.resourceType === "string" && DISCOVERY_RESOURCE_TYPE_VALUES.has(item.resourceType) ? item.resourceType : null;
+    const group = item.group === null
+      ? null
+      : typeof item.group === "string" && COVERAGE_GROUP_VALUES.has(item.group) ? item.group : undefined;
+    const outcome = typeof item.outcome === "string" && DISCOVERY_OUTCOME_VALUES.has(item.outcome) ? item.outcome : null;
+    const reason = text(item.reason, 200);
+    const source = item.source === undefined
+      ? undefined
+      : typeof item.source === "string" && DISCOVERY_SOURCE_VALUES.has(item.source) ? item.source : null;
+    const selectedUrl = item.selectedUrl === undefined ? undefined : publicUrl(item.selectedUrl);
+    const selectionReason = item.selectionReason === undefined ? undefined : text(item.selectionReason, 120);
+    const primaryUrl = item.primaryUrl === undefined ? undefined : publicUrl(item.primaryUrl);
+    if (!url || !finalUrl || !resourceType || group === undefined || !outcome || reason === null ||
+        source === null || selectedUrl === null || selectionReason === null || primaryUrl === null) return null;
+    result.push({
+      url, finalUrl, resourceType, group, outcome, reason,
+      ...(source ? { source } : {}),
+      ...(selectedUrl ? { selectedUrl } : {}),
+      ...(selectionReason ? { selectionReason } : {}),
+      ...(primaryUrl ? { primaryUrl } : {}),
+    });
+  }
+  return result;
 }
 
 function sanitizeInventorySummaryV4(
@@ -268,9 +571,22 @@ function sanitizeCheckedPageV4(value: unknown): Record<string, unknown>[] {
   const description = sanitizeTextSignal(value.description);
   const h1 = sanitizeH1(value.h1);
   const canonical = sanitizeCanonical(value.canonical);
+  const checkedAt = value.checkedAt === undefined ? undefined : value.checkedAt === "not_recorded" ? "not_recorded" : isoTimestamp(value.checkedAt);
+  const redirectCount = value.redirectCount === undefined ? undefined : integer(value.redirectCount, 0, 20) ? value.redirectCount : null;
+  const redirects = value.redirects === undefined ? undefined : uniqueUrls(value.redirects as unknown[], 20);
+  const metaRobots = value.metaRobots === null ? null : value.metaRobots === undefined ? undefined : text(value.metaRobots, 2_000);
+  const xRobotsTag = value.xRobotsTag === null ? null : value.xRobotsTag === undefined ? undefined : text(value.xRobotsTag, 2_000);
+  const hreflang = value.hreflang === undefined ? undefined : sanitizeHreflang(value.hreflang as unknown[]);
+  const internalLinkCount = value.internalLinkCount === undefined ? undefined : integer(value.internalLinkCount, 0, 100_000) ? value.internalLinkCount : null;
+  const actualIndexed = value.actualIndexed === undefined ? undefined : value.actualIndexed === "unavailable" ? "unavailable" : null;
+  const robotsAllowed = value.robotsAllowed === undefined ? undefined : value.robotsAllowed === null || typeof value.robotsAllowed === "boolean" ? value.robotsAllowed : null;
+  const structuredData = value.structuredData === undefined ? undefined : sanitizeStructuredDataEvidence(value.structuredData);
   if (!url || !finalUrl || !pageType || templateFamily === null || confidence === null ||
       !integer(value.statusCode, 100, 599) || typeof value.noindex !== "boolean" ||
-      !title || !description || !h1 || !canonical) return [];
+      !title || !description || !h1 || !canonical || checkedAt === null || redirectCount === null || redirects === null ||
+      (value.metaRobots !== undefined && value.metaRobots !== null && metaRobots === null) ||
+      (value.xRobotsTag !== undefined && value.xRobotsTag !== null && xRobotsTag === null) || hreflang === null || internalLinkCount === null || actualIndexed === null ||
+      (value.robotsAllowed !== undefined && value.robotsAllowed !== null && robotsAllowed === null) || structuredData === null) return [];
   return [{
     url,
     finalUrl,
@@ -281,7 +597,40 @@ function sanitizeCheckedPageV4(value: unknown): Record<string, unknown>[] {
     description,
     h1,
     canonical,
+    ...(checkedAt ? { checkedAt } : {}),
+    ...(redirectCount !== undefined ? { redirectCount } : {}),
+    ...(redirects ? { redirects } : {}),
+    ...(metaRobots !== undefined ? { metaRobots } : {}),
+    ...(xRobotsTag !== undefined ? { xRobotsTag } : {}),
+    ...(hreflang ? { hreflang } : {}),
+    ...(internalLinkCount !== undefined ? { internalLinkCount } : {}),
+    ...(actualIndexed ? { actualIndexed } : {}),
+    ...(robotsAllowed !== undefined ? { robotsAllowed } : {}),
+    ...(structuredData ? { structuredData } : {}),
   }];
+}
+
+function sanitizeStructuredDataEvidence(value: unknown): Record<string, unknown> | null {
+  if (!isRecord(value) || !integer(value.total, 0, 1_000) || !integer(value.valid, 0, value.total) ||
+      !integer(value.invalid, 0, value.total) || value.valid + value.invalid !== value.total ||
+      !Array.isArray(value.types) || value.types.length > 100) return null;
+  const types = textArray(value.types, 100, 100);
+  if (!types) return null;
+  const breadcrumbList = value.breadcrumbList === undefined ? undefined : isRecord(value.breadcrumbList) &&
+    integer(value.breadcrumbList.valid, 0, value.valid) && integer(value.breadcrumbList.invalid, 0, value.invalid)
+    ? { valid: value.breadcrumbList.valid, invalid: value.breadcrumbList.invalid } : null;
+  if (breadcrumbList === null) return null;
+  return { total: value.total, valid: value.valid, invalid: value.invalid, types, ...(breadcrumbList ? { breadcrumbList } : {}) };
+}
+
+function sanitizeHreflang(value: unknown): Record<string, unknown>[] | null {
+  if (!Array.isArray(value) || value.length > 50) return null;
+  return value.flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const language = text(item.language, 35);
+    const url = publicUrl(item.url);
+    return language && url ? [{ language, url }] : [];
+  });
 }
 
 function sanitizeTechnicalResourceV4(value: unknown): Record<string, unknown>[] {

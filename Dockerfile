@@ -1,22 +1,21 @@
 # syntax=docker/dockerfile:1.7
 
-ARG NODE_VERSION=22.14.0
-ARG NODE_IMAGE=node:${NODE_VERSION}-bookworm-slim
+ARG NODE_VERSION=22.19.0
 
-FROM ${NODE_IMAGE} AS base
+FROM node:${NODE_VERSION}-bookworm-slim AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
 
 FROM base AS dependencies
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 FROM base AS production-dependencies
 ENV NODE_ENV=production
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN --mount=type=cache,id=pnpm-prod,target=/pnpm/store pnpm install --prod --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
 
 FROM dependencies AS builder
 ARG PRELAUNCH_MODE=false
@@ -34,7 +33,7 @@ RUN pnpm build
 RUN mkdir -p /app/runtime \
   && pnpm exec tsx -e "import { writeFileSync } from 'node:fs'; import { migrationSql } from './src/db/migrations.ts'; writeFileSync('/app/runtime/migration.sql', migrationSql);"
 
-FROM ${NODE_IMAGE} AS web
+FROM node:${NODE_VERSION}-bookworm-slim AS web
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
@@ -54,6 +53,8 @@ COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/runtime ./runtime
 COPY --from=builder --chown=node:node /app/scripts/docker-entrypoint.mjs ./scripts/docker-entrypoint.mjs
 COPY --from=builder --chown=node:node /app/scripts/runtime-isolation.mjs ./scripts/runtime-isolation.mjs
+COPY --from=builder --chown=node:node /app/scripts/validate-launch.mjs ./scripts/validate-launch.mjs
+COPY --from=builder --chown=node:node /app/src/config/legal-defaults.json ./src/config/legal-defaults.json
 COPY --from=builder --chown=node:node /app/scripts/backup.mjs ./scripts/backup.mjs
 COPY --from=builder --chown=node:node /app/scripts/restore.mjs ./scripts/restore.mjs
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules-full
@@ -66,7 +67,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:3000/api/health').then((response)=>{if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))"
 CMD ["sh", "-c", "node /app/scripts/docker-entrypoint.mjs && exec node server.js"]
 
-FROM ${NODE_IMAGE} AS worker
+FROM node:${NODE_VERSION}-bookworm-slim AS worker
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_PATH=/data/kileni.sqlite

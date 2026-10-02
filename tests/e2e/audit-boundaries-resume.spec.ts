@@ -92,6 +92,27 @@ test("resumes a live audit after reload and completes through the polling fallba
   await expect(page.locator(".partial-badge")).toHaveCount(0);
 });
 
+test("returns home after viewing a completed audit without reopening the report", async ({ page }) => {
+  const scenario = await createBoundaryAudit(1, "return-home");
+  await completeBoundaryAudit(scenario.audit, scenario.fixture);
+  await page.addInitScript(({ token, domain }) => {
+    sessionStorage.setItem("kileni:intro:welcome:v1", "1");
+    if (location.pathname === `/audit/${token}`) {
+      sessionStorage.setItem("kileni:active-audit:v1", JSON.stringify({ token, domain, locale: "ru", status: "queued" }));
+    }
+  }, { token: scenario.audit.publicToken, domain: scenario.audit.normalizedDomain });
+  await page.goto(`/audit/${scenario.audit.publicToken}`);
+  await expect(page.locator(".audit-complete")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem("kileni:active-audit:v1"))).toBeNull();
+  await page.getByRole("link", { name: "KILENI seo — главная", exact: true }).click();
+  await expect(page).toHaveURL("/");
+  await expect(page.locator(".hero h1")).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("home-after-audit.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator(".hero h1")).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("home-after-audit-mobile.png") });
+});
+
 async function createBoundaryAudit(pageCount: number, fixtureId: string): Promise<{
   audit: AuditRow;
   fixture: AuditSiteFixture;

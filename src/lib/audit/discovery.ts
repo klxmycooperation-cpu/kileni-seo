@@ -25,6 +25,10 @@ export async function discoverRobots(
     if (response.status === 404 || response.status === 410) {
       return {
         url: robotsUrl.href,
+        finalUrl: response.url,
+        loadedAt: new Date().toISOString(),
+        userAgent: AUDIT_USER_AGENT,
+        matchingDecision: "unavailable: robots.txt is missing",
         status: "missing",
         httpStatus: response.status,
         allowedRoot: true,
@@ -36,6 +40,10 @@ export async function discoverRobots(
     if (!response.ok) {
       return {
         url: robotsUrl.href,
+        finalUrl: response.url,
+        loadedAt: new Date().toISOString(),
+        userAgent: AUDIT_USER_AGENT,
+        matchingDecision: `unavailable: HTTP ${response.status}`,
         status: "error",
         httpStatus: response.status,
         allowedRoot: null,
@@ -53,6 +61,10 @@ export async function discoverRobots(
       .filter((value): value is string => value !== null);
     return {
       url: robotsUrl.href,
+      finalUrl: response.url,
+      loadedAt: new Date().toISOString(),
+      userAgent: AUDIT_USER_AGENT,
+      matchingDecision: "root evaluated for ZingSEOAudit",
       status: "found",
       httpStatus: response.status,
       allowedRoot:
@@ -65,6 +77,9 @@ export async function discoverRobots(
   } catch (error) {
     return {
       url: robotsUrl.href,
+      loadedAt: new Date().toISOString(),
+      userAgent: AUDIT_USER_AGENT,
+      matchingDecision: "unavailable: request failed",
       status: "error",
       httpStatus: null,
       allowedRoot: null,

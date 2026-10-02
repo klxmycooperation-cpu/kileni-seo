@@ -5,7 +5,7 @@ import { after, NextResponse } from "next/server";
 import { publicFormsAreEnabled } from "@/src/config/site";
 import { database } from "@/src/db/client";
 import { createBrief } from "@/src/db/submissions";
-import { notifyTelegram } from "@/src/lib/notifications/telegram";
+import { notifySubmission } from "@/src/lib/notifications/submission";
 import { sendEmail } from "@/src/lib/notifications/email";
 import { canonicalizeBriefOffer } from "@/src/lib/brief/offer-payload";
 import { briefServiceName, formatBriefEmailCopy } from "@/src/lib/brief/presentation";
@@ -176,13 +176,13 @@ export async function POST(request: Request) {
   }
 
   after(async () => {
-  await notifyTelegram({
+  await notifySubmission({
     entityType: "brief",
     entityId: briefId,
     text: [
       "Новый бриф",
       `Направление: ${briefServiceName(submission.service, "ru")}`,
-      `Предложение: ${submission.offerId ? (getReadableOfferTitle(submission.answers) ?? "выбрано в каталоге") : "не выбрано"}`,
+      `Предложение: ${getReadableOfferTitle(submission.answers) ?? "не выбрано"}`,
       `Имя: ${sanitizeLogValue(parsed.data.name)}`,
       `Контакт: ${sanitizeLogValue(parsed.data.contact)}`,
       `Файлов: ${prepared.length}`,

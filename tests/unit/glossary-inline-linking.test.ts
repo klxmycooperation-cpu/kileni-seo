@@ -23,6 +23,12 @@ describe("inline glossary links", () => {
     }
   });
 
+  it("uses the curated plain-language tooltip for CTR", () => {
+    const ctr = getGlossaryLinkEntries("ru").find((entry) => entry.slug === "ctr");
+
+    expect(ctr?.tooltip).toBe("Доля переходов");
+  });
+
   it("links only the first non-overlapping occurrence of each term in a text block", () => {
     const entries = getGlossaryLinkEntries("ru");
     const text = "URL ведёт на страницу. Ещё один URL не должен получить вторую ссылку. HTTP 2xx — это код ответа.";
@@ -49,8 +55,8 @@ describe("inline glossary links", () => {
     expect(buildGlossaryHref("ru", "indexing", target!)).toBe(
       "/glossary/indexing?from=%2Fseo%23glossary-source-7",
     );
-    expect(buildGlossaryHref("en", "indexing", "/en/seo#glossary-source-2")).toBe(
-      "/en/glossary/indexing?from=%2Fen%2Fseo%23glossary-source-2",
+    expect(buildGlossaryHref("ru", "indexing", "/seo#glossary-source-2")).toBe(
+      "/glossary/indexing?from=%2Fseo%23glossary-source-2",
     );
   });
 

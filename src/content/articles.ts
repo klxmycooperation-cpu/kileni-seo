@@ -78,7 +78,7 @@ const baseRu: Article[] = [
   {
     slug: "seo-audit-when-you-need-it",
     title: "SEO-аудит сайта: когда нужен и что должен дать",
-    description: "Проверяем решения, которые можно оценить, внедрить и принять по заданным критериям.",
+    description: "Проверяем не число ошибок в отчёте, а решения, которые можно оценить, внедрить и принять.",
     readerOutcome: "Поймёте, когда заказывать аудит, что запросить у исполнителя и как принять результат.",
     date: "2026-08-15",
     author: "Редакция KILENI",
@@ -171,7 +171,7 @@ const baseRu: Article[] = [
     sections: [
       {
         id: "record",
-        heading: "Сначала соберите факты о товаре",
+        heading: "Начните не с текста, а с фактов",
         paragraphs: [
           "Чтобы понять, как оформить карточку товара, сначала соберите паспорт продукта: точное название, модель, состав, размеры, совместимость, комплект, ограничения, документы и условия использования. Эти данные должны совпадать на упаковке, в характеристиках, описании и изображениях. Красивый текст не компенсирует неверный размер или отсутствующую комплектацию.",
           "Затем соберите язык покупателей из аналитики площадки, вопросов, отзывов и авторизованного Вордстата с выбранным регионом и периодом. Разделите формулировки по намерению: тип товара, задача, характеристика, совместимость и сценарий. Частотность нельзя переносить из чужой таблицы без даты и настроек, а нерелевантные популярные слова нельзя добавлять ради охвата.",
@@ -345,7 +345,7 @@ const baseRu: Article[] = [
           rows: [
             { label: "Новый спрос", left: "Ограниченный рекламный тест", right: "Быстро проверяет запрос и предложение" },
             { label: "Стабильная категория", left: "SEO-кластер страниц", right: "Создаёт долгосрочный поисковый актив" },
-            { label: "Слабая посадочная", left: "Исправить страницу", right: "Неисправная страница может мешать обращениям из обоих каналов" },
+            { label: "Слабая посадочная", left: "Исправить страницу", right: "Иначе оба канала теряют обращения" },
           ],
         },
       },
@@ -412,7 +412,7 @@ const baseEn: Article[] = [
         id: "result",
         heading: "An audit exists to prepare decisions",
         paragraphs: [
-          "An SEO audit should answer three questions: what prevents important pages from working in search, what needs to change, and how the team will verify the change after release. A crawler export with hundreds of warnings does not answer them. Each material finding needs an example URL, evidence, affected scope, priority, and a testable target state. State a cause only when the available data confirms it.",
+          "An SEO audit should answer three questions: what prevents important pages from working in search, what needs to change, and how the team will verify the change after release. A crawler export with hundreds of warnings does not answer them. Each material finding needs an example URL, a cause, affected scope, priority, and a testable target state.",
           "Start with the page route. A crawler must discover the address, receive a stable response, see the primary content, and understand which version is canonical. Only then assess query fit and the user journey. Button colour and title length should not outrank a section blocked from crawling, returning 5xx, or losing content during JavaScript rendering.",
           "A useful report separates observation, interpretation, and recommendation. An observation is repeatable on a URL. The interpretation explains possible impact. The recommendation specifies a change and acceptance criterion. This structure lets a developer estimate the job and shows the client exactly what result they are paying for.",
         ],
@@ -655,7 +655,7 @@ const baseEn: Article[] = [
           rows: [
             { label: "New demand", left: "Limited advertising test", right: "Tests the query and proposition quickly" },
             { label: "Stable category", left: "One SEO page cluster", right: "Builds a durable search asset" },
-            { label: "Weak landing page", left: "Repair the page", right: "Page problems can prevent enquiries from either channel" },
+            { label: "Weak landing page", left: "Repair the page", right: "Otherwise both channels lose enquiries" },
           ],
         },
       },

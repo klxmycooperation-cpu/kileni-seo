@@ -13,6 +13,7 @@ export interface AnalyzePageInput {
   readonly requestedUrl?: string;
   readonly redirects?: readonly string[];
   readonly responseTimeMs?: number;
+  readonly checkedAt?: string;
   readonly depth?: number;
 }
 
@@ -29,7 +30,7 @@ export function analyzePage(input: AnalyzePageInput): PageAnalysis {
   const pageUrl = normalizeTargetUrl(input.url);
   const $ = load(input.html);
   const headers = normalizeHeaders(input.headers);
-  const title = textSignal($("head > title").first().text(), 30, 60);
+  const title = textSignal($("head > title").first().text(), 30, 60, 2_000);
   const description = textSignal(
     $('meta[name="description" i]').first().attr("content"),
     70,
@@ -80,6 +81,9 @@ export function analyzePage(input: AnalyzePageInput): PageAnalysis {
     indexing: {
       noindex: directives.has("noindex") || directives.has("none"),
       nofollow: directives.has("nofollow") || directives.has("none"),
+      metaRobots: normalizeText($('meta[name="robots" i]').first().attr("content")) || null,
+      xRobotsTag: headers.get("x-robots-tag") ?? null,
+      actual: "unavailable",
     },
     language: { present: languageValue.length > 0, value: languageValue || null },
     hreflang,
@@ -106,7 +110,9 @@ export function analyzePage(input: AnalyzePageInput): PageAnalysis {
       requestedUrl: input.requestedUrl ?? pageUrl.href,
       finalUrl: pageUrl.href,
       redirects: input.redirects ?? [],
+      redirectCount: (input.redirects ?? []).length,
       responseTimeMs: input.responseTimeMs ?? null,
+      checkedAt: validTimestamp(input.checkedAt) ?? "not_recorded",
       depth: Math.max(0, input.depth ?? 0),
       contentType: headers.get("content-type") ?? null,
     },
@@ -276,12 +282,38 @@ function analyzeStructuredData(
       invalid += 1;
     }
   }
+  const breadcrumbList = analyzeBreadcrumbLists($);
   return {
     total: scripts.length,
     valid,
     invalid,
     types: [...types].sort(),
+    ...(breadcrumbList.valid > 0 || breadcrumbList.invalid > 0 ? { breadcrumbList } : {}),
   };
+}
+
+function analyzeBreadcrumbLists($: ReturnType<typeof load>): { valid: number; invalid: number } {
+  let valid = 0;
+  let invalid = 0;
+  for (const script of $('script[type="application/ld+json" i]').toArray()) {
+    try {
+      const parsed: unknown = JSON.parse($(script).text());
+      const values = Array.isArray(parsed) ? parsed : [parsed];
+      for (const value of values) {
+        if (!value || typeof value !== "object" || (value as Record<string, unknown>)["@type"] !== "BreadcrumbList") continue;
+        const entries = (value as Record<string, unknown>).itemListElement;
+        const validEntries = Array.isArray(entries) && entries.length > 0 && entries.every((entry) => {
+          if (!entry || typeof entry !== "object") return false;
+          const record = entry as Record<string, unknown>;
+          return Number.isInteger(record.position) && typeof record.name === "string" && record.name.trim().length > 0;
+        });
+        if (validEntries) valid += 1; else invalid += 1;
+      }
+    } catch {
+      // Malformed JSON is counted by structuredData.invalid, not as a valid breadcrumb.
+    }
+  }
+  return { valid, invalid };
 }
 
 function collectJsonLdTypes(value: unknown, types: Set<string>, depth: number): void {
@@ -349,14 +381,21 @@ function textSignal(
   rawValue: string | undefined,
   minimum: number,
   maximum: number,
+  valueLimit = 1_000,
 ): TextSignal {
-  const value = normalizeText(rawValue);
+  const value = normalizeText(rawValue).slice(0, valueLimit);
   return {
     value: value || null,
     present: value.length > 0,
     length: value.length,
     optimal: value.length >= minimum && value.length <= maximum,
   };
+}
+
+function validTimestamp(value: string | undefined): string | null {
+  if (!value) return null;
+  const timestamp = new Date(value);
+  return Number.isNaN(timestamp.getTime()) ? null : timestamp.toISOString();
 }
 
 function normalizeText(value: string | undefined): string {

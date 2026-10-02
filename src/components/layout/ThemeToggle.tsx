@@ -6,7 +6,7 @@ import { THEME_CHANGE_EVENT, THEME_STORAGE_KEY, type KileniTheme } from "./theme
 
 function currentTheme(): KileniTheme {
   const value = document.documentElement.dataset.kileniTheme;
-  return value === "light" || value === "signal" ? value : "dark";
+  return value === "light" ? value : "dark";
 }
 
 export function ThemeToggle({ locale, mobile = false }: { locale: Locale; mobile?: boolean }) {
@@ -20,14 +20,14 @@ export function ThemeToggle({ locale, mobile = false }: { locale: Locale; mobile
   }, []);
 
   const labels = locale === "ru"
-    ? { light: "Светлая", dark: "Тёмная", signal: "Контрастная" }
-    : { light: "Light", dark: "Dark", signal: "Contrast" };
-  const nextTheme: Record<KileniTheme, KileniTheme> = { light: "dark", dark: "signal", signal: "light" };
+    ? { light: "Светлая", dark: "Тёмная" }
+    : { light: "Light", dark: "Dark" };
+  const nextTheme: Record<KileniTheme, KileniTheme> = { light: "dark", dark: "light" };
   const next = nextTheme[theme];
   const currentLabel = labels[theme];
   const actionLabels: Record<KileniTheme, string> = locale === "ru"
-    ? { light: "Включить светлую тему", dark: "Включить тёмную тему", signal: "Включить контрастную тему" }
-    : { light: "Switch to light theme", dark: "Switch to dark theme", signal: "Switch to contrast theme" };
+    ? { light: "Включить светлую тему", dark: "Включить тёмную тему" }
+    : { light: "Switch to light theme", dark: "Switch to dark theme" };
   const actionLabel = actionLabels[next];
 
   const toggle = () => {
@@ -49,13 +49,12 @@ export function ThemeToggle({ locale, mobile = false }: { locale: Locale; mobile
       type="button"
       data-theme-toggle
       data-theme={theme}
+      aria-pressed={theme === "light"}
       aria-label={actionLabel}
       title={actionLabel}
       onClick={toggle}
     >
-      <span className="theme-toggle__icon" aria-hidden="true">
-        <span />
-      </span>
+      <span className="theme-toggle__eclipse" aria-hidden="true"><span className="theme-toggle__sun">☀</span><span className="theme-toggle__moon">☾</span><i /></span>
       <span className="theme-toggle__label">{currentLabel}</span>
     </button>
   );

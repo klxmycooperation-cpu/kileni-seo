@@ -3,15 +3,26 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export const adminCookieName = "kileni_admin";
 type SessionPayload = { login: string; exp: number };
 
-const secret = () => {
+export function configuredAdminPasswordHash(): string | null {
+  const hash = process.env.ADMIN_PASSWORD_HASH;
+  if (!hash) return null;
+  if (process.env.NODE_ENV === "production"
+    && !/^\$2[aby]\$(?:10|11|12|13|14)\$[./A-Za-z0-9]{53}$/u.test(hash)) return null;
+  return hash;
+}
+
+export function configuredAdminSessionSecret(): string | null {
   const configured = process.env.ADMIN_SESSION_SECRET;
-  if (process.env.NODE_ENV === "production") return configured && configured.length >= 32 ? configured : null;
+  if (process.env.NODE_ENV === "production") {
+    return configured && Buffer.byteLength(configured, "utf8") >= 32
+      && !/replace-with|change-me|example|placeholder/iu.test(configured) ? configured : null;
+  }
   return configured ?? "development-session-secret-change-me";
-};
+}
 const sign = (payload: string, key: string) => createHmac("sha256", key).update(payload).digest("base64url");
 
 export function createAdminSession(login: string): string {
-  const key = secret();
+  const key = configuredAdminSessionSecret();
   if (!key) throw new Error("ADMIN_SESSION_SECRET is not configured");
   const hours = Number(process.env.ADMIN_SESSION_HOURS ?? 8);
   const payload = Buffer.from(JSON.stringify({ login, exp: Date.now() + hours * 3_600_000 } satisfies SessionPayload)).toString("base64url");
@@ -19,7 +30,7 @@ export function createAdminSession(login: string): string {
 }
 
 export function verifyAdminSession(token?: string): SessionPayload | null {
-  const key = secret();
+  const key = configuredAdminSessionSecret();
   if (!key) return null;
   if (!token) return null;
   const [payload, signature] = token.split(".");

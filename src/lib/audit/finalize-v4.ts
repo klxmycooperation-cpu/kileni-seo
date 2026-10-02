@@ -7,6 +7,7 @@ import {
   type AuditResultContractV3,
 } from "./contract-v3";
 import { partitionAuditSampleInventory, selectAuditSample } from "./sample-selector";
+import { normalizeLighthouseObservation, type AuditStorageMode } from "./lighthouse-observation";
 import type { PublicAuditRun } from "./public-pipeline";
 import type { FullAuditResult, PerformanceAuditInput } from "./types";
 
@@ -53,8 +54,11 @@ export function finalizeAuditResultV4(input: {
   readonly createdAt: string;
   readonly result: FinalizableAuditRun;
   readonly performance?: PerformanceAuditInput | null;
+  readonly storageMode?: AuditStorageMode;
 }): FinalizedAuditV4 {
-  const performance = input.performance ?? input.result.performance ?? null;
+  const performance = normalizeLighthouseObservation(input.performance ?? input.result.performance, {
+    storageMode: input.storageMode ?? "persistent",
+  });
   const inventory = input.result.inventory?.length
     ? input.result.inventory
     : fallbackInventory(input.result);
@@ -103,7 +107,7 @@ export function finalizeAuditResultV4(input: {
     pages: input.result.pages.map((page) => structuredClone(page)),
     robots: structuredClone(input.result.robots),
     sitemap: structuredClone(input.result.sitemap),
-    performance: performance ? { ...performance } : null,
+    performance: { ...performance },
     startedAt: input.result.startedAt,
     finishedAt: input.result.finishedAt,
   };

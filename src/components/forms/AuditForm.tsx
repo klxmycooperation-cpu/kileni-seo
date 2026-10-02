@@ -91,6 +91,7 @@ function pause(milliseconds: number): Promise<void> {
 }
 
 type AuditSubmissionResponse = {
+  error?: string;
   token?: string;
   restore?: string;
   status?: string;
@@ -147,7 +148,6 @@ export function AuditForm({
   const router = useRouter();
   const { token, refresh, error: csrfError, loading: csrfLoading } = useCsrf();
   const [step, setStep] = useState<1 | 2>(1);
-  const [formReady, setFormReady] = useState(false);
   const [pending, setPending] = useState(false);
   const [serverError, setServerError] = useState("");
   const [activeAudit, setActiveAudit] = useState<ActiveAudit | null>(null);
@@ -167,11 +167,9 @@ export function AuditForm({
     const enteredBeforeHydration = urlInputRef.current?.value.trim();
     const value = enteredBeforeHydration || params.get("url")?.trim();
     setForceFresh(params.get("fresh") === "1");
-    if (value && value.length <= 2048) {
-      setUrlValue(value);
-      if (urlInputRef.current) urlInputRef.current.value = value;
-    }
-    setFormReady(true);
+    if (!value || value.length > 2048) return;
+    setUrlValue(value);
+    if (urlInputRef.current) urlInputRef.current.value = value;
   }, []);
 
   useEffect(() => {
@@ -308,28 +306,40 @@ export function AuditForm({
     let acceptedToken: string | undefined;
     let acceptedRestore: string | undefined;
     try {
-      const csrf = token || await refresh();
+      let csrf = token || await refresh();
       const { utm } = collectBrowserAttribution();
       const requestController = new AbortController();
       requestTimeout = window.setTimeout(() => requestController.abort("audit-request-timeout"), 75_000);
-      const response = await fetch("/api/audits", {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-csrf-token": csrf },
-        signal: requestController.signal,
-        body: JSON.stringify({
-          url: normalizedUrl,
-          email: fields.get("email"),
-          consent: fields.get("consent") === "on",
-          authority: fields.get("authority") === "on",
-          honeypot: fields.get("honeypot"),
-          utm,
-          turnstileToken,
-          locale,
-          forceFresh,
-          source: compact ? "free-audit-page" : "home-hero",
-        }),
+      const body = JSON.stringify({
+        url: normalizedUrl,
+        email: fields.get("email"),
+        consent: fields.get("consent") === "on",
+        authority: fields.get("authority") === "on",
+        honeypot: fields.get("honeypot"),
+        utm,
+        turnstileToken,
+        locale,
+        forceFresh,
+        source: compact ? "free-audit-page" : "home-hero",
       });
-      let data: AuditSubmissionResponse;
+      const sendAudit = (csrfToken: string) => fetch("/api/audits", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
+        signal: requestController.signal,
+        body,
+      });
+      let response = await sendAudit(csrf);
+      let data: AuditSubmissionResponse | undefined;
+      if (!response.ok) {
+        data = await readAuditSubmissionResponse(response, ru);
+        // A browser may retain a token from another tab or from an interrupted
+        // initial load. Renew once and retry the idempotent audit creation.
+        if (data.error === "CSRF_REJECTED") {
+          csrf = await refresh(true);
+          response = await sendAudit(csrf);
+          data = undefined;
+        }
+      }
       if (response.ok && isPublicAuditStreamResponse(response)) {
         const completed = await consumePublicAuditStream(response, (streamEvent: PublicAuditStreamEvent) => {
           if (streamEvent.type === "accepted") {
@@ -346,7 +356,7 @@ export function AuditForm({
           }
         });
         data = { token: completed.token, restore: completed.restore };
-      } else {
+      } else if (!data) {
         data = await readAuditSubmissionResponse(response, ru);
       }
       if (!response.ok || !data.token) {
@@ -399,7 +409,7 @@ export function AuditForm({
       <div className="form-heading">
         <span className="status-dot"/>
         <h2>{d.title}</h2>
-        <span className="form-limit">{ru ? "до 10 страниц" : "up to 10 pages"}</span>
+        <span className="form-limit">{d.limit}</span>
       </div>
       <p className="audit-form-step-status" aria-live="polite">
         {ru ? `Шаг ${step} из 2` : `Step ${step} of 2`}
@@ -450,7 +460,6 @@ export function AuditForm({
           <button
             className="button button-primary"
             type="button"
-            disabled={!formReady}
             onMouseDown={(event) => {
               if (auditUrlError(urlInputRef.current?.value ?? urlValue, ru)) event.preventDefault();
             }}

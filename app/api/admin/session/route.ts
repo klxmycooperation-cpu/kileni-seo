@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { adminCookieName, createAdminSession } from "@/src/lib/security/session";
+import { adminCookieName, configuredAdminPasswordHash, configuredAdminSessionSecret, createAdminSession } from "@/src/lib/security/session";
 import { clientIp, privateHash } from "@/src/lib/security/request";
 import { clearRateLimits } from "@/src/lib/security/rate-limit";
 import { apiError, declaredBodyTooLarge, jsonReadError, mutationGuard, readJson } from "../../_lib/http";
@@ -38,12 +38,12 @@ export async function POST(request: Request) {
   if (!parsed.success) return zodError(parsed.error);
 
   const configuredLogin = process.env.ADMIN_LOGIN;
-  const passwordHash = process.env.ADMIN_PASSWORD_HASH;
-  const sessionSecret = process.env.ADMIN_SESSION_SECRET;
+  const passwordHash = configuredAdminPasswordHash();
+  const sessionSecret = configuredAdminSessionSecret();
   const configuredHours = Number(process.env.ADMIN_SESSION_HOURS ?? 8);
   if (!configuredLogin || !passwordHash ||
       !Number.isFinite(configuredHours) || configuredHours < 1 || configuredHours > 24 ||
-      (process.env.NODE_ENV === "production" && (!sessionSecret || sessionSecret.length < 32))) {
+      !sessionSecret) {
     return apiError(503, "ADMIN_NOT_CONFIGURED", "Вход администратора не настроен");
   }
 

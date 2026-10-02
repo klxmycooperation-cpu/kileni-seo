@@ -1,4 +1,5 @@
 import type { PageAnalysis } from "./types";
+import type { AuditDiscoverySource } from "./sample-selector";
 
 export type AuditResourceType =
   | "html"
@@ -72,6 +73,7 @@ export interface ClassifyAuditObjectInput {
   readonly confirmedProtectedRoute?: boolean;
   readonly confirmedAuthTemplate?: boolean;
   readonly resourceHint?: AuditResourceType;
+  readonly discoverySource?: AuditDiscoverySource;
 }
 
 export interface ClassifiedAuditObject {
@@ -90,6 +92,7 @@ export interface ClassifiedAuditObject {
   readonly canonicalUrl?: string | null;
   readonly classificationConfidence: number;
   readonly classificationReasons: readonly string[];
+  readonly discoverySource?: AuditDiscoverySource;
 }
 
 type PageScore = {
@@ -135,6 +138,7 @@ export function classifyAuditObject(input: ClassifyAuditObjectInput): Classified
     authSignals,
     canonicalUrl: normalizeOptionalUrl(input.canonicalUrl, final),
     contentFingerprint: input.contentFingerprint ?? null,
+    ...(input.discoverySource ? { discoverySource: input.discoverySource } : {}),
   } as const;
 
   if (resource.type !== "html") {
@@ -165,7 +169,7 @@ export function classifyAuditObject(input: ClassifyAuditObjectInput): Classified
 
 export function classifyAnalyzedPage(
   page: PageAnalysis,
-  context: { readonly robotsAllowed?: boolean | null; readonly fromSitemap?: boolean } = {},
+  context: { readonly robotsAllowed?: boolean | null; readonly fromSitemap?: boolean; readonly discoverySource?: AuditDiscoverySource } = {},
 ): ClassifiedAuditObject {
   return classifyAuditObject({
     url: page.transport?.requestedUrl ?? page.url,
@@ -184,6 +188,7 @@ export function classifyAnalyzedPage(
     canonicalUrl: page.canonical.valid ? page.canonical.url : null,
     robotsAllowed: context.robotsAllowed,
     fromSitemap: context.fromSitemap,
+    discoverySource: context.discoverySource,
     redirects: page.transport?.redirects,
     passwordInputCount: page.forms?.passwordInputCount,
     loginForm: page.forms?.loginForm,

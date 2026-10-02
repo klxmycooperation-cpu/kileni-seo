@@ -15,7 +15,8 @@ function contentSecurityPolicy(request: NextRequest): string {
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "img-src 'self' data: blob:",
+    "img-src 'self' data: blob: https://d2ol7oe51mr4n9.cloudfront.net",
+    "media-src 'self' https://d8j0ntlcm91z4.cloudfront.net",
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
     `script-src 'self' 'unsafe-inline'${development ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com`,
@@ -28,7 +29,7 @@ function contentSecurityPolicy(request: NextRequest): string {
 
 export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
-  const locale = request.nextUrl.pathname === "/en" || request.nextUrl.pathname.startsWith("/en/") ? "en" : "ru";
+  const locale = "ru";
   requestHeaders.set("x-kileni-locale", locale);
   const auditPage = auditPageToken(request.nextUrl.pathname);
   if (auditPage) {
@@ -62,7 +63,7 @@ function secureResponse(response: NextResponse, request: NextRequest): NextRespo
 }
 
 function auditPageToken(pathname: string): { token: string } | null {
-  const match = pathname.match(/^\/(?:en\/)?audit\/([^/]+)\/?$/u);
+  const match = pathname.match(/^\/audit\/([^/]+)\/?$/u);
   return match?.[1] ? { token: match[1] } : null;
 }
 

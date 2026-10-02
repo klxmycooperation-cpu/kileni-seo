@@ -32,7 +32,7 @@ export async function deliverAuditResultEmail(auditId: string, options: { now?: 
   });
   if (!claimed) return;
 
-  const publicPath = `${audit.locale === "en" ? "/en" : ""}/audit/${encodeURIComponent(audit.publicToken)}`;
+  const publicPath = `/audit/${encodeURIComponent(audit.publicToken)}`;
   const publicUrl = options.publicUrl ?? new URL(publicPath, process.env.APP_BASE_URL || siteConfig.baseUrl).toString();
   const email = buildAuditResultEmail({
     locale: audit.locale, publicUrl, domain: audit.normalizedDomain,

@@ -4,7 +4,7 @@ import { PDFCheckBox, PDFDocument, PDFDropdown, PDFTextField } from "pdf-lib";
 import { describe, expect, test } from "vitest";
 import { commonBriefQuestions, serviceQuestions, type BriefService } from "../../src/content/brief";
 
-const locales = ["ru", "en"] as const;
+const locales = ["ru"] as const;
 const services = Object.keys(serviceQuestions) as BriefService[];
 
 describe("offline brief contract", () => {

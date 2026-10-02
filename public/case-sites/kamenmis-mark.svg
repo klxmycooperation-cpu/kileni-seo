@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Камень МИС">
+  <defs>
+    <linearGradient id="stone" x1="14" y1="10" x2="82" y2="86" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#bfd0ff"/>
+      <stop offset="1" stop-color="#4164ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="26" fill="#0a172c"/>
+  <path d="M19 70 43 22h11l23 48H19Zm18-13h22L48.5 36 37 57Z" fill="url(#stone)"/>
+  <path d="M25 74h46" stroke="#90aaff" stroke-linecap="round" stroke-width="3" opacity=".7"/>
+</svg>

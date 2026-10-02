@@ -3,17 +3,21 @@ import { describe, expect, it } from "vitest";
 import { getCases } from "../../src/content/cases";
 
 describe("case-study trust contract", () => {
-  it("publishes only the two evidenced projects", () => {
+  it("publishes the four approved projects in the carousel order", () => {
     for (const locale of ["ru", "en"] as const) {
       const cases = getCases(locale);
-      expect(cases).toHaveLength(2);
-      expect(cases.map((item) => item.slug)).toEqual(["eco-santeh", "zasorservice"]);
+      expect(cases).toHaveLength(4);
+      expect(cases.map((item) => item.slug)).toEqual(["mestoest-ff", "kamenmis", "eco-santeh", "zasorservice"]);
     }
   });
 
-  it("keeps the internal KILENI score secondary and explicitly non-search-engine", () => {
+  it("labels ranking evidence separately from the internal KILENI score", () => {
     for (const locale of ["ru", "en"] as const) {
       for (const item of getCases(locale)) {
+        if (item.slug === "mestoest-ff" || item.slug === "kamenmis") {
+          expect(item.previewFacts[0]?.label).toMatch(locale === "ru" ? /по данным проекта/iu : /reported by the project/iu);
+          continue;
+        }
         const scoreIndex = item.previewFacts.findIndex((fact) => fact.value === `${item.before} → ${item.after}`);
         expect(scoreIndex).toBeGreaterThan(0);
         expect(item.previewFacts[scoreIndex]?.label).toMatch(/KILENI/iu);

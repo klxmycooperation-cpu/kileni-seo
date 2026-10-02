@@ -97,10 +97,11 @@ export async function crawlSite(
         requestedUrl: rootResponse.requestedUrl,
         redirects: rootResponse.redirects,
         responseTimeMs: rootResponse.elapsedMs,
+        checkedAt: new Date().toISOString(),
         depth: 0,
       });
     pages.push(rootPage);
-    rememberClassification(classifyAnalyzedPage(rootPage));
+    rememberClassification(classifyAnalyzedPage(rootPage, { discoverySource: "root" }));
     analyzedUrls.add(finalRoot.href);
   }
 
@@ -123,6 +124,7 @@ export async function crawlSite(
     contentType: robots.contentType ?? "text/plain",
     statusCode: robots.httpStatus,
     resourceHint: "robots",
+    discoverySource: "technical",
   }));
   const sitemapFiles = sitemap.files?.length
     ? sitemap.files
@@ -138,6 +140,7 @@ export async function crawlSite(
       contentType: file.contentType,
       statusCode: file.statusCode,
       resourceHint: "sitemap",
+      discoverySource: "technical",
     }));
   }
 
@@ -191,6 +194,7 @@ export async function crawlSite(
       const classification = classifyAnalyzedPage(result.page, {
         robotsAllowed: isAllowedByRobots(result.page.url, robots),
         fromSitemap: sitemap.urls.includes(result.page.url),
+        discoverySource: sitemap.urls.includes(result.page.url) ? "sitemap" : "link",
       });
       rememberClassification(classification);
       if (result.followLinks) {
@@ -413,11 +417,15 @@ export async function crawlSite(
             requestedUrl: response.requestedUrl,
             redirects: response.redirects,
             responseTimeMs: response.elapsedMs,
+            checkedAt: new Date().toISOString(),
             depth: inventory.get(selected.url)?.depth ?? pathDepth(selected.url),
           });
       const classification = classifyAnalyzedPage(page, {
         robotsAllowed: isAllowedByRobots(page.url, robots),
         fromSitemap: sitemap.urls.includes(page.url),
+        discoverySource: sitemap.urls.includes(page.url)
+          ? "sitemap"
+          : inventory.get(selected.url)?.discoverySource ?? "link",
       });
       rememberClassification(classification);
       rememberInventory(classification, sitemap.urls.includes(page.url));
@@ -462,13 +470,21 @@ export async function crawlSite(
         if (url.hostname !== siteHostname) return;
         discoveredUrls.add(url.href);
         const robotsAllowed = isAllowedByRobots(url, robots);
+        const discoverySource = url.href === finalRoot.href
+          ? "root" as const
+          : fromSitemap
+            ? "sitemap" as const
+            : explicitPriorityUrls.has(url.href)
+              ? "priority" as const
+              : "link" as const;
         const observed = response
-          ? inspectDiscoveryResponse(response, depth, robotsAllowed, fromSitemap)
+          ? inspectDiscoveryResponse(response, depth, robotsAllowed, fromSitemap, discoverySource)
           : { classification: classifyAuditObject({
               url: url.href,
               depth,
               fromSitemap,
               robotsAllowed,
+              discoverySource,
             }), links: [] as string[] };
         rememberClassification(observed.classification);
         rememberInventory(observed.classification, fromSitemap);
@@ -510,6 +526,11 @@ export async function crawlSite(
           item.depth,
           isAllowedByRobots(finalUrl, robots),
           sitemap.urls.includes(item.url) || sitemap.urls.includes(finalUrl.href),
+          sitemap.urls.includes(item.url) || sitemap.urls.includes(finalUrl.href)
+            ? "sitemap"
+            : explicitPriorityUrls.has(item.url)
+              ? "priority"
+              : "link",
         );
         return { response, ...observed };
       } catch (error) {
@@ -643,6 +664,7 @@ export async function crawlSite(
           requestedUrl: response.requestedUrl,
           redirects: response.redirects,
           responseTimeMs: response.elapsedMs,
+          checkedAt: new Date().toISOString(),
           depth: item.depth,
         }),
         followLinks: response.status >= 200 && response.status < 300,
@@ -687,7 +709,9 @@ function inventoryItemForPage(
   page: PageAnalysis,
   fromSitemap = false,
 ): AuditUrlInventoryItem {
-  const classification = classifyAnalyzedPage(page);
+  const classification = classifyAnalyzedPage(page, {
+    discoverySource: fromSitemap ? "sitemap" : "link",
+  });
   return {
     url: page.transport?.requestedUrl ?? page.url,
     finalUrl: classification.finalUrl,
@@ -702,6 +726,7 @@ function inventoryItemForPage(
     templateSignature: classification.templateFamily,
     canonicalUrl: classification.canonicalUrl,
     contentFingerprint: classification.contentFingerprint,
+    discoverySource: classification.discoverySource,
   };
 }
 
@@ -722,6 +747,7 @@ function inventoryItemForClassification(
     templateSignature: classification.templateFamily,
     canonicalUrl: classification.canonicalUrl,
     contentFingerprint: classification.contentFingerprint,
+    discoverySource: classification.discoverySource,
   };
 }
 
@@ -758,6 +784,7 @@ function inspectDiscoveryResponse(
   depth: number,
   robotsAllowed: boolean,
   fromSitemap: boolean,
+  discoverySource: "root" | "link" | "sitemap" | "priority" = fromSitemap ? "sitemap" : "link",
 ): { readonly classification: ClassifiedAuditObject; readonly links: readonly string[] } {
   if (!isHtmlResponse(response)) {
     return {
@@ -769,6 +796,7 @@ function inspectDiscoveryResponse(
         depth,
         robotsAllowed,
         fromSitemap,
+        discoverySource,
         redirects: response.redirects,
       }),
       links: [],
@@ -835,6 +863,7 @@ function inspectDiscoveryResponse(
       redirects: response.redirects,
       canonicalUrl,
       contentFingerprint,
+      discoverySource,
       passwordInputCount: $('input[type="password" i]').length,
       loginForm: $('form input[type="password" i]').length > 0,
     }),

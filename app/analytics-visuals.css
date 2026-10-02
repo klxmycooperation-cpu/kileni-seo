@@ -14,8 +14,7 @@
   --analytics-shadow: 0 20px 52px color-mix(in srgb, var(--warm-ink) 10%, transparent);
 }
 
-html[data-kileni-theme="dark"] .kileni-site,
-html[data-kileni-theme="signal"] .kileni-site {
+html[data-kileni-theme="dark"] .kileni-site{
   --analytics-grid: color-mix(in srgb, var(--warm-line) 86%, transparent);
   --analytics-success: #38d783;
   --analytics-success-soft: color-mix(in srgb, #38d783 18%, transparent);

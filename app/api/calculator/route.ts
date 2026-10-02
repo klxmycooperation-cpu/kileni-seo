@@ -4,7 +4,7 @@ import { calculateEstimate } from "@/src/config/calculator";
 import { publicFormsAreEnabled } from "@/src/config/site";
 import { createCalculatorRequest, createLead } from "@/src/db/submissions";
 import { database } from "@/src/db/client";
-import { notifyTelegram } from "@/src/lib/notifications/telegram";
+import { notifySubmission } from "@/src/lib/notifications/submission";
 import { calculatorRequestSchema } from "@/src/lib/security/inputs";
 import { clientIp, privateHash, sanitizeLogValue } from "@/src/lib/security/request";
 import { verifyTurnstile } from "@/src/lib/security/turnstile";
@@ -74,9 +74,9 @@ export async function POST(request: Request) {
     return apiError(500, "CALCULATOR_CREATE_FAILED", "Не удалось сохранить расчёт");
   }
 
-  after(() => notifyTelegram({
-    entityType: "calculator",
-    entityId: ids.calculatorId,
+  after(() => notifySubmission({
+    entityType: "lead",
+    entityId: ids.leadId,
     text: [
       "Новый расчёт",
       `Направление: ${parsed.data.kind}`,

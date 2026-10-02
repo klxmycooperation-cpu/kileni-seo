@@ -96,9 +96,9 @@ test.describe("правки по скриншотам 2026-09-06", () => {
     await expect(panels.nth(0)).toBeHidden();
     await expect(panels.nth(1)).toBeHidden();
 
-    const deliverySteps = page.locator(".home-fix-flow > li");
+    const deliverySteps = page.locator(".home-deliverable-list > li");
     await expect(deliverySteps).toHaveCount(4);
-    await expect(deliverySteps.nth(3)).toContainText("ПРОВЕРИЛИ");
+    await expect(deliverySteps.nth(3)).toContainText("Повторно проверяем");
   });
 
   test("карточки статей имеют изображения и карусель начинается без обрезания", async ({ page }) => {
@@ -137,7 +137,7 @@ test.describe("правки по скриншотам 2026-09-06", () => {
 
     await page.goto("/cases");
     const caseCards = page.locator(".cp-narrative-case");
-    await expect(caseCards).toHaveCount(2);
+    await expect(caseCards).toHaveCount(3);
     expect(await computedRadius(caseCards.first())).toBeGreaterThanOrEqual(12);
     expect(await computedRadius(caseCards.first().locator(".cp-narrative-result"))).toBeGreaterThanOrEqual(12);
   });
@@ -177,9 +177,9 @@ test.describe("правки по скриншотам 2026-09-06", () => {
     expect(await computedRadius(page.locator(".brief-hero-note"))).toBeGreaterThanOrEqual(12);
 
     await page.goto("/pricing?category=seo-audit&offer=seo-audit-200");
-    const exclusions = page.locator(".cp-package-exclusions");
-    await exclusions.locator("summary").click();
-    expect(await computedRadius(exclusions)).toBeGreaterThanOrEqual(12);
+    const packageCard = page.locator('article.cp-tier-card[data-offer-id="seo-audit-200"]');
+    await packageCard.locator(".cp-tier-card-details-trigger").click();
+    expect(await computedRadius(packageCard)).toBeGreaterThanOrEqual(12);
 
     await page.goto("/about");
     const headingLeft = await page.locator(".about-boundaries .about-section-heading h2").evaluate((element) => Math.round(element.getBoundingClientRect().left));

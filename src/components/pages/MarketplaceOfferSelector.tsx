@@ -5,6 +5,7 @@ import { useState } from "react";
 import { offerBriefHref } from "../../config/offers";
 import type { Locale } from "../../config/site";
 import type { MarketplaceId } from "../../content/marketplaces";
+import { priceToneClass } from "../price-emphasis";
 
 export type MarketplaceOfferView = {
   id: string;
@@ -25,7 +26,7 @@ export function MarketplaceOfferSelector({ platform, locale, offers }: { platfor
 
   return (
     <div className="marketplace-offer-grid">
-      {offers.map((offer) => {
+      {offers.map((offer, index) => {
         const active = offer.id === selected;
         const href = offerBriefHref(offer.id, locale);
         return (
@@ -34,7 +35,7 @@ export function MarketplaceOfferSelector({ platform, locale, offers }: { platfor
               {offer.featured && <span className="marketplace-offer-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
             </div>
             <div className="marketplace-offer-head"><h3>{offer.name}</h3><p>{offer.description}</p></div>
-            <strong className="marketplace-offer-price">{offer.current}</strong>
+            <strong className={`marketplace-offer-price price-emphasis ${priceToneClass(index)}`}>{offer.current}</strong>
             <small className="marketplace-offer-note">{offer.note ?? ""}</small>
             <dl>
               <div><dt>{ru ? "Что вы получите" : "What you receive"}</dt><dd>{offer.mainResult}</dd></div>

@@ -1,0 +1,522 @@
+/* KILENI spatial depth v2.
+   This is a visual-only layer: existing markup, content and controls remain
+   the source of truth. Depth is made from selective surfaces, edge light and
+   perspective rather than a global transform or a WebGL scene. */
+.kileni-site {
+  --spatial-canvas: #07111f;
+  --spatial-canvas-deep: #050b14;
+  --spatial-surface: #0d1a2d;
+  --spatial-surface-raised: #11233b;
+  --spatial-surface-inset: #091626;
+  --spatial-line: rgb(138 164 255 / 24%);
+  --spatial-line-bright: rgb(138 164 255 / 62%);
+  --spatial-blue: #4164ff;
+  --spatial-blue-soft: #8aa4ff;
+  --spatial-success: #4bd893;
+  --spatial-ink: #f7f8fc;
+  --spatial-muted: #aab6c7;
+  --spatial-shadow: 0 2rem 5rem rgb(0 0 0 / 28%), 0 .35rem 1.1rem rgb(0 0 0 / 20%);
+  --spatial-shadow-soft: 0 1.2rem 3rem rgb(0 0 0 / 18%), 0 .2rem .75rem rgb(0 0 0 / 12%);
+  --spatial-radius: 1.4rem;
+  --spatial-radius-small: .95rem;
+}
+
+html[data-kileni-theme="light"] .kileni-site {
+  --spatial-canvas: #f7f8fb;
+  --spatial-canvas-deep: #eef2f7;
+  --spatial-surface: #fff;
+  --spatial-surface-raised: #f5f7fb;
+  --spatial-surface-inset: #e9eef7;
+  --spatial-line: rgb(11 19 43 / 16%);
+  --spatial-line-bright: rgb(65 100 255 / 54%);
+  --spatial-blue: #4164ff;
+  --spatial-blue-soft: #3158ea;
+  --spatial-ink: #0b132b;
+  --spatial-muted: #596179;
+  --spatial-shadow: 0 1.6rem 4rem rgb(11 19 43 / 12%), 0 .25rem 1rem rgb(11 19 43 / 8%);
+  --spatial-shadow-soft: 0 1rem 2.6rem rgb(11 19 43 / 9%), 0 .2rem .7rem rgb(11 19 43 / 6%);
+}
+
+/* The shared field is an environmental light source, not a blocking overlay. */
+.kileni-site > .kileni-visual-backdrop { opacity: .9; }
+.kileni-site .kileni-visual-backdrop__grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--spatial-blue) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--spatial-blue) 10%, transparent) 1px, transparent 1px);
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 55%), transparent 66%);
+  opacity: .34;
+}
+.kileni-site .kileni-visual-backdrop__glow {
+  background: radial-gradient(circle, color-mix(in srgb, var(--spatial-blue) 18%, transparent), transparent 67%);
+  filter: blur(22px);
+  opacity: .84;
+}
+
+/* Home: a stage with a foreground copy plane and a raised audit cluster. */
+.kileni-site .signal-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  background:
+    radial-gradient(ellipse at 75% 30%, color-mix(in srgb, var(--spatial-blue) 20%, transparent), transparent 28rem),
+    radial-gradient(ellipse at 96% 92%, color-mix(in srgb, var(--spatial-success) 7%, transparent), transparent 26rem),
+    linear-gradient(120deg, var(--spatial-canvas) 0%, var(--spatial-canvas-deep) 100%);
+}
+.kileni-site .signal-hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--spatial-blue) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in srgb, var(--spatial-blue) 10%, transparent) 1px, transparent 1px);
+  background-size: clamp(4rem, 7vw, 7rem) clamp(4rem, 7vw, 7rem);
+  mask-image: linear-gradient(110deg, rgb(0 0 0 / 70%), transparent 74%);
+  content: "";
+  opacity: .32;
+  pointer-events: none;
+}
+.kileni-site .signal-hero::after {
+  position: absolute;
+  z-index: -1;
+  top: 22%;
+  right: 25%;
+  width: 34rem;
+  height: 34rem;
+  border: 1px solid color-mix(in srgb, var(--spatial-blue) 12%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 5rem color-mix(in srgb, var(--spatial-blue) 2%, transparent), 0 0 0 11rem color-mix(in srgb, var(--spatial-blue) 1%, transparent);
+  content: "";
+  opacity: .68;
+  pointer-events: none;
+}
+.kileni-site .signal-hero .hero-grid {
+  position: relative;
+  z-index: 1;
+}
+.kileni-site .signal-hero .hero-copy {
+  position: relative;
+  z-index: 2;
+}
+.kileni-site .signal-hero .hero-copy::before {
+  position: absolute;
+  top: -1.6rem;
+  left: 0;
+  width: 4.5rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--spatial-blue), transparent);
+  box-shadow: 0 0 1.1rem color-mix(in srgb, var(--spatial-blue) 55%, transparent);
+  content: "";
+}
+.kileni-site .signal-hero .hero-copy > .eyebrow {
+  color: color-mix(in srgb, var(--spatial-blue-soft) 75%, var(--spatial-ink));
+  letter-spacing: .13em;
+}
+.kileni-site .signal-hero h1 { text-shadow: 0 .2rem 2.5rem color-mix(in srgb, var(--spatial-blue) 12%, transparent); }
+
+.kileni-site .signal-hero .hero-tool {
+  position: relative;
+  isolation: isolate;
+  /* The chart animates in place; the entire tool must not scale or translate.
+     It would otherwise change the box underneath a pointer halfway through
+     the opening sequence. */
+  animation: none;
+}
+.kileni-site .signal-hero .hero-tool::before,
+.kileni-site .signal-hero .hero-tool::after {
+  position: absolute;
+  z-index: -1;
+  border: 1px solid color-mix(in srgb, var(--spatial-blue) 25%, transparent);
+  border-radius: calc(var(--spatial-radius) + .15rem);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--spatial-surface-raised) 76%, transparent), color-mix(in srgb, var(--spatial-canvas-deep) 86%, transparent));
+  content: "";
+  pointer-events: none;
+}
+.kileni-site .signal-hero .hero-tool::before {
+  inset: 1rem -1.1rem -1.1rem 1.1rem;
+  box-shadow: 0 1.8rem 4rem rgb(0 0 0 / 25%);
+}
+.kileni-site .signal-hero .hero-tool::after {
+  inset: .45rem -.55rem -.55rem .55rem;
+  opacity: .72;
+}
+.kileni-site .signal-hero .hero-audit-surface {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  border: 1px solid var(--spatial-line-bright);
+  border-radius: var(--spatial-radius);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--spatial-surface-raised) 94%, transparent), color-mix(in srgb, var(--spatial-surface) 88%, transparent) 58%, color-mix(in srgb, var(--spatial-canvas-deep) 96%, transparent)),
+    var(--spatial-surface);
+  box-shadow: var(--spatial-shadow), inset 0 1px 0 rgb(255 255 255 / 10%);
+  /* This surface deliberately stays in its layout plane. The first version
+     moved it in 3D on hover, which made the form appear to slide under the
+     page and changed the reliable hit target for its controls. */
+  transform: none;
+}
+.kileni-site .signal-hero .hero-audit-surface::before {
+  position: absolute;
+  z-index: -1;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(112deg, color-mix(in srgb, var(--spatial-blue) 55%, transparent), transparent 23%, transparent 72%, color-mix(in srgb, var(--spatial-success) 22%, transparent));
+  content: "";
+  filter: blur(15px);
+  opacity: .55;
+  pointer-events: none;
+}
+.kileni-site .signal-hero .hero-audit-surface::after {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 4.5rem;
+  height: 1px;
+  background: var(--spatial-blue-soft);
+  box-shadow: 0 0 1rem var(--spatial-blue);
+  content: "";
+  opacity: .8;
+  pointer-events: none;
+}
+.kileni-site .signal-hero .hero-audit-visual {
+  position: relative;
+  z-index: 2;
+  border-color: color-mix(in srgb, var(--spatial-blue-soft) 45%, transparent);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--spatial-surface-raised) 90%, transparent), color-mix(in srgb, var(--spatial-surface-inset) 94%, transparent));
+  box-shadow: 0 1.25rem 2.5rem rgb(0 0 0 / 24%), inset 0 1px 0 rgb(255 255 255 / 9%);
+  transform: none;
+  backdrop-filter: blur(16px) saturate(120%);
+}
+.kileni-site .signal-hero .hero-audit-visual::before {
+  position: absolute;
+  top: 0;
+  right: 16%;
+  left: 16%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--spatial-blue-soft), transparent);
+  content: "";
+  opacity: .78;
+}
+.kileni-site .signal-hero .hero-form-wrap {
+  position: relative;
+  z-index: 1;
+  transform: none;
+}
+.kileni-site .signal-hero .hero-form-wrap .audit-form {
+  border-color: color-mix(in srgb, var(--spatial-line-bright) 72%, transparent);
+  background: color-mix(in srgb, var(--spatial-surface-inset) 92%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
+}
+
+/* The home tool is a small group of interfaces, not a rigid, joined grid.
+   Keep its outer depth plane, then give the chart and form their own soft
+   corners so the horizontal join never reads as a square seam. */
+.kileni-site .signal-hero .hero-audit-surface {
+  display: grid;
+  gap: .7rem;
+  padding: .7rem;
+  border-radius: calc(var(--spatial-radius) + .2rem);
+}
+
+.kileni-site .signal-hero .hero-audit-visual-stack {
+  overflow: hidden;
+  border-radius: calc(var(--spatial-radius) - .35rem);
+}
+
+.kileni-site .signal-hero .hero-audit-surface .hero-audit-visual.analytics-card {
+  border: 1px solid color-mix(in srgb, var(--spatial-blue-soft) 45%, transparent);
+  border-radius: inherit;
+}
+
+.kileni-site .signal-hero .hero-audit-surface > .hero-form-wrap {
+  border: 0;
+}
+
+.kileni-site .signal-hero .hero-audit-surface .audit-form {
+  border: 1px solid color-mix(in srgb, var(--spatial-line-bright) 72%, transparent);
+  border-radius: calc(var(--spatial-radius) - .35rem);
+}
+
+/* Separate the format choices into adjacent rounded controls instead of a
+   continuous rectangular strip. The selected option remains the same tab. */
+.kileni-site .home-decision__body {
+  padding: .55rem;
+  border-radius: calc(var(--spatial-radius) + .2rem);
+}
+
+.kileni-site .home-decision__tabs {
+  gap: .5rem;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.kileni-site .home-decision__tab,
+.kileni-site .home-decision__tab:first-child,
+.kileni-site .home-decision__tab:last-child {
+  border: 1px solid var(--warm-line, #d7deea);
+  border-radius: calc(var(--spatial-radius) - .3rem);
+}
+
+.kileni-site .home-decision__panel {
+  margin-top: .55rem;
+  border: 1px solid var(--warm-line, #d7deea);
+  border-radius: calc(var(--spatial-radius) - .3rem);
+}
+.kileni-site .signal-hero .analytics-hero-chart__metric strong { text-shadow: 0 0 1.4rem color-mix(in srgb, var(--spatial-blue) 32%, transparent); }
+.kileni-site .signal-hero .analytics-visibility-detail,
+.kileni-site .signal-hero .marketing-dashboard__chart {
+  border-color: color-mix(in srgb, var(--spatial-blue) 38%, var(--spatial-line));
+  background: linear-gradient(160deg, var(--spatial-surface-inset), color-mix(in srgb, var(--spatial-blue) 6%, var(--spatial-surface-inset)));
+  box-shadow: inset 0 0 2.5rem color-mix(in srgb, var(--spatial-blue) 7%, transparent);
+}
+.kileni-site .marketing-dashboard {
+  isolation: isolate;
+  border-color: var(--spatial-line);
+  background: linear-gradient(155deg, var(--spatial-surface-raised), var(--spatial-surface-inset));
+  box-shadow: var(--spatial-shadow-soft), inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+
+/* Reuse the same hierarchy lower on the page without turning every section
+   into a card: only existing surfaces receive lift and an edge highlight. */
+.kileni-site .home-process-section {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(120deg, var(--spatial-canvas-deep), var(--spatial-canvas));
+}
+.kileni-site .home-process-section::after {
+  position: absolute;
+  z-index: -1;
+  top: 12%;
+  right: 8%;
+  width: 26rem;
+  height: 26rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--spatial-blue) 15%, transparent), transparent 68%);
+  content: "";
+  pointer-events: none;
+}
+.kileni-site .home-process-grid,
+.kileni-site .home-level-grid,
+.kileni-site .home-deliverable-list {
+  position: relative;
+  z-index: 1;
+}
+.kileni-site .home-process-step {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--spatial-surface) 70%, transparent), transparent 72%);
+  box-shadow: inset -1px 0 color-mix(in srgb, var(--spatial-blue) 10%, transparent);
+}
+.kileni-site .home-process-step > span { text-shadow: 0 1rem 3rem color-mix(in srgb, var(--spatial-blue) 30%, transparent); }
+.kileni-site .home-level-card,
+.kileni-site .home-deliverable-list li,
+.kileni-site .home-direction-list > a {
+  position: relative;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--spatial-surface-raised) 84%, transparent), color-mix(in srgb, var(--spatial-surface) 70%, transparent));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+
+/* Services: put the trajectory and explorer on two distinct planes. */
+.kileni-site .services-hub__hero,
+.kileni-site .services-explorer {
+  position: relative;
+  isolation: isolate;
+}
+.kileni-site .services-hub__hero {
+  background: radial-gradient(ellipse at 82% 36%, color-mix(in srgb, var(--spatial-blue) 15%, transparent), transparent 30rem), var(--spatial-canvas);
+}
+.kileni-site .services-hub__trajectory {
+  position: relative;
+  border-color: var(--spatial-line-bright);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--spatial-surface-raised) 93%, transparent), color-mix(in srgb, var(--spatial-surface-inset) 88%, transparent));
+  box-shadow: var(--spatial-shadow);
+  transform: perspective(1200px) rotateY(-3deg) rotateX(1deg);
+  transform-style: preserve-3d;
+}
+.kileni-site .services-hub__trajectory::before,
+.kileni-site .services-explorer__visual::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--spatial-blue) 14%, transparent), transparent 35%, transparent 72%, color-mix(in srgb, var(--spatial-success) 8%, transparent));
+  content: "";
+  pointer-events: none;
+}
+.kileni-site .services-hero__line { filter: drop-shadow(0 0 .45rem color-mix(in srgb, var(--spatial-blue) 70%, transparent)); }
+.kileni-site .services-hub__trajectory-heading,
+.kileni-site .services-hub__trajectory ol,
+.kileni-site .services-hub__trajectory > p { position: relative; z-index: 1; }
+.kileni-site .services-explorer__surface {
+  border-color: var(--spatial-line-bright);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--spatial-surface) 96%, transparent), color-mix(in srgb, var(--spatial-canvas-deep) 92%, transparent));
+  box-shadow: var(--spatial-shadow);
+}
+.kileni-site .services-explorer__tabs,
+.kileni-site .services-explorer__lists,
+.kileni-site .services-explorer__facts {
+  box-shadow: var(--spatial-shadow-soft), inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+.kileni-site .services-explorer__tab[aria-selected="true"] { box-shadow: inset 0 -3px 0 var(--spatial-blue), 0 0 1.5rem color-mix(in srgb, var(--spatial-blue) 10%, transparent); }
+.kileni-site .services-explorer__visual {
+  position: sticky;
+  border-color: var(--spatial-line-bright);
+  background: linear-gradient(155deg, var(--spatial-surface-raised), var(--spatial-surface-inset));
+  box-shadow: var(--spatial-shadow);
+  transform: perspective(1100px) rotateY(3deg) rotateX(1deg);
+  transform-style: preserve-3d;
+}
+.kileni-site .services-explorer__visual > * { position: relative; z-index: 1; }
+.kileni-site .services-explorer__visual svg { background: linear-gradient(155deg, color-mix(in srgb, var(--spatial-blue) 8%, var(--spatial-surface)), var(--spatial-surface-inset)); }
+.kileni-site .services-explorer__shape--accent { filter: drop-shadow(0 0 .55rem color-mix(in srgb, var(--spatial-blue) 40%, transparent)); }
+
+/* Detail-page build compositions become a handover object with an inner
+   surface and a lit rim; their existing lists remain untouched. */
+.kileni-site .svc-visual-build-system .svc-build-composition,
+.kileni-site .svc-visual:not(.svc-visual-build-system) {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--spatial-line-bright);
+  border-radius: var(--spatial-radius);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--spatial-surface-raised) 94%, transparent), color-mix(in srgb, var(--spatial-surface-inset) 90%, transparent));
+  box-shadow: var(--spatial-shadow);
+}
+.kileni-site .svc-visual-build-system .svc-build-composition::before,
+.kileni-site .svc-visual:not(.svc-visual-build-system)::before {
+  position: absolute;
+  top: 0;
+  right: 8%;
+  left: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--spatial-blue-soft), transparent);
+  content: "";
+  opacity: .85;
+}
+.kileni-site .svc-build-composition__deliverables li,
+.kileni-site .svc-scope-definition__list > div,
+.kileni-site .svc-visual-deliverables li { border-color: var(--spatial-line); }
+
+/* Marketplace surfaces: preserve platform colours while giving the cards a
+   calm foreground/background separation. */
+.kileni-site .marketplace-card,
+.kileni-site .marketplace-docs,
+.kileni-site .marketplace-cta,
+.kileni-site .marketplace-result-example,
+.kileni-site .marketplace-offer {
+  position: relative;
+  border-color: var(--spatial-line);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--spatial-surface-raised) 88%, transparent), color-mix(in srgb, var(--spatial-surface) 78%, transparent));
+  box-shadow: var(--spatial-shadow-soft), inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+.kileni-site .marketplace-card::before,
+.kileni-site .marketplace-docs::before,
+.kileni-site .marketplace-cta::before {
+  position: absolute;
+  top: 0;
+  right: 10%;
+  left: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--spatial-blue-soft), transparent);
+  content: "";
+  opacity: .78;
+}
+.kileni-site .marketplace-card:hover,
+.kileni-site .marketplace-card:focus-visible {
+  border-color: var(--spatial-line-bright);
+  box-shadow: var(--spatial-shadow), 0 0 2rem color-mix(in srgb, var(--spatial-blue) 10%, transparent);
+}
+.kileni-site .marketplace-docs > div:last-child a {
+  border-color: var(--spatial-line);
+  background: color-mix(in srgb, var(--spatial-surface-inset) 82%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+.kileni-site .marketplace-docs > div:last-child a:hover,
+.kileni-site .marketplace-docs > div:last-child a:focus-visible { border-color: var(--spatial-line-bright); }
+
+@media (min-width: 721px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .kileni-site .signal-hero .hero-audit-surface,
+  .kileni-site .services-hub__trajectory,
+  .kileni-site .services-explorer__visual { transition: box-shadow 360ms ease, border-color 360ms ease; }
+  .kileni-site .signal-hero .hero-audit-surface:hover {
+    transform: none;
+    box-shadow: 0 1.8rem 4.5rem rgb(0 0 0 / 31%), inset 0 1px 0 rgb(255 255 255 / 12%);
+  }
+  .kileni-site .services-hub__trajectory:hover { transform: perspective(1200px) rotateY(-1deg) rotateX(1deg) translateY(-.25rem); }
+  .kileni-site .services-explorer__visual:hover { transform: perspective(1100px) rotateY(1deg) rotateX(1deg) translateY(-.25rem); }
+}
+
+@media (max-width: 720px) {
+  .kileni-site .signal-hero::after { top: 32%; right: -13rem; width: 25rem; height: 25rem; }
+  .kileni-site .signal-hero .hero-tool::before { inset: .65rem -.5rem -.6rem .5rem; }
+  .kileni-site .signal-hero .hero-tool::after { inset: .3rem -.25rem -.3rem .25rem; }
+  .kileni-site .signal-hero .hero-audit-surface,
+  .kileni-site .services-hub__trajectory,
+  .kileni-site .services-explorer__visual { transform: none; }
+  .kileni-site .signal-hero .hero-audit-visual,
+  .kileni-site .signal-hero .hero-form-wrap { transform: none; }
+  .kileni-site .signal-hero .hero-audit-visual,
+  .kileni-site .services-hub__trajectory { backdrop-filter: none !important; }
+  .kileni-site .services-hub__trajectory,
+  .kileni-site .services-explorer__surface,
+  .kileni-site .svc-visual-build-system .svc-build-composition,
+  .kileni-site .svc-visual:not(.svc-visual-build-system),
+  .kileni-site .marketplace-card,
+  .kileni-site .marketplace-docs,
+  .kileni-site .marketplace-cta { box-shadow: var(--spatial-shadow-soft); }
+  .kileni-site .marketplace-card,
+  .kileni-site .marketplace-card:hover,
+  .kileni-site .marketplace-card:focus-visible { transform: none !important; transition: none !important; }
+}
+
+/* Touch and coarse-pointer devices can be wider than the phone breakpoint.
+   Keep the scene flat and remove the expensive blur for those inputs too. */
+@media (hover: none), (pointer: coarse) {
+  .kileni-site .signal-hero .hero-audit-surface,
+  .kileni-site .signal-hero .hero-audit-visual,
+  .kileni-site .signal-hero .hero-form-wrap,
+  .kileni-site .services-hub__trajectory,
+  .kileni-site .services-explorer__visual {
+    transform: none !important;
+    transition: none !important;
+  }
+  .kileni-site .signal-hero .hero-audit-visual,
+  .kileni-site .services-hub__trajectory,
+  .kileni-site .services-explorer__visual { backdrop-filter: none !important; }
+  .kileni-site .marketplace-card,
+  .kileni-site .marketplace-card:hover,
+  .kileni-site .marketplace-card:focus-visible { transform: none !important; transition: none !important; }
+  .kileni-site .marketplace-card:hover { box-shadow: var(--spatial-shadow-soft), inset 0 1px 0 rgb(255 255 255 / 5%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site .signal-hero .hero-audit-surface,
+  .kileni-site .signal-hero .hero-audit-visual,
+  .kileni-site .signal-hero .hero-form-wrap,
+  .kileni-site .services-hub__trajectory,
+  .kileni-site .services-explorer__visual { transform: none !important; transition: none !important; }
+  .kileni-site .signal-hero .hero-audit-visual,
+  .kileni-site .services-hub__trajectory,
+  .kileni-site .services-explorer__visual { backdrop-filter: none !important; }
+  .kileni-site .marketplace-card,
+  .kileni-site .marketplace-card:hover,
+  .kileni-site .marketplace-card:focus-visible { transform: none !important; transition: none !important; }
+  .kileni-site .signal-hero::after,
+  .kileni-site .kileni-visual-backdrop__glow { display: none; }
+}
+
+@keyframes spatial-depth-v2-audit-surface-in {
+  from { transform: translateY(.8rem) rotateY(-8deg) rotateX(3deg); }
+  to { transform: rotateY(-4deg) rotateX(1.5deg); }
+}
+
+@keyframes spatial-depth-v2-audit-visual-in {
+  from { transform: translateZ(8px); }
+  to { transform: translateZ(28px); }
+}
+
+@keyframes spatial-depth-v2-audit-rear-plane-in {
+  from { transform: translateZ(-42px) rotate(4deg); }
+  to { transform: translateZ(-28px) rotate(2.6deg); }
+}
+
+@keyframes spatial-depth-v2-audit-middle-plane-in {
+  from { transform: translateZ(-22px) rotate(2deg); }
+  to { transform: translateZ(-12px) rotate(1.2deg); }
+}

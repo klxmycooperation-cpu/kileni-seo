@@ -1,9 +1,13 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
+import nextEnv from "@next/env";
 import { access, cp, lstat, mkdir, readlink, readdir, realpath, rm, symlink } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { assertIsolatedPreviewEnvironment } from "./runtime-isolation.mjs";
 
+process.env.NODE_ENV = "production";
+if (process.env.KILENI_SKIP_ENV_FILE !== "1") nextEnv.loadEnvConfig(process.cwd());
 assertIsolatedPreviewEnvironment();
 
 const root = process.cwd();
@@ -16,7 +20,13 @@ const runtimeEnvironment = {
   DATABASE_PATH: resolve(root, process.env.DATABASE_PATH ?? "data/kileni.sqlite"),
   PRIVATE_UPLOADS_PATH: resolve(root, process.env.PRIVATE_UPLOADS_PATH ?? "data/uploads"),
   BACKUP_PATH: resolve(root, process.env.BACKUP_PATH ?? "data/backups"),
+  ADMIN_SESSION_HOURS: process.env.ADMIN_SESSION_HOURS ?? "8",
+  AUDIT_RESULT_RETENTION_DAYS: process.env.AUDIT_RESULT_RETENTION_DAYS ?? "90",
 };
+
+execFileSync(process.execPath, [fileURLToPath(new URL("./validate-launch.mjs", import.meta.url))], {
+  cwd: root, env: { ...runtimeEnvironment, KILENI_SKIP_ENV_FILE: "1" }, stdio: "inherit",
+});
 
 try {
   await access(server);

@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { Manrope } from "next/font/google";
 import { prelaunchRobotsMetadata, siteConfig, warnIfProductionIntegrationConfigIsIncomplete, warnIfProductionLegalConfigIsIncomplete } from "@/src/config/site";
 import { INTRO_BOOTSTRAP } from "@/src/components/home/brand-intro-config";
 import { ThemePreferenceSync } from "@/src/components/layout/ThemePreferenceSync";
 import { THEME_BOOTSTRAP } from "@/src/components/layout/theme-config";
-import { buildPublicShellSchema } from "@/src/components/layout/PublicShell";
 import "./globals.css";
 import "./editorial.css";
 import "./brand-intro.css";
@@ -24,6 +22,22 @@ import "./responsive-foundation.css";
 import "./content-navigation.css";
 import "./glossary-links.css";
 import "./final-ui-corrections.css";
+import "./visual-layer.css";
+import "./spatial-depth-v2.css";
+import "./canvas-text.css";
+import "./floating-header.css";
+import "./pricing-reference-cards.css";
+import "./site-tracing-beam.css";
+import "./site-continuity.css";
+import "./hero-highlight.css";
+import "./pin-container.css";
+import "./data-visual-primitives.css";
+import "./home-dashboard-redesign.css";
+import "./ux-quality-pass.css";
+import "./theme-contrast-completion.css";
+import "./adaptive-desktop-foundation.css";
+import "./design-system-foundation.css";
+import "./sitewide-adaptive-pass.css";
 
 const SKIP_LINK_BOOTSTRAP = `(() => {
   window.addEventListener("keydown", (event) => {
@@ -68,14 +82,9 @@ export default async function RootLayout({
 }>) {
   warnIfProductionLegalConfigIsIncomplete();
   warnIfProductionIntegrationConfigIsIncomplete();
-  const locale = (await headers()).get("x-kileni-locale") === "en" ? "en" : "ru";
-  const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY?.trim() && process.env.TURNSTILE_SECRET_KEY?.trim()
-    ? process.env.TURNSTILE_SITE_KEY.trim()
-    : undefined;
-  const publicShellSchema = buildPublicShellSchema(locale);
   return (
     <html
-      lang={locale}
+      lang="ru"
       className={manrope.variable}
       data-kileni-theme="dark"
       data-scroll-behavior="smooth"
@@ -95,15 +104,10 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: INTRO_BOOTSTRAP }}
         />
       </head>
-      <body className={manrope.className} data-turnstile-site-key={turnstileSiteKey}>
+      <body className={manrope.className}>
         <ThemePreferenceSync />
-        <a className="skip-link" href="#main-content" tabIndex={0}>{locale === "ru" ? "Перейти к содержимому" : "Skip to content"}</a>
+        <a className="skip-link" href="#main-content" tabIndex={0}>Перейти к содержимому</a>
         {children}
-        <script
-          id="kileni-public-schema"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(publicShellSchema).replace(/</gu, "\\u003c") }}
-        />
       </body>
     </html>
   );

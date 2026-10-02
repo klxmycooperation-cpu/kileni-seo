@@ -9,6 +9,7 @@ export * from "./engine";
 export * from "./fetch";
 export * from "./finalize-v3";
 export * from "./finalize-v4";
+export * from "./lighthouse-observation";
 export * from "./public-pipeline";
 export * from "./scoring";
 export * from "./sample-selector";

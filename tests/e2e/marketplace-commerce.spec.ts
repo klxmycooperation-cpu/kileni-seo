@@ -63,9 +63,59 @@ test("keeps English marketplace names and official links fully localized", async
   }
 });
 
+test("keeps the Wildberries scope list sequential and the delivery example inset", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 960 });
+  await page.goto("/marketplaces/wildberries");
+
+  const scopeRows = page.locator(".marketplace-detail-row");
+  await expect(scopeRows).toHaveCount(8);
+  const numbers = await scopeRows.locator(":scope > span").allTextContents();
+  expect(numbers.map((number) => number.trim())).toEqual(["01", "02", "03", "04", "05", "06", "07", "08"]);
+  await expect(scopeRows.nth(6).locator("ul")).toHaveCount(1);
+
+  const example = page.locator(".marketplace-result-example");
+  const spacing = await example.evaluate((section) => {
+    const header = section.querySelector<HTMLElement>("header")!;
+    const files = section.querySelector<HTMLElement>(".marketplace-result-files")!;
+    const disclaimer = section.querySelector<HTMLElement>(".marketplace-result-disclaimer")!;
+    const sectionBox = section.getBoundingClientRect();
+    const headerBox = header.getBoundingClientRect();
+    const filesBox = files.getBoundingClientRect();
+    const disclaimerBox = disclaimer.getBoundingClientRect();
+    return {
+      headerInset: headerBox.left - sectionBox.left,
+      disclaimerInset: disclaimerBox.left - sectionBox.left,
+      disclaimerTopGap: disclaimerBox.top - filesBox.bottom,
+    };
+  });
+  expect(spacing.headerInset).toBeGreaterThanOrEqual(24);
+  expect(spacing.disclaimerInset).toBeGreaterThanOrEqual(24);
+  expect(spacing.disclaimerTopGap).toBeGreaterThanOrEqual(24);
+});
+
+test("matches the Wildberries documentation and selection actions", async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1354 });
+  await page.goto("/marketplaces/wildberries");
+
+  const geometry = await page.evaluate(() => {
+    const guide = document.querySelector<HTMLElement>(".marketplace-docs__links a");
+    const action = document.querySelector<HTMLElement>(".marketplace-cta__action");
+    if (!guide || !action) throw new Error("Wildberries actions are missing");
+    const guideRect = guide.getBoundingClientRect();
+    const actionRect = action.getBoundingClientRect();
+    return {
+      widthDelta: Math.abs(guideRect.width - actionRect.width),
+      heightDelta: Math.abs(guideRect.height - actionRect.height),
+    };
+  });
+
+  expect(geometry.widthDelta).toBeLessThanOrEqual(2);
+  expect(geometry.heightDelta).toBeLessThanOrEqual(2);
+});
+
 test("uses exact marketplace H1s and complete visible breadcrumbs", async ({ page }) => {
   await page.goto("/marketplaces");
-  await expect(page.getByRole("heading", { level: 1, name: "Оформление карточек товаров для маркетплейсов" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Карточки, которые помогают выбрать товар" })).toBeVisible();
   await expect(page.locator(".marketplace-card")).toHaveCount(3);
 
   await page.goto("/marketplaces/ozon");
@@ -103,20 +153,11 @@ test("carries the selected marketplace and service tier into the brief", async (
   await expect(page.locator(".brief-service-guide")).toContainText("Яндекс Маркет");
   await expect(page.locator(".brief-service-guide")).toContainText(/4\s*900\s*₽ за артикул/u);
   await page.getByRole("button", { name: /^Далее/u }).click();
-  const company = page.getByLabel("Компания или проект");
-  const problem = page.getByLabel("Что сейчас не устраивает?");
-  const desiredResult = page.getByLabel("Какой результат нужен?");
-  await expect(company).toBeVisible();
-  await company.fill("Тестовый магазин");
-  await problem.fill("Карточки сложно сравнивать");
-  await desiredResult.fill("Понятные карточки для покупателей");
-  await expect(company).toHaveValue("Тестовый магазин");
-  await expect(problem).toHaveValue("Карточки сложно сравнивать");
-  await expect(desiredResult).toHaveValue("Понятные карточки для покупателей");
+  await page.getByLabel("Компания или проект").fill("Тестовый магазин");
+  await page.getByLabel("Что сейчас не устраивает?").fill("Карточки сложно сравнивать");
+  await page.getByLabel("Какой результат нужен?").fill("Понятные карточки для покупателей");
   await page.getByRole("button", { name: /^Далее/u }).click();
-  const platform = page.getByLabel(/Площадка/u);
-  await expect(platform).toBeVisible();
-  await expect(platform).toHaveValue("yandex-market");
+  await expect(page.getByLabel(/Площадка/u)).toHaveValue("yandex-market");
 
   await page.goto("/seo-audit");
   const serviceTier = page.locator(".svc-package-grid > article").nth(1);

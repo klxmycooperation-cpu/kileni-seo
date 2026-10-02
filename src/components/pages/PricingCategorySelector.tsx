@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FocusEvent, type KeyboardEvent, type ReactNode } from "react";
 import type { OfferPriceType, OfferService } from "../../config/offers";
-import { formatPricingOptionCount } from "../../lib/pricing/format-option-count";
+import { priceToneClass } from "../price-emphasis";
+import { CanvasText } from "../ui/canvas-text";
 
 export type PricingCategory = {
   slug: OfferService;
@@ -37,11 +38,20 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
   const [active, setActive] = useState(initialCategory?.slug ?? "seo-audit");
   const [selected, setSelected] = useState(() => initialCategory ? defaultOfferId(initialCategory) : "");
   const [previewed, setPreviewed] = useState("");
+  const [expandedOffer, setExpandedOffer] = useState("");
   const [invalidOffer, setInvalidOffer] = useState("");
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const offerRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const detailsDialogRef = useRef<HTMLDialogElement | null>(null);
+  const detailsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const ru = locale === "ru";
   const category = categories.find((item) => item.slug === active) ?? initialCategory;
+  const detailsOffer = category?.packages.find((item) => item.offerId === expandedOffer);
+  const activeCategoryIndex = Math.max(0, categories.indexOf(category));
+  const hasSelectablePackages = !(category?.packages.length === 1 && category.packages[0]?.priceType === "custom");
+  const categoryNavigatorStyle = {
+    "--category-active-index": activeCategoryIndex,
+  } as CSSProperties;
 
   useEffect(() => {
     const syncFromLocation = () => {
@@ -57,6 +67,7 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
         setActive(categoryFromUrl?.slug ?? initialCategory?.slug ?? "seo-audit");
         setSelected("");
         setPreviewed("");
+        setExpandedOffer("");
         setInvalidOffer(requestedOffer);
         return;
       }
@@ -65,6 +76,7 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
         setActive(categoryFromOffer.slug);
         setSelected(requestedOffer);
         setPreviewed("");
+        setExpandedOffer("");
         setInvalidOffer("");
         return;
       }
@@ -73,6 +85,7 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
         setActive(categoryFromUrl.slug);
         setSelected(defaultOfferId(categoryFromUrl));
         setPreviewed("");
+        setExpandedOffer("");
         setInvalidOffer("");
         return;
       }
@@ -80,6 +93,7 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
       setActive(initialCategory?.slug ?? "seo-audit");
       setSelected(initialCategory ? defaultOfferId(initialCategory) : "");
       setPreviewed("");
+      setExpandedOffer("");
       setInvalidOffer("");
     };
 
@@ -87,6 +101,26 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
     window.addEventListener("popstate", syncFromLocation);
     return () => window.removeEventListener("popstate", syncFromLocation);
   }, [categories, initialCategory]);
+
+  useEffect(() => {
+    if (!window.matchMedia("(max-width: 1024px)").matches) return;
+    const selectedTab = tabRefs.current[activeCategoryIndex];
+    const rail = selectedTab?.parentElement;
+    if (!selectedTab || !rail) return;
+
+    const targetLeft = selectedTab.offsetLeft - ((rail.clientWidth - selectedTab.offsetWidth) / 2);
+    rail.scrollTo({
+      left: Math.max(0, targetLeft),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }, [activeCategoryIndex]);
+
+  useEffect(() => {
+    const dialog = detailsDialogRef.current;
+    if (!dialog) return;
+    if (detailsOffer && !dialog.open) dialog.showModal();
+    if (!detailsOffer && dialog.open) dialog.close();
+  }, [detailsOffer]);
 
   if (!category) return null;
 
@@ -104,6 +138,7 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
     setActive(next.slug);
     setSelected(offerId);
     setPreviewed("");
+    setExpandedOffer("");
     setInvalidOffer("");
     updateLocation(next.slug, offerId || undefined);
     if (focus) requestAnimationFrame(() => tabRefs.current[categories.indexOf(next)]?.focus());
@@ -142,9 +177,6 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPreviewed("");
   };
 
-  const visibleOfferId = invalidOffer ? "" : (previewed || selected || defaultOfferId(category));
-  const visibleOffer = category.packages.find((item) => item.offerId === visibleOfferId);
-
   return (
     <>
       <header className="cp-hero">
@@ -152,7 +184,7 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
         <div className="shell cp-hero-grid">
           <div>
             <p className="cp-kicker">{category.eyebrow}</p>
-            <h1>{category.heading}</h1>
+            <h1><CanvasText text={category.heading} lineGap={7} animationDuration={10}/></h1>
           </div>
           <div className="cp-hero-note">
             <strong>{ru ? "Цена привязана к видимому объёму" : "Price follows the visible scope"}</strong>
@@ -162,19 +194,25 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
       </header>
 
       <section className="cp-pricing-section" aria-labelledby="pricing-list-title">
-        <div className="shell">
-          <div className="cp-section-intro">
-            <p className="cp-kicker">{ru ? "Сравнение вариантов" : "Compare options"}</p>
-            <h2 id="pricing-list-title">{category.comparisonHeading}</h2>
-            <p>{ru ? "Внешние расходы и работа сверх указанного объёма согласуются до начала." : "External spend and work beyond the package limit are agreed before work begins."}</p>
-          </div>
+          <div className="shell">
+            <div className="cp-section-intro">
+              <p className="cp-kicker">{ru ? "Сравнение вариантов" : "Compare options"}</p>
+              <h2 id="pricing-list-title">{category.comparisonHeading}</h2>
+            </div>
           {invalidOffer ? (
             <p className="cp-pricing-status" role="status">
               {ru ? `Тариф не найден: ${invalidOffer}. Выберите доступный вариант.` : `Offer not found: ${invalidOffer}. Choose an available option.`}
             </p>
           ) : null}
           <div className="cp-category-selector">
-            <div className="cp-category-tabs" role="tablist" aria-label={ru ? "Категории услуг" : "Service categories"}>
+            <div
+              className="cp-category-tabs"
+              role="tablist"
+              aria-label={ru ? "Категории услуг" : "Service categories"}
+              data-active-category={category.slug}
+              style={categoryNavigatorStyle}
+            >
+              <span className="cp-category-tabs__active" aria-hidden="true" />
               {categories.map((item, index) => (
                 <button
                   key={item.slug}
@@ -194,93 +232,163 @@ export function PricingCategorySelector({ breadcrumbs, categories, locale }: { b
               ))}
             </div>
             <section
+              key={category.slug}
               className="cp-category-panel"
               id={`pricing-panel-${category.slug}`}
               role="tabpanel"
               aria-labelledby={`pricing-tab-${category.slug}`}
+              data-category={category.slug}
             >
               <header>
                 <p>{category.lead}</p>
-                <span>{formatPricingOptionCount(category.packages.length, locale)}</span>
               </header>
               <div className="cp-package-list">
                 <div
                   className="cp-tier-switch"
-                  role="radiogroup"
-                  aria-label={ru ? "Варианты тарифа" : "Package options"}
+                  data-option-count={category.packages.length}
+                  role={hasSelectablePackages ? "radiogroup" : undefined}
+                  aria-label={hasSelectablePackages ? (ru ? "Варианты тарифа" : "Package options") : undefined}
                   onMouseLeave={() => setPreviewed("")}
                   onBlur={stopPreviewWhenFocusLeaves}
                 >
                   {category.packages.map((item, index) => {
                     const isSelected = selected === item.offerId;
-                    const isPreview = visibleOfferId === item.offerId;
+                    const isPreview = previewed === item.offerId;
+                    const price = splitPackagePrice(item.price);
+                    const opensBriefDirectly = category.packages.length === 1 && item.priceType === "custom";
+                    const briefHref = `/brief?offer=${encodeURIComponent(item.offerId)}`;
+                    const selectionContent = (
+                      <>
+                        <span className="cp-tier-card-summary">
+                          <span className="cp-tier-card-index">{String(index + 1).padStart(2, "0")}</span>
+                          {item.featured && <b>{ru ? "Рекомендуем" : "Recommended"}</b>}
+                          <strong>{item.tierLabel}</strong>
+                          <span className="cp-tier-card-description">{item.description}</span>
+                        </span>
+                        <span className="cp-tier-card-price">
+                          <strong className={`price-emphasis ${priceToneClass(index)}`}>{price.amount}</strong>
+                          {price.note ? <small>{price.note}</small> : null}
+                        </span>
+                        <span className="cp-tier-card-action">
+                          {opensBriefDirectly
+                            ? (ru ? "Заполнить бриф" : "Fill in the brief")
+                            : isSelected
+                              ? (ru ? "Тариф выбран" : "Package selected")
+                              : (ru ? "Выбрать тариф" : "Choose package")}
+                        </span>
+                      </>
+                    );
                     return (
-                      <button
+                      <article
                         key={item.offerId}
-                        ref={(node) => { offerRefs.current[index] = node; }}
-                        type="button"
-                        role="radio"
-                        aria-checked={isSelected}
+                        className="cp-tier-card"
                         data-offer-id={item.offerId}
+                        data-featured={item.featured || undefined}
+                        data-price-type={item.priceType}
                         data-selected={isSelected}
                         data-preview={isPreview || undefined}
-                        onMouseEnter={() => setPreviewed(item.offerId)}
-                        onFocus={() => setPreviewed(item.offerId)}
-                        onClick={() => selectOffer(item.offerId)}
-                        onKeyDown={(event) => handleOfferKeyDown(event, index)}
+                        data-expanded={expandedOffer === item.offerId || undefined}
                       >
-                        <span>{String(index + 1).padStart(2, "0")}</span>
-                        <strong>{item.tierLabel}</strong>
-                        <small>{item.price}</small>
-                        {item.featured && <b>{ru ? "Рекомендуем" : "Recommended"}</b>}
-                      </button>
+                        {opensBriefDirectly ? (
+                          <Link
+                            className="cp-tier-card-select"
+                            href={briefHref}
+                            onMouseEnter={() => setPreviewed(item.offerId)}
+                            onFocus={() => setPreviewed(item.offerId)}
+                          >
+                            {selectionContent}
+                          </Link>
+                        ) : (
+                          <button
+                            ref={(node) => { offerRefs.current[index] = node; }}
+                            className="cp-tier-card-select"
+                            type="button"
+                            role="radio"
+                            aria-checked={isSelected}
+                            onMouseEnter={() => setPreviewed(item.offerId)}
+                            onFocus={() => setPreviewed(item.offerId)}
+                            onClick={() => selectOffer(item.offerId)}
+                            onKeyDown={(event) => handleOfferKeyDown(event, index)}
+                          >
+                            {selectionContent}
+                          </button>
+                        )}
+                        <div className="cp-tier-card-value">
+                          <p className="cp-tier-card-outcome">
+                            <span>{ru ? "Что получите" : "What you receive"}</span>
+                            <strong>{item.mainResult}</strong>
+                          </p>
+                          <ul className="cp-tier-card-includes">
+                            {item.features.map((feature) => <li key={feature}>{feature}</li>)}
+                          </ul>
+                        </div>
+                        <button
+                          className="cp-tier-card-details-trigger"
+                          type="button"
+                          aria-haspopup="dialog"
+                          aria-expanded={expandedOffer === item.offerId}
+                          aria-controls="cp-tier-details-dialog"
+                          aria-label={ru ? `Подробнее о тарифе «${item.tierLabel}»` : `More about the ${item.tierLabel} package`}
+                          onClick={(event) => {
+                            detailsTriggerRef.current = event.currentTarget;
+                            setExpandedOffer(item.offerId);
+                          }}
+                        >
+                          <span>{ru ? "Подробнее о тарифе" : "Package details"}</span>
+                          <span aria-hidden="true">↗</span>
+                        </button>
+                      </article>
                     );
                   })}
                 </div>
-                {visibleOffer ? (
-                  <article
-                    key={visibleOffer.offerId}
-                    className="cp-package cp-package-detail"
-                    data-detail-offer-id={visibleOffer.offerId}
-                    data-featured={visibleOffer.featured || undefined}
-                    data-selected={selected === visibleOffer.offerId || undefined}
-                    aria-live="polite"
-                  >
-                    <div className="cp-package-topline">
-                      <p className="cp-package-tier">{visibleOffer.tierLabel}</p>
-                      {visibleOffer.featured && <span className="cp-package-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
-                    </div>
-                    <h3>{visibleOffer.name}</h3>
-                    <p className="cp-package-fit">{visibleOffer.description}</p>
-                    <div className="cp-package-price"><strong>{visibleOffer.price}</strong>{visibleOffer.note && <small>{visibleOffer.note}</small>}</div>
-                    <p className="cp-package-contract">{priceContract(visibleOffer.priceType, ru)}</p>
-                    <dl className="cp-package-facts">
-                      <div><dt>{ru ? "Результат" : "Result"}</dt><dd>{visibleOffer.mainResult}</dd></div>
-                      <div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{visibleOffer.duration}</dd></div>
-                      <div><dt>{ru ? "Объём тарифа" : "Package scope"}</dt><dd>{visibleOffer.limit}</dd></div>
-                    </dl>
-                    <div className="cp-package-included">
-                      <span>{ru ? "Что получите" : "What you receive"}</span>
-                      <ul aria-label={ru ? `Что входит в «${visibleOffer.name}»` : `Included in ${visibleOffer.name}`}>{visibleOffer.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
-                    </div>
-                    <details className="cp-package-exclusions">
-                      <summary>{ru ? "Что входит и что считается отдельно" : "What is included and priced separately"}</summary>
-                      <p>{ru ? "Указанный объём" : "Stated scope"}</p>
-                      <ul>{visibleOffer.scopeDetails.map((detail) => <li key={detail}>{detail}</li>)}</ul>
-                      <p>{ru ? "Не входит" : "Excluded"}</p>
-                      <ul>{visibleOffer.exclusions.map((exclusion) => <li key={exclusion}>{exclusion}</li>)}</ul>
-                    </details>
-                    {selected === visibleOffer.offerId ? (
-                      <Link className="cp-package-brief" href={`${locale === "en" ? "/en" : ""}/brief?offer=${encodeURIComponent(visibleOffer.offerId)}`}>{ru ? "Перейти к брифу" : "Continue to brief"}<span aria-hidden="true">↗</span></Link>
-                    ) : (
-                      <button className="cp-package-select" type="button" onClick={() => selectOffer(visibleOffer.offerId)}>
-                        {ru ? "Выбрать этот тариф" : "Select this package"}
-                      </button>
-                    )}
-                  </article>
-                ) : null}
               </div>
             </section>
+                <dialog
+                  ref={detailsDialogRef}
+                  id="cp-tier-details-dialog"
+                  className="cp-tier-details-dialog"
+                  aria-labelledby="cp-tier-details-title"
+                  onClose={() => {
+                    setExpandedOffer("");
+                    if (detailsTriggerRef.current?.isConnected) detailsTriggerRef.current.focus();
+                  }}
+                >
+                  {detailsOffer ? (
+                    <div className="cp-tier-details-dialog-inner">
+                      <header className="cp-tier-details-dialog-header">
+                        <div>
+                          <p>{ru ? "Условия тарифа" : "Package terms"}</p>
+                          <h2 id="cp-tier-details-title">{detailsOffer.tierLabel}</h2>
+                          <strong>{detailsOffer.price}</strong>
+                          <p className="cp-tier-details-dialog-description">{detailsOffer.description}</p>
+                        </div>
+                        <button type="button" onClick={() => detailsDialogRef.current?.close()} aria-label={ru ? "Закрыть условия тарифа" : "Close package terms"}>×</button>
+                      </header>
+                      <div className="cp-tier-details-dialog-grid">
+                        <div>
+                          <dl className="cp-tier-card-facts">
+                            <div><dt>{ru ? "Срок" : "Timing"}</dt><dd>{detailsOffer.duration}</dd></div>
+                            <div><dt>{ru ? "Объём" : "Scope"}</dt><dd>{detailsOffer.limit}</dd></div>
+                          </dl>
+                          <section>
+                            <h3>{ru ? "Что получите" : "What you receive"}</h3>
+                            <p>{detailsOffer.mainResult}</p>
+                            <ul>{detailsOffer.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
+                          </section>
+                        </div>
+                        <section>
+                          <h3>{ru ? "Что не входит" : "What is not included"}</h3>
+                          <ul>{detailsOffer.exclusions.map((exclusion) => <li key={exclusion}>{exclusion}</li>)}</ul>
+                        </section>
+                      </div>
+                      {selected === detailsOffer.offerId ? (
+                        <Link className="cp-tier-card-brief" href={`/brief?offer=${encodeURIComponent(detailsOffer.offerId)}`}>
+                          {ru ? "Перейти к брифу" : "Continue to brief"}<span aria-hidden="true">↗</span>
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </dialog>
           </div>
         </div>
       </section>
@@ -292,8 +400,9 @@ function defaultOfferId(category: PricingCategory): string {
   return category.packages.find((item) => item.featured)?.offerId ?? category.packages[0]?.offerId ?? "";
 }
 
-function priceContract(type: OfferPriceType, ru: boolean): string {
-  if (type === "fixed") return ru ? "Тариф и цена зафиксированы. Дополнительные работы — только после отдельного согласования." : "Package and price are fixed. Additional work only follows a separate agreement.";
-  if (type === "from") return ru ? "Это стартовая цена. На итог влияют объём, нужные доступы и нестандартные работы — всё фиксируем до начала." : "This is a starting price. Final cost depends on scope, required access and custom work, all confirmed before work begins.";
-  return ru ? "Цена появится после короткого брифа — без выдуманной суммы." : "The price follows a short brief rather than a made-up number.";
+function splitPackagePrice(price: string): { amount: string; note: string } {
+  const rubleIndex = price.indexOf(" ₽");
+  if (rubleIndex < 0) return { amount: price, note: "" };
+  const amountEnd = rubleIndex + 2;
+  return { amount: price.slice(0, amountEnd), note: price.slice(amountEnd).trim() };
 }

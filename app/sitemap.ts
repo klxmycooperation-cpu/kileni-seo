@@ -23,18 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
-  return sources.flatMap(({ path, lastModified }) => localizedEntries(path, lastModified));
-}
-
-function localizedEntries(path: string, lastModified: string): MetadataRoute.Sitemap {
-  const ru = absoluteUrl(localizedPath("ru", path));
-  const en = absoluteUrl(localizedPath("en", path));
-  const languages = { ru, en, "x-default": ru };
-
-  return [
-    { url: ru, lastModified, alternates: { languages } },
-    { url: en, lastModified, alternates: { languages } },
-  ];
+  return sources.map(({ path, lastModified }) => ({ url: absoluteUrl(localizedPath("ru", path)), lastModified }));
 }
 
 function absoluteUrl(path: string): string {

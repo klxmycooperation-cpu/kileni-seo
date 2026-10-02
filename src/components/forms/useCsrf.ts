@@ -1,20 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { createCsrfTokenStore } from "./csrf-client";
+
+const csrfTokens = createCsrfTokenStore(async () => {
+  const response = await fetch("/api/csrf", { credentials: "same-origin", cache: "no-store" });
+  if (!response.ok) throw new Error("CSRF token unavailable");
+  const data = await response.json() as { token?: string };
+  if (!data.token) throw new Error("CSRF token unavailable");
+  return data.token;
+});
 
 export function useCsrf() {
   const [token, setToken] = useState("");
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
-  const load = useCallback(async () => {
+  const load = useCallback(async (replace = false) => {
     setLoading(true);
     setError(false);
     try {
-      const response = await fetch("/api/csrf", { credentials: "same-origin", cache: "no-store" });
-      if (!response.ok) throw new Error("CSRF token unavailable");
-      const data = await response.json() as { token: string };
-      setToken(data.token);
-      return data.token;
+      const nextToken = replace ? await csrfTokens.renew() : await csrfTokens.get();
+      setToken(nextToken);
+      return nextToken;
     } catch (requestError) {
       setToken("");
       setError(true);

@@ -82,7 +82,7 @@ export function AdminEntityControls({
   }
 
   async function mutate(method: "PATCH" | "DELETE", body: Record<string, unknown>) {
-    const csrf = await refresh();
+    const csrf = token || await refresh();
     const response = await fetch(endpoint, {
       method,
       credentials: "same-origin",

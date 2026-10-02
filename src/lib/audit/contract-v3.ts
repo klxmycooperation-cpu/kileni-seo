@@ -12,6 +12,10 @@ import {
   type AuditSampleExcludedItem,
   type AuditSampleExclusionReason,
   type AuditUrlInventoryItem,
+  auditCoverageGroup,
+  PUBLIC_AUDIT_COVERAGE_GROUP_KEYS,
+  type AuditDiscoverySource,
+  type PublicAuditCoverageGroupKey,
   type SelectedAuditUrl,
 } from "./sample-selector";
 import type {
@@ -87,18 +91,36 @@ export interface AuditCheckedPageV3 {
   readonly description: PageAnalysis["description"];
   readonly h1: PageAnalysis["h1"];
   readonly canonical: PageAnalysis["canonical"];
+  readonly checkedAt: string;
+  readonly redirectCount: number;
+  readonly redirects: readonly string[];
+  readonly metaRobots: string | null;
+  readonly xRobotsTag: string | null;
+  readonly robotsAllowed: boolean | null;
+  readonly hreflang: readonly { readonly language: string; readonly url: string }[];
+  readonly structuredData: PageAnalysis["structuredData"];
+  readonly internalLinkCount: number;
+  readonly actualIndexed: "unavailable";
 }
 
 export interface AuditTechnicalFileSummaryV3 {
   readonly robots?: {
     readonly url: string;
-    readonly statusCode: number;
+    readonly finalUrl?: string;
+    readonly statusCode: number | null;
+    readonly loadedAt?: string;
+    readonly userAgent?: string;
+    readonly matchingDecision?: string;
+    readonly reason?: string;
     readonly read: boolean;
     readonly selectedPagesNotBlocked: boolean | null;
   };
   readonly sitemap?: {
     readonly url: string;
-    readonly statusCode: number;
+    readonly finalUrl?: string;
+    readonly statusCode: number | null;
+    readonly loadedAt?: string;
+    readonly userAgent?: string;
     readonly parsed: boolean;
     readonly discoveredUrls: number;
     readonly loadedUrls: number;
@@ -109,8 +131,32 @@ export interface AuditTechnicalFileSummaryV3 {
     readonly technicalResourceUrls: number;
     readonly errorUrls: number;
     readonly skippedByTechnicalLimit: number;
+    readonly externalHostCount?: number;
+    readonly fetchErrors?: readonly string[];
     readonly siteUrlsOnly: boolean | null;
   };
+}
+
+export interface AuditCoverageGroupV3 {
+  readonly group: PublicAuditCoverageGroupKey;
+  readonly found: number;
+  readonly eligible: number;
+  readonly selected: number;
+  readonly checked: number;
+  readonly unchecked: number;
+}
+
+export interface AuditDiscoveredUrlDecisionV3 {
+  readonly url: string;
+  readonly finalUrl: string;
+  readonly resourceType: ClassifiedAuditObject["resourceType"];
+  readonly group: PublicAuditCoverageGroupKey | null;
+  readonly outcome: "selected" | "unchecked" | "excluded";
+  readonly reason: string;
+  readonly source?: AuditDiscoverySource;
+  readonly selectedUrl?: string;
+  readonly selectionReason?: string;
+  readonly primaryUrl?: string;
 }
 
 export interface AuditCategorySummaryV3 extends AuditStatusCountsV3 {
@@ -149,6 +195,8 @@ export interface AuditResultContractV3 {
   readonly checkedPages: readonly AuditCheckedPageV3[];
   readonly technicalResources: readonly ClassifiedAuditObject[];
   readonly technicalFileSummary: AuditTechnicalFileSummaryV3;
+  readonly coverageGroups: readonly AuditCoverageGroupV3[];
+  readonly discoveredUrlDecisions: readonly AuditDiscoveredUrlDecisionV3[];
   readonly performanceObservation: PerformanceAuditInput | null;
   readonly checks: readonly AuditCheckResultV3[];
   readonly findings: readonly AuditFindingV3[];
@@ -181,7 +229,9 @@ export function buildAuditContractV3(input: BuildAuditContractV3Input): AuditRes
     // Applicability may depend on a counterpart that was discovered but did
     // not enter the ten-page sample. Page checks still run only for `pages`,
     // because the registry joins HTML objects to loaded pages.
-    objects: inventory,
+    // Unloaded sitemap candidates remain discovery evidence, but they are not
+    // confirmed technical resources and must not create resource checks.
+    objects: inventory.filter((item) => item.resourceType !== "unknown"),
     pages,
     robots: input.robots,
     sitemap: input.sitemap,
@@ -203,6 +253,8 @@ export function buildAuditContractV3(input: BuildAuditContractV3Input): AuditRes
   const representedPageTypes = new Set(
     selectedPages.map((item) => item.pageType).filter((type) => type !== "unknown"),
   ).size;
+  const coverageGroups = buildCoverageGroups(inventory, eligible, selectedPages, pages, objectsByUrl);
+  const discoveredUrlDecisions = buildDiscoveredUrlDecisions(inventory, eligible, excluded, selectedPages, checkedSet);
 
   const snapshot: AuditResultContractV3 = {
     resultVersion: AUDIT_RESULT_VERSION_V4,
@@ -243,6 +295,8 @@ export function buildAuditContractV3(input: BuildAuditContractV3Input): AuditRes
     checkedPages: pages.map((page) => checkedPage(page, objectsByUrl)),
     technicalResources: inventory.filter((item) => item.resourceType !== "html" && item.resourceType !== "unknown"),
     technicalFileSummary: buildTechnicalFileSummary(input, selectedPages, objectsByUrl),
+    coverageGroups,
+    discoveredUrlDecisions,
     performanceObservation: input.performance ? { ...input.performance } : null,
     checks,
     findings: buildFindings(checks, objectsByUrl),
@@ -307,23 +361,32 @@ function buildTechnicalFileSummary(
         return false;
       }
     });
-  const robotsSummary = robots && robotsRead && robots.httpStatus !== null ? {
+  const hasRobotsEvidence = Boolean(robots && (robotsRead || robots.finalUrl || robots.loadedAt || robots.userAgent || robots.matchingDecision || robots.error));
+  const robotsSummary = robots && hasRobotsEvidence ? {
     url: publicUrl(robots.url),
+    ...(robots.finalUrl ? { finalUrl: publicUrl(robots.finalUrl) } : {}),
     statusCode: robots.httpStatus,
-    read: true as const,
+    ...(robots.loadedAt ? { loadedAt: robots.loadedAt } : {}),
+    ...(robots.userAgent ? { userAgent: robots.userAgent } : {}),
+    ...(robots.matchingDecision ? { matchingDecision: robots.matchingDecision } : {}),
+    ...(robots.error ? { reason: robots.error } : {}),
+    read: robotsRead,
     selectedPagesNotBlocked,
   } : null;
   const sitemapBreakdown = buildSitemapBreakdown(sitemap?.urls ?? [], input.inventory);
 
   return {
     ...(robotsSummary ? { robots: robotsSummary } : {}),
-    ...(sitemapParsed && sitemapStatusCode !== null && sitemapStatusCode >= 200 && sitemapStatusCode < 300 ? {
+    ...(sitemap && (sitemapParsed || sitemap.finalUrl || sitemap.loadedAt || sitemap.userAgent || sitemap.errors.length > 0) ? {
       sitemap: {
         url: publicUrl(sitemapUrl),
+        ...(sitemap.finalUrl ? { finalUrl: publicUrl(sitemap.finalUrl) } : {}),
         statusCode: sitemapStatusCode,
-        parsed: true,
+        parsed: sitemapParsed,
         discoveredUrls: sitemap?.urls.length ?? 0,
         ...sitemapBreakdown,
+        ...(sitemap.foreignUrls?.length ? { externalHostCount: new Set(sitemap.foreignUrls.map((url) => { try { return new URL(url).hostname; } catch { return url; } })).size } : {}),
+        ...(sitemap.errors.length ? { fetchErrors: sitemap.errors.slice(0, 20) } : {}),
         siteUrlsOnly,
       },
     } : {}),
@@ -431,6 +494,17 @@ function checkedPage(
     description: { ...page.description },
     h1: { count: page.h1.count, values: [...page.h1.values] },
     canonical: { ...page.canonical },
+    checkedAt: page.transport?.checkedAt ?? "not_recorded",
+    redirectCount: page.transport?.redirectCount ?? page.transport?.redirects.length ?? 0,
+    redirects: [...(page.transport?.redirects ?? [])].slice(0, 20),
+    metaRobots: page.indexing.metaRobots ?? null,
+    xRobotsTag: page.indexing.xRobotsTag ?? null,
+    robotsAllowed: object?.indexabilitySignals.includes("robots_blocked") ? false
+      : object?.indexabilitySignals.includes("robots_allowed") ? true : null,
+    hreflang: [...(page.hreflang ?? [])],
+    structuredData: { ...page.structuredData, types: [...page.structuredData.types] },
+    internalLinkCount: page.links.internalCount,
+    actualIndexed: "unavailable",
   };
 }
 
@@ -611,7 +685,129 @@ function toInventoryItem(item: ClassifiedAuditObject): AuditUrlInventoryItem {
     classificationReasons: item.classificationReasons,
     canonicalUrl: item.canonicalUrl,
     contentFingerprint: item.contentFingerprint,
+    discoverySource: item.discoverySource,
   };
+}
+
+function buildCoverageGroups(
+  inventory: readonly ClassifiedAuditObject[],
+  eligible: readonly AuditUrlInventoryItem[],
+  selectedPages: readonly SelectedAuditUrl[],
+  pages: readonly PageAnalysis[],
+  objectsByUrl: ReadonlyMap<string, ClassifiedAuditObject>,
+): AuditCoverageGroupV3[] {
+  type CoverageCounts = { found: number; eligible: number; selected: number; checked: number; unchecked: number };
+  const counts = new Map<PublicAuditCoverageGroupKey, CoverageCounts>();
+  for (const group of PUBLIC_AUDIT_COVERAGE_GROUP_KEYS) {
+    counts.set(group, { found: 0, eligible: 0, selected: 0, checked: 0, unchecked: 0 });
+  }
+  const increment = (group: PublicAuditCoverageGroupKey | null, field: "found" | "eligible" | "selected" | "checked"): void => {
+    if (!group) return;
+    const current = counts.get(group);
+    if (current) current[field] += 1;
+  };
+  for (const item of inventory) {
+    const group = auditCoverageGroup(item);
+    if (item.resourceType === "html") increment(group, "found");
+  }
+  for (const item of eligible) increment(auditCoverageGroup(item), "eligible");
+  for (const item of selectedPages) {
+    const object = objectsByUrl.get(comparableUrl(item.url));
+    increment(
+      auditCoverageGroup(object ?? {
+        url: item.url,
+        finalUrl: item.url,
+        resourceType: "html",
+        pageType: item.pageType,
+      }),
+      "selected",
+    );
+  }
+  for (const page of pages) {
+    const object = pageUrls(page).map(comparableUrl).map((url) => objectsByUrl.get(url)).find(Boolean);
+    increment(auditCoverageGroup(object ?? { url: page.url, finalUrl: page.url, resourceType: "html", pageType: "unknown" }), "checked");
+  }
+  return PUBLIC_AUDIT_COVERAGE_GROUP_KEYS.map((group) => {
+    const current = counts.get(group)!;
+    return { group, ...current, unchecked: Math.max(0, current.eligible - current.checked) };
+  });
+}
+
+function buildDiscoveredUrlDecisions(
+  inventory: readonly ClassifiedAuditObject[],
+  eligible: readonly AuditUrlInventoryItem[],
+  excluded: readonly AuditSampleExcludedItem[],
+  selectedPages: readonly SelectedAuditUrl[],
+  checkedSet: ReadonlySet<string>,
+): AuditDiscoveredUrlDecisionV3[] {
+  const eligibleKeys = new Set(eligible.map((item) => decisionUrlKey(item.finalUrl ?? item.url)));
+  const excludedByKey = new Map<string, AuditSampleExcludedItem>();
+  for (const item of excluded) {
+    excludedByKey.set(decisionUrlKey(item.item.finalUrl ?? item.item.url), item);
+  }
+  const selectedByKey = new Map(selectedPages.map((item) => [decisionUrlKey(item.url), item]));
+  return inventory.map((item) => {
+    const url = publicUrl(item.url);
+    const finalUrl = publicUrl(item.finalUrl);
+    const group = auditCoverageGroup(item);
+    const key = decisionUrlKey(item.finalUrl);
+    const selected = selectedByKey.get(key) ?? selectedByKey.get(decisionUrlKey(item.url));
+    const excludedItem = excludedByKey.get(key);
+    const source = item.discoverySource
+      ?? (item.resourceType !== "html"
+        ? "technical"
+        : item.depth === 0
+          ? "root"
+          : item.classificationReasons.includes("sitemap_listed")
+            ? "sitemap"
+            : selected?.selectionReason === "priority_url"
+              ? "priority"
+              : "unknown");
+    if (excludedItem || item.resourceType !== "html" || !eligibleKeys.has(key)) {
+      return {
+        url,
+        finalUrl,
+        resourceType: item.resourceType,
+        group,
+        outcome: "excluded" as const,
+        reason: excludedItem?.reason ?? "technical_object",
+        ...(source ? { source } : {}),
+        ...(excludedItem?.primaryUrl ? { primaryUrl: publicUrl(excludedItem.primaryUrl) } : {}),
+      };
+    }
+    if (selected) {
+      const completed = checkedSet.has(comparableUrl(selected.url));
+      return {
+        url,
+        finalUrl,
+        resourceType: item.resourceType,
+        group,
+        outcome: "selected" as const,
+        reason: completed ? "selected_and_checked" : "selected_not_completed",
+        ...(source ? { source } : {}),
+        selectedUrl: publicUrl(selected.url),
+        selectionReason: selected.selectionReason,
+      };
+    }
+    return {
+      url,
+      finalUrl,
+      resourceType: item.resourceType,
+      group,
+      outcome: "unchecked" as const,
+      reason: "not_selected_within_limit",
+      ...(source ? { source } : {}),
+    };
+  });
+}
+
+function decisionUrlKey(value: string): string {
+  const url = new URL(value);
+  url.username = "";
+  url.password = "";
+  url.hash = "";
+  url.pathname = url.pathname.replace(/\/+$/u, "") || "/";
+  return url.href;
 }
 
 function pageUrls(page: PageAnalysis): string[] {

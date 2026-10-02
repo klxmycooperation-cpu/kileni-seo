@@ -44,6 +44,32 @@ test("shows a useful empty glossary state", async ({ page }) => {
   await expect(page.locator(".glossary-empty")).toContainText("Попробуйте другое слово");
 });
 
+test("keeps the glossary search filter compact without clipping its content", async ({ page }) => {
+  for (const viewport of [
+    { width: 1210, height: 818, maxFilterHeight: 56 },
+    { width: 390, height: 844, maxFilterHeight: 84 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/glossary");
+
+    const filter = page.locator(".glossary-search");
+    const filterBox = await filter.boundingBox();
+    expect(filterBox, `${viewport.width}px filter box`).not.toBeNull();
+    expect(filterBox!.height, `${viewport.width}px filter height`).toBeLessThanOrEqual(viewport.maxFilterHeight);
+
+    for (const content of [
+      filter.getByRole("searchbox", { name: "Найти термин" }),
+      filter.getByRole("status"),
+    ]) {
+      await expect(content).toBeVisible();
+      const contentBox = await content.boundingBox();
+      expect(contentBox, `${viewport.width}px content box`).not.toBeNull();
+      expect(contentBox!.y).toBeGreaterThanOrEqual(filterBox!.y);
+      expect(contentBox!.y + contentBox!.height).toBeLessThanOrEqual(filterBox!.y + filterBox!.height + 1);
+    }
+  }
+});
+
 test("adds the same compact sticky navigation to checks and marketplace guides", async ({ page }) => {
   await page.goto("/checks");
 
@@ -60,7 +86,7 @@ test("adds the same compact sticky navigation to checks and marketplace guides",
   await expect(marketplaceToc).toHaveCSS("position", "sticky");
   await expect(marketplaceToc.getByRole("link", { name: "Этапы подготовки" })).toHaveAttribute("href", "#marketplace-journey");
   await expect(marketplaceToc.getByRole("link", { name: "Состав карточки" })).toHaveAttribute("href", "#marketplace-scope");
-  await expect(marketplaceToc.getByRole("link", { name: "Передаваемые материалы" })).toHaveAttribute("href", "#marketplace-result");
+  await expect(marketplaceToc.getByRole("link", { name: "Пример результата" })).toHaveAttribute("href", "#marketplace-result");
   await expect(marketplaceToc.getByRole("link", { name: "Варианты" })).toHaveAttribute("href", "#marketplace-offers");
   await expect(marketplaceToc.getByRole("link", { name: "Правила площадки" })).toHaveAttribute("href", "#marketplace-docs");
 });

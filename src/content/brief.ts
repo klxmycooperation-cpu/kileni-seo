@@ -78,7 +78,7 @@ export function briefAnswerLabel(service: BriefService, key: string, locale: Loc
   if (question) return qLabel(question, locale);
   const fallback: Record<string, [string, string]> = {
     name: ["Имя", "Name"],
-    contact: ["Телефон или e-mail", "Phone or email"],
+    contact: ["E-mail", "Email"],
     consent: ["Согласие", "Consent"],
     sourceService: ["Выбранное направление", "Selected direction"],
     selectedTier: ["Выбранный уровень", "Selected tier"],

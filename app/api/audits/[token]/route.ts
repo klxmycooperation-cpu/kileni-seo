@@ -17,7 +17,7 @@ export async function GET(
   const audit = await getAuditByToken(token);
   if (!audit) {
     const restored = verifyAuditRestoreEnvelope(new URL(request.url).searchParams.get("restore"), token);
-    if (!restored) return apiError(404, "AUDIT_NOT_FOUND", "Аудит не найден");
+    if (!restored) return apiError(404, "AUDIT_NOT_FOUND", "Снимок аудита не найден. Если проверка выполнялась без постоянного хранилища, запустите её повторно.");
     return noStoreJson(buildRestoredPublicAuditSnapshot(restored));
   }
 

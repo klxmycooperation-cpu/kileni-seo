@@ -18,6 +18,13 @@ const boundedCount = (value: unknown, fallback: number, maximum: number) => {
   return Math.min(maximum, Math.max(1, Math.ceil(parsed)));
 };
 
+const skuCountRu = (count: number) => {
+  const ending = count % 100;
+  if (ending >= 11 && ending <= 14) return `${count} артикулов`;
+  const unit = count % 10;
+  return `${count} артикул${unit === 1 ? "" : unit >= 2 && unit <= 4 ? "а" : "ов"}`;
+};
+
 const offerPrice = (id: string): number => {
   const price = getOffer(id)?.price;
   if (price === null || price === undefined) throw new Error(`Offer ${id} must have a numeric calculator price`);
@@ -57,11 +64,15 @@ export function calculateEstimate(kind: CalculatorKind, answers: CalculatorAnswe
     if (answers.urgent) { value *= 1.25; factors.push(label("срочная работа", "urgent delivery")); }
     if (answers.complex === "high") { value *= 1.35; factors.push(label("сложная архитектура", "complex architecture")); }
   } else if (kind === "seo") {
-    value = answers.scale === "full" ? offerPrice("seo-promotion-team") : answers.scale === "growth" ? offerPrice("seo-promotion-growth") : offerPrice("seo-promotion-start");
+    const offerId = answers.scale === "full" ? "seo-promotion-team" : answers.scale === "growth" ? "seo-promotion-growth" : "seo-promotion-start";
+    value = offerPrice(offerId);
     minimum = value;
     factors.push(answers.scale === "full" ? label("полное сопровождение", "full support") : answers.scale === "growth" ? label("активный рост", "active growth") : label("базовое продвижение", "basic SEO support"));
     const regions = boundedCount(answers.regions, 1, 20);
-    if (regions > 1) { value *= Math.min(1.5, 1 + (regions - 1) * 0.08); factors.push(label("несколько регионов", "multiple regions")); }
+    const contract = getOffer(offerId)?.scopeContract;
+    const includedRegions = contract?.kind === "seo-promotion" ? contract.regions ?? 1 : 1;
+    const extraRegions = Math.max(0, regions - includedRegions);
+    if (extraRegions > 0) { value *= Math.min(1.5, 1 + extraRegions * 0.08); factors.push(label("регионы сверх включённого объёма", "regions above the included scope")); }
     if (answers.technical) { value *= 1.15; factors.push(label("технические работы", "technical work")); }
     if (answers.ads) {
       value += offerPrice("yandex-ads-support");
@@ -86,15 +97,37 @@ export function calculateEstimate(kind: CalculatorKind, answers: CalculatorAnswe
       value = items * unit;
     }
     minimum = value;
-    factors.push(locale === "ru" ? `${items} артикул${items === 1 ? "" : "ов"}` : `${items} SKU${items === 1 ? "" : "s"}`);
-    if (answers.video) { value += items * offerPrice("marketplace-video-addon"); factors.push(label("видео", "video")); }
-    if (answers.analytics) { value += offerPrice("marketplace-analytics-addon"); factors.push(label("регулярная аналитика", "recurring analytics")); }
+    factors.push(locale === "ru" ? skuCountRu(items) : `${items} SKU${items === 1 ? "" : "s"}`);
+    if (answers.video) {
+      const videoCost = items * offerPrice("marketplace-video-addon");
+      value += videoCost;
+      minimum += videoCost;
+      factors.push(label("видео", "video"));
+    }
+    if (answers.analytics) {
+      const analyticsScope = getOffer("marketplace-analytics-addon")?.pageLimit ?? 10;
+      const coveredSkus = Math.ceil(items / analyticsScope) * analyticsScope;
+      const analyticsCost = Math.ceil(items / analyticsScope) * offerPrice("marketplace-analytics-addon");
+      value += analyticsCost;
+      minimum += analyticsCost;
+      factors.push(locale === "ru" ? `аналитика до ${coveredSkus} артикулов за месяц` : `monthly analytics for up to ${coveredSkus} SKUs`);
+    }
   } else {
     value = answers.siteType === "commerce" ? offerPrice("development-max") : answers.siteType === "corporate" ? offerPrice("development-business") : offerPrice("development-start");
     minimum = value;
-    factors.push(answers.siteType === "commerce" ? label("каталог или магазин", "catalogue or shop") : answers.siteType === "corporate" ? label("корпоративный сайт", "company website") : label("лендинг", "landing page"));
-    if (answers.account) { value += offerPrice("development-account-addon"); factors.push(label("личный кабинет", "user account")); }
-    if (answers.integrations) { value += offerPrice("development-integrations-addon"); factors.push(label("интеграции", "integrations")); }
+    factors.push(answers.siteType === "commerce" ? label("каталог с заказом через заявку", "catalogue with order enquiries") : answers.siteType === "corporate" ? label("сайт компании", "company website") : label("лендинг", "landing page"));
+    if (answers.account) {
+      const accountCost = offerPrice("development-account-addon");
+      value += accountCost;
+      minimum += accountCost;
+      factors.push(label("личный кабинет", "user account"));
+    }
+    if (answers.integrations) {
+      const integrationCost = offerPrice("development-integrations-addon");
+      value += integrationCost;
+      minimum += integrationCost;
+      factors.push(label("интеграции", "integrations"));
+    }
     if (boundedCount(answers.languages, 1, 10) > 1) { value *= 1.18; factors.push(label("несколько языков", "multiple languages")); }
     if (answers.urgent) { value *= 1.2; factors.push(label("сжатый срок", "compressed timeline")); }
   }

@@ -1,0 +1,387 @@
+/* Final shared geometry and theme corrections from the September UI audit. */
+:root {
+  --kileni-header-clearance: 6.25rem;
+}
+
+html {
+  scroll-padding-top: var(--kileni-header-clearance);
+}
+
+.kileni-site main :is(section, header, [id]) {
+  scroll-margin-top: var(--kileni-header-clearance);
+}
+
+/* The floating surface, not the transparent header wrapper, owns contrast. */
+html[data-kileni-theme="light"] .kileni-site .site-header .header-inner {
+  border-color: rgba(53, 70, 106, .22);
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 1rem 2.8rem rgba(31, 45, 73, .1), inset 0 1px 0 #fff;
+  color: #0b132b;
+}
+
+html[data-kileni-theme="dark"] .kileni-site .site-header .header-inner {
+  background: rgba(7, 17, 31, .92);
+  color: #f7f8fc;
+}
+
+/* Late dimensional layers must inherit the selected theme instead of keeping
+   their dark default canvas and card material. */
+html[data-kileni-theme="light"] .kileni-site {
+  --premium-surface: #ffffff;
+  --premium-surface-deep: #eef2f7;
+  --premium-line: rgba(53, 70, 106, .18);
+  --premium-line-lit: rgba(65, 100, 255, .5);
+  --premium-blue-glow: rgba(65, 100, 255, .1);
+  --premium-cyan-glow: rgba(50, 144, 171, .08);
+  --premium-teal-glow: rgba(39, 156, 111, .07);
+  --premium-warm-glow: rgba(176, 111, 52, .06);
+  --premium-shadow: 0 1.15rem 3rem rgba(31, 45, 73, .1), inset 0 1px 0 #fff, inset 0 -1.35rem 2.5rem rgba(57, 72, 103, .025);
+}
+
+html[data-kileni-theme="light"] .kileni-site .site-tracing-beam__content {
+  background:
+    radial-gradient(60rem 34rem at 84% 7%, rgba(65, 100, 255, .08), transparent 72%),
+    radial-gradient(48rem 30rem at 12% 42%, rgba(67, 123, 176, .04), transparent 76%),
+    linear-gradient(#f7f8fb 0%, #f2f5f9 48%, #f7f8fb 100%);
+}
+
+html[data-kileni-theme="light"] .kileni-site .marketplace-hero .canvas-text {
+  filter: saturate(1.65) brightness(.68);
+}
+
+html[data-kileni-theme="light"] .kileni-site main :is(
+  .home-entry-route__list > a,
+  .home-decision__body,
+  .home-article-carousel__card,
+  .home-deliverable-list li,
+  .home-direction-list > a,
+  .article-card,
+  .glossary-item,
+  .marketplace-card,
+  .cp-narrative-case
+) {
+  border-color: var(--premium-line);
+  background-color: var(--premium-surface);
+  background-image:
+    radial-gradient(circle at 88% 0, var(--premium-blue-glow), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, .92), rgba(238, 242, 247, .78) 100%);
+  box-shadow: var(--premium-shadow);
+  color: #101722;
+}
+
+html[data-kileni-theme="light"] .kileni-site .site-header :is(.desktop-nav a, .desktop-nav button, .header-phone, .language-link, .theme-toggle) {
+  color: #0b132b;
+}
+
+/* Platform marks contain exactly one asset; all three share the same frame. */
+.kileni-site .platform-mark {
+  width: 10.5rem;
+  max-width: 100%;
+  height: 3.9375rem;
+  aspect-ratio: 8 / 3;
+  padding: .7rem 1rem;
+}
+
+.kileni-site .platform-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Seven steps resolve to a balanced 4 + 3 rhythm on wide screens. */
+@media (min-width: 1025px) {
+  .kileni-site .about-action-list,
+  .kileni-site .about-start-route {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .kileni-site :is(.about-action-list, .about-start-route) > li:nth-child(-n + 4) {
+    grid-column: span 3;
+    border-bottom: 1px solid var(--svc-line);
+  }
+
+  .kileni-site :is(.about-action-list, .about-start-route) > li:nth-child(n + 5) {
+    grid-column: span 4;
+  }
+
+  .kileni-site :is(.about-action-list, .about-start-route) > li:nth-child(4),
+  .kileni-site :is(.about-action-list, .about-start-route) > li:nth-child(7) {
+    border-right: 0;
+  }
+}
+
+.kileni-site :is(.about-action-list, .about-start-route) strong {
+  max-width: 15ch;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.kileni-site .about-roles ul {
+  display: grid;
+  grid-auto-rows: 1fr;
+}
+
+.kileni-site .about-roles li {
+  min-height: 4.5rem;
+  align-items: center;
+  grid-template-columns: 3rem minmax(0, 1fr);
+}
+
+/* The offline selector follows the same shell as its heading and dividers. */
+.kileni-site .brief-refinement .brief-download-selector {
+  width: 100%;
+  max-width: none;
+}
+
+/* Glossary cards are individual surfaces, not collapsed table cells. */
+.kileni-site .glossary-grid {
+  gap: clamp(1rem, 1.6vw, 1.5rem);
+  border: 0;
+}
+
+.kileni-site .glossary-item {
+  min-height: 17rem;
+  border: 1px solid var(--theme-line, var(--warm-line));
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--warm-paper-bright, #fff) 92%, transparent);
+}
+
+.kileni-site .glossary-page section[aria-labelledby="related-glossary-title"] {
+  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.kileni-site .glossary-page section[aria-labelledby="related-glossary-title"] .section-heading {
+  margin-bottom: clamp(1.25rem, 2vw, 2rem);
+}
+
+.kileni-site .glossary-page section[aria-labelledby="related-glossary-title"] .glossary-grid:has(.glossary-item:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.kileni-site .glossary-page section[aria-labelledby="related-glossary-title"] .glossary-item:only-child {
+  min-height: 0;
+  padding: clamp(1.25rem, 2vw, 2rem);
+}
+
+.kileni-site .glossary-page section[aria-labelledby="related-glossary-title"] .glossary-item:only-child h2 {
+  margin-block: 1rem .7rem;
+}
+
+/* Result overview stays compact; tables retain column relationships and scan cleanly. */
+.audit-client-overview {
+  min-height: auto;
+  align-content: start;
+  padding-block: clamp(1.5rem, 3vw, 3rem);
+}
+
+.audit-client-coverage-groups {
+  display: grid;
+  min-width: 0;
+  gap: .75rem;
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.audit-client-coverage-groups :is(h3, p) {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.audit-client-coverage-groups > p {
+  max-width: 58rem;
+  color: var(--audit-muted);
+  line-height: 1.5;
+}
+
+.audit-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--audit-line);
+  scrollbar-gutter: stable;
+}
+
+.audit-client-coverage-groups table {
+  width: 100%;
+  min-width: 48rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.audit-client-coverage-groups :is(th, td) {
+  padding: .85rem .75rem;
+  border-bottom: 1px solid var(--audit-line);
+  color: var(--audit-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.audit-client-coverage-groups thead th {
+  background: var(--audit-soft);
+  color: var(--audit-muted);
+  font-size: .72rem;
+  letter-spacing: .025em;
+}
+
+.audit-client-coverage-groups :is(th, td):first-child {
+  width: 34%;
+  text-align: left;
+}
+
+.audit-client-coverage-groups tbody th {
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.audit-client-coverage-groups tbody th small {
+  display: block;
+  margin-top: .3rem;
+  color: var(--audit-muted);
+  font-size: .7rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.audit-client-coverage-groups td[data-zero="true"] {
+  color: color-mix(in srgb, var(--audit-muted) 72%, transparent);
+}
+
+.audit-client-coverage-groups tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.audit-section-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.audit-section-disclosure > summary::after {
+  content: "+";
+  color: var(--audit-muted);
+  font: 700 1rem/1 var(--font-mono), monospace;
+}
+
+.audit-section-disclosure[open] > summary::after {
+  content: "−";
+}
+
+/* Live audit: safe line-height and a smaller, aligned scene without losing space. */
+.audit-live__narrative h1 {
+  line-height: 1.04;
+  text-wrap: pretty;
+}
+
+.audit-live__eyebrow {
+  margin-bottom: .8rem;
+}
+
+.audit-live__visual {
+  min-height: clamp(23rem, 50vh, 32rem);
+  margin-block: clamp(1.25rem, 3vh, 2.25rem);
+}
+
+@media (max-width: 1024px) {
+  :root { --kileni-header-clearance: 5.5rem; }
+}
+
+@media (max-width: 820px) {
+  .kileni-site .glossary-item { min-height: 0; }
+}
+
+@media (max-width: 620px) {
+  .audit-client-overview { min-height: auto; }
+  .audit-client-coverage-groups table { min-width: 42rem; }
+}
+
+@media (max-width: 480px) {
+  .kileni-site .site-header .header-cta { display: none; }
+
+  .kileni-site .audit-top .page-hero {
+    padding-block: 1rem 1.35rem;
+  }
+
+  .kileni-site .audit-top .page-hero .eyebrow {
+    display: none;
+  }
+
+  .kileni-site .audit-top .page-hero h1 {
+    max-width: none;
+    margin-bottom: .7rem;
+    font-size: clamp(1.85rem, 8vw, 2.2rem);
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  .kileni-site .audit-top .page-hero > p:not(.eyebrow) {
+    margin-bottom: 0;
+    font-size: .84rem;
+    line-height: 1.4;
+  }
+
+  .kileni-site .audit-top + .section {
+    padding-top: 1rem;
+  }
+
+  .kileni-site .audit-page-grid .audit-form-compact :is(.audit-form-step-status, .free-audit-usage) {
+    display: none;
+  }
+
+  .kileni-site .audit-page-grid .audit-form-compact {
+    padding: 1rem;
+  }
+
+  .kileni-site .audit-page-grid .audit-form-compact .form-heading {
+    margin-bottom: 1rem;
+  }
+}
+
+/* The progress counter added visual noise and made the compact card wrap badly. */
+.kileni-site .audit-form-step-status { display: none; }
+
+html[data-kileni-theme="dark"] .result-body--client .audit-client-performance > p{
+  color: #aab6c7 !important;
+}
+
+html[data-kileni-theme="light"] .result-body--client .audit-client-performance > p {
+  color: #536176 !important;
+}
+
+/* The floating header wrapper is intentionally transparent; the primary
+   action itself must still expose all four interaction states. */
+html[data-kileni-theme] .kileni-site .site-header .header-cta {
+  border-color: var(--cta-primary-bg) !important;
+  background: var(--cta-primary-bg) !important;
+  color: var(--cta-primary-text) !important;
+}
+
+html[data-kileni-theme] .kileni-site .site-header .header-cta:hover:not([aria-disabled="true"]) {
+  border-color: var(--cta-primary-hover-bg) !important;
+  background: var(--cta-primary-hover-bg) !important;
+}
+
+html[data-kileni-theme] .kileni-site .site-header .header-cta:active:not([aria-disabled="true"]) {
+  border-color: var(--cta-primary-active-bg) !important;
+  background: var(--cta-primary-active-bg) !important;
+}
+
+html[data-kileni-theme] .kileni-site .site-header .header-cta[aria-disabled="true"] {
+  border-color: var(--cta-primary-disabled-bg) !important;
+  background: var(--cta-primary-disabled-bg) !important;
+  color: var(--cta-primary-disabled-text) !important;
+}
+
+@media (min-width: 1025px) {
+  .kileni-site .about-action-list strong {
+    max-width: none;
+    white-space: nowrap;
+    text-wrap: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

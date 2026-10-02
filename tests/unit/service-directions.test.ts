@@ -22,7 +22,7 @@ describe("services hub directions", () => {
     });
     expect(directions.development).toMatchObject({
       label: "Разработка сайтов",
-      title: "Разработать сайт под задачу бизнеса",
+      title: "Собрать сайт под задачу бизнеса, а не просто набор страниц",
       primaryCta: { label: "Выбрать формат сайта", href: "/web-development" },
       offerId: "development-start",
     });

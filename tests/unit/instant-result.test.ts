@@ -31,7 +31,6 @@ describe("legacy instant audit snapshots", () => {
   it("does not pass an instant query payload into public result components", () => {
     const sources = [
       "app/audit/[publicToken]/page.tsx",
-      "app/en/audit/[publicToken]/page.tsx",
       "src/components/pages/AuditProgressPage.tsx",
     ].map((path) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8"));
 

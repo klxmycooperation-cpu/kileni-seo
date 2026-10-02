@@ -49,6 +49,9 @@ export interface PageAnalysis {
   readonly indexing: {
     readonly noindex: boolean;
     readonly nofollow: boolean;
+    readonly metaRobots?: string | null;
+    readonly xRobotsTag?: string | null;
+    readonly actual: "unavailable";
   };
   readonly language: {
     readonly present: boolean;
@@ -79,6 +82,7 @@ export interface PageAnalysis {
     readonly valid: number;
     readonly invalid: number;
     readonly types: readonly string[];
+    readonly breadcrumbList?: { readonly valid: number; readonly invalid: number };
   };
   readonly openGraph: {
     readonly title: string | null;
@@ -114,7 +118,9 @@ export interface PageAnalysis {
     readonly requestedUrl: string;
     readonly finalUrl: string;
     readonly redirects: readonly string[];
+    readonly redirectCount?: number;
     readonly responseTimeMs: number | null;
+    readonly checkedAt?: string;
     readonly depth: number;
     readonly contentType?: string | null;
   };
@@ -197,6 +203,10 @@ export type AuditEvent =
 
 export interface RobotsInfo {
   readonly url: string;
+  readonly finalUrl?: string;
+  readonly loadedAt?: string;
+  readonly userAgent?: string;
+  readonly matchingDecision?: string;
   readonly status: "found" | "missing" | "error";
   readonly httpStatus: number | null;
   readonly allowedRoot: boolean | null;
@@ -209,6 +219,9 @@ export interface RobotsInfo {
 
 export interface SitemapInfo {
   readonly status: "found" | "missing" | "error";
+  readonly finalUrl?: string;
+  readonly loadedAt?: string;
+  readonly userAgent?: string;
   readonly filesVisited: number;
   readonly urls: readonly string[];
   readonly errors: readonly string[];
@@ -224,8 +237,20 @@ export interface SitemapInfo {
   }[];
 }
 
-/** Optional Lighthouse/PageSpeed observations for the audited landing page. */
+export type LighthouseRunStatus =
+  | "not_requested"
+  | "running"
+  | "completed"
+  | "failed"
+  | "timed_out"
+  | "legacy_summary_only"
+  | "not_persisted"
+  | "legacy_unknown";
+
+/** Lighthouse observations and the explicit lifecycle state for the audited landing page. */
 export interface PerformanceAuditInput {
+  /** Explicit lifecycle state. Missing only in legacy snapshots. */
+  readonly status?: LighthouseRunStatus;
   /** Lighthouse Performance score, accepted as 0..1 or 0..100. */
   readonly performance?: number | null;
   /** First Contentful Paint in milliseconds. */
@@ -236,16 +261,48 @@ export interface PerformanceAuditInput {
   readonly cls?: number | null;
   /** Total Blocking Time in milliseconds. */
   readonly tbtMs?: number | null;
+  /** Speed Index in milliseconds, when Lighthouse reported it. */
+  readonly speedIndexMs?: number | null;
   /** Lighthouse Accessibility score, accepted as 0..1 or 0..100. */
   readonly accessibility?: number | null;
   /** Laboratory profile used for this observation. */
   readonly profile?: "mobile" | "desktop";
   /** ISO timestamp recorded when Lighthouse produced the observation. */
   readonly capturedAt?: string;
+  /** ISO timestamps around the real Lighthouse invocation. */
+  readonly startedAt?: string;
+  readonly completedAt?: string;
+  /** Wall-clock duration of the invocation. */
+  readonly durationMs?: number;
   /** Exact Lighthouse version reported by the run. */
   readonly lighthouseVersion?: string;
+  /** Measurement implementation/source, without credentials or request data. */
+  readonly source?: string;
+  /** Safe server-side diagnostic metadata for failed and timed-out runs. */
+  readonly errorCode?: string;
+  readonly errorMessage?: string;
+  /** Human-readable explanation used only for migrated legacy data. */
+  readonly reason?: string;
   /** Number of real runs represented by the values. */
   readonly runCount?: number;
+  readonly finalUrl?: string;
+  readonly strategy?: "mobile" | "desktop";
+  readonly deviceProfile?: string;
+  readonly networkProfile?: string;
+  readonly runs?: readonly {
+    readonly status?: LighthouseRunStatus;
+    readonly finalUrl?: string;
+    readonly startedAt?: string;
+    readonly completedAt?: string;
+    readonly capturedAt?: string;
+    readonly durationMs?: number;
+    readonly performance?: number | null;
+    readonly fcpMs?: number | null;
+    readonly lcpMs?: number | null;
+    readonly cls?: number | null;
+    readonly tbtMs?: number | null;
+    readonly speedIndexMs?: number | null;
+  }[];
 }
 
 export interface CategoryScore {

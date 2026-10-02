@@ -30,22 +30,6 @@ html[data-kileni-theme="light"] .audit-live-minimized {
   color-scheme: light;
 }
 
-html[data-kileni-theme="signal"] .audit-live-overlay,
-html[data-kileni-theme="signal"] .audit-live-page,
-html[data-kileni-theme="signal"] .audit-live-minimized {
-  --audit-live-bg: #070b18;
-  --audit-live-surface: #0c1428;
-  --audit-live-soft: #101d35;
-  --audit-live-text: #f8f9ff;
-  --audit-live-muted: #abb7cd;
-  --audit-live-border: #344a6c;
-  --audit-live-brand: #7ca7ff;
-  --audit-live-success: #a9ff39;
-  --audit-live-warning: #f0b94f;
-  --audit-live-danger: #ff766f;
-  color-scheme: dark;
-}
-
 .audit-live-overlay {
   position: fixed;
   z-index: 120;
@@ -150,14 +134,14 @@ html[data-kileni-theme="signal"] .audit-live-minimized {
   width: min(88vw, 96rem);
   min-height: calc(100dvh - 4.75rem);
   margin: 0 auto;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(22rem, 1fr) auto auto auto;
+  grid-template-columns: minmax(18rem, .78fr) minmax(32rem, 1.22fr);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   grid-template-areas:
-    "narrative"
-    "visual"
-    "timeline"
-    "data"
-    "footer";
+    "narrative visual"
+    "data visual"
+    "timeline timeline"
+    "footer footer";
+  column-gap: clamp(2rem, 5vw, 6rem);
   align-items: center;
   color: var(--audit-live-text);
 }
@@ -165,7 +149,7 @@ html[data-kileni-theme="signal"] .audit-live-minimized {
 .audit-live__narrative {
   align-self: end;
   grid-area: narrative;
-  padding-block: clamp(1.5rem, 3vh, 2.5rem) 1.5rem;
+  padding-top: clamp(2rem, 6vh, 5rem);
 }
 .audit-live__eyebrow {
   margin: 0 0 1.1rem;
@@ -176,7 +160,7 @@ html[data-kileni-theme="signal"] .audit-live-minimized {
   text-transform: uppercase;
 }
 .audit-live__narrative h1 {
-  max-width: none;
+  max-width: 12ch;
   margin: 0;
   color: var(--audit-live-text);
   font-family: var(--display);
@@ -198,11 +182,11 @@ html[data-kileni-theme="signal"] .audit-live-minimized {
   position: relative;
   display: grid;
   width: 100%;
-  min-height: clamp(22rem, 38vh, 30rem);
+  min-height: clamp(27rem, 58vh, 36rem);
   place-items: center;
   align-self: stretch;
   grid-area: visual;
-  margin: 1.25rem 0 .75rem;
+  margin: clamp(1.5rem, 4vh, 3.25rem) 0 clamp(1rem, 2.5vh, 2rem);
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--audit-live-border) 70%, transparent);
   border-radius: clamp(1.5rem, 3vw, 2.5rem);
@@ -478,13 +462,11 @@ html[data-kileni-theme="signal"] .audit-live-minimized {
 
 .audit-live__data {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-self: start;
   grid-area: data;
   gap: 1.25rem;
-  padding: .75rem 0 1rem;
+  padding: clamp(1.5rem, 4vh, 2.75rem) 0 1rem;
 }
-.audit-live__data:empty { display: none; }
 .audit-live__metrics {
   display: grid;
   margin: 0;
@@ -622,7 +604,7 @@ html[data-kileni-theme="signal"] .audit-live-minimized {
     min-height: calc(100dvh - 4.1rem);
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto auto auto;
-    grid-template-areas: "narrative" "visual" "timeline" "data" "footer";
+    grid-template-areas: "narrative" "visual" "data" "timeline" "footer";
     gap: 0;
   }
   .audit-live__narrative { align-self: auto; padding-top: 1.6rem; }

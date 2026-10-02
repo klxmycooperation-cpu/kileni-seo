@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { adminCookieName, verifyAdminSession } from "@/src/lib/security/session";
+import { adminCookieName, configuredAdminPasswordHash, configuredAdminSessionSecret, verifyAdminSession } from "@/src/lib/security/session";
 
 export type AdminIdentity = { login: string; exp: number };
 
@@ -27,8 +27,8 @@ export async function requireAdmin(): Promise<AdminIdentity> {
 
 function validIdentity(identity: AdminIdentity | null): AdminIdentity | null {
   const configuredLogin = process.env.ADMIN_LOGIN;
-  const sessionSecret = process.env.ADMIN_SESSION_SECRET;
-  if (process.env.NODE_ENV === "production" && (!sessionSecret || sessionSecret.length < 32)) return null;
+  if (process.env.NODE_ENV === "production" && (!configuredAdminSessionSecret()
+    || !configuredAdminPasswordHash())) return null;
   if (!identity || !configuredLogin || identity.login !== configuredLogin) return null;
   return identity;
 }

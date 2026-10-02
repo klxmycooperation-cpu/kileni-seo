@@ -25,9 +25,9 @@ describe("отображение сохранённого брифа", () => {
     expect(adminEntries).toContainEqual({
       key: "selectedOffer",
       label: "Выбранное предложение",
-      value: "Аудит до 200 страниц",
+      value: "Технический SEO-аудит",
     });
-    expect(email).toContain("Выбранное предложение: Аудит до 200 страниц");
+    expect(email).toContain("Выбранное предложение: Технический SEO-аудит");
     expect(JSON.stringify(adminEntries)).not.toContain("seo-audit-200");
     expect(email).not.toContain("seo-audit-200");
   });

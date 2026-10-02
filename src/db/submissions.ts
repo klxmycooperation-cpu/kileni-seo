@@ -4,8 +4,22 @@ import { database } from "./client";
 import type { BriefRequest, LeadRequest } from "../lib/security/inputs";
 import { detectContactType } from "../lib/security/inputs";
 import { siteConfig } from "../config/site";
+import { formatOfferPrice, getOffer, localizedOffer } from "../config/offers";
 
 type SubmissionConnection = Pick<typeof database, "execute">;
+
+export function leadComment(input: LeadRequest): string {
+  const offer = input.offerId ? getOffer(input.offerId) : undefined;
+  if (!offer || offer.service !== input.service) return input.comment;
+  const copy = localizedOffer(offer, "ru");
+  return [
+    `Выбранный вариант: ${copy.title} (${offer.id})`,
+    `Стоимость: ${formatOfferPrice(offer, "ru")}`,
+    `Объём: ${copy.scope}`,
+    `Срок: ${copy.duration}`,
+    input.comment,
+  ].filter(Boolean).join("\n");
+}
 
 export async function createLead(input: LeadRequest, ipHash: string, connection: SubmissionConnection = database): Promise<string> {
   const id = randomUUID();
@@ -13,7 +27,7 @@ export async function createLead(input: LeadRequest, ipHash: string, connection:
     sql: `INSERT INTO leads(id,name,contact,contact_type,target,service,comment,status,locale,source,page_url,utm_json,consent_version,ip_hash,created_at)
       VALUES (?,?,?,?,?,?,?,'new',?,?,?,?,?,?,?)`,
     args: [id, input.name, input.contact, detectContactType(input.contact), input.target, input.service,
-      input.comment, input.locale, input.source, input.pageUrl, JSON.stringify(input.utm), siteConfig.legal.version, ipHash, Date.now()],
+      leadComment(input), input.locale, input.source, input.pageUrl, JSON.stringify(input.utm), siteConfig.legal.version, ipHash, Date.now()],
   });
   return id;
 }

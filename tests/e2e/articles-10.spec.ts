@@ -35,6 +35,42 @@ test("presents one featured guide and filters the local editorial library", asyn
   await expect(page.locator(".article-index-grid .article-card")).toHaveCount(7);
 });
 
+test("fills the desktop editorial overview without a hollow grid cell", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.goto("/blog");
+
+  const geometry = await page.locator(".article-index-grid").evaluate((grid) => {
+    const gridRect = grid.getBoundingClientRect();
+    const featured = grid.querySelector<HTMLElement>(".article-card-featured");
+    const cards = [...grid.querySelectorAll<HTMLElement>(".article-card:not(.article-card-featured)")];
+    if (!featured || cards.length < 2) throw new Error("Editorial grid is incomplete");
+    const featuredRect = featured.getBoundingClientRect();
+    const bottom = Math.max(...cards.map((card) => card.getBoundingClientRect().bottom));
+    const lastRow = cards
+      .map((card) => card.getBoundingClientRect())
+      .filter((rect) => Math.abs(rect.bottom - bottom) <= 1)
+      .sort((left, right) => left.left - right.left);
+
+    return {
+      gridLeft: gridRect.left,
+      gridRight: gridRect.right,
+      featuredLeft: featuredRect.left,
+      featuredRight: featuredRect.right,
+      lastRowLeft: lastRow[0]?.left,
+      lastRowRight: lastRow.at(-1)?.right,
+      lastRowCount: lastRow.length,
+    };
+  });
+
+  expect(geometry.featuredLeft).toBeCloseTo(geometry.gridLeft, 0);
+  expect(geometry.featuredRight).toBeCloseTo(geometry.gridRight, 0);
+  expect(geometry.lastRowCount).toBe(2);
+  expect(geometry.lastRowLeft).toBeCloseTo(geometry.gridLeft, 0);
+  expect(geometry.lastRowRight).toBeCloseTo(geometry.gridRight, 0);
+
+  await page.locator(".article-index-browser").screenshot({ path: testInfo.outputPath("blog-index-grid-without-gap.png") });
+});
+
 test("keeps non-featured blog previews lazy and compact", async ({ page }) => {
   await page.goto("/blog");
 

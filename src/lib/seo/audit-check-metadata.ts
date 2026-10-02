@@ -30,19 +30,17 @@ export function getAuditCheckMetadata(locale: Locale, slug?: string): Metadata |
 
 function metadata(locale: Locale, path: string, title: string, description: string, absoluteTitle = false): Metadata {
   const canonical = localizedPath(locale, path);
-  const ru = localizedPath("ru", path);
-  const en = localizedPath("en", path);
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,
-    alternates: { canonical, languages: { ru, en, "x-default": ru } },
+    alternates: { canonical },
     openGraph: {
       type: "article",
       siteName: "KILENI",
       title,
       description,
       url: canonical,
-      locale: locale === "ru" ? "ru_RU" : "en_GB",
+      locale: "ru_RU",
       images: [{ url: "/brand/kileni-og.png", width: 1200, height: 630, alt: "KILENI" }],
     },
   };

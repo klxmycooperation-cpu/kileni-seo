@@ -1,40 +1,45 @@
 /** Maximum time the normal intro itself occupies the page after it starts. */
-export const INTRO_DURATION_MS = 4_200;
-/** Original motion timeline. The renderer scales it into INTRO_DURATION_MS. */
-export const INTRO_SCENE_DURATION_MS = 7_000;
-/** Absolute safety cap, including font measurement and hydration readiness. */
-export const INTRO_MAX_BLOCK_MS = 5_000;
+export const INTRO_DURATION_MS = 5_000;
+/** Absolute safety cap, including video loading and hydration readiness. */
+export const INTRO_MAX_BLOCK_MS = 8_000;
 export const INTRO_FINISH_MS = 240;
 /** A final static frame for visitors who enabled reduced motion. */
 export const INTRO_REDUCED_MS = 300;
-/** Completion is remembered for the current tab; `?intro=1` is the replay route. */
-export const INTRO_SESSION_KEY = "kileni:intro:v9";
+/** Remember this video's completion independently of the previous SVG intro. */
+export const INTRO_SESSION_KEY = "kileni:intro:welcome:v1";
 export const INTRO_FINISHED_EVENT = "kileni:intro-finished";
 
 /**
  * Runs before React so the intro is reserved before the page can flash. The
- * component only renders the SVG; this small controller owns the lifecycle
+ * component renders the supplied video; this small controller owns the lifecycle
  * and tears its listeners down as soon as the scene is complete.
  */
 export const INTRO_BOOTSTRAP = `(() => {
   const root = document.documentElement;
   let timer;
   let readinessTimer;
+  let timerStartedAt = 0;
+  let remainingTime = 0;
+  let timerCallback;
   let done = false;
-  const isHome = () => /^\\/(?:en\\/?)?$/.test(window.location.pathname);
+  const isHome = () => window.location.pathname === "/";
   const forceReplay = () => new URLSearchParams(window.location.search).get("intro") === "1";
   const seenThisSession = () => {
-    if (forceReplay()) return false;
+    // Refreshing the homepage is an explicit new viewing; keep ordinary
+    // navigation between pages free of another intro.
+    if (forceReplay() || performance.getEntriesByType("navigation")[0]?.type === "reload") return false;
     try { return window.sessionStorage.getItem("${INTRO_SESSION_KEY}") === "1"; } catch { return false; }
   };
 
   // Reserve the overlay before the body is parsed. Starting the CSS timeline
-  // only after DOMContentLoaded ensures that all SVG letters start together.
+  // only after the video is ready prevents the loading time from cutting it short.
   if (isHome()) {
-    root.dataset.kileniIntro = seenThisSession() ? "done" : "pending";
+    // Opening the site again is a new viewing, even in the same browser session.
+    root.dataset.kileniIntro = "pending";
   }
 
   const removeListeners = () => {
+    document.removeEventListener("visibilitychange", syncVisibility);
     window.removeEventListener("pointerdown", controlledFinish, true);
     window.removeEventListener("wheel", controlledFinish, true);
     window.removeEventListener("touchstart", controlledFinish, true);
@@ -43,11 +48,41 @@ export const INTRO_BOOTSTRAP = `(() => {
   };
 
   const addListeners = () => {
+    document.addEventListener("visibilitychange", syncVisibility);
     window.addEventListener("pointerdown", controlledFinish, { capture: true, passive: true });
     window.addEventListener("wheel", controlledFinish, { capture: true, passive: true });
     window.addEventListener("touchstart", controlledFinish, { capture: true, passive: true });
     window.addEventListener("keydown", controlledFinish, true);
     window.addEventListener("click", controlledFinish, true);
+  };
+
+  const schedule = (callback, duration) => {
+    window.clearTimeout(timer);
+    timerCallback = callback;
+    remainingTime = duration;
+    timerStartedAt = performance.now();
+    timer = window.setTimeout(callback, duration);
+  };
+
+  const waitForReadiness = () => {
+    window.clearTimeout(readinessTimer);
+    if (document.visibilityState === "visible" && root.dataset.kileniIntro === "pending") {
+      readinessTimer = window.setTimeout(complete, ${INTRO_MAX_BLOCK_MS});
+    }
+  };
+
+  const syncVisibility = () => {
+    if (document.visibilityState !== "visible") {
+      window.clearTimeout(readinessTimer);
+      if (timer !== undefined) remainingTime = Math.max(0, remainingTime - (performance.now() - timerStartedAt));
+      window.clearTimeout(timer);
+      timer = undefined;
+      return;
+    }
+    if (root.dataset.kileniIntro === "pending") {
+      waitForReadiness();
+      start();
+    } else if (timerCallback && !done) schedule(timerCallback, remainingTime);
   };
 
   const complete = () => {
@@ -90,7 +125,9 @@ export const INTRO_BOOTSTRAP = `(() => {
   };
 
   const start = () => {
-    if (!isHome()) return;
+    // Safari suspends background video. Do not finish an unseen intro before
+    // the visitor actually opens its tab.
+    if (!isHome() || document.visibilityState !== "visible") return;
     if (root.dataset.kileniIntro === "play" || root.dataset.kileniIntro === "reduced" || root.dataset.kileniIntro === "finishing") return;
 
     done = false;
@@ -112,18 +149,20 @@ export const INTRO_BOOTSTRAP = `(() => {
       || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 2);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // Reduced-motion visitors still see the KILENI identity, but only as a
-    // short static final frame instead of the seven-second motion sequence.
+    // short static frame instead of the video sequence.
     if (reduced || constrained) {
       if (!window.__kileniBrandIntroReady) return;
+      window.clearTimeout(readinessTimer);
       if (constrained) root.dataset.kileniIntroMode = "lite";
       else delete root.dataset.kileniIntroMode;
       root.dataset.kileniIntro = "reduced";
-      timer = window.setTimeout(complete, ${INTRO_REDUCED_MS});
+      schedule(complete, ${INTRO_REDUCED_MS});
       return;
     }
     delete root.dataset.kileniIntroMode;
     if (!window.__kileniBrandIntroReady) return;
-    if (seenThisSession()) {
+    window.clearTimeout(readinessTimer);
+    if (root.dataset.kileniIntro !== "pending" && seenThisSession()) {
       complete();
       return;
     }
@@ -131,16 +170,18 @@ export const INTRO_BOOTSTRAP = `(() => {
     root.dataset.kileniIntroStartedAt = String(performance.now());
     root.dataset.kileniIntroLastStartedAt = root.dataset.kileniIntroStartedAt;
     root.dataset.kileniIntro = "play";
-    timer = window.setTimeout(complete, ${INTRO_DURATION_MS});
+    // The video normally finishes through its ended event. Allow a small
+    // decoding margin, then release the page even if playback has stalled.
+    schedule(beginControlledFinish, ${INTRO_DURATION_MS + 500});
     addListeners();
   };
 
   window.__kileniStartBrandIntro = start;
   window.__kileniFinishBrandIntro = beginControlledFinish;
-  // Never leave the page locked if fonts, SVG measurements or hydration fail.
+  // Never leave the page locked if video loading or hydration fails.
   if (root.dataset.kileniIntro === "pending") {
     addListeners();
-    readinessTimer = window.setTimeout(complete, ${INTRO_MAX_BLOCK_MS});
+    waitForReadiness();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();

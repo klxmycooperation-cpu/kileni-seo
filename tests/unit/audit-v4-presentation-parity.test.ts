@@ -15,7 +15,7 @@ import { auditClientReportSnapshot } from "./fixtures/audit-client-report-snapsh
 import { auditV4Snapshot } from "./fixtures/audit-v4-snapshot";
 
 describe("v4 presentation parity", () => {
-  it("uses the same two client conclusions in web, PDF and admin", () => {
+  it("uses the same client conclusions in web, PDF and admin", () => {
     const snapshot = sanitizePublicAuditResult(auditClientReportSnapshot());
     expect(snapshot).not.toBeNull();
     expect(Object.isFrozen(snapshot)).toBe(true);
@@ -47,10 +47,9 @@ describe("v4 presentation parity", () => {
     expect(pdf.clientPresentation.nextStep).toEqual(admin?.clientPresentation.nextStep);
     expect(pdf.clientPresentation.issues.map((issue) => [issue.checkId, issue.url])).toEqual([
       ["performance", "https://example.com/"],
-      ["breadcrumbs", "https://example.com/services"],
     ]);
-    expect(web).toContain("Мобильная производительность главной страницы");
-    expect(web).toContain("Подсказка о месте страницы в структуре сайта");
+    expect(web).toContain("Скорость главной страницы");
+    expect(web).not.toContain("Подсказка о месте страницы в структуре сайта");
     expect(web).toContain("Критических проблем");
     expect(web).not.toContain("156 пройдено");
     expect(web).not.toContain("39 не относится");
@@ -63,7 +62,7 @@ describe("v4 presentation parity", () => {
     expect(admin?.clientPresentation.summary.checkedLabel).toBe("Подробно проверено страниц");
     expect(web).toContain("Исключено до выборки");
     expect(web).toContain("Почему выбрана");
-    expect(web).toContain("Получить полный аудит сайта");
+    expect(web).toContain("Заказать технический SEO-аудит");
     expect(web).toContain("Повторить бесплатную проверку");
     expect(web).not.toContain("Проверить остальные страницы");
     expect(web).not.toContain("audit-technical-details");
@@ -73,7 +72,8 @@ describe("v4 presentation parity", () => {
       pdf: pdf.clientPresentation,
       adminClientView: admin?.clientPresentation,
     });
-    expect(clientPresentation).not.toMatch(/"score"|"grade"/u);
+    expect(clientPresentation).not.toMatch(/"grade"/u);
+    expect(snapshot).not.toHaveProperty("score");
     expect(clientPresentation).not.toMatch(/url_pattern|content_pattern|template:dom|classificationConfidence|classificationReasons/u);
     expect(web).not.toMatch(/\/100|уровень\s+[A-F]/iu);
   });
@@ -121,7 +121,7 @@ describe("v4 presentation parity", () => {
     expect({
       web: {
         exclusion: $(".audit-exclusion-summary li").first().text(),
-        pageTitle: englishPage.find("summary small").text().split(" · ")[0],
+        pageTitle: englishPage.find("summary small").text().split(". ")[0],
         selectionReason: englishPage.find(".audit-page-selection p").text(),
       },
       pdf: {

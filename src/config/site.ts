@@ -83,6 +83,8 @@ export const publicRoutes = [
   "cases",
   "cases/eco-santeh",
   "cases/zasorservice",
+  "cases/mestoest-ff",
+  "cases/kamenmis",
   "brief",
   "blog",
   "glossary",
@@ -93,9 +95,8 @@ export const publicRoutes = [
   "free-audit",
 ] as const;
 
-export function localizedPath(locale: Locale, path = ""): string {
+export function localizedPath(_locale: Locale, path = ""): string {
   const clean = path.replace(/^\/+|\/+$/g, "");
-  if (locale === "en") return clean ? `/en/${clean}` : "/en";
   return clean ? `/${clean}` : "/";
 }
 

@@ -9,6 +9,7 @@ import { getCase, getCases } from "../../content/cases";
 import { CaseErrorsVisual } from "../analytics/AnalyticsVisuals";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
+import { CanvasText } from "../ui/canvas-text";
 
 export function CasesPage({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
@@ -21,7 +22,7 @@ export function CasesPage({ locale }: { locale: Locale }) {
           <Breadcrumbs locale={locale} items={[{ label: ru ? "Кейсы" : "Cases" }]} />
           <div className="shell cp-cases-title">
             <p className="cp-kicker">{ru ? "Реальные работы" : "Real client work"}</p>
-            <h1>{ru ? "Задача, изменения и результат повторной проверки" : "The task, the changes and the verified result"}</h1>
+            <h1><CanvasText text={ru ? "Нам доверяют задачи, где результат можно проверить" : "Clients trust us with work that must be verifiable"} lineGap={7} animationDuration={10}/></h1>
             <p>{ru ? "Без обещаний позиций. Показываем задачу клиента, конкретные изменения и цифры повторной проверки." : "No ranking promises. Each story shows the client task, the actual changes and the follow-up numbers."}</p>
           </div>
         </header>
@@ -78,6 +79,10 @@ export function CasePage({ locale, slug }: { locale: Locale; slug: string }) {
   if (!item) return null;
 
   const ru = locale === "ru";
+  const projectScore = projectScoreRow(item, locale);
+  const evidenceRows = projectScore
+    ? [...item.evidence.filter((row) => !/внутрен|internal checklist/iu.test(row.metric)), projectScore]
+    : item.evidence.filter((row) => !/внутрен|internal checklist/iu.test(row.metric));
 
   return (
     <PublicShell locale={locale}>
@@ -86,7 +91,7 @@ export function CasePage({ locale, slug }: { locale: Locale; slug: string }) {
           <Breadcrumbs locale={locale} items={[{ label: ru ? "Кейсы" : "Cases", path: "cases" }, { label: item.domain }]} />
           <div className="shell cp-case-detail-title">
             <CaseIdentity domain={item.domain} slug={item.slug} period={item.period} />
-            <h1>{caseHeadline(item.slug, locale)}</h1>
+            <h1><CanvasText text={caseHeadline(item.slug, locale)} lineGap={7} animationDuration={10}/></h1>
             <p>{item.lead}</p>
             <CaseFacts facts={item.previewFacts} comparison />
           </div>
@@ -113,7 +118,7 @@ export function CasePage({ locale, slug }: { locale: Locale; slug: string }) {
               <h2 id="case-results-title">{ru ? "Доказательство" : "Evidence"}</h2>
             </div>
             <dl className="cp-evidence-list">
-              {[...item.evidence.filter((row) => !/внутрен|internal checklist/iu.test(row.metric)), projectScoreRow(item, locale)].map((row) => (
+              {evidenceRows.map((row) => (
                 <div className="cp-evidence-item" key={row.metric}>
                   <dt>{row.metric}</dt>
                   <dd>
@@ -157,9 +162,12 @@ export function CasePage({ locale, slug }: { locale: Locale; slug: string }) {
 }
 
 function CaseIdentity({ domain, slug, number, period }: { domain: string; slug: string; number?: string; period?: string }) {
+  const logoSrc = slug === "kamenmis"
+    ? "/case-sites/kamenmis-mark.svg"
+    : slug === "mestoest-ff" ? `/case-sites/${slug}.svg` : `/case-sites/${slug}.ico`;
   return (
     <div className="cp-case-identity">
-      <Image src={`/case-sites/${slug}.ico`} alt={`${domain} logo`} width={40} height={40} unoptimized />
+      <Image src={logoSrc} alt={`${domain} logo`} width={40} height={40} unoptimized />
       <div>
         <p>{number ?? domain}</p>
         {number && <strong>{domain}</strong>}
@@ -213,6 +221,7 @@ function CaseComparisons({ locale, rows }: { locale: Locale; rows: Array<{ metri
 }
 
 function projectScoreRow(item: NonNullable<ReturnType<typeof getCase>>, locale: Locale) {
+  if (item.slug === "mestoest-ff" || item.slug === "kamenmis") return null;
   return {
     metric: locale === "ru" ? "Внутренняя оценка KILENI" : "Internal KILENI assessment",
     before: `${item.before}/100`,
@@ -223,6 +232,18 @@ function projectScoreRow(item: NonNullable<ReturnType<typeof getCase>>, locale: 
 
 function caseIndexRows(item: NonNullable<ReturnType<typeof getCase>>, locale: Locale) {
   const ru = locale === "ru";
+  if (item.slug === "mestoest-ff") {
+    return [
+      { metric: ru ? "Позиция по данным проекта" : "Position reported by the project", before: "≈700", after: "3–4" },
+      { metric: ru ? "Период продвижения" : "Promotion period", after: ru ? "21 день" : "21 days" },
+    ];
+  }
+  if (item.slug === "kamenmis") {
+    return [
+      { metric: ru ? "Позиция по данным проекта" : "Position reported by the project", before: "600", after: "3" },
+      { metric: ru ? "Период продвижения" : "Promotion period", after: ru ? "24 дня" : "24 days" },
+    ];
+  }
   if (item.slug === "eco-santeh") {
     return [
       { metric: ru ? "Страницы открылись без ошибки" : "Pages opened without an error", after: "509/509" },
@@ -287,6 +308,16 @@ function caseFindings(item: NonNullable<ReturnType<typeof getCase>>, locale: Loc
 }
 
 function caseHeadline(slug: string, locale: Locale) {
+  if (slug === "mestoest-ff") {
+    return locale === "ru"
+      ? "За 21 день усилили видимость сайта фулфилмента в Подольске"
+      : "Improved search visibility for a fulfilment website in 21 days";
+  }
+  if (slug === "kamenmis") {
+    return locale === "ru"
+      ? "За 24 дня сайт мастерской искусственного камня поднялся с 600-й до 3-й позиции"
+      : "A custom stone workshop website moved from position 600 to position 3 in 24 days";
+  }
   if (slug === "eco-santeh") {
     return locale === "ru"
       ? "Убрали повторяющиеся ошибки на 509 страницах"
@@ -299,6 +330,16 @@ function caseHeadline(slug: string, locale: Locale) {
 }
 
 function caseCardHeadline(slug: string, locale: Locale) {
+  if (slug === "mestoest-ff") {
+    return locale === "ru"
+      ? "Видимость услуг фулфилмента выросла за 21 день"
+      : "Fulfilment service visibility improved in 21 days";
+  }
+  if (slug === "kamenmis") {
+    return locale === "ru"
+      ? "Сайт мастерской поднялся с 600-й до 3-й позиции"
+      : "The workshop website moved from position 600 to position 3";
+  }
   if (slug === "eco-santeh") {
     return locale === "ru" ? "509 страниц открылись без ошибок" : "509 pages opened without errors";
   }
@@ -306,6 +347,16 @@ function caseCardHeadline(slug: string, locale: Locale) {
 }
 
 function caseCardLead(slug: string, locale: Locale) {
+  if (slug === "mestoest-ff") {
+    return locale === "ru"
+      ? "Собрали структуру услуг под поисковый спрос и подтвердили изменение позиций по данным проекта."
+      : "Aligned the service structure with search demand and confirmed the reported position change.";
+  }
+  if (slug === "kamenmis") {
+    return locale === "ru"
+      ? "За 24 дня подтвердили изменение позиции по данным проекта. Точный результат зависит от запроса, региона, устройства и даты проверки."
+      : "The project reported a position change over 24 days. The exact result depends on the query, location, device and check date.";
+  }
   if (slug === "eco-santeh") {
     return locale === "ru"
       ? "Привели в порядок общие шаблоны и проверили итоговый список из 509 страниц. Исходный и финальный обходы содержали разные наборы URL."
@@ -317,6 +368,16 @@ function caseCardLead(slug: string, locale: Locale) {
 }
 
 function caseActionSummary(slug: string, locale: Locale) {
+  if (slug === "mestoest-ff") {
+    return locale === "ru"
+      ? "Связали структуру услуг с поисковым спросом"
+      : "Aligned the service structure with search demand";
+  }
+  if (slug === "kamenmis") {
+    return locale === "ru"
+      ? "Уточнили структуру изделий и страницы материалов"
+      : "Clarified the product structure and material pages";
+  }
   if (slug === "eco-santeh") {
     return locale === "ru"
       ? "Обновили общие шаблоны страниц и убрали повторяющиеся ошибки"
@@ -329,6 +390,8 @@ function caseActionSummary(slug: string, locale: Locale) {
 }
 
 function caseFixes(slug: string, locale: Locale) {
+  if (slug === "mestoest-ff") return getCase(locale, slug)?.fixes ?? [];
+  if (slug === "kamenmis") return getCase(locale, slug)?.fixes ?? [];
   if (slug === "eco-santeh") {
     return locale === "ru"
       ? [

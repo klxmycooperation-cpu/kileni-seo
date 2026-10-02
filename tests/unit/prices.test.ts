@@ -61,15 +61,24 @@ describe("English price labels", () => {
 });
 
 describe("Russian price source", () => {
-  it("keeps every approved public amount unchanged", () => {
+  it("publishes the agreed starting prices for site development", () => {
+    expect(prices.development.landing).toBe(30_000);
+    expect(prices.development.corporate).toBe(70_000);
+    expect(prices.development.commerce.from).toBe(80_000);
+    expect(priceLabel("dev-commerce", "ru").current).toMatch(/^от 80\s?000\s₽$/u);
+  });
+
+  it("keeps package prices explicit and prevents a ten-card bundle from undercutting the work", () => {
     expect(prices).toMatchObject({
-      audits: { preliminary: 0, express: 24_900, full: 39_900, strategy: 69_900, implementation: { from: 49_900 } },
-      seo: { base: 34_900, growth: 44_900, full: 69_900 },
-      marketplaces: { audit: 2_900, optimization: 4_900, turnkey: 12_900, pack10: 39_900, support: 29_900 },
-      development: { landing: 59_900, corporate: 99_900, commerce: { from: 189_900 } },
-      ads: { setup: 14_900, support: 14_900 },
-      content: { article: 4_900 },
+      audits: { preliminary: 0, express: 9_000, full: 29_000, strategy: 59_000, implementation: { from: 49_000 } },
+      seo: { base: 25_000, growth: 35_000, full: 60_000 },
+      marketplaces: { audit: 2_000, optimization: 2_500, turnkey: 5_900, pack10: 18_000, support: 30_000, extras: { videoPerItem: 7_000, analytics: 2_500 } },
+      development: { landing: 30_000, corporate: 70_000, commerce: { from: 80_000 }, extras: { account: 150_000, integrations: 50_000 } },
+      ads: { setup: 15_000, support: 12_000 },
+      content: { article: 5_000 },
     });
-    expect(priceLabel("audit-full", "ru").current).toMatch(/^39\s?900\s₽$/u);
+    expect(prices.marketplaces.pack10).toBeLessThan(prices.marketplaces.optimization * 10);
+    expect(prices.marketplaces.pack10).toBeGreaterThan(prices.marketplaces.optimization * 5);
+    expect(priceLabel("audit-full", "ru").current).toMatch(/^29\s?000\s₽$/u);
   });
 });

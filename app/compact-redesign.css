@@ -20,8 +20,7 @@
   --theme-line: var(--svc-line);
 }
 
-html[data-kileni-theme="dark"] .kileni-site :is(.service-10, .services-10, .pricing-10, .about-10, .marketplace-page),
-html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pricing-10, .about-10, .marketplace-page) {
+html[data-kileni-theme="dark"] .kileni-site :is(.service-10, .services-10, .pricing-10, .about-10, .marketplace-page){
   --svc-ink: #f7f8fc;
   --svc-paper: #07111f;
   --svc-soft: #0d1a2d;
@@ -31,13 +30,6 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
   --theme-ink: var(--svc-ink);
   --theme-muted: var(--svc-muted);
   --theme-line: var(--svc-line);
-}
-
-html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pricing-10, .about-10, .marketplace-page) {
-  --svc-ink: #f5f7ff;
-  --svc-paper: #070b18;
-  --svc-soft: #0e1831;
-  --svc-accent: #7d7aff;
 }
 
 /* Compact service index. */
@@ -243,7 +235,7 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 .kileni-site .footer-legal-identity { display: flex; flex-wrap: wrap; gap: .45rem 1.35rem; margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid #293447; color: #b7c3d4; font-size: .75rem; line-height: 1.45; }
 .kileni-site .form-error__retry { padding: 0; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: inherit; font-weight: 700; }
 .kileni-site .check-field a { color: inherit; font-weight: 750; text-decoration-thickness: 1px; text-underline-offset: .18em; }
-.kileni-site .turnstile-field__error { margin: .6rem 0; color: #b42318; font-size: .78rem; line-height: 1.45; }
+.kileni-site .turnstile-field__error { margin: .6rem 0; color: var(--danger); font-size: .78rem; line-height: 1.45; }
 .kileni-site .turnstile-field__error button { padding: 0; border: 0; background: transparent; color: inherit; font-weight: 800; text-decoration: underline; }
 .kileni-site .cookie-layer { color-scheme: light; }
 .kileni-site .cookie-manager :is(h2, strong, label, summary) { color: #07101f; }
@@ -343,8 +335,7 @@ html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pr
 .kileni-site .marketplace-offer > button[aria-pressed="true"],
 .kileni-site .marketplace-offer > a { background: var(--marketplace-accent); color: var(--marketplace-on-accent, #fff); }
 
-html[data-kileni-theme="dark"] .kileni-site .marketplace-page,
-html[data-kileni-theme="signal"] .kileni-site .marketplace-page { --marketplace-on-accent: #07111f; }
+html[data-kileni-theme="dark"] .kileni-site .marketplace-page{ --marketplace-on-accent: #07111f; }
 
 /* A custom task is a decision path, not a lonely one-card tariff table. */
 .kileni-site .svc-custom-path { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--svc-line); border-radius: 1.25rem; background: var(--svc-line); }
@@ -367,22 +358,18 @@ html[data-kileni-theme="signal"] .kileni-site .marketplace-page { --marketplace-
 @keyframes marketplace-route-enter { from { opacity: 0; transform: translateY(.7rem); } to { opacity: 1; transform: translateY(0); } }
 
 /* Explicit theme safety for surfaces that previously inherited white text. */
-html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-overview,.svc-variants,.svc-context-links,.cp-pricing-section,.cp-extras-section,.cp-request-section,.marketplace-page),
-html[data-kileni-theme="signal"] .kileni-site :is(.svc-compact-overview,.svc-variants,.svc-context-links,.cp-pricing-section,.cp-extras-section,.cp-request-section,.marketplace-page) {
+html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-overview,.svc-variants,.svc-context-links,.cp-pricing-section,.cp-extras-section,.cp-request-section,.marketplace-page){
   background: var(--svc-paper);
   color: var(--svc-ink);
 }
-html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(h1,h2,h3,h4,strong,dd,a),
-html[data-kileni-theme="signal"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(h1,h2,h3,h4,strong,dd,a) { color: var(--svc-ink); }
-html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(p,li,small,dt),
-html[data-kileni-theme="signal"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(p,li,small,dt) { color: var(--svc-muted); }
+html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(h1,h2,h3,h4,strong,dd,a){ color: var(--svc-ink); }
+html[data-kileni-theme="dark"] .kileni-site :is(.svc-compact-overview,.svc-variants,.pricing-10,.marketplace-page) :is(p,li,small,dt){ color: var(--svc-muted); }
 .kileni-site .pricing-10 .cp-tier-switch button[data-preview] :is(span,small,b) { color: var(--svc-paper); }
 .kileni-site .svc-assurance :is(h2,h3,a),
 .kileni-site .svc-detail-hero :is(h1,h2,h3,a) { color: #f4f7fb !important; }
 .kileni-site .svc-assurance :is(p,li,small),
 .kileni-site .svc-detail-hero :is(p,li,small) { color: #aab6c8; }
 .kileni-site :is(.cp-package-brief,.svc-package-grid article > button + a) { color: #fff !important; }
-html[data-kileni-theme="signal"] .kileni-site .cp-package-brief { color: #10231a !important; }
 
 @media (max-width: 1024px) {
   .kileni-site .cp-category-selector { grid-template-columns: 1fr; }
@@ -436,20 +423,15 @@ html[data-kileni-theme="signal"] .kileni-site .cp-package-brief { color: #10231a
 html[data-kileni-theme="light"] .kileni-site .svc-compact-grid article > span,
 html[data-kileni-theme="light"] .kileni-site :is(.about-action-list, .about-start-route) li > span { color: #2441b7; }
 html[data-kileni-theme="dark"] .kileni-site .svc-compact-grid article > span,
-html[data-kileni-theme="signal"] .kileni-site .svc-compact-grid article > span,
-html[data-kileni-theme="dark"] .kileni-site :is(.about-action-list, .about-start-route) li > span,
-html[data-kileni-theme="signal"] .kileni-site :is(.about-action-list, .about-start-route) li > span { color: #9fb4ff; }
+html[data-kileni-theme="dark"] .kileni-site :is(.about-action-list, .about-start-route) li > span{ color: #9fb4ff; }
 .kileni-site .about-hero-grid .svc-kicker { color: #dce5f3; }
 
 html[data-kileni-theme="light"] .kileni-site :is(.analytics-hero-chart__header p, .analytics-hero-chart__metric p, .analytics-visibility-detail__summary, .analytics-replay),
 html[data-kileni-theme="light"] .kileni-site .signal-hero .audit-form :is(.form-heading h2, .audit-form-step-status, label > span) { color: #465366; }
 html[data-kileni-theme="light"] .kileni-site .analytics-delta { background: #dcefe7; color: #0d6545; }
-html[data-kileni-theme="dark"] .kileni-site :is(.analytics-hero-chart__header p, .analytics-hero-chart__metric p, .analytics-visibility-detail__summary, .analytics-replay),
-html[data-kileni-theme="signal"] .kileni-site :is(.analytics-hero-chart__header p, .analytics-hero-chart__metric p, .analytics-visibility-detail__summary, .analytics-replay) { color: #b9c5d5; }
-html[data-kileni-theme="dark"] .kileni-site .analytics-delta,
-html[data-kileni-theme="signal"] .kileni-site .analytics-delta { background: #10382f; color: #66ecb0; }
-html[data-kileni-theme="dark"] .kileni-site input::placeholder,
-html[data-kileni-theme="signal"] .kileni-site input::placeholder { color: #93a2b7; opacity: 1; }
+html[data-kileni-theme="dark"] .kileni-site :is(.analytics-hero-chart__header p, .analytics-hero-chart__metric p, .analytics-visibility-detail__summary, .analytics-replay){ color: #b9c5d5; }
+html[data-kileni-theme="dark"] .kileni-site .analytics-delta{ background: #10382f; color: #66ecb0; }
+html[data-kileni-theme="dark"] .kileni-site input::placeholder{ color: #93a2b7; opacity: 1; }
 html[data-kileni-theme="dark"] .kileni-site .editorial-page {
   --article-paper: #07111f;
   --article-ink: #f7f8fc;
@@ -457,15 +439,7 @@ html[data-kileni-theme="dark"] .kileni-site .editorial-page {
   --article-line: #2b3a50;
   --article-soft: #0b1727;
 }
-html[data-kileni-theme="signal"] .kileni-site .editorial-page {
-  --article-paper: #070b18;
-  --article-ink: #f5f7ff;
-  --article-muted: #b4c0d7;
-  --article-line: #2a3856;
-  --article-soft: #0c1428;
-}
 html[data-kileni-theme="dark"] .kileni-site .editorial-page .article-cta h2 { color: #f7f8fc; }
-html[data-kileni-theme="signal"] .kileni-site .editorial-page .article-cta h2 { color: #f5f7ff; }
 .kileni-site .editorial-page .article-index-grid .article-card { background: var(--article-paper); color: var(--article-ink); }
 .kileni-site .editorial-page .article-card :is(h2, h2 a, strong, .text-link) { color: var(--article-ink); }
 .kileni-site .editorial-page .article-card :is(p, .article-card-meta, .article-card-result, .article-card-service) { color: var(--article-muted); }
@@ -483,9 +457,6 @@ html[data-kileni-theme="signal"] .kileni-site .editorial-page .article-cta h2 { 
   font-size: .66rem;
 }
 
-html[data-kileni-theme="signal"] .kileni-site .warm-final-cta { background: #050814; color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .warm-final-cta :is(h2, p) { color: #f5f7ff; }
-
 html[data-kileni-theme="light"] .kileni-site .home-10 {
   --warm-ink: #101722;
   --warm-muted: #4b5970;
@@ -502,16 +473,7 @@ html[data-kileni-theme="dark"] .kileni-site .home-10 {
   --warm-line: #34445c;
   --home-blue: #9fb4ff;
 }
-html[data-kileni-theme="signal"] .kileni-site .home-10 {
-  --warm-ink: #f5f7ff;
-  --warm-muted: #b8c4dc;
-  --warm-paper: #0c1428;
-  --warm-paper-bright: #101a33;
-  --warm-line: #354666;
-  --home-blue: #aabaff;
-}
-html[data-kileni-theme="dark"] .kileni-site .home-decision__panel,
-html[data-kileni-theme="signal"] .kileni-site .home-decision__panel { background: var(--warm-paper-bright); }
+html[data-kileni-theme="dark"] .kileni-site .home-decision__panel{ background: var(--warm-paper-bright); }
 .kileni-site .home-decision__panel :is(h3, dd, .home-decision__description, .home-decision__cta) { color: var(--warm-ink); }
 .kileni-site .home-decision__panel :is(p, dt, li) { color: var(--warm-muted); }
 .kileni-site .home-decision__panel { animation: none !important; }
@@ -521,13 +483,11 @@ html[data-kileni-theme="signal"] .kileni-site .home-decision__panel { background
   color: #2441b7 !important;
   opacity: 1 !important;
 }
-html[data-kileni-theme="dark"] .kileni-site .about-10 :is(.about-action-list, .about-start-route, .about-roles-grid ul, .about-deliverable-flow, .about-acceptance-grid) li > span,
-html[data-kileni-theme="signal"] .kileni-site .about-10 :is(.about-action-list, .about-start-route, .about-roles-grid ul, .about-deliverable-flow, .about-acceptance-grid) li > span { color: #9fb4ff !important; }
+html[data-kileni-theme="dark"] .kileni-site .about-10 :is(.about-action-list, .about-start-route, .about-roles-grid ul, .about-deliverable-flow, .about-acceptance-grid) li > span{ color: #9fb4ff !important; }
 .kileni-site .about-10 .about-deliverable-flow li > span { color: #9fb4ff !important; }
 html[data-kileni-theme="light"] .kileni-site .about-10 .about-deliverables .about-deliverable-flow li > span { color: #9fb4ff !important; }
 .kileni-site .about-10 .public-contact-label { color: #465366 !important; opacity: 1; }
-html[data-kileni-theme="dark"] .kileni-site .about-10 .public-contact-label,
-html[data-kileni-theme="signal"] .kileni-site .about-10 .public-contact-label { color: #b8c5d6 !important; }
+html[data-kileni-theme="dark"] .kileni-site .about-10 .public-contact-label{ color: #b8c5d6 !important; }
 
 .kileni-site .article-index-grid .article-card,
 .kileni-site .article-index-grid .article-card * {
@@ -551,90 +511,6 @@ html[data-kileni-theme="light"] .kileni-site .analytics-visibility-detail__chips
 .theme-toggle[data-theme="signal"] .theme-toggle__icon::before { inset: 4px; width: auto; height: auto; border-radius: 0; background: linear-gradient(currentColor 0 0) left bottom / 3px 7px no-repeat, linear-gradient(currentColor 0 0) center bottom / 3px 12px no-repeat, linear-gradient(currentColor 0 0) right bottom / 3px 9px no-repeat; box-shadow: none; transform: none; }
 .theme-toggle[data-theme="signal"] .theme-toggle__icon::after { display: none; }
 
-html[data-kileni-theme="signal"] .kileni-site {
-  --background: #08150f;
-  --background-elevated: #10231a;
-  --surface: #142d21;
-  --surface-hover: #1c3b2b;
-  --surface-selected: #27523b;
-  --text-primary: #f3fff6;
-  --text-secondary: #d2e8d8;
-  --text-muted: #a6c1af;
-  --text-inverse: #07110b;
-  --border: #315642;
-  --border-strong: #638a70;
-  --brand: #b7f44a;
-  --brand-contrast: #07110b;
-  --success: #6cf0b0;
-  --warning: #ffd36b;
-  --focus: #d4ff91;
-  --warm-ink: #f3fff6;
-  --warm-paper: #08150f;
-  --warm-paper-bright: #10231a;
-  --warm-stone: #142d21;
-  --warm-muted: #a6c1af;
-  --warm-line: #315642;
-  --home-ink: #f3fff6;
-  --home-paper: #08150f;
-  --home-line: #315642;
-  --kileni-action: #b7f44a;
-}
-html[data-kileni-theme="signal"] .kileni-site .signal-hero {
-  background: linear-gradient(90deg, rgba(183,244,74,.065) 1px, transparent 1px) 0 0 / 2.5rem 2.5rem, linear-gradient(rgba(183,244,74,.04) 1px, transparent 1px) 0 0 / 2.5rem 2.5rem, radial-gradient(circle at 78% 16%, rgba(108,240,176,.24), transparent 30rem), radial-gradient(circle at 88% 30%, rgba(183,244,74,.13), transparent 24rem), #08150f;
-}
-html[data-kileni-theme="signal"] .kileni-site :is(.site-header, .site-header[data-scrolled="true"]) { border-bottom-color: #315642; background: rgba(7,17,11,.94); color: #f3fff6; }
-html[data-kileni-theme="signal"] .kileni-site :is(.services-menu, .mobile-menu) { border-color: #315642; background: #10231a; color: #f3fff6; }
-html[data-kileni-theme="signal"] .kileni-site .home-10 { --warm-ink: #f3fff6; --warm-muted: #a6c1af; --warm-paper: #08150f; --warm-paper-bright: #10231a; --warm-line: #315642; --home-blue: #b7f44a; }
-html[data-kileni-theme="signal"] .kileni-site :is(.service-10, .services-10, .pricing-10, .about-10, .marketplace-page) { --svc-ink: #f3fff6; --svc-paper: #08150f; --svc-soft: #10231a; --svc-line: rgba(183,244,74,.23); --svc-muted: #a6c1af; --svc-accent: #b7f44a; --theme-bg: var(--svc-paper); --theme-ink: var(--svc-ink); --theme-muted: var(--svc-muted); --theme-line: var(--svc-line); }
-html[data-kileni-theme="signal"] .kileni-site .warm-final-cta { background: #07110b; color: #f3fff6; }
-html[data-kileni-theme="signal"] .kileni-site .warm-final-cta :is(h2, p) { color: #f3fff6; }
-
 /* Keep every content family in the same verification palette. These variables
    are deliberately local: page components keep their layouts, while the
    meaning of states stays consistent (graphite = context, lime = verified). */
-html[data-kileni-theme="signal"] .kileni-site .editorial-page {
-  --article-paper: #08150f;
-  --article-ink: #f3fff6;
-  --article-muted: #a6c1af;
-  --article-line: #315642;
-  --article-soft: #10231a;
-}
-html[data-kileni-theme="signal"] .kileni-site .editorial-page .article-card-image figcaption {
-  background: rgba(7, 17, 11, .92);
-  color: #f3fff6;
-}
-html[data-kileni-theme="signal"] .kileni-site :is(.pricing-redesign, .cases-redesign) {
-  --cp-ink: #f3fff6;
-  --cp-paper: #08150f;
-  --cp-surface: #10231a;
-  --cp-lime: #b7f44a;
-  --cp-coral: #10231a;
-  --cp-sage: #142d21;
-  --cp-muted: #a6c1af;
-  --cp-line: rgba(183, 244, 74, .23);
-}
-html[data-kileni-theme="signal"] .kileni-site .brief-refinement {
-  --brief-ink: #f3fff6;
-  --brief-paper: #08150f;
-  --brief-muted: #a6c1af;
-  --brief-soft: #10231a;
-  --brief-line: rgba(183, 244, 74, .23);
-}
-html[data-kileni-theme="signal"] .kileni-site :is(.marketplace-page, .glossary-page) {
-  --theme-bg: #08150f;
-  --theme-panel: #10231a;
-  --theme-ink: #f3fff6;
-  --theme-muted: #a6c1af;
-  --theme-line: #315642;
-}
-html[data-kileni-theme="signal"] .kileni-site :is(.svc-detail-hero, .svc-assurance, .glossary-cta, .brief-compass, .brief-response-promise, .cp-narrative-result, .cases-redesign .cp-case-detail-hero, .cases-redesign .cp-result-section) {
-  background: #07110b;
-  color: #f3fff6;
-}
-html[data-kileni-theme="signal"] .kileni-site :is(.audit-form input, .audit-form select, .audit-form textarea, .svc-request-grid .lead-form input, .svc-request-grid .lead-form textarea, .cp-request-grid .lead-form input, .cp-request-grid .lead-form textarea) {
-  border-color: #638a70;
-  background: #08150f;
-  color: #f3fff6;
-}
-html[data-kileni-theme="signal"] .kileni-site :is(.home-section-heading--light > span, .home-deliverable-list li > div > small, .about-10 .public-contact-label) { color: #a6c1af !important; }
-html[data-kileni-theme="signal"] .kileni-site .about-10 :is(.about-action-list, .about-start-route, .about-roles-grid ul, .about-deliverable-flow, .about-acceptance-grid) li > span { color: #b7f44a !important; }

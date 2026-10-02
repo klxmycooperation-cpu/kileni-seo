@@ -8,16 +8,6 @@ html[data-kileni-theme="dark"] {
   background: #07111f;
 }
 
-html[data-kileni-theme="signal"] {
-  color-scheme: dark;
-  background: #08150f;
-}
-
-html[data-kileni-theme="signal"] body {
-  background: #08150f;
-  color: #f3fff6;
-}
-
 html[data-kileni-theme="dark"] body {
   background: #07111f;
   color: #f7f8fc;
@@ -25,43 +15,53 @@ html[data-kileni-theme="dark"] body {
 
 .theme-toggle {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 40px;
   align-items: center;
-  gap: 8px;
-  padding: 0 8px;
-  border: 0;
-  background: transparent;
+  gap: 9px;
+  padding: 4px 10px 4px 5px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
   color: inherit;
   font: 650 .72rem var(--kileni-font-body), Arial, sans-serif;
   white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 5px 16px rgba(7, 17, 31, .08);
+  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 180ms ease;
 }
+.theme-toggle:hover { border-color: color-mix(in srgb, currentColor 32%, transparent); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 8px 20px rgba(7, 17, 31, .12); }
+.theme-toggle:active { transform: translateY(1px); }
+.theme-toggle:focus-visible { outline: 2px solid var(--focus, #4164ff); outline-offset: 3px; }
 
-.theme-toggle__icon {
+.theme-toggle__eclipse {
   position: relative;
-  display: grid;
-  width: 22px;
-  height: 22px;
-  place-items: center;
-  border: 1px solid currentColor;
-  border-radius: 50%;
+  display: flex;
+  width: 42px;
+  height: 26px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 5px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 207, 108, .28), rgba(66, 91, 179, .26));
+  box-shadow: inset 0 2px 5px rgba(7, 17, 31, .18), inset 0 1px 0 rgba(255, 255, 255, .3);
 }
-
-.theme-toggle__icon::before,
-.theme-toggle__icon::after,
-.theme-toggle__icon > span {
+.theme-toggle__eclipse i {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  content: "";
+  background: radial-gradient(circle at 34% 28%, #fff 0 22%, #e7edf9 52%, #aebbd4 100%);
+  box-shadow: 0 2px 7px rgba(7, 17, 31, .32), inset 0 1px 1px #fff;
+  transition: transform 280ms cubic-bezier(.2, .8, .2, 1), background 240ms ease;
 }
-
-.theme-toggle__icon::before { background: currentColor; }
-.theme-toggle__icon::after {
-  transform: translate(3px, -2px);
-  background: var(--theme-toggle-cutout, #f7f8fb);
-}
-.theme-toggle__icon > span { display: none; }
+.theme-toggle[data-theme="dark"] .theme-toggle__eclipse { background: linear-gradient(135deg, #233556, #111b35); }
+.theme-toggle[data-theme="dark"] .theme-toggle__eclipse i { transform: translateX(16px); background: radial-gradient(circle at 32% 28%, #f5f7ff 0 26%, #b9c6e7 56%, #7183b1 100%); }
+.theme-toggle__sun, .theme-toggle__moon { position: relative; z-index: 1; font-size: .72rem; line-height: 1; }
+.theme-toggle__sun { color: #8b5a00; }
+.theme-toggle__moon { color: #c8d5ff; }
 .theme-toggle--mobile { display: none; }
 
 /* Light is the default public presentation: petroleum typography on white. */
@@ -187,7 +187,11 @@ html[data-kileni-theme="light"] .kileni-site .signal-hero {
 html[data-kileni-theme="light"] .kileni-site .signal-hero h1 { color: var(--warm-ink); }
 html[data-kileni-theme="light"] .kileni-site .signal-hero .hero-copy > .eyebrow,
 html[data-kileni-theme="light"] .kileni-site .signal-hero .hero-lead { color: var(--warm-muted); }
-html[data-kileni-theme="light"] .kileni-site .signal-hero .hero-honesty { color: var(--warm-ink); }
+html[data-kileni-theme="light"] .kileni-site .signal-hero .hero-offer {
+  border-color: #cbd7ee;
+  background: #f3f6ff;
+  color: #36548a;
+}
 html[data-kileni-theme="light"] .kileni-site .signal-hero .hero-proof-link { border-bottom-color: #718098; color: var(--warm-ink); }
 html[data-kileni-theme="light"] .kileni-site .signal-hero .scan-keywords { border-top-color: var(--warm-line); }
 html[data-kileni-theme="light"] .kileni-site .signal-hero .scan-keywords span { color: var(--warm-ink); }
@@ -499,77 +503,6 @@ html[data-kileni-theme="dark"] .kileni-site .brief-response-promise { background
 html[data-kileni-theme="dark"] .kileni-site .brief-response-promise h3 { color: #f7f8fc; }
 
 /* Signal mode: deep graphite and electric blue, with green reserved for verified progress. */
-html[data-kileni-theme="signal"] .kileni-site {
-  --background: #08150f;
-  --background-elevated: #10231a;
-  --surface: #142d21;
-  --surface-hover: #1c3b2b;
-  --surface-selected: #27523b;
-  --text-primary: #f3fff6;
-  --text-secondary: #d2e8d8;
-  --text-muted: #a6c1af;
-  --text-inverse: #07110b;
-  --border: #315642;
-  --border-strong: #638a70;
-  --brand: #b7f44a;
-  --brand-contrast: #07110b;
-  --success: #6cf0b0;
-  --warning: #ffd36b;
-  --danger: #ffabb2;
-  --focus: #d4ff91;
-  --warm-ink: #f3fff6;
-  --warm-charcoal: #07110b;
-  --warm-paper: #08150f;
-  --warm-paper-bright: #10231a;
-  --warm-stone: #142d21;
-  --warm-muted: #a6c1af;
-  --warm-line: #315642;
-  --home-ink: #f3fff6;
-  --home-paper: #08150f;
-  --home-line: #315642;
-  --kileni-action: #b7f44a;
-  --theme-toggle-cutout: #08150f;
-  background: var(--warm-paper);
-  color: var(--warm-ink);
-}
-
-html[data-kileni-theme="signal"] .kileni-site main,
-html[data-kileni-theme="signal"] .kileni-site .home-levels,
-html[data-kileni-theme="signal"] .kileni-site .home-directions,
-html[data-kileni-theme="signal"] .kileni-site .home-case-section,
-html[data-kileni-theme="signal"] .kileni-site .home-articles,
-html[data-kileni-theme="signal"] .kileni-site .home-deliverables { background: var(--warm-paper); }
-
-html[data-kileni-theme="signal"] .kileni-site .site-header,
-html[data-kileni-theme="signal"] .kileni-site .site-header[data-scrolled="true"] {
-  border-bottom-color: #2a3856;
-  background: rgba(5, 8, 20, .94);
-  color: #f5f7ff;
-}
-
-html[data-kileni-theme="signal"] .kileni-site .services-menu,
-html[data-kileni-theme="signal"] .kileni-site .mobile-menu { border-color: #2a3856; background: #0c1428; color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .desktop-nav .services-menu a,
-html[data-kileni-theme="signal"] .kileni-site .mobile-menu a,
-html[data-kileni-theme="signal"] .kileni-site .mobile-services-trigger { border-color: #2a3856; color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .signal-hero { background: radial-gradient(circle at 78% 16%, rgba(79,109,255,.22), transparent 31rem), radial-gradient(circle at 88% 30%, rgba(141,92,255,.09), transparent 24rem), #070b18; color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .signal-hero h1,
-html[data-kileni-theme="signal"] .kileni-site .signal-hero .hero-honesty,
-html[data-kileni-theme="signal"] .kileni-site .signal-hero .hero-proof-link,
-html[data-kileni-theme="signal"] .kileni-site .signal-hero .scan-keywords span { color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .signal-hero .hero-copy > .eyebrow,
-html[data-kileni-theme="signal"] .kileni-site .signal-hero .hero-lead { color: #a9b5cd; }
-html[data-kileni-theme="signal"] .kileni-site .button-primary { border-color: #4f6dff; background: #4f6dff; color: #fff; }
-html[data-kileni-theme="signal"] .kileni-site .signal-hero .audit-form { border-color: #2a3856; background: #0c1428; color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .signal-hero .audit-form input { border-color: #35476b; background: #070b18; color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .page-dark-top { color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .audit-form input,
-html[data-kileni-theme="signal"] .kileni-site .audit-form select,
-html[data-kileni-theme="signal"] .kileni-site .audit-form textarea {
-  border-color: #35476b;
-  background: #070b18;
-  color: #f5f7ff;
-}
 
 /* Approved wordmark and direct phone contact. Kept here so it wins over legacy
    scan-mark rules from earlier iterations of the visual system. */
@@ -596,8 +529,7 @@ html[data-kileni-theme="signal"] .kileni-site .audit-form textarea {
 }
 
 .kileni-site .site-header .brand-logo,
-html[data-kileni-theme="dark"] .kileni-site .site-header .brand-logo,
-html[data-kileni-theme="signal"] .kileni-site .site-header .brand-logo {
+html[data-kileni-theme="dark"] .kileni-site .site-header .brand-logo{
   color: var(--warm-ink);
 }
 
@@ -630,8 +562,7 @@ html[data-kileni-theme="signal"] .kileni-site .site-header .brand-logo {
   min-height: 52px;
 }
 
-html[data-kileni-theme="dark"] .kileni-site .header-phone,
-html[data-kileni-theme="signal"] .kileni-site .header-phone { color: #f7f8fc; }
+html[data-kileni-theme="dark"] .kileni-site .header-phone{ color: #f7f8fc; }
 
 @media (max-width: 1200px) {
   .kileni-site .header-phone--desktop { display: none; }
@@ -640,135 +571,6 @@ html[data-kileni-theme="signal"] .kileni-site .header-phone { color: #f7f8fc; }
 @media (max-width: 1080px) {
   .kileni-site .header-phone--mobile { display: inline-flex; }
 }
-html[data-kileni-theme="signal"] .kileni-site .audit-form .audit-form-step-status { color: #a9b5cd; }
-html[data-kileni-theme="signal"] .kileni-site .home-process-section,
-html[data-kileni-theme="signal"] .kileni-site .home-promise { background: #050814; }
-html[data-kileni-theme="signal"] .kileni-site .home-level-card,
-html[data-kileni-theme="signal"] .kileni-site .home-case-story,
-html[data-kileni-theme="signal"] .kileni-site .warm-article-list > a { background: #0c1428; color: #f5f7ff; }
-
-html[data-kileni-theme="signal"] .kileni-site .editorial-page {
-  --article-paper: #070b18;
-  --article-ink: #f5f7ff;
-  --article-muted: #a9b5cd;
-  --article-line: #2a3856;
-  --article-soft: #111c34;
-}
-
-html[data-kileni-theme="signal"] .kileni-site .editorial-page .article-card,
-html[data-kileni-theme="signal"] .kileni-site .editorial-page .article-cta { background: #0c1428; }
-html[data-kileni-theme="signal"] .kileni-site .editorial-page .article-card:hover { background: #111c34; }
-
-html[data-kileni-theme="signal"] .kileni-site .services-10,
-html[data-kileni-theme="signal"] .kileni-site .service-10,
-html[data-kileni-theme="signal"] .kileni-site .pricing-10,
-html[data-kileni-theme="signal"] .kileni-site .about-10 {
-  --svc-ink: #f5f7ff;
-  --svc-paper: #070b18;
-  --svc-soft: #111c34;
-  --svc-line: rgba(245, 247, 255, .17);
-  --svc-muted: #a9b5cd;
-  --svc-accent: #4f6dff;
-}
-
-html[data-kileni-theme="signal"] .kileni-site .svc-index-hero,
-html[data-kileni-theme="signal"] .kileni-site .svc-detail-hero,
-html[data-kileni-theme="signal"] .kileni-site .about-hero,
-html[data-kileni-theme="signal"] .kileni-site .pricing-10 .cp-hero { background: #050814; color: #f5f7ff; }
-
-html[data-kileni-theme="signal"] .kileni-site .about-hero h1 { color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .about-hero-grid > p,
-html[data-kileni-theme="signal"] .kileni-site .about-hero .svc-kicker { color: #a9b5cd; }
-
-html[data-kileni-theme="signal"] .kileni-site .services-10 .section-light,
-html[data-kileni-theme="signal"] .kileni-site .svc-package-grid > article,
-html[data-kileni-theme="signal"] .kileni-site .svc-buyer-questions { background: #0c1428; color: #f5f7ff; }
-
-html[data-kileni-theme="signal"] .kileni-site .svc-request-grid .lead-form {
-  background: #0c1428;
-  color: #f5f7ff;
-}
-
-html[data-kileni-theme="signal"] .kileni-site .svc-request-grid .lead-form h2,
-html[data-kileni-theme="signal"] .kileni-site .svc-request-grid .lead-form label > span { color: #f5f7ff; }
-
-html[data-kileni-theme="signal"] .kileni-site .svc-request-grid .lead-form input,
-html[data-kileni-theme="signal"] .kileni-site .svc-request-grid .lead-form textarea {
-  border-color: #35476b;
-  background: #070b18;
-  color: #f5f7ff;
-}
-
-html[data-kileni-theme="signal"] .kileni-site .pricing-redesign,
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign {
-  --cp-ink: #f5f7ff;
-  --cp-paper: #070b18;
-  --cp-surface: #0c1428;
-  --cp-lime: #070b18;
-  --cp-coral: #0c1428;
-  --cp-sage: #111c34;
-  --cp-muted: #a9b5cd;
-  --cp-line: rgba(245, 247, 255, .17);
-}
-
-html[data-kileni-theme="signal"] .kileni-site .cp-narrative-result {
-  background: #050814;
-  color: #f5f7ff;
-}
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-case-detail-hero,
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-result-section {
-  background: #050814;
-  color: #f5f7ff;
-}
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-case-detail-hero .breadcrumbs,
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-case-detail-hero .breadcrumbs a,
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-case-detail-hero .breadcrumbs span,
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-case-detail-hero .cp-kicker,
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-case-detail-title > p:not(.cp-kicker),
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-case-detail-title .cp-case-identity p {
-  color: #d0d8eb;
-}
-html[data-kileni-theme="signal"] .kileni-site .cases-redesign .cp-result-heading p { color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .pricing-10 .cp-first-audit-offer {
-  background: #111c34;
-  color: #f5f7ff;
-}
-
-html[data-kileni-theme="signal"] .kileni-site .pricing-10 .cp-package-scope {
-  background: #172545;
-  color: #f5f7ff;
-}
-
-html[data-kileni-theme="signal"] .kileni-site .cp-request-grid .lead-form input,
-html[data-kileni-theme="signal"] .kileni-site .cp-request-grid .lead-form textarea {
-  border-color: #35476b;
-  background: #070b18;
-  color: #f5f7ff;
-}
-
-html[data-kileni-theme="signal"] .kileni-site .cp-extras-section,
-html[data-kileni-theme="signal"] .kileni-site .cp-extras-section h2,
-html[data-kileni-theme="signal"] .kileni-site .cp-extras-section li,
-html[data-kileni-theme="signal"] .kileni-site .cp-extras-section .cp-kicker { color: #f5f7ff; }
-
-html[data-kileni-theme="signal"] .kileni-site .brief-refinement {
-  --brief-ink: #f5f7ff;
-  --brief-paper: #070b18;
-  --brief-muted: #a9b5cd;
-  --brief-soft: #111c34;
-  --brief-line: rgba(245, 247, 255, .17);
-}
-
-html[data-kileni-theme="signal"] .kileni-site .brief-offer-preview dt { color: #526078; }
-html[data-kileni-theme="signal"] .kileni-site .brief-compass,
-html[data-kileni-theme="signal"] .kileni-site .brief-response-promise { background: #050814; color: #f5f7ff; }
-html[data-kileni-theme="signal"] .kileni-site .brief-route li[aria-current="step"],
-html[data-kileni-theme="signal"] .kileni-site .brief-service-guide > h2,
-html[data-kileni-theme="signal"] .kileni-site .brief-service-guide > strong,
-html[data-kileni-theme="signal"] .kileni-site .brief-response-promise h3 { color: #f5f7ff; }
-
-html[data-kileni-theme="signal"] .kileni-site input::placeholder,
-html[data-kileni-theme="signal"] .kileni-site textarea::placeholder { color: #8492ad; opacity: 1; }
 
 /* Contact cards use the active public theme while keeping the official
    Telegram and MAX artwork untouched. */
@@ -793,12 +595,14 @@ html[data-kileni-theme="light"] .kileni-site main .public-contact-links--compact
   color: var(--warm-muted);
 }
 
-/* Calculator controls keep their existing white surfaces in every theme. */
+/* Calculator controls use light text on dark inset fields and dark text on light fields. */
 html[data-kileni-theme] .kileni-site .calculator :is(input, select),
 html[data-kileni-theme] .kileni-site .calculator-tabs button {
   color: #0b132b;
 }
 html[data-kileni-theme] .kileni-site .calculator input::placeholder { color: #596179; }
+html[data-kileni-theme="dark"] .kileni-site .calculator :is(input, select) { color: #edf3ff; }
+html[data-kileni-theme="dark"] .kileni-site .calculator input::placeholder { color: #aebbd2; }
 html[data-kileni-theme] .kileni-site .calculator-tabs button[aria-selected="true"] { color: #fff; }
 html[data-kileni-theme] .kileni-site .estimate-panel > p { color: #aab6c7; }
 html[data-kileni-theme] .kileni-site .estimate-panel .check-field > span { color: #edf2f7; }
@@ -898,7 +702,7 @@ html[data-kileni-theme] .kileni-site .contact-grid .lead-form .check-field {
   .final-score strong { font-size: clamp(5rem, 25vw, 7rem); }
 }
 
-/* Audit progress and public results participate in the same three-theme
+/* Audit progress and public results participate in the same two-theme
    system as the marketing pages. These routes intentionally do not mount the
    regular site shell, so they own a compact set of semantic audit tokens. */
 html[data-kileni-theme="light"] .audit-result-shell {
@@ -931,23 +735,6 @@ html[data-kileni-theme="dark"] .audit-result-shell {
   --audit-action: #4164ff;
   --audit-action-text: #8fa6ff;
   --theme-toggle-cutout: #07111f;
-  background: var(--audit-page);
-  color: var(--audit-ink);
-}
-
-html[data-kileni-theme="signal"] .audit-result-shell {
-  --audit-oil: #070b18;
-  --audit-white: #f5f7ff;
-  --audit-line: #2a3856;
-  --audit-muted: #a9b5cd;
-  --audit-page: #070b18;
-  --audit-surface: #0c1428;
-  --audit-soft: #111c34;
-  --audit-strong: #050814;
-  --audit-ink: #f5f7ff;
-  --audit-action: #4f6dff;
-  --audit-action-text: #93a8ff;
-  --theme-toggle-cutout: #070b18;
   background: var(--audit-page);
   color: var(--audit-ink);
 }
@@ -1061,20 +848,15 @@ html[data-kileni-theme="light"] .audit-result-shell .result-cta .eyebrow,
 html[data-kileni-theme="light"] .audit-result-shell .result-cta p { color: var(--audit-muted); }
 html[data-kileni-theme="light"] .audit-result-shell .result-cta .button-secondary { border-color: #9cabc0; color: var(--audit-ink); }
 
-html[data-kileni-theme="dark"] .audit-result-shell .result-cta,
-html[data-kileni-theme="signal"] .audit-result-shell .result-cta {
+html[data-kileni-theme="dark"] .audit-result-shell .result-cta{
   border-color: var(--audit-line);
   background: var(--audit-strong);
   color: var(--audit-ink);
 }
-html[data-kileni-theme="dark"] .audit-result-shell .result-cta h2,
-html[data-kileni-theme="signal"] .audit-result-shell .result-cta h2 { color: var(--audit-ink); }
+html[data-kileni-theme="dark"] .audit-result-shell .result-cta h2{ color: var(--audit-ink); }
 html[data-kileni-theme="dark"] .audit-result-shell .result-cta .eyebrow,
-html[data-kileni-theme="dark"] .audit-result-shell .result-cta p,
-html[data-kileni-theme="signal"] .audit-result-shell .result-cta .eyebrow,
-html[data-kileni-theme="signal"] .audit-result-shell .result-cta p { color: var(--audit-muted); }
-html[data-kileni-theme="dark"] .audit-result-shell .result-cta .button-secondary,
-html[data-kileni-theme="signal"] .audit-result-shell .result-cta .button-secondary { border-color: var(--audit-line); color: var(--audit-ink); }
+html[data-kileni-theme="dark"] .audit-result-shell .result-cta p{ color: var(--audit-muted); }
+html[data-kileni-theme="dark"] .audit-result-shell .result-cta .button-secondary{ border-color: var(--audit-line); color: var(--audit-ink); }
 
 @media (max-width: 620px) {
   .audit-result-shell .theme-toggle:not(.theme-toggle--mobile) {
@@ -1108,17 +890,4 @@ html[data-kileni-theme="light"] .error-page .button-light {
   border-color: #4164ff;
   background: #4164ff;
   color: #fff;
-}
-
-html[data-kileni-theme="signal"] .error-page {
-  background: #08150f;
-  color: #f3fff6;
-}
-html[data-kileni-theme="signal"] .error-page p { color: #a6c1af; }
-html[data-kileni-theme="signal"] .error-page .brand-logo { color: #f3fff6; }
-html[data-kileni-theme="signal"] .error-page .brand-logo__descriptor { fill: #b7f44a; }
-html[data-kileni-theme="signal"] .error-page .button-light {
-  border-color: #b7f44a;
-  background: #b7f44a;
-  color: #10231a;
 }

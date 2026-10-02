@@ -16,15 +16,20 @@ type Result =
   | { ok: false; reason: "unknown_offer" | "service_mismatch" };
 
 export function canonicalizeBriefOffer(payload: Payload): Result {
-  if (!payload.offerId) return { ok: true, answers: payload.answers };
-  const offer = getOffer(payload.offerId);
+  const offerId = payload.offerId || (typeof payload.answers.sourceOffer === "string" ? payload.answers.sourceOffer.trim() : "");
+  // Catalogue terms are server-owned, including briefs from older clients.
+  const answers = Object.fromEntries(Object.entries(payload.answers).filter(([key]) =>
+    key !== "sourceOffer" && !/^selectedOffer(?:Title|Price|Scope|Duration|Result)$/u.test(key),
+  ));
+  if (!offerId) return { ok: true, answers };
+  const offer = getOffer(offerId);
   if (!offer) return { ok: false, reason: "unknown_offer" };
   if (offer.briefType !== payload.service) return { ok: false, reason: "service_mismatch" };
   const localized = localizedOffer(offer, payload.locale);
   return {
     ok: true,
     answers: {
-      ...payload.answers,
+      ...answers,
       sourceOffer: offer.id,
       selectedOfferTitle: localized.title,
       selectedOfferPrice: formatOfferPrice(offer, payload.locale),

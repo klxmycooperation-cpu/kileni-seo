@@ -33,7 +33,7 @@
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.45rem;
   background: var(--glossary-tooltip-bg, #07101f);
-  box-shadow: 0 0.7rem 1.6rem rgb(7 16 31 / 18%);
+  box-shadow: var(--kileni-depth-shadow, 0 0.7rem 1.6rem rgb(7 16 31 / 18%));
   color: var(--glossary-tooltip-text, #fff);
   content: attr(data-glossary-tip);
   font-family: var(--font-manrope), sans-serif;
@@ -49,7 +49,7 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(0.2rem);
-  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+  transition: opacity var(--kileni-motion-fast, 140ms) ease, transform var(--kileni-motion-fast, 140ms) ease, visibility var(--kileni-motion-fast, 140ms) ease;
 }
 
 .kileni-site .glossary-inline-term[data-glossary-tooltip-align="right"]::after {
@@ -77,7 +77,7 @@
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.65rem;
   background: var(--glossary-tooltip-bg, #07101f);
-  box-shadow: 0 0.9rem 2.2rem rgb(7 16 31 / 24%);
+  box-shadow: var(--kileni-depth-shadow, 0 0.9rem 2.2rem rgb(7 16 31 / 24%));
   color: var(--glossary-tooltip-text, #fff);
   font-family: var(--font-manrope), sans-serif;
   line-height: 1.25;
@@ -96,14 +96,12 @@
   text-underline-offset: 0.2em;
 }
 
-html[data-kileni-theme="dark"] .kileni-site,
-html[data-kileni-theme="signal"] .kileni-site {
+html[data-kileni-theme="dark"] .kileni-site{
   --glossary-tooltip-bg: #f7f9ff;
   --glossary-tooltip-text: #07101f;
 }
 
-html[data-kileni-theme="dark"] [data-glossary-touch-popover="true"],
-html[data-kileni-theme="signal"] [data-glossary-touch-popover="true"] {
+html[data-kileni-theme="dark"] [data-glossary-touch-popover="true"]{
   --glossary-tooltip-bg: #f7f9ff;
   --glossary-tooltip-text: #07101f;
 }
@@ -173,4 +171,8 @@ html[data-kileni-theme="signal"] [data-glossary-touch-popover="true"] {
   [data-glossary-touch-popover="true"] {
     display: none !important;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site .glossary-inline-term::after { transition: none; transform: none; }
 }

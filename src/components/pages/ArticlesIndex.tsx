@@ -22,7 +22,7 @@ export function ArticlesIndex({ articles, locale }: { articles: readonly Article
         ))}
       </nav>
 
-      <div className="article-index-grid" aria-live="polite">
+      <div className="article-index-grid" aria-live="polite" data-count={visible.length}>
         {visible.map((article, index) => (
           <ArticleIndexCard article={article} featured={index === 0} key={article.slug} locale={locale} />
         ))}

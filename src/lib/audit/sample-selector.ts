@@ -2,6 +2,21 @@ import type { AuditHtmlPageType, AuditResourceType } from "./classification";
 
 export const PUBLIC_AUDIT_SAMPLE_LIMIT = 10 as const;
 
+export const PUBLIC_AUDIT_COVERAGE_GROUP_KEYS = [
+  "home",
+  "commercial_service",
+  "catalog_sections",
+  "articles",
+  "cases",
+  "glossary_methodology",
+  "contacts_conversion",
+  "utility_legal",
+  "other",
+] as const;
+
+export type PublicAuditCoverageGroupKey = typeof PUBLIC_AUDIT_COVERAGE_GROUP_KEYS[number];
+export type AuditDiscoverySource = "root" | "link" | "sitemap" | "priority" | "technical" | "unknown";
+
 export type AuditPageType =
   | "homepage"
   | "commercial"
@@ -57,6 +72,7 @@ export interface AuditUrlInventoryItem {
   readonly templateSignature?: string | null;
   readonly canonicalUrl?: string | null;
   readonly contentFingerprint?: string | null;
+  readonly discoverySource?: AuditDiscoverySource;
 }
 
 export interface AuditSampleExcludedItem<T extends AuditUrlInventoryItem = AuditUrlInventoryItem> {
@@ -83,6 +99,35 @@ export interface SelectedAuditUrl {
 export interface AuditSampleOptions {
   readonly targetUrl?: string;
   readonly priorityUrls?: readonly string[];
+}
+
+/** Assigns one observed HTML URL to one reporting group. This is deliberately
+ * URL-level classification: a selected page never stands in for its template
+ * family or for pages that were not observed. */
+export function auditCoverageGroup(
+  item: { readonly url: string; readonly finalUrl?: string; readonly resourceType?: AuditResourceType; readonly pageType?: AuditPageType | null },
+): PublicAuditCoverageGroupKey | null {
+  if (item.resourceType && item.resourceType !== "html") return null;
+  try {
+    const pathname = new URL(item.finalUrl ?? item.url).pathname.toLowerCase().replace(/\/$/u, "") || "/";
+    const first = pathname.split("/").filter(Boolean)[0] ?? "";
+    const pageType = item.pageType ?? "unknown";
+    if (pageType === "homepage" || pathname === "/") return "home";
+    if (pageType === "case" || /^(?:cases?|portfolio)$/u.test(first)) return "cases";
+    if (pageType === "article" || /^(?:blog|articles?|news|guides?)$/u.test(first)) return "articles";
+    if (/^(?:glossary|dictionary|checks?|methodolog(?:y|ies)|methods?|docs?)$/u.test(first)) return "glossary_methodology";
+    if (pageType === "contact" || pageType === "pricing" || pageType === "conversion_support"
+      || /^(?:contact|contacts|brief|request|quote|calculator|checkout|free-audit)$/u.test(first)) return "contacts_conversion";
+    if (["legal", "auth", "account", "cart", "internal_search", "filter", "utility"].includes(pageType)
+      || /^(?:privacy|consent|terms|legal|policy|login|account|cart|search|filter)$/u.test(first)) return "utility_legal";
+    if (pageType === "service" || pageType === "commercial"
+      || /^(?:services?|solutions?|offerings?|capabilities|marketing|seo|audit|development)$/u.test(first)) return "commercial_service";
+    if (["category", "product", "hub", "detail"].includes(pageType)
+      || /^(?:catalog|products?|categories|sections?)$/u.test(first)) return "catalog_sections";
+    return "other";
+  } catch {
+    return "other";
+  }
 }
 
 export type AuditBusinessPriorityKey =

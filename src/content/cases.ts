@@ -2,6 +2,27 @@ import type { Locale } from "../config/site";
 
 export type CaseFact = { value: string; label: string };
 
+export type HomeCasePresentation = {
+  logoPath?: string;
+  logoFit?: "icon" | "wordmark";
+  status: string;
+  steps: string[];
+  chartTitle: string;
+  chartPoints: string;
+  chartStartLabel: string;
+  chartEndLabel: string;
+  chartAriaLabel: string;
+  chartMarkers?: Array<{
+    label: string;
+    tone: "red" | "amber" | "blue" | "cyan" | "green";
+  }>;
+  metrics: Array<{ label: string; value: string }>;
+  footer: string;
+  href: string;
+  linkLabel: string;
+  external?: boolean;
+};
+
 export type CaseStudy = {
   slug: string;
   domain: string;
@@ -19,6 +40,151 @@ export type CaseStudy = {
   evidence: Array<{ metric: string; before?: string; after: string; note?: string }>;
   remaining: string[];
   caveat: string;
+  home?: HomeCasePresentation;
+};
+
+const homeOnlyRu: CaseStudy = {
+  slug: "mestoest-ff",
+  domain: "mestoest-ff.ru",
+  title: "За 21 день усилили видимость сайта фулфилмента в Подольске",
+  period: "21 день",
+  before: 700,
+  after: 3,
+  previewFacts: [
+    { value: "≈700 → 3–4", label: "динамика позиции по данным проекта" },
+    { value: "21 день", label: "период продвижения" },
+    { value: "Подольск", label: "регион продвижения" },
+    { value: "3", label: "маркетплейса в структуре услуг" },
+  ],
+  lead: "За 21 день сайт стал заметнее по целевым запросам о фулфилменте и ответственном хранении в Подольске. Точное место меняется в зависимости от запроса, региона и даты проверки.",
+  task: "Усилить видимость услуг фулфилмента и ответственного хранения в Подольске и вывести важные запросы в верхнюю часть поисковой выдачи.",
+  checks: [
+    "Собрали запросы по фулфилменту и ответственному хранению",
+    "Разделили услуги для Wildberries, Ozon и Яндекс Маркета",
+    "Проверили видимость после публикации изменений",
+  ],
+  fixes: [
+    "Связали структуру страниц с поисковым спросом",
+    "Уточнили страницы услуг и локальную привязку к Подольску",
+    "Подготовили понятные переходы к расчёту и заявке",
+  ],
+  actions: [
+    "Собрали семантику",
+    "Уточнили структуру услуг",
+    "Добавили локальную привязку",
+    "Проверили динамику видимости",
+  ],
+  evidence: [
+    {
+      metric: "Позиция по данным проекта",
+      before: "≈700",
+      after: "3–4",
+      note: "Промежуточные точки показывают направление изменения, а не отдельные замеры",
+    },
+  ],
+  remaining: ["Точная позиционная выгрузка и перечень запросов на сайте не опубликованы"],
+  caveat: "Позиции зависят от запроса, региона, устройства и даты проверки. Поэтому без контрольной выгрузки не публикуем выдуманное точное место.",
+  home: {
+    logoPath: "/case-sites/mestoest-ff.png",
+    logoFit: "wordmark",
+    status: "Результат продвижения",
+    steps: ["Семантика", "Структура услуг", "Локальный спрос", "Контроль позиций"],
+    chartTitle: "Динамика позиций по данным проекта",
+    chartPoints: "24,142 156,126 262,104 382,79 505,50 628,30",
+    chartStartLabel: "Старт: ≈700",
+    chartEndLabel: "Через 21 день: 3–4",
+    chartAriaLabel: "По данным проекта, позиции сайта изменились примерно с 700-й до 3–4-й за 21 день",
+    chartMarkers: [
+      { label: "≈700", tone: "red" },
+      { label: "≈520", tone: "amber" },
+      { label: "≈310", tone: "amber" },
+      { label: "≈150", tone: "blue" },
+      { label: "≈42", tone: "cyan" },
+      { label: "3–4", tone: "green" },
+    ],
+    metrics: [
+      { label: "Позиция на старте", value: "≈700" },
+      { label: "Через 21 день", value: "3–4" },
+      { label: "Срок", value: "21 день" },
+      { label: "Маркетплейсы", value: "3" },
+    ],
+    footer: "По данным проекта: примерно 700-я позиция на старте и 3–4-я через 21 день. Промежуточные точки показывают направление изменения, а не отдельные замеры.",
+    href: "https://mestoest-ff.ru/",
+    linkLabel: "Открыть сайт",
+    external: true,
+  },
+};
+
+const kamenmisRu: CaseStudy = {
+  slug: "kamenmis",
+  domain: "kamenmis.ru",
+  title: "За 24 дня сайт мастерской искусственного камня поднялся с 600-й до 3-й позиции",
+  period: "24 дня",
+  before: 600,
+  after: 3,
+  previewFacts: [
+    { value: "600 → 3", label: "динамика позиции по данным проекта" },
+    { value: "24 дня", label: "период продвижения" },
+    { value: "Подольск", label: "регион работы мастерской" },
+    { value: "акрил и кварц", label: "материалы изделий" },
+  ],
+  lead: "За 24 дня сайт мастерской искусственного камня поднялся с 600-й до 3-й позиции. На сайте представлены столешницы, мойки, подоконники и другие изделия из акрилового и кварцевого камня.",
+  task: "Сделать сайт мастерской заметнее для поиска изделий из искусственного камня и привести посетителя к портфолио, материалам и обращению.",
+  checks: [
+    "Зафиксировали стартовую позицию и условия контрольного измерения",
+    "Проверили основные разделы изделий, материалов и портфолио",
+    "Сверили повторную позицию через 24 дня",
+  ],
+  fixes: [
+    "Уточнили структуру направлений из акрилового и кварцевого камня",
+    "Связали важные страницы изделий с тематическим спросом",
+    "Сделали переходы к портфолио, материалам и обращению понятнее",
+  ],
+  actions: [
+    "Уточнили структуру направлений",
+    "Проверили страницы материалов",
+    "Связали услуги с тематическим спросом",
+    "Зафиксировали повторную позицию",
+  ],
+  evidence: [
+    {
+      metric: "Позиция по данным проекта",
+      before: "600",
+      after: "3",
+      note: "Контрольное измерение через 24 дня",
+    },
+  ],
+  remaining: ["Список запросов и экспорт позиций не опубликованы на сайте"],
+  caveat: "Позиция зависит от запроса, региона, устройства и даты проверки. Здесь показана динамика, указанная в данных проекта.",
+  home: {
+    logoPath: "/case-sites/kamenmis.svg",
+    logoFit: "wordmark",
+    status: "Результат продвижения",
+    steps: ["Структура направлений", "Материалы", "Тематический спрос", "Контроль позиций"],
+    chartTitle: "Динамика позиции по данным проекта",
+    chartPoints: "24,142 156,120 262,100 382,78 505,55 628,30",
+    chartStartLabel: "Старт: 600",
+    chartEndLabel: "Через 24 дня: 3",
+    chartAriaLabel: "По данным проекта, сайт Камень МИС поднялся с 600-й до 3-й позиции за 24 дня",
+    chartMarkers: [
+      { label: "600", tone: "red" },
+      { label: "≈360", tone: "amber" },
+      { label: "≈120", tone: "blue" },
+      { label: "≈40", tone: "cyan" },
+      { label: "≈12", tone: "cyan" },
+      { label: "3", tone: "green" },
+    ],
+    metrics: [
+      { label: "Позиция на старте", value: "600" },
+      { label: "Через 24 дня", value: "3" },
+      { label: "Срок", value: "24 дня" },
+      { label: "Регион", value: "Подольск" },
+    ],
+    footer: "По данным проекта: 600-я позиция на старте и 3-я через 24 дня. Промежуточные точки показывают направление изменения, а не отдельные замеры.",
+    href: "https://kamenmis.ru/",
+    linkLabel: "Открыть сайт",
+    external: true,
+  },
 };
 
 const ru: Record<string, CaseStudy> = {
@@ -216,10 +382,119 @@ const en: Record<string, CaseStudy> = {
   },
 };
 
+const homeOnlyEn: CaseStudy = {
+  ...homeOnlyRu,
+  title: "Improved search visibility for a fulfilment website in 21 days",
+  period: "21 days",
+  previewFacts: [
+    { value: "≈700 → 3–4", label: "position change reported by the project" },
+    { value: "21 days", label: "promotion period" },
+    { value: "Podolsk", label: "target location" },
+    { value: "3", label: "marketplaces covered by the service structure" },
+  ],
+  lead: "Over 21 days, the website became more visible for target searches about fulfilment and responsible storage in Podolsk. The exact position varies by query, location and check date.",
+  task: "Improve visibility for fulfilment and responsible storage services in Podolsk and move important searches towards the upper part of the results.",
+  checks: [
+    "Collected searches around fulfilment and responsible storage",
+    "Separated services for Wildberries, Ozon and Yandex Market",
+    "Checked visibility after the changes were published",
+  ],
+  fixes: [
+    "Aligned the page structure with search demand",
+    "Clarified service pages and their Podolsk location",
+    "Created clear paths to the estimate and enquiry forms",
+  ],
+  actions: ["Search research", "Service structure", "Local demand", "Position check"],
+  remaining: ["The exact ranking export and query list are not published on the website"],
+  caveat: "Positions depend on the query, location, device and check date. Without the control export, we do not publish an invented exact rank.",
+  home: {
+    ...homeOnlyRu.home!,
+    status: "Promotion result",
+    steps: ["Search research", "Service structure", "Local demand", "Position check"],
+    chartTitle: "Position change reported by the project",
+    chartStartLabel: "Start: ≈700",
+    chartEndLabel: "After 21 days: 3–4",
+    chartAriaLabel: "According to the project, the website moved from approximately position 700 to positions 3–4 over 21 days",
+    metrics: [
+      { label: "Starting position", value: "≈700" },
+      { label: "After 21 days", value: "3–4" },
+      { label: "Period", value: "21 days" },
+      { label: "Marketplaces", value: "3" },
+    ],
+    footer: "According to the project, the site moved from approximately position 700 to positions 3–4 over 21 days. Intermediate points show the direction of change, not individual measurements.",
+    linkLabel: "Open the website",
+  },
+};
+
+const kamenmisEn: CaseStudy = {
+  ...kamenmisRu,
+  title: "A custom stone workshop website moved from position 600 to position 3 in 24 days",
+  period: "24 days",
+  previewFacts: [
+    { value: "600 → 3", label: "position change reported by the project" },
+    { value: "24 days", label: "promotion period" },
+    { value: "Podolsk", label: "workshop location" },
+    { value: "acrylic and quartz", label: "product materials" },
+  ],
+  lead: "Over 24 days, the custom stone workshop website moved from position 600 to position 3. The website presents countertops, sinks, window sills and other acrylic and quartz stone products.",
+  task: "Improve the visibility of a custom stone workshop website and guide visitors to the portfolio, materials and enquiry options.",
+  checks: [
+    "Recorded the starting position and the conditions of the control measurement",
+    "Reviewed the key product, material and portfolio pages",
+    "Checked the follow-up position after 24 days",
+  ],
+  fixes: [
+    "Clarified the structure of acrylic and quartz stone product directions",
+    "Connected the key product pages to relevant search demand",
+    "Made the paths to the portfolio, materials and enquiry options clearer",
+  ],
+  actions: [
+    "Clarified the product structure",
+    "Reviewed material pages",
+    "Connected services to relevant search demand",
+    "Recorded the follow-up position",
+  ],
+  evidence: [
+    {
+      metric: "Position reported by the project",
+      before: "600",
+      after: "3",
+      note: "Control measurement after 24 days",
+    },
+  ],
+  remaining: ["The query list and position export are not published on the website"],
+  caveat: "Position depends on the query, location, device and check date. This case shows the change reported by the project.",
+  home: {
+    ...kamenmisRu.home!,
+    status: "Promotion result",
+    steps: ["Product structure", "Materials", "Search demand", "Position check"],
+    chartTitle: "Position change reported by the project",
+    chartStartLabel: "Start: 600",
+    chartEndLabel: "After 24 days: 3",
+    chartAriaLabel: "According to the project, the Kamen MIS website moved from position 600 to position 3 over 24 days",
+    metrics: [
+      { label: "Starting position", value: "600" },
+      { label: "After 24 days", value: "3" },
+      { label: "Period", value: "24 days" },
+      { label: "Location", value: "Podolsk" },
+    ],
+    footer: "According to the project, the website moved from position 600 to position 3 over 24 days. Intermediate points show the direction of change, not individual measurements.",
+    linkLabel: "Open the website",
+  },
+};
+
 export function getCase(locale: Locale, slug: string) {
-  return (locale === "ru" ? ru : en)[slug];
+  return getCases(locale).find((item) => item.slug === slug);
 }
 
 export function getCases(locale: Locale) {
-  return Object.values(locale === "ru" ? ru : en);
+  return [
+    locale === "ru" ? homeOnlyRu : homeOnlyEn,
+    locale === "ru" ? kamenmisRu : kamenmisEn,
+    ...Object.values(locale === "ru" ? ru : en),
+  ];
+}
+
+export function getHomeCases(locale: Locale) {
+  return getCases(locale);
 }

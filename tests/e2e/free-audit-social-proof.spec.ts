@@ -9,6 +9,47 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("separates the form limit from its heading and uses one rounded audit composition", async ({ page }) => {
+  await page.setViewportSize({ width: 1428, height: 818 });
+  await page.goto("/free-audit", { waitUntil: "domcontentloaded" });
+
+  const form = page.locator(".audit-page-grid .audit-form");
+  const heading = form.locator(".form-heading h2");
+  const limit = form.locator(".form-limit");
+  const composition = page.locator(".audit-page-grid");
+  const checklist = composition.locator("aside");
+
+  const geometry = await form.evaluate((element) => {
+    const title = element.querySelector<HTMLElement>(".form-heading h2");
+    const note = element.querySelector<HTMLElement>(".form-limit");
+    const outer = element.closest<HTMLElement>(".audit-page-grid");
+    const aside = outer?.querySelector<HTMLElement>("aside");
+    const check = aside?.querySelector<HTMLElement>("li");
+    if (!title || !note || !outer || !aside || !check) throw new Error("Incomplete free-audit composition");
+
+    const titleRect = title.getBoundingClientRect();
+    const noteRect = note.getBoundingClientRect();
+    return {
+      checklistRadius: Number.parseFloat(getComputedStyle(aside).borderRadius),
+      checkRadius: Number.parseFloat(getComputedStyle(check).borderRadius),
+      compositionRadius: Number.parseFloat(getComputedStyle(outer).borderRadius),
+      formRadius: Number.parseFloat(getComputedStyle(element).borderRadius),
+      limitBelowHeading: noteRect.top - titleRect.bottom,
+      limitInsideForm: noteRect.right <= element.getBoundingClientRect().right,
+    };
+  });
+
+  expect(geometry.limitBelowHeading).toBeGreaterThanOrEqual(8);
+  expect(geometry.limitInsideForm).toBe(true);
+  expect(geometry.compositionRadius).toBeGreaterThanOrEqual(24);
+  expect(geometry.formRadius).toBeGreaterThanOrEqual(16);
+  expect(geometry.checklistRadius).toBeGreaterThanOrEqual(16);
+  expect(geometry.checkRadius).toBeGreaterThanOrEqual(12);
+  await expect(heading).toBeVisible();
+  await expect(limit).toBeVisible();
+  await expect(checklist).toBeVisible();
+});
+
 test("keeps the free-audit form, counter and actions physically inside 320–430 px viewports", async ({ page }) => {
   await page.route("**/api/public-metrics/free-audits", (route) => route.fulfill({
     status: 200,
@@ -20,6 +61,9 @@ test("keeps the free-audit form, counter and actions physically inside 320–430
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/free-audit");
 
+    await expect(page.getByRole("heading", { level: 1, name: "Бесплатная экспресс-проверка до 10 репрезентативных страниц сайта" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Бесплатная экспресс-проверка" })).toBeVisible();
+    await expect(page.getByText(/Непроверенные адреса не оцениваются/u)).toBeVisible();
     const usage = page.getByTestId("free-audit-usage-count");
     await expect(usage).toContainText("1 369");
     await expect(usage).toContainText(/бесплатн.*провер/u);
@@ -27,14 +71,14 @@ test("keeps the free-audit form, counter and actions physically inside 320–430
     await expect(page.getByLabel(/Сколько страниц проверить/iu)).toHaveCount(0);
     await expect(page.getByLabel("Ваше имя")).toHaveCount(0);
     await expect(page.getByLabel("Email (необязательно)")).toHaveCount(0);
-    await expect(page.locator(".audit-form .form-limit")).toContainText("до 10 страниц");
+    await expect(page.locator(".audit-form .form-limit")).toHaveText("Бесплатно проверим до 10 репрезентативных страниц сайта");
 
     const elements = [
       page.locator(".audit-page-grid"),
       page.locator(".audit-page-grid > div").first(),
       page.locator(".audit-page-grid .audit-form"),
       page.getByLabel("Адрес сайта"),
-      page.getByRole("button", { name: "Проверить сайт бесплатно" }),
+      page.getByRole("button", { name: "Проверить бесплатно до 10 репрезентативных страниц сайта" }),
     ];
     for (const element of elements) {
       const box = await element.boundingBox();
@@ -43,20 +87,21 @@ test("keeps the free-audit form, counter and actions physically inside 320–430
       expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(width + 0.5);
     }
 
-    const numberLineCount = await usage.locator("strong").evaluate((node) => {
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      return range.getClientRects().length;
-    });
-    expect(numberLineCount, `usage number must not wrap at ${width}px`).toBe(1);
+    await expect(usage, `compact phone layout hides the duplicate counter at ${width}px`).toBeHidden();
   }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/free-audit");
+  await expect(page.getByRole("heading", { level: 1, name: "Free express check of up to 10 representative website pages" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Free express check" })).toBeVisible();
+  await expect(page.getByText(/Unchecked addresses are not assessed/u)).toBeVisible();
 
   await page.setViewportSize({ width: 320, height: 760 });
   await page.goto("/free-audit");
   await page.getByLabel("Адрес сайта").fill("example.com");
-  await page.getByRole("button", { name: "Проверить сайт бесплатно" }).click();
+  await page.getByRole("button", { name: "Проверить бесплатно до 10 репрезентативных страниц сайта" }).click();
 
-  await expect(page.getByText("Шаг 2 из 2")).toBeVisible();
+  await expect(page.getByText("Шаг 2 из 2")).toBeHidden();
   await expect(page.getByLabel("Адрес сайта")).toHaveAttribute("type", "text");
   await expect(page.getByLabel("Адрес сайта")).toHaveAttribute("inputmode", "url");
   await expect(page.getByLabel("Адрес сайта")).toHaveValue("https://example.com");
@@ -70,12 +115,12 @@ test("explains an invalid website address inline and returns focus to the field"
   await page.goto("/free-audit");
   const url = page.getByLabel("Адрес сайта");
   await url.fill("not a website");
-  await page.getByRole("button", { name: "Проверить сайт бесплатно" }).click();
+  await page.getByRole("button", { name: "Проверить бесплатно до 10 репрезентативных страниц сайта" }).click();
 
   await expect(page.locator("#audit-url-error")).toContainText("Проверьте адрес");
   await expect(url).toHaveAttribute("aria-invalid", "true");
   await expect(url).toBeFocused();
-  await expect(page.getByText("Шаг 1 из 2")).toBeVisible();
+  await expect(page.getByText("Шаг 1 из 2")).toBeHidden();
   for (const element of [url, page.locator("#audit-url-error")]) {
     const box = await element.boundingBox();
     expect(box).not.toBeNull();
@@ -90,7 +135,7 @@ test("accepts a bare domain from the keyboard without starting an incomplete aud
   await url.fill("example.ru");
   await url.press("Enter");
 
-  await expect(page.getByText("Шаг 2 из 2")).toBeVisible();
+  await expect(page.getByText("Шаг 2 из 2")).toBeHidden();
   await expect(url).toHaveValue("https://example.ru");
   await expect(page.getByLabel("Email (необязательно)")).toBeFocused();
 });
@@ -126,7 +171,7 @@ test("shows the real audit stages in a fixed, minimizable panel while the reques
 
   await page.goto("/free-audit");
   await page.getByLabel("Адрес сайта").fill("https://example.com");
-  await page.getByRole("button", { name: "Проверить сайт бесплатно" }).click();
+  await page.getByRole("button", { name: "Проверить бесплатно до 10 репрезентативных страниц сайта" }).click();
   await page.getByLabel("Email (необязательно)").fill("scan@example.com");
   await page.getByRole("checkbox").nth(0).check();
   await page.getByRole("checkbox").nth(1).check();
@@ -178,5 +223,5 @@ test("prefills the paid brief only from a matching same-browser audit handoff", 
   await page.getByLabel("Что беспокоит?").fill("Страницы плохо находятся");
   await page.getByRole("button", { name: "Далее" }).click();
   await expect(page.getByLabel("Имя")).toHaveValue("Анна");
-  await expect(page.getByLabel("Телефон или e-mail")).toHaveValue("anna@example.com");
+  await expect(page.getByLabel("E-mail")).toHaveValue("anna@example.com");
 });

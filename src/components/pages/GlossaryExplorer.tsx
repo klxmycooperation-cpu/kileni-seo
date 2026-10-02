@@ -39,13 +39,11 @@ export function GlossaryExplorer({
 
   return (
     <section className="glossary-explorer shell" aria-labelledby="glossary-explorer-title">
-      <div className="glossary-search">
-        <div>
-          <p className="section-kicker">{ru ? "Быстрый поиск" : "Quick search"}</p>
-          <h2 id="glossary-explorer-title">{ru ? "Найдите термин или описание" : "Find a term or description"}</h2>
-        </div>
+      <h2 className="visually-hidden" id="glossary-explorer-title">{ru ? "Найдите термин или описание" : "Find a term or description"}</h2>
+      <div className="glossary-search glossary-search--compact">
         <div className="glossary-search__field">
-          <label htmlFor="glossary-search-input">{ru ? "Найти термин" : "Find a term"}</label>
+          <label className="visually-hidden" htmlFor="glossary-search-input">{ru ? "Найти термин" : "Find a term"}</label>
+          <svg className="glossary-search__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
           <div>
             <input
               ref={searchInputRef}
@@ -57,21 +55,21 @@ export function GlossaryExplorer({
               aria-controls="glossary-results"
             />
             {query ? (
-              <button type="button" onClick={() => {
+              <button type="button" aria-label={ru ? "Очистить поиск" : "Clear search"} title={ru ? "Очистить поиск" : "Clear search"} onClick={() => {
                 if (searchInputRef.current) searchInputRef.current.value = "";
                 setQuery("");
                 searchInputRef.current?.focus();
               }}>
-                {ru ? "Очистить поиск" : "Clear search"}
+                <span aria-hidden="true">×</span>
               </button>
             ) : null}
           </div>
-          <p role="status" aria-live="polite">
+        </div>
+          <p className="glossary-search__count" role="status" aria-live="polite">
             {resultCount > 0
               ? (ru ? `Найдено: ${resultCount}` : `Found: ${resultCount}`)
               : (ru ? "Ничего не найдено" : "Nothing found")}
           </p>
-        </div>
       </div>
 
       <nav className="glossary-alphabet" aria-label={ru ? "Быстрый переход по буквам" : "Quick jump by letter"}>

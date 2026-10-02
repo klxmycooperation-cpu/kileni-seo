@@ -37,7 +37,7 @@ describe("glossary detail architecture", () => {
       const term = getGlossaryTerm(slug);
       expect(term?.indexable).toBe(true);
 
-      for (const locale of ["ru", "en"] as const) {
+      for (const locale of ["ru"] as const) {
         const copy = term?.[locale];
         expect(copy?.definition).toBeTruthy();
         expect(copy?.plain).toBeTruthy();
@@ -53,7 +53,7 @@ describe("glossary detail architecture", () => {
       }
     }
 
-    for (const locale of ["ru", "en"] as const) {
+    for (const locale of ["ru"] as const) {
       const published = glossaryTerms.filter((term) => term.indexable);
       expect(new Set(published.map((term) => term[locale].plain)).size).toBe(44);
       expect(new Set(published.map((term) => term[locale].why)).size).toBe(44);
@@ -63,17 +63,13 @@ describe("glossary detail architecture", () => {
   it("builds locale-safe canonical metadata for every reviewed detail page", () => {
     const indexed = getGlossaryDetailMetadata("ru", "search-crawler");
     expect(indexed?.alternates?.canonical).toBe("/glossary/search-crawler");
-    expect(indexed?.alternates?.languages).toEqual({
-      ru: "/glossary/search-crawler",
-      en: "/en/glossary/search-crawler",
-      "x-default": "/glossary/search-crawler",
-    });
+    expect(indexed?.alternates?.languages).toBeUndefined();
     expect(indexed?.robots).toBeUndefined();
     expect(indexed?.description?.length).toBeGreaterThanOrEqual(70);
     expect(indexed?.description?.length).toBeLessThanOrEqual(160);
 
-    const formerlyDraft = getGlossaryDetailMetadata("en", "seo-audit");
-    expect(formerlyDraft?.alternates?.canonical).toBe("/en/glossary/seo-audit");
+    const formerlyDraft = getGlossaryDetailMetadata("ru", "seo-audit");
+    expect(formerlyDraft?.alternates?.canonical).toBe("/glossary/seo-audit");
     expect(formerlyDraft?.robots).toBeUndefined();
     expect(getGlossaryDetailMetadata("ru", "not-a-term")).toBeNull();
   });
@@ -81,7 +77,7 @@ describe("glossary detail architecture", () => {
   it("uses complete editorial definitions instead of mechanically cut descriptions", () => {
     const descriptions = new Set<string>();
     for (const term of glossaryTerms) {
-      for (const locale of ["ru", "en"] as const) {
+      for (const locale of ["ru"] as const) {
         const expected = `${term[locale].term}: ${term[locale].definition}`;
         const description = getGlossaryDetailMetadata(locale, term.slug)?.description;
 
@@ -100,7 +96,7 @@ describe("glossary detail architecture", () => {
     expect(glossarySitemapPaths).toHaveLength(indexableGlossarySlugs.length);
     expect(glossarySitemapPaths).toEqual(indexableGlossarySlugs.map((slug) => `glossary/${slug}`));
 
-    for (const locale of ["ru", "en"] satisfies Locale[]) {
+    for (const locale of ["ru"] satisfies Locale[]) {
       expect(glossaryDetailPath(locale, "search-crawler")).toBe(
         locale === "ru" ? "/glossary/search-crawler" : "/en/glossary/search-crawler",
       );
@@ -110,7 +106,7 @@ describe("glossary detail architecture", () => {
   it("gives each indexable locale page a distinct search title", () => {
     const titles = new Set<string>();
     for (const slug of indexableGlossarySlugs) {
-      for (const locale of ["ru", "en"] as const) {
+      for (const locale of ["ru"] as const) {
         const value = getGlossaryDetailMetadata(locale, slug)?.title;
         const title = typeof value === "object" && value && "absolute" in value ? value.absolute : "";
         expect(title.length).toBeGreaterThanOrEqual(30);

@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Request } from "@playwright/test";
+import { aboutPlanetVideo } from "../../src/lib/media/about-preload";
 
 const publicRoutes = [
   "/",
@@ -27,7 +28,7 @@ function isCancelledNextPrefetch(request: Request, url: URL) {
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    window.sessionStorage.setItem("kileni:intro:v9", "1");
+    window.sessionStorage.setItem("kileni:intro:welcome:v1", "1");
     window.localStorage.setItem(
       "kileni-cookie-preferences:v2",
       JSON.stringify({ essential: true, analytics: false, marketing: false, version: "2026-08-23.2" }),
@@ -113,7 +114,12 @@ test("loads the core public routes without browser errors or failed same-origin 
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
   page.on("console", (message) => {
-    if (message.type() === "error") errors.push(`console: ${message.text()}`);
+    if (message.type() !== "error") return;
+    // WebKit reports the cancelled detached video preload as a resource error.
+    // External video playback is measured separately from same-origin resources.
+    if (message.location().url === aboutPlanetVideo
+      && message.text() === "Failed to load resource: The network connection was lost.") return;
+    errors.push(`console: ${message.text()}`);
   });
   page.on("requestfailed", (request) => {
     const url = new URL(request.url());

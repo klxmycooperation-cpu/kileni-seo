@@ -1,0 +1,744 @@
+/* Public-site responsive contract.
+   This is the single final layout layer: page styles retain their individual
+   compositions, while every route shares the same canvas, gutters and
+   small-screen safety rules. */
+
+html,
+body {
+  max-inline-size: 100%;
+  overflow-x: clip;
+}
+
+body { min-inline-size: 0; }
+
+.kileni-site {
+  --adaptive-gutter: clamp(.75rem, 3.2vw, 3.5rem);
+  --adaptive-shell-max: 96rem;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: clip;
+}
+
+.kileni-site :is(
+  main,
+  section,
+  article,
+  aside,
+  header,
+  footer,
+  nav,
+  form,
+  figure,
+  .shell,
+  .page-hero,
+  .hero-grid,
+  .svc-detail-hero-grid,
+  .svc-index-hero-grid,
+  .services-hub__hero-layout,
+  .seo-hub__hero-grid,
+  .article-index-grid,
+  .home-article-carousel,
+  .cp-category-selector,
+  .about-v3-split,
+  .about-v3-final__content
+) {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.kileni-site .shell {
+  inline-size: min(calc(100% - (var(--adaptive-gutter) * 2)), var(--adaptive-shell-max));
+  max-inline-size: calc(100% - (var(--adaptive-gutter) * 2));
+  margin-inline: auto;
+}
+
+.kileni-site .signal-hero .hero-form-wrap {
+  container-name: home-audit-form;
+  container-type: inline-size;
+}
+
+@container home-audit-form (max-width: 34rem) {
+  .kileni-site .signal-hero .audit-form .form-actions--first-step {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .65rem;
+  }
+
+  .kileni-site .signal-hero .audit-form .form-actions--first-step .button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .kileni-site .signal-hero .audit-form .form-actions--first-step .text-link {
+    display: inline-flex;
+    width: max-content;
+    max-width: 100%;
+    min-height: 2.75rem;
+    margin-left: 0;
+    white-space: normal;
+  }
+}
+
+.kileni-site :is(img, video, canvas, svg) {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+.kileni-site :is(input, select, textarea, button) {
+  min-inline-size: 0;
+}
+
+/* The About hero video is served from a remote CDN. Keep the planet visible
+   immediately on slow mobile connections; the loaded video covers this
+   lightweight CSS fallback without changing the authored animation. */
+.kileni-site .about-v3-video-stage::before {
+  position: absolute;
+  z-index: 0;
+  top: clamp(7rem, 15svh, 11rem);
+  left: 50%;
+  width: min(112rem, 112vw);
+  aspect-ratio: 1;
+  border: 1px solid rgb(103 147 255 / 28%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 35%, rgb(67 111 224 / 20%), transparent 46%),
+    repeating-linear-gradient(90deg, transparent 0 5.8rem, rgb(102 151 255 / 8%) 5.86rem 5.92rem),
+    repeating-linear-gradient(0deg, transparent 0 5.8rem, rgb(102 151 255 / 7%) 5.86rem 5.92rem),
+    radial-gradient(circle at 50% 48%, #0b2b61 0 54%, #0a2148 67%, #06152f 77%);
+  box-shadow:
+    inset 0 2rem 5rem rgb(112 161 255 / 12%),
+    0 -1.25rem 4rem rgb(72 119 255 / 24%);
+  content: "";
+  opacity: .9;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.kileni-site .signal-hero .hero-preview-toggle { display: none; }
+
+@media (max-width: 900px) {
+  .kileni-site .signal-hero .hero-preview-toggle {
+    display: flex;
+    width: 100%;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: .65rem .85rem;
+    border: 1px solid rgb(139 167 228 / 35%);
+    border-radius: .75rem;
+    background: rgb(16 35 63 / 84%);
+    color: #e7edfa;
+    font: 700 .85rem/1.3 var(--font-manrope), sans-serif;
+    cursor: pointer;
+  }
+
+  .kileni-site .signal-hero .hero-preview-toggle:focus-visible { outline: 3px solid #8fa7ff; }
+  .kileni-site .signal-hero .hero-tool:not([data-preview-open="true"]) .hero-audit-visual-stack { display: none; }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .kileni-site .home-10 .signal-hero .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .75rem;
+  }
+  .kileni-site .home-10 .signal-hero :is(.hero-copy, .hero-tool) { grid-column: 1 !important; align-self: start; }
+  .kileni-site .home-10 .signal-hero { padding-block: 5.5rem 1rem; }
+  .kileni-site .home-10 .signal-hero .hero-copy h1 { max-width: none; font-size: 2.75rem; }
+  .kileni-site .home-10 .signal-hero :is(.hero-free-audit-usage, .hero-proof-link, .hero-microcopy, .scan-keywords) { display: none; }
+  .kileni-site .home-10 .signal-hero .hero-entry-actions { margin-top: .5rem; }
+  .kileni-site .home-10 .signal-hero .audit-form .form-limit { display: none; }
+}
+
+@media (min-width: 761px) and (max-height: 950px) {
+  .kileni-site .home-10 .analytics-visibility-detail svg {
+    max-width: min(100%, 40svh);
+    max-inline-size: min(100%, 40svh);
+  }
+  .kileni-site .home-10 .analytics-visibility-detail__summary { display: none; }
+}
+
+@media (min-width: 761px) and (max-height: 800px) {
+  .kileni-site .home-10 .signal-hero { padding-block: 90px 8px; }
+  .kileni-site .home-10 .signal-hero .scan-keywords { display: none; }
+  .kileni-site .home-10 .signal-hero .audit-form .form-limit { display: none; }
+}
+
+@media (max-width: 760px) {
+  .kileni-site .home-10 .signal-hero { padding-top: 5.3rem; }
+  .kileni-site .home-10 .signal-hero .hero-grid { gap: .5rem; }
+  /* WebKit's native select ignores min-height while keeping its system arrow. */
+  .kileni-site .calculator select { height: 50px; }
+}
+
+@media (max-width: 760px) and (max-height: 700px) {
+  .kileni-site .home-10 .signal-hero .hero-form-wrap:not(:target) { display: none; }
+}
+
+@media (max-width: 360px) {
+  .kileni-site .home-10 .signal-hero { padding-bottom: .5rem; }
+}
+
+/* Deliberate horizontal rails keep their content local. They never widen the
+   document and they retain a sensible position for keyboard scrolling. */
+.kileni-site :is(
+  .home-article-carousel__viewport,
+  .cp-category-tabs,
+  .svc-page-nav__inner,
+  .article-topic-filter,
+  .audit-page-table-wrap,
+  .article-table-wrap
+) {
+  max-inline-size: 100%;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: var(--adaptive-gutter);
+}
+
+.kileni-site :is(
+  .home-article-carousel__card,
+  .article-card,
+  .cp-tier-card,
+  .svc-package-grid > article,
+  .marketplace-offer,
+  .glossary-item,
+  .about-v3-service-card
+) {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+/* The approved home headline has three authored rows. Reserve enough room for
+   the longest row so the final one never breaks into a fourth visual line. */
+@media (min-width: 1181px) {
+  .kileni-site .signal-hero .hero-copy h1 {
+    inline-size: calc(100% + 3rem);
+    max-inline-size: 17ch;
+  }
+}
+
+/* A desktop composition has one maximum canvas. Enlarging it again past
+   2000px made the same monitor look like two different layouts when browser
+   zoom or device scale changed the CSS viewport width. */
+@media (min-width: 1181px) {
+  .kileni-site {
+    --adaptive-gutter: clamp(2.5rem, 4vw, 5.5rem);
+    --adaptive-shell-max: 100rem;
+    --kileni-desktop-shell-max: 100rem;
+  }
+
+  /* The three approved headline rows must clear the live audit card at every
+     desktop width. The prior viewport-based scale kept growing at 2560px and
+     drove the last row into the card. */
+  .kileni-site .signal-hero .hero-copy h1 {
+    font-size: 60px;
+  }
+
+  .kileni-site .site-header .header-inner {
+    width: min(100%, 1360px);
+    inline-size: min(100%, 1360px);
+    max-width: 1360px;
+    max-inline-size: 1360px;
+  }
+}
+
+@media (max-width: 680px) {
+  .kileni-site .signal-hero .hero-copy h1 {
+    font-size: clamp(1.75rem, 9vw, 2.45rem);
+  }
+}
+
+@media (max-width: 1080px) {
+  .kileni-site .site-header .header-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-inline-size: 0;
+  }
+
+  .kileni-site .mobile-menu {
+    max-inline-size: 100%;
+  }
+}
+
+@media (max-width: 820px) {
+  .kileni-site {
+    --adaptive-gutter: clamp(.75rem, 3.8vw, 1.25rem);
+  }
+
+  .kileni-site :is(
+    .article-index-grid .article-card-featured,
+    .marketplace-docs,
+    .marketplace-cta,
+    .svc-detail-hero-grid,
+    .svc-index-hero-grid,
+    .services-hub__hero-layout,
+    .seo-hub__hero-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kileni-site :is(.svc-hero-actions, .marketplace-offer-actions, .about-v3-final__actions) {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 680px) {
+  .kileni-site {
+    --adaptive-gutter: .625rem;
+  }
+
+  .kileni-site :is(input, select, textarea) {
+    font-size: 1rem;
+  }
+
+  .kileni-site :is(
+    .cp-tier-switch[data-option-count],
+    .svc-package-grid,
+    .article-index-grid,
+    .glossary-grid,
+    .marketplace-grid,
+    .home-deliverables-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kileni-site :is(
+    .page-hero h1,
+    .signal-hero h1,
+    .services-hub__hero h1,
+    .seo-hub__hero h1,
+    .about-v3-hero__title,
+    .article-header h1
+  ) {
+    max-inline-size: 100%;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: balance;
+  }
+
+  .kileni-site :is(
+    .svc-hero-actions > *,
+    .marketplace-offer-actions > *,
+    .about-v3-final__actions > *
+  ) {
+    min-block-size: 2.75rem;
+  }
+
+  .kileni-site .home-article-carousel__controls {
+    min-block-size: 3.25rem;
+  }
+
+  .kileni-site :is(
+    .home-case-explorer__tape-control,
+    .home-article-carousel__controls button
+  ) {
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .kileni-site .article-topic-filter button {
+    min-height: 2.75rem;
+  }
+
+  .kileni-site .about-v3-video-stage::before {
+    top: 8.75rem;
+    width: 178vw;
+  }
+}
+
+@media (max-width: 360px) {
+  .kileni-site {
+    --adaptive-gutter: .5rem;
+  }
+
+  .kileni-site .site-header .header-inner {
+    padding-inline: .75rem;
+  }
+
+  .kileni-site .site-header .header-cta {
+    display: none !important;
+  }
+
+  .kileni-site .audit-top .page-hero h1 {
+    font-size: 2.25rem !important;
+    letter-spacing: -.055em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site :is(
+    .home-article-carousel__viewport,
+    .cp-category-tabs,
+    .svc-page-nav__inner,
+    .article-topic-filter
+  ) {
+    scroll-behavior: auto;
+  }
+}
+
+/* The free-audit entry point uses the same layered, rounded surfaces as the
+   rest of the current site. The limit is a separate information row rather
+   than a third item squeezed beside the large form heading. */
+.kileni-site .audit-top + .section {
+  position: relative;
+  padding-block: clamp(2.75rem, 5vw, 5rem);
+  background:
+    radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--brand) 9%, transparent), transparent 32rem),
+    var(--warm-paper);
+}
+
+.kileni-site .audit-page-grid {
+  grid-template-columns: minmax(0, 1.03fr) minmax(25rem, .97fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  padding: clamp(.7rem, 1.2vw, 1rem);
+  border: 1px solid color-mix(in srgb, var(--warm-line) 76%, var(--brand));
+  border-radius: 1.75rem;
+  background: color-mix(in srgb, var(--warm-paper-bright) 82%, transparent);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, .16);
+}
+
+.kileni-site .audit-page-grid .audit-form,
+.kileni-site .audit-page-grid > aside {
+  border: 1px solid color-mix(in srgb, var(--warm-line) 82%, var(--brand));
+  border-radius: 1.25rem;
+  background: var(--warm-paper-bright);
+  color: var(--warm-ink);
+  box-shadow: inset 0 1px color-mix(in srgb, #fff 7%, transparent);
+}
+
+.kileni-site .audit-page-grid .audit-form {
+  padding: clamp(1.35rem, 3vw, 2.5rem);
+}
+
+.kileni-site .audit-page-grid .form-heading {
+  display: grid;
+  grid-template-columns: .75rem minmax(0, 1fr);
+  align-items: start;
+  gap: .65rem .85rem;
+  margin-bottom: 1.25rem;
+}
+
+.kileni-site .audit-page-grid .form-heading .status-dot {
+  grid-column: 1;
+  grid-row: 1;
+  margin-top: .85rem;
+}
+
+.kileni-site .audit-page-grid .form-heading h2 {
+  grid-column: 2;
+  grid-row: 1;
+  max-width: 11ch;
+  margin: 0;
+  color: var(--warm-ink);
+  font-size: clamp(2.5rem, 4vw, 3.6rem);
+  line-height: .98;
+  text-wrap: balance;
+}
+
+.kileni-site .audit-page-grid .form-heading .form-limit {
+  grid-column: 2;
+  grid-row: 2;
+  width: fit-content;
+  max-width: 100%;
+  margin: .15rem 0 0;
+  padding: .45rem .7rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--warm-line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand) 8%, var(--warm-paper));
+  color: var(--warm-muted);
+  font-size: .68rem;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+.kileni-site .audit-page-grid .free-audit-usage {
+  margin-top: 0;
+}
+
+.kileni-site .audit-page-grid .audit-form input {
+  border-radius: .85rem;
+}
+
+.kileni-site .audit-page-grid .audit-form .button {
+  border-radius: .85rem;
+}
+
+.kileni-site .audit-page-grid > aside {
+  padding: clamp(1.35rem, 2.5vw, 2rem);
+}
+
+.kileni-site .audit-page-grid > aside .eyebrow {
+  margin-bottom: 1rem;
+  color: var(--warm-muted);
+}
+
+.kileni-site .audit-page-grid > aside ol {
+  display: grid;
+  gap: .55rem;
+  margin: 0 0 1rem;
+  border: 0;
+}
+
+.kileni-site .audit-page-grid > aside li {
+  min-height: 3.75rem;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: .7rem;
+  padding: .75rem .9rem;
+  border: 1px solid color-mix(in srgb, var(--warm-line) 78%, var(--brand));
+  border-radius: .9rem;
+  background: color-mix(in srgb, var(--warm-paper) 86%, var(--brand));
+  color: var(--warm-ink);
+  line-height: 1.4;
+}
+
+.kileni-site .audit-page-grid > aside li .mono {
+  color: color-mix(in srgb, var(--brand) 76%, var(--warm-muted));
+}
+
+.kileni-site .audit-page-grid > aside > .text-link {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: .55rem .8rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 38%, var(--warm-line));
+  border-radius: 999px;
+  color: var(--warm-ink);
+  line-height: 1.35;
+}
+
+.kileni-site .audit-page-grid > aside .caveat {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--warm-line));
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--brand) 7%, var(--warm-paper));
+  color: var(--warm-muted);
+}
+
+html[data-kileni-theme="light"] .kileni-site .audit-page-grid .audit-form input {
+  border-color: #cbd3df;
+  background: #f7f8fb;
+  color: var(--warm-ink);
+}
+
+@media (max-width: 820px) {
+  .kileni-site .audit-page-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .7rem;
+    padding: .55rem;
+    border-radius: 1.3rem;
+  }
+
+  .kileni-site .audit-page-grid .audit-form,
+  .kileni-site .audit-page-grid > aside {
+    border-radius: 1rem;
+  }
+
+  .kileni-site .audit-page-grid .form-heading h2 {
+    max-width: 12ch;
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+}
+
+@media (max-width: 430px) {
+  .kileni-site .audit-top + .section {
+    padding-top: 1rem;
+  }
+
+  .kileni-site .audit-page-grid .audit-form,
+  .kileni-site .audit-page-grid > aside {
+    padding: 1rem;
+  }
+
+  .kileni-site .audit-page-grid .form-heading {
+    grid-template-columns: .6rem minmax(0, 1fr);
+    gap: .55rem .65rem;
+  }
+
+  .kileni-site .audit-page-grid .form-heading .status-dot {
+    margin-top: .65rem;
+  }
+
+  .kileni-site .audit-page-grid .form-heading .form-limit {
+    border-radius: .8rem;
+  }
+}
+
+/* A half-width desktop window still has enough room for the copy and audit.
+   Stack only once their actual content stops fitting side by side. */
+@media (min-width: 901px) and (max-width: 1180px) {
+  .kileni-site .signal-hero .hero-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    gap: clamp(1.25rem, 2.4vw, 2rem);
+  }
+
+  .kileni-site .signal-hero .hero-copy { grid-column: 1 !important; }
+  .kileni-site .signal-hero .hero-tool {
+    grid-column: 2 !important;
+    width: 100%;
+  }
+
+  .kileni-site .signal-hero .hero-copy h1 {
+    inline-size: auto;
+    max-inline-size: none;
+    font-size: clamp(2.3rem, 3.7vw, 2.7rem);
+    line-height: 1.04;
+  }
+}
+
+/* The navigation becomes a menu before the utility actions need to vanish.
+   Keep phone, theme and language available directly in the compact bar. */
+@media (max-width: 1360px) {
+  .kileni-site .site-header .header-actions .header-phone--desktop {
+    display: inline-flex;
+    inline-size: 2.75rem;
+    flex: 0 0 2.75rem;
+    justify-content: center;
+  }
+
+  .kileni-site .site-header .header-phone--desktop img {
+    width: 1.25rem;
+    height: 1.25rem;
+    opacity: 1;
+  }
+
+  .kileni-site .site-header .header-phone--desktop span { display: none; }
+
+  .kileni-site .site-header .header-actions .language-link {
+    display: inline-flex;
+    min-inline-size: 2.75rem;
+    justify-content: center;
+    font-size: .78rem;
+  }
+}
+
+html[data-kileni-theme="light"] .kileni-site .site-header .header-phone--desktop img {
+  filter: brightness(0) saturate(100%);
+}
+
+@media (max-width: 700px) {
+  .kileni-site .signal-hero { padding-top: 6.75rem; }
+  .kileni-site .site-header .header-cta { display: none !important; }
+  .kileni-site .mobile-menu nav > .mobile-menu-cta { display: inline-flex; }
+
+  .kileni-site .site-header .header-inner { gap: .4rem; }
+  .kileni-site .site-header .header-actions { gap: .25rem; }
+  .kileni-site .site-header .header-actions .header-phone--desktop {
+    inline-size: 2.5rem;
+    flex-basis: 2.5rem;
+  }
+  .kileni-site .site-header .header-actions .language-link { min-inline-size: 2.4rem; }
+}
+
+@media (max-width: 560px) {
+  .kileni-site .site-header .header-actions .theme-toggle:not(.theme-toggle--mobile) {
+    display: inline-flex;
+    min-height: 2.5rem;
+    padding: .25rem;
+  }
+  .kileni-site .site-header .header-actions .theme-toggle__label { display: none; }
+}
+
+@media (max-width: 360px) {
+  .kileni-site .site-header .header-inner { padding-inline: .5rem; }
+  .kileni-site .site-header .brand-logo__graphic,
+  .kileni-site .site-header[data-scrolled="true"] .brand-logo__graphic { width: 6rem; }
+  .kileni-site .site-header .header-actions { gap: .1rem; }
+  .kileni-site .site-header .header-actions .header-phone--desktop {
+    inline-size: 2.25rem;
+    flex-basis: 2.25rem;
+  }
+  .kileni-site .site-header .header-actions .language-link { min-inline-size: 2.2rem; }
+}
+
+/* Keep the desktop navigation in the same row as the logo and controls while
+   the viewport narrows. The mobile menu takes over below 701px. */
+@media (min-width: 701px) and (max-width: 1360px) {
+  .kileni-site .site-header:not([data-text-scale-compact="true"]),
+  .kileni-site .site-header:not([data-text-scale-compact="true"])[data-scrolled="true"] {
+    height: 4.5rem;
+    min-height: 0;
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"])[data-scrolled="true"] {
+    height: 4.25rem;
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .header-inner {
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: 1fr;
+    align-items: center;
+    gap: clamp(.4rem, .85vw, .8rem);
+    padding-inline: clamp(.75rem, 1.3vw, 1.3rem);
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .header-actions {
+    justify-self: end;
+    gap: clamp(.25rem, .55vw, .5rem);
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .desktop-nav {
+    display: flex;
+    width: auto;
+    justify-content: space-between;
+    gap: clamp(.25rem, .6vw, .65rem);
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .desktop-nav > a,
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .desktop-nav-link {
+    min-height: 2.75rem;
+    padding-inline: 0;
+    font-size: clamp(.78rem, 1vw, .88rem);
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .menu-button {
+    display: none;
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .header-cta {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 1020px) {
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .header-cta {
+    display: none;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .brand-logo__graphic,
+  .kileni-site .site-header:not([data-text-scale-compact="true"])[data-scrolled="true"] .brand-logo__graphic {
+    width: 6.5rem;
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .desktop-nav {
+    gap: .2rem;
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .desktop-nav > a,
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .desktop-nav-link {
+    font-size: clamp(.69rem, 1.55vw, .75rem);
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .header-actions .header-phone--desktop {
+    inline-size: 2rem;
+    flex-basis: 2rem;
+  }
+
+  .kileni-site .site-header:not([data-text-scale-compact="true"]) .header-actions .language-link {
+    min-inline-size: 2rem;
+    padding-inline: 0;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 767px) {
+  .kileni-site .signal-hero { padding-top: 6.75rem; }
+}
+
+@media (max-width: 767px) {
+  .kileni-site .signal-hero .hero-offer { margin-top: 0; }
+}

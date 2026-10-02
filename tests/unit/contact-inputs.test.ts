@@ -19,10 +19,12 @@ const validLead = {
 describe("contact input parsing", () => {
   it.each([
     ["anna@example.com", "email"],
-    ["+7 925 225-60-20", "phone"],
-    ["8 (925) 225-60-20", "phone"],
   ] as const)("classifies %s as %s", (value, expected) => {
     expect(detectContactType(value)).toBe(expected);
+  });
+
+  it.each(["+7 925 225-60-20", "8 (925) 225-60-20"])("rejects phone contacts before storage: %s", (contact) => {
+    expect(leadRequestSchema.safeParse({ ...validLead, contact }).success).toBe(false);
   });
 
   it("accepts and trims a valid contact through the request schema", () => {

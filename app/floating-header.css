@@ -1,0 +1,151 @@
+/* The compact state preserves the existing header controls and makes only the
+   surrounding surface behave like the supplied floating-navigation effect. */
+.kileni-site .site-header {
+  z-index: 110;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  transition: height 420ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.kileni-site:has(.brand-intro-v10) .site-header {
+  z-index: 110;
+}
+
+.kileni-site .site-header::after {
+  display: none;
+}
+
+.kileni-site .site-header .header-inner {
+  min-height: 4.2rem;
+  margin-top: 0;
+  padding-inline: clamp(1.25rem, 1.75vw, 1.85rem);
+  border: 1px solid color-mix(in srgb, var(--theme-border, #38506e) 68%, transparent);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--theme-surface, #091426) 72%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
+  backdrop-filter: blur(16px) saturate(118%);
+  transition:
+    width 500ms cubic-bezier(.22, 1, .36, 1),
+    margin-top 500ms cubic-bezier(.22, 1, .36, 1),
+    border-radius 500ms cubic-bezier(.22, 1, .36, 1),
+    background-color 500ms ease,
+    border-color 500ms ease,
+    box-shadow 500ms ease,
+    transform 500ms cubic-bezier(.22, 1, .36, 1);
+}
+
+@media (min-width: 1081px) {
+  .kileni-site .site-header,
+  .kileni-site .site-header--home:not([data-scrolled="true"]),
+  .kileni-site .site-header[data-scrolled="true"] {
+    top: .4rem;
+    right: clamp(1.75rem, 3vw, 3.75rem);
+    left: clamp(1.75rem, 3vw, 3.75rem);
+    height: 4.5rem;
+  }
+
+  .kileni-site .site-header .header-inner {
+    width: min(100%, 1360px);
+    max-width: none;
+    margin-top: 0;
+    margin-inline: auto;
+  }
+
+  /* Keep every navigation label on its own intrinsic column. A flex row can
+     shrink its middle items when the header changes width, which made the
+     last labels visually run together in the compact state. */
+  .kileni-site .site-header .desktop-nav {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    align-items: center;
+    justify-content: center;
+    column-gap: clamp(.75rem, 1.15vw, 1.1rem);
+  }
+
+  .kileni-site .site-header .desktop-nav > * {
+    min-width: 0;
+  }
+
+  .kileni-site .site-header .services-trigger {
+    gap: .4rem;
+  }
+
+  .kileni-site .site-header .desktop-nav .services-chevron {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 5px;
+    height: 5px;
+    border-width: 0 1.25px 1.25px 0;
+    transform: translateY(-1px) rotate(45deg);
+  }
+
+  .kileni-site .site-header .desktop-nav [aria-expanded="true"] > .services-chevron {
+    transform: translateY(1px) rotate(225deg);
+  }
+
+  /* The legacy dropdown reserves an invisible 12px hover bridge. Inside the
+     shorter floating bar it is the only item that can extend the grid. */
+  .kileni-site .site-header .services-dropdown {
+    margin-bottom: -6px;
+    padding-bottom: 6px;
+  }
+
+  .kileni-site .site-header[data-header-presentation="compact"] .header-inner {
+    width: min(100%, max(79.5rem, 89vw), 85rem);
+    margin-top: 0;
+    border-color: color-mix(in srgb, var(--theme-border, #38506e) 82%, var(--brand, #4164ff));
+    border-radius: 1.25rem;
+    background: color-mix(in srgb, var(--theme-surface, #091426) 86%, transparent);
+    box-shadow:
+      0 1.1rem 3rem rgb(3 9 22 / 24%),
+      inset 0 1px 0 rgb(255 255 255 / 10%),
+      0 0 0 1px rgb(112 150 255 / 5%);
+    transform: translateY(.05rem);
+  }
+
+  .kileni-site .site-header[data-header-presentation="compact"] {
+    height: 4.25rem;
+  }
+
+  .kileni-site .site-header[data-header-presentation="compact"] .header-phone--desktop {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .kileni-site .site-header[data-header-presentation="compact"] .header-inner {
+    margin-top: 0;
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--theme-surface, #091426) 90%, transparent);
+    box-shadow: 0 .8rem 2rem rgb(3 9 22 / 18%), inset 0 1px 0 rgb(255 255 255 / 8%);
+  }
+}
+
+@media (max-width: 700px) {
+  .kileni-site .site-header .mobile-menu.is-open,
+  .kileni-site .site-header .mobile-menu-backdrop:not([hidden]) {
+    display: block;
+  }
+
+  .kileni-site .site-header .mobile-menu,
+  .kileni-site .site-header .mobile-menu-backdrop {
+    top: 4.9rem;
+    height: calc(100svh - 4.9rem);
+  }
+
+  .kileni-site .site-header[data-header-presentation="compact"] .mobile-menu,
+  .kileni-site .site-header[data-header-presentation="compact"] .mobile-menu-backdrop {
+    top: 4.65rem;
+    height: calc(100svh - 4.65rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site .site-header,
+  .kileni-site .site-header .header-inner {
+    transition-duration: 1ms;
+  }
+}

@@ -406,13 +406,13 @@ export function AuditResultReport({
 
       <div className="result-cta">
         <p className="eyebrow">{ru ? "Следующий шаг" : "Next step"}</p>
-        <h2>{hasActionableFindings ? (ru ? "Исправить найденное и проверить повторно" : "Fix the findings and verify again") : (ru ? "Проверить остальные страницы" : "Check the remaining pages")}</h2>
+        <h2>{hasActionableFindings ? (ru ? "Что делать с найденными проблемами" : "What to do with the findings") : (ru ? "Проверить остальные страницы" : "Check the remaining pages")}</h2>
         <p>{hasActionableFindings
-          ? (ru ? "В полном аудите согласуем объём, проверим больше страниц, расставим исправления по важности и повторим проверку после изменений." : "In a full audit, we agree the scope, check more pages, prioritise fixes, and repeat the check after changes.")
-          : (ru ? "В выбранных страницах ошибок не найдено. Полный аудит проверит остальные шаблоны и страницы, которые не вошли в бесплатный лимит." : "No errors were found in the selected pages. A full audit checks the remaining templates and pages outside the free limit.")}</p>
+          ? (ru ? "В техническом аудите проверим до 200 страниц и повторяющиеся шаблоны, затем передадим задачи с адресами и приоритетом исправлений." : "The technical audit checks up to 200 pages and repeated templates, then gives you prioritised tasks with page URLs.")
+          : (ru ? "На выбранных страницах ошибок не найдено. Технический аудит проверит до 200 страниц и повторяющиеся шаблоны за пределами бесплатной выборки." : "No errors were found on the selected pages. The technical audit checks up to 200 pages and repeated templates beyond the free sample.")}</p>
         <div>
           {!hasActionableFindings && notCheckedCount > 0 ? <Link className="button button-primary" href={offerHref("seo-audit-200")}>{ru ? "Проверить остальные страницы" : "Check the remaining pages"}<span aria-hidden="true">↗</span></Link> : null}
-          <Link className={hasActionableFindings ? "button button-primary" : "button button-secondary"} href={offerHref("seo-audit-200")}>{ru ? "Получить полный аудит" : "Get a full audit"}{hasActionableFindings ? <span aria-hidden="true">↗</span> : null}</Link>
+          <Link className={hasActionableFindings ? "button button-primary" : "button button-secondary"} href={offerHref("seo-audit-200")}>{ru ? "Заказать технический аудит" : "Request a technical audit"}{hasActionableFindings ? <span aria-hidden="true">↗</span> : null}</Link>
           {hasActionableFindings ? <Link className="button button-secondary" href={offerHref("seo-audit-implementation")}>{ru ? "Обсудить исправления" : "Discuss fixes"}</Link> : null}
         </div>
       </div>
@@ -439,52 +439,30 @@ function ClientAuditReport({
 }) {
   const ru = locale === "ru";
   const presentation = buildAuditClientPresentation(result, locale);
-  const checkedPages = new Map((result.checkedPages ?? []).flatMap((page) => page.url ? [[safePublicUrl(page.finalUrl ?? page.url), page] as const] : []));
+  const localUnsaved = presentation.performance.status === "not_persisted";
   const firstStrengths = presentation.strengths.slice(0, 3);
   const attentionIssues = presentation.issues.filter((issue) => issue.kind !== "optional");
   const optionalIssues = presentation.issues.filter((issue) => issue.kind === "optional");
   const confirmedDuplicates = (result.excludedPages ?? []).filter((page) => page.reason === "confirmed_duplicate" && page.primaryUrl);
-  const verdict = clientAuditVerdict(presentation.summary, locale);
 
   return <div className="result-body result-body--client">
     <section className="audit-client-overview" aria-labelledby="audit-client-heading">
-      <p className="eyebrow audit-client-overview__status">{ru ? "Проверка завершена" : "Check complete"}</p>
-
-      <section className="audit-client-verdict" data-tone={verdict.tone} aria-labelledby="audit-client-verdict-title">
-        <header className="audit-client-verdict__header">
-          <div className="audit-client-verdict__signal">
-            <span className="audit-client-verdict__icon" aria-hidden="true">{verdict.tone === "critical" ? "!" : verdict.tone === "review" ? "?" : "✓"}</span>
-            <p className="eyebrow">{ru ? "Главное по результату" : "Main result"}</p>
-          </div>
-          <div className="audit-client-verdict__meta">
-            <span className="audit-client-verdict__meta-label">{ru ? "Статус" : "Status"}</span>
-            <strong>{verdict.status}</strong>
-          </div>
-        </header>
-        <div className="audit-client-verdict__body">
-          <div className="audit-client-verdict__copy">
-            <p className="audit-client-verdict__title" id="audit-client-verdict-title">{verdict.title}</p>
-            <p className="audit-client-verdict__detail">{verdict.detail}</p>
-          </div>
-        </div>
-        <div className="audit-client-verdict__scope">
-          <span aria-hidden="true">i</span>
-          <p>{verdict.scope}</p>
-        </div>
-      </section>
-
       <div className="audit-client-overview__topline">
         <div>
+          <p className="eyebrow">{ru ? "Проверка завершена" : "Check complete"}</p>
           <h1 id="audit-client-heading">{ru ? "Краткий итог для " : "Summary for "}<span className="audit-client-heading-domain">{domain ?? (ru ? "сайта" : "the website")}</span></h1>
         </div>
         <div className="result-actions">
-          <a className="button button-secondary" href={reportHref} download>{ru ? "Скачать PDF" : "Download PDF"}</a>
-          <button className="button button-secondary" type="button" onClick={onCopy}>{copied ? (ru ? "Ссылка скопирована" : "Link copied") : (ru ? "Скопировать ссылку" : "Copy link")}</button>
+          {!localUnsaved ? <><a className="button button-secondary" href={reportHref} download>{ru ? "Скачать PDF" : "Download PDF"}</a>
+          <button className="button button-secondary" type="button" onClick={onCopy}>{copied ? (ru ? "Ссылка скопирована" : "Link copied") : (ru ? "Скопировать ссылку" : "Copy link")}</button></> : null}
         </div>
       </div>
 
+      {localUnsaved ? <p className="audit-plain-note" role="status"><strong>{ru ? "Локальный несохранённый запуск" : "Unsaved local run"}</strong> — {presentation.performance.reason}</p> : null}
+
       <ClientSummaryStats locale={locale} presentation={presentation} />
       <p className="audit-client-findings-summary">{presentation.summary.findingsLabel}</p>
+      <p className="audit-client-overview__scope-note">{presentation.conclusion}</p>
 
       <div className="audit-client-overview__conclusions">
         <article>
@@ -500,19 +478,17 @@ function ClientAuditReport({
         </article>
       </div>
 
-      <p className="audit-client-overview__scope-note">{ru ? "Фактическое наличие в поиске не проверялось: для этого нужен доступ к Яндекс Вебмастеру или Google Search Console." : "Actual search inclusion was not checked; this requires access to Yandex Webmaster or Google Search Console."}</p>
-
       <ClientNextStep locale={locale} domain={domain} presentation={presentation} offerHref={offerHref} compact />
     </section>
 
     <div className="audit-client-mobile-actions" aria-label={ru ? "Действия с отчётом" : "Report actions"}>
-      <a className="button button-secondary" href={reportHref} download>{ru ? "Скачать PDF" : "Download PDF"}</a>
-      <button className="button button-secondary" type="button" onClick={onCopy}>{copied ? (ru ? "Ссылка скопирована" : "Link copied") : (ru ? "Скопировать ссылку" : "Copy link")}</button>
+      {!localUnsaved ? <><a className="button button-secondary" href={reportHref} download>{ru ? "Скачать PDF" : "Download PDF"}</a>
+      <button className="button button-secondary" type="button" onClick={onCopy}>{copied ? (ru ? "Ссылка скопирована" : "Link copied") : (ru ? "Скопировать ссылку" : "Copy link")}</button></> : null}
     </div>
 
     <section className="audit-report-section audit-client-issues" aria-labelledby="audit-client-issues-heading">
       <header>
-        <p className="eyebrow">{ru ? `Выводы по сайту · ${attentionIssues.length}` : `Website conclusions · ${attentionIssues.length}`}</p>
+        <p className="eyebrow">{ru ? `Выводы по проверенным URL: ${attentionIssues.length}` : `Conclusions for checked URLs: ${attentionIssues.length}`}</p>
         <h2 id="audit-client-issues-heading">{ru ? "Что стоит проверить" : "What needs a closer look"}</h2>
         <p>{ru ? "Каждый пункт отделяет найденный факт от его значения и от способа проверки." : "Each item separates the observed fact, its impact and the way it was checked."}</p>
       </header>
@@ -537,7 +513,7 @@ function ClientAuditReport({
       <ul data-count={Math.min(4, presentation.strengths.length)}>{presentation.strengths.map((strength) => <li key={strength}><RichAuditText locale={locale} text={strength} /></li>)}</ul>
     </section>
 
-    <ClientPagesSection locale={locale} pages={presentation.pages} checkedPages={checkedPages} />
+    <ClientPagesSection locale={locale} pages={presentation.pages} />
 
     <section className="audit-report-section audit-client-scope" aria-labelledby="audit-client-scope-heading">
       <header>
@@ -554,13 +530,15 @@ function ClientAuditReport({
         truncated={result.pagesNotCheckedTruncated === true}
         urls={result.pagesNotCheckedUrls ?? []}
       /> : null}
+      <ClientCoverageGroups locale={locale} groups={presentation.coverageGroups} />
+      <ClientUrlDecisions locale={locale} decisions={presentation.urlDecisions} />
     </section>
 
     <section className="audit-report-section audit-client-resources" aria-labelledby="audit-client-resources-heading">
       <header><p className="eyebrow">{ru ? "Отдельная проверка" : "Separate check"}</p><h2 id="audit-client-resources-heading">{ru ? "Технические файлы, проверенные отдельно" : "Technical files checked separately"}</h2></header>
-      <ul className="audit-selected-list">{presentation.publicTechnicalResources.map((resource, index) => <li key={`${resource.type}-${resource.url}`}>
+      <ul className="audit-selected-list">{presentation.technicalFiles.map((resource, index) => <li key={`${resource.type}-${resource.url}`}>
         <span className="mono">{String(index + 1).padStart(2, "0")}</span>
-        <div><RichAuditText locale={locale} text={resource.label} /><p><a href={safePublicUrl(resource.url)} target="_blank" rel="noreferrer">{resource.url}</a> · {ru ? `файл загружен, код ответа сервера: ${resource.statusCode}` : `loaded; server response code: ${resource.statusCode}`}</p>{resource.details.length ? <ul>{resource.details.map((detail) => <li key={detail}>{detail}</li>)}</ul> : null}</div>
+        <div><RichAuditText locale={locale} text={resource.label} /><p>{resource.url ? <a href={safePublicUrl(resource.url)} target="_blank" rel="noreferrer">{resource.url}</a> : (ru ? "Адрес не сохранён" : "URL not saved")} — {resource.status === "available" ? (ru ? "данные доступны" : "data available") : (ru ? "данные недоступны" : "data unavailable")}{resource.statusCode !== null ? `; ${ru ? "код ответа" : "response code"}: ${resource.statusCode}` : ""}</p>{resource.loadedAt ? <p>{ru ? "Получено" : "Captured"}: <time dateTime={resource.loadedAt}>{resource.loadedAt}</time></p> : null}{resource.reason ? <p>{resource.reason}</p> : null}{resource.facts.length ? <ul>{resource.facts.map((detail) => <li key={detail}>{detail}</li>)}</ul> : null}</div>
       </li>)}</ul>
       {presentation.additionalFiles > 0 ? <details className="audit-section-disclosure audit-resource-summary"><summary>{ru
         ? `Дополнительные изображения, скрипты и документы: ${presentation.additionalFiles}`
@@ -568,6 +546,8 @@ function ClientAuditReport({
         ? `Они не входят в бесплатную проверку и не загружались${presentation.additionalDocuments > 0 ? `; среди них документов: ${presentation.additionalDocuments}` : ""}.`
         : `They are outside the free check and were not loaded${presentation.additionalDocuments > 0 ? `; documents among them: ${presentation.additionalDocuments}` : ""}.`}</p></details> : null}
     </section>
+
+    <ClientPerformanceAndExternalData locale={locale} presentation={presentation} />
 
     <section className="audit-report-section audit-method" aria-labelledby="audit-client-limits-heading">
       <header><p className="eyebrow">{ru ? "Границы вывода" : "Limits of the conclusion"}</p><h2 id="audit-client-limits-heading">{ru ? "Чего бесплатная проверка не определяет" : "What the free check cannot determine"}</h2></header>
@@ -577,103 +557,6 @@ function ClientAuditReport({
 
     <ClientNextStep locale={locale} domain={domain} presentation={presentation} offerHref={offerHref} />
   </div>;
-}
-
-type AuditClientVerdictSummary = Pick<AuditClientPresentation["summary"], "checked" | "critical" | "review" | "optional">;
-
-export type AuditClientVerdict = {
-  tone: "critical" | "review" | "clear";
-  status: string;
-  title: string;
-  detail: string;
-  scope: string;
-};
-
-export function clientAuditVerdict(summary: AuditClientVerdictSummary, locale: Locale): AuditClientVerdict {
-  const ru = locale === "ru";
-  const scope = summary.checked === 0
-    ? (ru ? "Подробно проверенных страниц: 0." : "Pages checked in detail: 0.")
-    : ru
-      ? `Вывод относится к ${russianCount(summary.checked, "проверенной странице", "проверенным страницам", "проверенным страницам")}.`
-      : `This conclusion covers ${summary.checked} checked ${summary.checked === 1 ? "page" : "pages"}.`;
-
-  if (summary.critical > 0) {
-    const criticalFinding = `${summary.critical === 1 ? "Найдена" : russianCountForm(summary.critical) === "few" ? "Найдены" : "Найдено"} ${russianCount(summary.critical, "критическая проблема", "критические проблемы", "критических проблем")}.`;
-    return {
-      tone: "critical",
-      status: ru ? "Исправления нужны" : "Fixes are required",
-      title: ru ? "Есть ошибки, которые нужно исправить в первую очередь" : "Some errors should be fixed first",
-      detail: ru
-        ? `${criticalFinding} Начните с этих пунктов и после исправлений повторите проверку.`
-        : `${summary.critical} critical ${summary.critical === 1 ? "problem was" : "problems were"} found. Start with these items and repeat the check after fixing them.`,
-      scope,
-    };
-  }
-
-  if (summary.checked === 0) {
-    return {
-      tone: "review",
-      status: ru ? "Нужно повторить проверку" : "Repeat the check",
-      title: ru ? "Недостаточно данных для вывода" : "There is not enough data for a conclusion",
-      detail: ru
-        ? "Ни одна страница не была подробно проверена, поэтому подтвердить наличие или отсутствие ошибок нельзя."
-        : "No pages were checked in detail, so the report cannot confirm whether errors are present or absent.",
-      scope,
-    };
-  }
-
-  if (summary.review > 0) {
-    const reviewCount = summary.review === 1
-      ? "Один вывод"
-      : summary.review === 2
-        ? "Два вывода"
-        : summary.review === 3
-          ? "Три вывода"
-          : summary.review === 4
-            ? "Четыре вывода"
-            : `${summary.review} ${russianCountNoun(summary.review, "вывод", "вывода", "выводов")}`;
-    return {
-      tone: "review",
-      status: ru ? "Сначала проверить" : "Review first",
-      title: ru ? "Критических ошибок не обнаружено" : "No critical errors were found",
-      detail: ru
-        ? `Срочных исправлений не требуется. ${reviewCount} стоит проверить: после подтверждения ${summary.review === 1 ? "он может" : "они могут"} потребовать исправлений.`
-        : `No urgent fixes are required. ${summary.review} ${summary.review === 1 ? "finding needs" : "findings need"} review and may require a fix if confirmed.`,
-      scope,
-    };
-  }
-
-  return {
-    tone: "clear",
-    status: ru ? "Срочных действий нет" : "No urgent action",
-    title: ru ? "Ошибок, требующих исправления, не обнаружено" : "No errors requiring fixes were found",
-    detail: ru
-      ? summary.optional > 0
-        ? `В проверенной выборке есть только ${russianCount(summary.optional, "необязательное улучшение", "необязательных улучшения", "необязательных улучшений")}. ${summary.optional === 1 ? "Его" : "Их"} можно рассмотреть отдельно.`
-        : "В проверенной выборке нет замечаний, требующих действий."
-      : summary.optional > 0
-        ? `The checked sample contains only ${summary.optional} optional ${summary.optional === 1 ? "improvement" : "improvements"}, which can be considered separately.`
-        : "The checked sample contains no findings that require action.",
-    scope,
-  };
-}
-
-function russianCount(value: number, one: string, few: string, many: string): string {
-  return `${value} ${russianCountNoun(value, one, few, many)}`;
-}
-
-function russianCountNoun(value: number, one: string, few: string, many: string): string {
-  const form = russianCountForm(value);
-  return form === "one" ? one : form === "few" ? few : many;
-}
-
-function russianCountForm(value: number): "one" | "few" | "many" {
-  const lastTwo = Math.abs(value) % 100;
-  const last = lastTwo % 10;
-  if (lastTwo >= 11 && lastTwo <= 14) return "many";
-  if (last === 1) return "one";
-  if (last >= 2 && last <= 4) return "few";
-  return "many";
 }
 
 function ClientSummaryStats({ locale, presentation }: { locale: Locale; presentation: AuditClientPresentation }) {
@@ -687,6 +570,8 @@ function ClientSummaryStats({ locale, presentation }: { locale: Locale; presenta
     [presentation.summary.critical, ru ? "Критических проблем" : "Critical problems"],
     [presentation.summary.review, ru ? "Стоит проверить" : "Needs review"],
     [presentation.summary.optional, ru ? "Необязательных улучшений" : "Optional improvements"],
+    [presentation.summary.unverifiedGroups, ru ? "Групп с непроверенными URL" : "Groups with unchecked URLs"],
+    [presentation.summary.unavailableExternalMetrics, ru ? "Недоступных внешних показателей" : "Unavailable external metrics"],
   ] as const;
   return <dl className="audit-client-stats">{stats.map(([value, label]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>;
 }
@@ -790,10 +675,9 @@ function ClientIssueCard({ locale, issue }: { locale: Locale; issue: AuditClient
   </article>;
 }
 
-function ClientPagesSection({ locale, pages, checkedPages }: {
+function ClientPagesSection({ locale, pages }: {
   locale: Locale;
   pages: AuditClientPresentation["pages"];
-  checkedPages: ReadonlyMap<string, PublicAuditPageView>;
 }) {
   const ru = locale === "ru";
   return <section className="audit-report-section audit-client-pages" aria-labelledby="audit-client-pages-heading">
@@ -803,21 +687,125 @@ function ClientPagesSection({ locale, pages, checkedPages }: {
       <p>{ru ? "Фактическое наличие в поиске без Яндекс Вебмастера или Search Console не проверялось." : "Actual search inclusion was not checked without Yandex Webmaster or Search Console."}</p>
     </header>
     <div className="audit-page-cards">{pages.map((page, index) => {
-      const facts = checkedPages.get(safePublicUrl(page.url));
       return <details className="audit-page-card" key={page.url}>
-        <summary><span className="mono">{String(index + 1).padStart(2, "0")}</span><span className="audit-page-summary-copy"><strong>{page.url}</strong><small>{page.typeLabel} · {page.issues.length ? (ru ? `пунктов: ${page.issues.length}` : `items: ${page.issues.length}`) : (ru ? "замечаний нет" : "no findings")}</small></span><span className="audit-page-summary-action">{ru ? "Подробнее" : "Details"}</span></summary>
+        <summary><span className="mono">{String(index + 1).padStart(2, "0")}</span><span className="audit-page-summary-copy"><strong>{page.url}</strong><small>{page.typeLabel}. {page.issues.length ? (ru ? `Пунктов, требующих внимания: ${page.issues.length}` : `Items requiring attention: ${page.issues.length}`) : (ru ? "Замечаний нет" : "No findings")}</small></span><span className="audit-page-summary-action">{ru ? "Подробнее" : "Details"}</span></summary>
         <div className="audit-page-card__content">
           <div className="audit-page-selection"><strong>{ru ? "Почему выбрана" : "Why this page was selected"}</strong><p>{page.selectionReason}</p></div>
           <p className="audit-page-indexability">{page.indexability}</p>
-          {facts ? <dl className="audit-page-signals">
-            <div><dt>{ru ? "Страница открылась" : "Page opened"}</dt><dd>{pageHttpStatus(facts) && pageHttpStatus(facts)! < 400 ? (ru ? "Без ошибки" : "Without an error") : (ru ? "С ошибкой" : "With an error")}</dd></div>
-            <div><dt><RichAuditText locale={locale} text="Title" /></dt><dd>{signalPresent(facts.title) ? (ru ? "Найден" : "Present") : (ru ? "Не найден" : "Missing")}</dd></div>
-            <div><dt><RichAuditText locale={locale} text="H1" /></dt><dd>{h1Text(facts) || "—"}</dd></div>
-          </dl> : null}
+          <dl className="audit-page-signals">
+            <ClientEvidenceRow label={ru ? "Время проверки (UTC)" : "Checked at (UTC)"} value={page.evidence.checkedAt.value} unavailable={page.evidence.checkedAt.reason} />
+            <ClientEvidenceRow label={ru ? "Код ответа страницы" : "Page response code"} value={page.evidence.httpStatus.value} unavailable={page.evidence.httpStatus.reason} />
+            <ClientEvidenceRow label={ru ? "Перенаправления" : "Redirects"} value={page.evidence.redirects.value ? (ru ? `Количество: ${page.evidence.redirects.value.count}${page.evidence.redirects.value.chain.length ? `. Цепочка: ${page.evidence.redirects.value.chain.join(" → ")}` : ""}` : `Count: ${page.evidence.redirects.value.count}${page.evidence.redirects.value.chain.length ? `. Chain: ${page.evidence.redirects.value.chain.join(" → ")}` : ""}`) : null} unavailable={page.evidence.redirects.reason} />
+            <ClientEvidenceRow label="Title" value={page.evidence.title.value ? `${page.evidence.title.value.present ? (ru ? "Найден" : "Present") : (ru ? "Не найден" : "Missing")}${page.evidence.title.value.text ? `: ${page.evidence.title.value.text}` : ""}` : null} unavailable={page.evidence.title.reason} />
+            <ClientEvidenceRow label="H1" value={page.evidence.h1.value ? `${page.evidence.h1.value.count}${page.evidence.h1.value.values.length ? `: ${page.evidence.h1.value.values.join("; ")}` : ""}` : null} unavailable={page.evidence.h1.reason} />
+            <ClientEvidenceRow label="Canonical" value={page.evidence.canonical.value ? `${page.evidence.canonical.value.url ?? (ru ? "не задан" : "not set")}; ${page.evidence.canonical.value.valid ? (ru ? "корректен" : "valid") : (ru ? "требует проверки" : "needs review")}` : null} unavailable={page.evidence.canonical.reason} />
+            <ClientEvidenceRow label="Robots" value={page.evidence.robots.value ? `${ru ? "Доступ по robots.txt" : "Allowed by robots.txt"}: ${triState(page.evidence.robots.value.allowed, locale)}; noindex: ${page.evidence.robots.value.noindex ? (ru ? "да" : "yes") : (ru ? "нет" : "no")}; meta: ${page.evidence.robots.value.meta ?? "—"}; X-Robots-Tag: ${page.evidence.robots.value.header ?? "—"}` : null} unavailable={page.evidence.robots.reason} />
+            <ClientEvidenceRow label="Hreflang" value={page.evidence.hreflang.value ? (page.evidence.hreflang.value.length ? page.evidence.hreflang.value.map((entry) => `${entry.language}: ${entry.url}`).join("; ") : (ru ? "Связи не найдены" : "No links found")) : null} unavailable={page.evidence.hreflang.reason} />
+            <ClientEvidenceRow label={ru ? "Структурированные данные" : "Structured data"} value={page.evidence.schema.value ? `${ru ? "Всего" : "Total"}: ${page.evidence.schema.value.total}; ${ru ? "валидных" : "valid"}: ${page.evidence.schema.value.valid}; ${ru ? "с ошибкой" : "invalid"}: ${page.evidence.schema.value.invalid}; ${ru ? "типы" : "types"}: ${page.evidence.schema.value.types.join(", ") || "—"}` : null} unavailable={page.evidence.schema.reason} />
+            <ClientEvidenceRow label={ru ? "Внутренние ссылки со страницы" : "Internal links from the page"} value={page.evidence.internalLinks.value} unavailable={page.evidence.internalLinks.reason} />
+            <ClientEvidenceRow label={ru ? "Фактическое индексирование" : "Actual search indexing"} value={page.evidence.actualIndexing.value} unavailable={page.evidence.actualIndexing.reason} />
+          </dl>
           <div className={`audit-page-findings${page.issues.length ? "" : " audit-page-findings--clear"}`}><strong>{ru ? "Вывод по странице" : "Page conclusion"}</strong>{page.issues.length ? <ul>{page.issues.map((issue) => <li key={issue.checkId}><a href={`#${clientIssueAnchor(issue)}`}>{issue.title}</a></li>)}</ul> : <p>{ru ? "В проверенных данных замечаний по этой странице нет." : "No findings were recorded for this page."}</p>}</div>
         </div>
       </details>;
     })}</div>
+  </section>;
+}
+
+function ClientEvidenceRow({ label, value, unavailable }: { label: string; value: string | number | null; unavailable?: string }) {
+  return <div><dt>{label}</dt><dd>{value === null ? (unavailable ?? "Unavailable") : value}</dd></div>;
+}
+
+function triState(value: boolean | null, locale: Locale): string {
+  if (value === null) return locale === "ru" ? "не удалось определить" : "unavailable";
+  return value ? (locale === "ru" ? "разрешён" : "allowed") : (locale === "ru" ? "запрещён" : "blocked");
+}
+
+function ClientCoverageGroups({ locale, groups }: {
+  locale: Locale;
+  groups: AuditClientPresentation["coverageGroups"];
+}) {
+  const ru = locale === "ru";
+  if (!groups.some((group) => group.coverageStatus === "available")) {
+    return <div className="audit-client-coverage-groups">
+      <h3>{ru ? "Распределение страниц по группам" : "Page coverage by group"}</h3>
+      <p className="audit-plain-note">{ru ? "Данные о покрытии не сохранены. Повторите проверку, чтобы получить распределение страниц по группам." : "Coverage data was not saved. Run the audit again to get the page-group distribution."}</p>
+    </div>;
+  }
+  return <div className="audit-client-coverage-groups">
+    <h3>{ru ? "Все группы покрытия" : "All coverage groups"}</h3>
+    <p>{ru ? "Ноль означает, что при сохранённом распределении адресов в этой группе не найдено." : "A zero means that the saved distribution contains no URLs in that group."}</p>
+    <div className="audit-table-scroll"><table>
+      <thead><tr><th>{ru ? "Группа" : "Group"}</th><th>{ru ? "Найдено" : "Found"}</th><th>{ru ? "Подходят" : "Eligible"}</th><th>{ru ? "Выбрано" : "Selected"}</th><th>{ru ? "Проверено" : "Checked"}</th><th>{ru ? "Не проверено" : "Unchecked"}</th></tr></thead>
+      <tbody>{groups.map((group) => <tr key={group.group} data-coverage={group.coverageStatus}>
+        <th scope="row">{group.label}{group.coverageStatus === "unavailable" ? <small>{ru ? "Нет данных в сохранённом отчёте" : "No data in the saved report"}</small> : null}</th>
+        <td data-zero={group.found === 0}>{group.found}</td>
+        <td data-zero={group.eligible === 0}>{group.eligible}</td>
+        <td data-zero={group.selected === 0}>{group.selected}</td>
+        <td data-zero={group.checked === 0}>{group.checked}</td>
+        <td data-zero={group.unchecked === 0}>{group.unchecked}</td>
+      </tr>)}</tbody>
+    </table></div>
+  </div>;
+}
+
+function ClientUrlDecisions({ locale, decisions }: {
+  locale: Locale;
+  decisions: AuditClientPresentation["urlDecisions"];
+}) {
+  const ru = locale === "ru";
+  if (!decisions.length) return <p className="audit-plain-note">{ru
+    ? "В сохранённом отчёте прежней версии нет причин выбора и исключения отдельных URL."
+    : "The saved legacy report does not contain reasons for selecting or excluding individual URLs."}</p>;
+  return <details className="audit-section-disclosure audit-client-url-decisions">
+    <summary>{ru ? `Показать решения по URL: ${decisions.length}` : `Show URL decisions: ${decisions.length}`}</summary>
+    <ul className="audit-selected-list">{decisions.map((decision, index) => <li key={`${decision.outcome}-${decision.url}-${index}`} data-outcome={decision.outcome}>
+      <span className="mono">{String(index + 1).padStart(2, "0")}</span>
+      <div>
+        <strong>{decision.outcomeLabel}: {decision.url}</strong>
+        {decision.finalUrl !== decision.url ? <p>{ru ? "Конечный адрес" : "Final URL"}: {decision.finalUrl}</p> : null}
+        <p>{decision.reason}</p>
+        <p>{ru ? "Источник" : "Source"}: {decision.sourceLabel}. {ru ? "Группа" : "Group"}: {decision.groupLabel}.</p>
+        {decision.selectionReason ? <p>{ru ? "Причина выбора" : "Selection reason"}: {decision.selectionReason}</p> : null}
+        {decision.primaryUrl ? <p>{ru ? "Основной URL" : "Primary URL"}: {decision.primaryUrl}</p> : null}
+      </div>
+    </li>)}</ul>
+  </details>;
+}
+
+function ClientPerformanceAndExternalData({ locale, presentation }: {
+  locale: Locale;
+  presentation: AuditClientPresentation;
+}) {
+  const ru = locale === "ru";
+  const performance = presentation.performance;
+  const measurements = [
+    [ru ? "Оценка" : "Score", performance.score === null ? null : `${performance.score} / 100`],
+    ["FCP", performance.fcpMs === null ? null : `${performance.fcpMs} ms`],
+    ["LCP", performance.lcpMs === null ? null : `${performance.lcpMs} ms`],
+    ["CLS", performance.cls],
+    ["TBT", performance.tbtMs === null ? null : `${performance.tbtMs} ms`],
+    ["Speed Index", performance.speedIndexMs === null ? null : `${performance.speedIndexMs} ms`],
+  ].filter((entry): entry is [string, string | number] => entry[1] !== null);
+  return <section className="audit-report-section audit-client-external" aria-labelledby="audit-client-external-heading">
+    <header>
+      <p className="eyebrow">{ru ? "Измерения и внешние данные" : "Measurements and external data"}</p>
+      <h2 id="audit-client-external-heading">{ru ? "Что измерено, а что осталось недоступно" : "What was measured and what remains unavailable"}</h2>
+    </header>
+    <article className="audit-client-performance" data-status={performance.status}>
+      <h3>{performance.label}</h3>
+      <p>{performance.reason}</p>
+      {["completed", "legacy_summary_only", "not_persisted"].includes(performance.status) ? <dl className="audit-page-signals">
+        <div><dt>{ru ? "Проверенный URL" : "Measured URL"}</dt><dd>{performance.targetUrl ?? "—"}</dd></div>
+        <div><dt>{ru ? "Время (UTC)" : "Time (UTC)"}</dt><dd>{performance.capturedAt ?? (ru ? "Не сохранено" : "Not saved")}</dd></div>
+        <div><dt>{ru ? "Профиль" : "Profile"}</dt><dd>{performance.profile ?? "—"}</dd></div>
+        <div><dt>{ru ? "Запусков" : "Runs"}</dt><dd>{performance.runCount}</dd></div>
+        {performance.durationMs !== null ? <div><dt>{ru ? "Длительность" : "Duration"}</dt><dd>{Math.round(performance.durationMs / 100) / 10} {ru ? "с" : "s"}</dd></div> : null}
+        {measurements.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+      </dl> : null}
+    </article>
+    <h3>{ru ? "Внешние показатели недоступны без подключённых систем" : "External metrics unavailable without connected systems"}</h3>
+    <ul className="audit-limitations">{presentation.externalMetrics.map((metric) => <li key={metric.id}><strong>{metric.label}:</strong> {metric.reason}</li>)}</ul>
   </section>;
 }
 
@@ -869,7 +857,7 @@ function RichAuditText({ locale, text }: { locale: Locale; text: string }) {
   return <>{text.split(pattern).map((part, index) => {
     const term = terms.find((item) => item.value === part);
     if (!term) return part;
-    const href = `${locale === "ru" ? "" : "/en"}/glossary/${term.slug}`;
+    const href = `/glossary/${term.slug}`;
     return <a className="audit-term-link" href={href} target="_blank" rel="noreferrer" title={term.hint} key={`${part}-${index}`}>{part}</a>;
   })}</>;
 }

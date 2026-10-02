@@ -1,8 +1,8 @@
 import { after, NextResponse } from "next/server";
 
 import { publicFormsAreEnabled } from "@/src/config/site";
-import { createLead } from "@/src/db/submissions";
-import { notifyTelegram } from "@/src/lib/notifications/telegram";
+import { createLead, leadComment } from "@/src/db/submissions";
+import { notifySubmission } from "@/src/lib/notifications/submission";
 import { leadRequestSchema } from "@/src/lib/security/inputs";
 import { clientIp, privateHash, sanitizeLogValue } from "@/src/lib/security/request";
 import { verifyTurnstile } from "@/src/lib/security/turnstile";
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     return apiError(500, "LEAD_CREATE_FAILED", "Не удалось сохранить заявку");
   }
 
-  after(() => notifyTelegram({
+  after(() => notifySubmission({
     entityType: "lead",
     entityId: id,
     text: [
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
       `Имя: ${sanitizeLogValue(parsed.data.name)}`,
       `Контакт: ${sanitizeLogValue(parsed.data.contact)}`,
       ...(parsed.data.target ? [`Объект: ${sanitizeLogValue(parsed.data.target)}`] : []),
+      ...(parsed.data.offerId ? [sanitizeLogValue(leadComment(parsed.data))] : []),
       `Язык: ${parsed.data.locale}`,
       `Источник: ${sanitizeLogValue(parsed.data.source)}`,
       `Admin: ${adminUrl(id)}`,

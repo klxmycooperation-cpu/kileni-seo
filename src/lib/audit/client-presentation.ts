@@ -1,3 +1,6 @@
+import { normalizeLighthouseObservation } from "./lighthouse-observation";
+import type { LighthouseRunStatus } from "./types";
+
 export type AuditClientIssueKind = "critical" | "review" | "optional";
 
 export type AuditClientIssue = {
@@ -14,15 +17,106 @@ export type AuditClientIssue = {
   details?: readonly { label: string; value: string }[];
 };
 
+export type AuditClientEvidence<T> = {
+  readonly status: "available" | "unavailable";
+  readonly value: T | null;
+  readonly reason?: string;
+};
+
+export type AuditClientPageEvidence = {
+  readonly checkedAt: AuditClientEvidence<string>;
+  readonly httpStatus: AuditClientEvidence<number>;
+  readonly redirects: AuditClientEvidence<{ readonly count: number; readonly chain: readonly string[] }>;
+  readonly title: AuditClientEvidence<{ readonly present: boolean; readonly text: string | null; readonly length: number }>;
+  readonly h1: AuditClientEvidence<{ readonly count: number; readonly values: readonly string[] }>;
+  readonly canonical: AuditClientEvidence<{ readonly url: string | null; readonly valid: boolean; readonly selfReferential: boolean | null }>;
+  readonly robots: AuditClientEvidence<{ readonly allowed: boolean | null; readonly noindex: boolean; readonly meta: string | null; readonly header: string | null }>;
+  readonly hreflang: AuditClientEvidence<readonly { readonly language: string; readonly url: string }[]>;
+  readonly schema: AuditClientEvidence<{ readonly total: number; readonly valid: number; readonly invalid: number; readonly types: readonly string[] }>;
+  readonly internalLinks: AuditClientEvidence<number>;
+  readonly actualIndexing: AuditClientEvidence<never>;
+};
+
 export type AuditClientPage = {
   url: string;
   typeLabel: string;
   selectionReason: string;
   indexability: string;
   issues: readonly AuditClientIssue[];
+  evidence: AuditClientPageEvidence;
+};
+
+export type AuditClientCoverageGroup = {
+  readonly group: "home" | "commercial_service" | "catalog_sections" | "articles" | "cases" | "glossary_methodology" | "contacts_conversion" | "utility_legal" | "other";
+  readonly label: string;
+  readonly found: number;
+  readonly eligible: number;
+  readonly selected: number;
+  readonly checked: number;
+  readonly unchecked: number;
+  readonly coverageStatus: "available" | "unavailable";
+};
+
+export type AuditClientUrlDecision = {
+  readonly url: string;
+  readonly finalUrl: string;
+  readonly resourceType: string;
+  readonly group: AuditClientCoverageGroup["group"] | null;
+  readonly groupLabel: string;
+  readonly outcome: "selected" | "unchecked" | "excluded";
+  readonly outcomeLabel: string;
+  readonly reason: string;
+  readonly source: "root" | "link" | "sitemap" | "priority" | "technical" | "unknown";
+  readonly sourceLabel: string;
+  readonly selectedUrl?: string;
+  readonly selectionReason?: string;
+  readonly primaryUrl?: string;
+};
+
+export type AuditClientTechnicalFile = {
+  readonly type: "robots" | "sitemap";
+  readonly label: string;
+  readonly status: "available" | "unavailable";
+  readonly url: string;
+  readonly finalUrl: string | null;
+  readonly statusCode: number | null;
+  readonly loadedAt: string | null;
+  readonly reason: string | null;
+  readonly facts: readonly string[];
+};
+
+export type AuditClientPerformance = {
+  readonly status: LighthouseRunStatus;
+  readonly label: string;
+  readonly targetUrl: string | null;
+  readonly capturedAt: string | null;
+  readonly profile: string | null;
+  readonly runCount: number;
+  readonly score: number | null;
+  readonly fcpMs: number | null;
+  readonly lcpMs: number | null;
+  readonly cls: number | null;
+  readonly tbtMs: number | null;
+  readonly speedIndexMs: number | null;
+  readonly lighthouseVersion: string | null;
+  readonly startedAt: string | null;
+  readonly completedAt: string | null;
+  readonly durationMs: number | null;
+  readonly source: string | null;
+  readonly errorCode: string | null;
+  readonly reason: string;
+};
+
+export type AuditClientExternalMetric = {
+  readonly id: "actual_indexing" | "rankings" | "impressions" | "ctr" | "traffic" | "leads" | "conversions";
+  readonly label: string;
+  readonly status: "unavailable";
+  readonly reason: string;
 };
 
 export type AuditClientPresentation = {
+  readonly modelVersion: 2;
+  readonly conclusion: string;
   summary: {
     htmlFound: number;
     scopeLabel: string;
@@ -38,6 +132,8 @@ export type AuditClientPresentation = {
     critical: number;
     review: number;
     optional: number;
+    unverifiedGroups: number;
+    unavailableExternalMetrics: number;
   };
   exclusions: readonly {
     reason: "search_page" | "closed_section" | "technical_page" | "parameterized_url" | "redirect" | "confirmed_duplicate" | "service_url" | "technical_object" | "duplicate_template" | "other";
@@ -47,6 +143,11 @@ export type AuditClientPresentation = {
   issues: readonly AuditClientIssue[];
   strengths: readonly string[];
   pages: readonly AuditClientPage[];
+  coverageGroups: readonly AuditClientCoverageGroup[];
+  urlDecisions: readonly AuditClientUrlDecision[];
+  technicalFiles: readonly AuditClientTechnicalFile[];
+  performance: AuditClientPerformance;
+  externalMetrics: readonly AuditClientExternalMetric[];
   publicTechnicalResources: readonly {
     type: "robots" | "sitemap";
     label: string;
@@ -111,10 +212,20 @@ export function buildAuditClientPresentation(value: unknown, locale: AuditLocale
       locale: string(page.locale),
     }] as const] : [];
   }));
+  const performance = buildClientPerformance(root, checks, locale);
   const actionable = aggregateActionableChecks(checks)
-    .filter(({ check, affectedUrls }) => check.checkId !== "breadcrumbs" || affectedBreadcrumbRecommendationApplies(check, affectedUrls, checkedPages));
+    // The absence of BreadcrumbList is not an error by itself. A future
+    // recommendation may be shown only when the product has independent
+    // evidence that the page is part of a visible hierarchy.
+    .filter(({ check }) => check.checkId !== "breadcrumbs")
+    .filter(({ check }) => check.checkId !== "performance" || performanceCanSupportFinding(performance));
   const performanceObservation = record(root.performanceObservation);
-  const issues = actionable.map(({ check, affectedUrls }) => clientIssue(check, locale, performanceObservation, affectedUrls));
+  const issues = actionable.map(({ check, affectedUrls }) => clientIssue(
+    check,
+    locale,
+    check.checkId === "performance" ? performanceAsObservation(performance) : performanceObservation,
+    affectedUrls,
+  ));
   const pages = checkedPages.map((page) => {
     const url = cleanUrl(string(page.finalUrl) || string(page.url));
     const selected = selectedByUrl.get(urlKey(url));
@@ -132,6 +243,7 @@ export function buildAuditClientPresentation(value: unknown, locale: AuditLocale
           ? "Явный технический запрет на индексирование не обнаружен. Фактическое наличие страницы в Яндексе или Google без поисковых кабинетов не проверялось."
           : "No explicit technical indexing block was found. Actual inclusion in search engines was not checked without search-console access.",
       issues: issues.filter((issue) => issue.affectedUrls.some((affectedUrl) => sameUrl(affectedUrl, url))),
+      evidence: buildPageEvidence(page, locale),
     };
   }).filter((page) => page.url);
   const resources = records(root.technicalResources);
@@ -141,6 +253,7 @@ export function buildAuditClientPresentation(value: unknown, locale: AuditLocale
     const statusCode = integer(resource.statusCode);
     if ((type !== "robots" && type !== "sitemap") || statusCode < 200 || statusCode >= 300) return [];
     const facts = type === "robots" ? record(technicalFileSummary.robots) : record(technicalFileSummary.sitemap);
+    if (!Object.keys(facts).length) return [];
     const details = technicalFileDetails(type as "robots" | "sitemap", facts, locale, { htmlFound, eligible });
     return [{
       type: type as "robots" | "sitemap",
@@ -150,21 +263,30 @@ export function buildAuditClientPresentation(value: unknown, locale: AuditLocale
       details,
     }];
   });
-  const { additionalFiles, additionalDocuments } = additionalResourceCounts(resources);
+  const storedResourceTotals = record(root.technicalResourceTotals);
+  const countedResources = additionalResourceCounts(resources);
+  const additionalFiles = optionalInteger(storedResourceTotals.additionalFiles) ?? countedResources.additionalFiles;
+  const additionalDocuments = optionalInteger(storedResourceTotals.additionalDocuments) ?? countedResources.additionalDocuments;
   const counts = countIssueKinds(issues);
   const exclusions = normalizeExclusions(root.exclusionSummary, excluded, locale);
   const scope = clientScopeSummary(htmlFound, record(technicalFileSummary.sitemap), locale);
+  const coverageGroups = buildClientCoverageGroups(root.coverageGroups, locale);
+  const urlDecisions = buildClientUrlDecisions(root, records(root.selectedPages), locale);
+  const technicalFiles = buildClientTechnicalFiles(technicalFileSummary, locale, { htmlFound, eligible });
+  const externalMetrics = buildExternalMetrics(locale);
   const nextStep = locale === "ru" ? {
-    primary: "Получить полный аудит сайта",
+    primary: "Заказать технический SEO-аудит",
     secondary: "Повторить бесплатную проверку",
     note: "Повторная бесплатная проверка снова ограничена выборкой до 10 страниц.",
   } : {
-    primary: "Get a full website audit",
+    primary: "Request a technical SEO audit",
     secondary: "Repeat the free check",
     note: "A repeated free check is still limited to a sample of up to 10 pages.",
   };
 
   return deepFreeze({
+    modelVersion: 2,
+    conclusion: conclusionLabel(checked, counts.critical, locale),
     summary: {
       htmlFound,
       ...scope,
@@ -179,11 +301,18 @@ export function buildAuditClientPresentation(value: unknown, locale: AuditLocale
       critical: counts.critical,
       review: counts.review,
       optional: counts.optional,
+      unverifiedGroups: coverageGroups.filter((group) => group.coverageStatus === "available" && group.unchecked > 0).length,
+      unavailableExternalMetrics: externalMetrics.length,
     },
     exclusions,
     issues,
     strengths: buildStrengths(checks, checkedPages, publicTechnicalResources, locale),
     pages,
+    coverageGroups,
+    urlDecisions,
+    technicalFiles,
+    performance,
+    externalMetrics,
     publicTechnicalResources,
     additionalFiles,
     additionalDocuments,
@@ -238,6 +367,10 @@ function storedClientPresentation(
       locale: string(page.locale),
     }] as const] : [];
   }));
+  const checkedByUrl = new Map(records(root.checkedPages).flatMap((page) => {
+    const url = cleanUrl(string(page.finalUrl) || string(page.url));
+    return url ? [[urlKey(url), page] as const] : [];
+  }));
   const pages = records(candidate.pages).flatMap((item) => {
     const url = cleanUrl(string(item.url));
     if (!url) return [];
@@ -253,6 +386,7 @@ function storedClientPresentation(
         : string(item.selectionReason),
       indexability: string(item.indexability),
       issues: issues.filter((issue) => issue.affectedUrls.some((affectedUrl) => sameUrl(affectedUrl, url))),
+      evidence: buildPageEvidence(checkedByUrl.get(urlKey(url)) ?? {}, locale),
     }];
   });
   const storedTechnicalFileSummary = record(root.technicalFileSummary);
@@ -273,11 +407,9 @@ function storedClientPresentation(
     const url = cleanUrl(string(item.url));
     const statusCode = integer(item.statusCode);
     if (!url || statusCode < 200 || statusCode >= 300 || (type !== "robots" && type !== "sitemap")) return [];
-    const storedDetails = strings(item.details).map((detail) => normalizeStoredTechnicalDetail(detail, locale));
     const facts = record(type === "robots" ? storedTechnicalFileSummary.robots : storedTechnicalFileSummary.sitemap);
-    const details = Object.keys(facts).length
-      ? technicalFileDetails(type as "robots" | "sitemap", facts, locale, storedCoverage)
-      : storedDetails;
+    if (!Object.keys(facts).length) return [];
+    const details = technicalFileDetails(type as "robots" | "sitemap", facts, locale, storedCoverage);
     return [{ type: type as "robots" | "sitemap", label: string(item.label), url, statusCode, details }];
   });
   const recomputedAdditionalResources = additionalResourceCounts(records(root.technicalResources));
@@ -287,30 +419,41 @@ function storedClientPresentation(
         additionalDocuments: integer(candidate.additionalDocuments),
       }
     : recomputedAdditionalResources;
+  const coverageGroups = buildClientCoverageGroups(root.coverageGroups, locale);
+  const urlDecisions = buildClientUrlDecisions(root, records(root.selectedPages), locale);
+  const technicalFiles = buildClientTechnicalFiles(storedTechnicalFileSummary, locale, storedCoverage);
+  const checks = records(root.checks).map(normalizeCheck).filter((check) => check.checkId);
+  const performance = buildClientPerformance(root, checks, locale, record(candidate.performance));
+  const consistentIssues = issues.filter((issue) => issue.checkId !== "performance" || performanceCanSupportFinding(performance));
+  const consistentCounts = countIssueKinds(consistentIssues);
+  const externalMetrics = buildExternalMetrics(locale);
   return deepFreeze({
+    modelVersion: 2,
+    conclusion: conclusionLabel(integer(summary.checked), consistentCounts.critical, locale),
     summary: {
       htmlFound: storedHtmlFound,
       ...storedScope,
       checkedLabel: locale === "ru" ? "Подробно проверено страниц" : "Pages checked in detail",
-      findingsLabel: findingSummaryLabel({
-        critical: integer(summary.critical),
-        review: integer(summary.review),
-        optional: integer(summary.optional),
-      }, locale),
+      findingsLabel: findingSummaryLabel(consistentCounts, locale),
       eligible: integer(summary.eligible),
       excluded: integer(summary.excluded),
       selected: integer(summary.selected),
       checked: integer(summary.checked),
       notCompleted: integer(summary.notCompleted),
       outsideSample: integer(summary.outsideSample),
-      critical: integer(summary.critical),
-      review: integer(summary.review),
-      optional: integer(summary.optional),
+      ...consistentCounts,
+      unverifiedGroups: coverageGroups.filter((group) => group.coverageStatus === "available" && group.unchecked > 0).length,
+      unavailableExternalMetrics: externalMetrics.length,
     },
     exclusions: normalizeExclusions(candidate.exclusions, integer(summary.excluded), locale),
-    issues,
+    issues: consistentIssues,
     strengths: strings(candidate.strengths),
     pages,
+    coverageGroups,
+    urlDecisions,
+    technicalFiles,
+    performance,
+    externalMetrics,
     publicTechnicalResources: resources,
     additionalFiles: additionalResources.additionalFiles,
     additionalDocuments: additionalResources.additionalDocuments,
@@ -325,17 +468,455 @@ function storedClientPresentation(
   });
 }
 
+const CLIENT_COVERAGE_GROUPS = [
+  "home",
+  "commercial_service",
+  "catalog_sections",
+  "articles",
+  "cases",
+  "glossary_methodology",
+  "contacts_conversion",
+  "utility_legal",
+  "other",
+] as const satisfies readonly AuditClientCoverageGroup["group"][];
+
+function conclusionLabel(checked: number, critical: number, locale: AuditLocale): string {
+  if (checked <= 0) return locale === "ru"
+    ? "Проверенных URL нет, поэтому вывод о критических проблемах не сделан."
+    : "No URLs were checked, so no conclusion about critical problems was made.";
+  if (critical > 0) return locale === "ru"
+    ? `На проверенных URL найдено критических проблем: ${critical}.`
+    : `Critical problems found on the checked URLs: ${critical}.`;
+  return locale === "ru"
+    ? "На проверенных URL критических проблем по доступным автоматическим проверкам не обнаружено."
+    : "No critical problems were found on the checked URLs by the available automated checks.";
+}
+
+function buildPageEvidence(page: Record<string, unknown>, locale: AuditLocale): AuditClientPageEvidence {
+  const unavailable = locale === "ru"
+    ? "Этот факт не был сохранён в результате проверки."
+    : "This fact was not saved in the audit result.";
+  const checkedAt = string(page.checkedAt);
+  const checkedAtValue = checkedAt && checkedAt !== "not_recorded" ? isoTimestamp(checkedAt) : null;
+  const statusCode = pageStatus(page);
+  const redirectCount = optionalInteger(page.redirectCount);
+  const redirects = Array.isArray(page.redirects)
+    ? uniquePublicUrls(page.redirects, "").filter(Boolean)
+    : null;
+  const title = record(page.title);
+  const h1 = record(page.h1);
+  const canonical = record(page.canonical);
+  const hreflang = Array.isArray(page.hreflang)
+    ? records(page.hreflang).flatMap((item) => {
+        const language = string(item.language);
+        const url = cleanUrl(string(item.url));
+        return language && url ? [{ language, url }] : [];
+      })
+    : null;
+  const schema = record(page.structuredData);
+  const internalLinkCount = optionalInteger(page.internalLinkCount);
+  const canonicalUrl = page.canonical && typeof page.canonical === "string"
+    ? cleanUrl(page.canonical)
+    : cleanUrl(string(canonical.url));
+  return {
+    checkedAt: checkedAtValue
+      ? { status: "available", value: checkedAtValue }
+      : { status: "unavailable", value: null, reason: unavailable },
+    httpStatus: statusCode >= 100
+      ? { status: "available", value: statusCode }
+      : { status: "unavailable", value: null, reason: unavailable },
+    redirects: redirectCount !== null || redirects !== null
+      ? { status: "available", value: { count: redirectCount ?? redirects?.length ?? 0, chain: redirects ?? [] } }
+      : { status: "unavailable", value: null, reason: unavailable },
+    title: Object.keys(title).length
+      ? { status: "available", value: { present: title.present === true, text: nullableString(title.value), length: integer(title.length) } }
+      : { status: "unavailable", value: null, reason: unavailable },
+    h1: Object.keys(h1).length
+      ? { status: "available", value: { count: integer(h1.count), values: strings(h1.values) } }
+      : { status: "unavailable", value: null, reason: unavailable },
+    canonical: Object.keys(canonical).length || typeof page.canonical === "string"
+      ? {
+          status: "available",
+          value: {
+            url: canonicalUrl || null,
+            valid: canonical.valid !== false,
+            selfReferential: typeof canonical.selfReferential === "boolean" ? canonical.selfReferential : null,
+          },
+        }
+      : { status: "unavailable", value: null, reason: unavailable },
+    robots: typeof page.noindex === "boolean"
+      ? {
+          status: "available",
+          value: {
+            allowed: typeof page.robotsAllowed === "boolean" ? page.robotsAllowed : null,
+            noindex: page.noindex,
+            meta: nullableString(page.metaRobots),
+            header: nullableString(page.xRobotsTag),
+          },
+        }
+      : { status: "unavailable", value: null, reason: unavailable },
+    hreflang: hreflang !== null
+      ? { status: "available", value: hreflang }
+      : { status: "unavailable", value: null, reason: unavailable },
+    schema: Object.keys(schema).length
+      ? {
+          status: "available",
+          value: {
+            total: integer(schema.total),
+            valid: integer(schema.valid),
+            invalid: integer(schema.invalid),
+            types: strings(schema.types),
+          },
+        }
+      : { status: "unavailable", value: null, reason: unavailable },
+    internalLinks: internalLinkCount !== null
+      ? { status: "available", value: internalLinkCount }
+      : { status: "unavailable", value: null, reason: unavailable },
+    actualIndexing: {
+      status: "unavailable",
+      value: null,
+      reason: locale === "ru"
+        ? "Фактическое индексирование нельзя подтвердить без Яндекс Вебмастера или Google Search Console."
+        : "Actual search indexing cannot be confirmed without Yandex Webmaster or Google Search Console.",
+    },
+  };
+}
+
+function buildClientCoverageGroups(value: unknown, locale: AuditLocale): AuditClientCoverageGroup[] {
+  const byGroup = new Map(records(value).flatMap((item) => {
+    const group = string(item.group);
+    return CLIENT_COVERAGE_GROUPS.includes(group as AuditClientCoverageGroup["group"])
+      ? [[group as AuditClientCoverageGroup["group"], item] as const]
+      : [];
+  }));
+  return CLIENT_COVERAGE_GROUPS.map((group) => {
+    const item = byGroup.get(group);
+    return {
+      group,
+      label: coverageGroupLabel(group, locale),
+      found: item ? integer(item.found) : 0,
+      eligible: item ? integer(item.eligible) : 0,
+      selected: item ? integer(item.selected) : 0,
+      checked: item ? integer(item.checked) : 0,
+      unchecked: item ? integer(item.unchecked) : 0,
+      coverageStatus: item ? "available" as const : "unavailable" as const,
+    };
+  });
+}
+
+function coverageGroupLabel(group: AuditClientCoverageGroup["group"], locale: AuditLocale): string {
+  const labels: Record<AuditClientCoverageGroup["group"], readonly [string, string]> = {
+    home: ["Главная страница", "Homepage"],
+    commercial_service: ["Коммерческие страницы и услуги", "Commercial and service pages"],
+    catalog_sections: ["Разделы каталога", "Catalogue sections"],
+    articles: ["Статьи", "Articles"],
+    cases: ["Кейсы", "Case studies"],
+    glossary_methodology: ["Словарь и методика", "Glossary and methodology"],
+    contacts_conversion: ["Контакты и страницы обращения", "Contact and enquiry pages"],
+    utility_legal: ["Служебные и правовые страницы", "Utility and legal pages"],
+    other: ["Другие страницы", "Other pages"],
+  };
+  return labels[group][locale === "ru" ? 0 : 1];
+}
+
+function buildClientUrlDecisions(
+  root: Record<string, unknown>,
+  selectedPages: readonly Record<string, unknown>[],
+  locale: AuditLocale,
+): AuditClientUrlDecision[] {
+  const raw = records(root.discoveredUrlDecisions);
+  if (raw.length) return raw.flatMap((item) => clientUrlDecision(item, locale));
+
+  const checkedKeys = new Set(records(root.checkedPages).flatMap((page) => {
+    const url = cleanUrl(string(page.finalUrl) || string(page.url));
+    return url ? [urlKey(url)] : [];
+  }));
+  const selected = selectedPages.flatMap((page) => {
+    const url = cleanUrl(string(page.url));
+    if (!url) return [];
+    return clientUrlDecision({
+      url,
+      finalUrl: url,
+      resourceType: "html",
+      group: null,
+      outcome: "selected",
+      reason: checkedKeys.has(urlKey(url)) ? "selected_and_checked" : "selected_not_completed",
+      source: "unknown",
+      selectedUrl: url,
+      selectionReason: string(page.selectionReason),
+    }, locale);
+  });
+  const unchecked = strings(root.pagesNotCheckedUrls).flatMap((url) => clientUrlDecision({
+    url,
+    finalUrl: url,
+    resourceType: "html",
+    group: null,
+    outcome: "unchecked",
+    reason: "not_selected_within_limit",
+    source: "unknown",
+  }, locale));
+  const excluded = records(root.excludedPages).flatMap((page) => clientUrlDecision({
+    url: page.url,
+    finalUrl: page.url,
+    resourceType: "html",
+    group: null,
+    outcome: "excluded",
+    reason: page.reason,
+    source: "unknown",
+    primaryUrl: page.primaryUrl,
+  }, locale));
+  return [...selected, ...unchecked, ...excluded];
+}
+
+function clientUrlDecision(item: Record<string, unknown>, locale: AuditLocale): AuditClientUrlDecision[] {
+  const url = cleanUrl(string(item.url));
+  const finalUrl = cleanUrl(string(item.finalUrl) || url);
+  const outcome = string(item.outcome);
+  if (!url || !finalUrl || !["selected", "unchecked", "excluded"].includes(outcome)) return [];
+  const rawGroup = string(item.group);
+  const group = CLIENT_COVERAGE_GROUPS.includes(rawGroup as AuditClientCoverageGroup["group"])
+    ? rawGroup as AuditClientCoverageGroup["group"]
+    : null;
+  const rawSource = string(item.source);
+  const source = (["root", "link", "sitemap", "priority", "technical", "unknown"].includes(rawSource)
+    ? rawSource
+    : "unknown") as AuditClientUrlDecision["source"];
+  const rawReason = string(item.reason);
+  const selectionReason = string(item.selectionReason);
+  return [{
+    url,
+    finalUrl,
+    resourceType: string(item.resourceType) || "html",
+    group,
+    groupLabel: group ? coverageGroupLabel(group, locale) : (locale === "ru" ? "Группа не сохранена" : "Group not saved"),
+    outcome: outcome as AuditClientUrlDecision["outcome"],
+    outcomeLabel: decisionOutcomeLabel(outcome as AuditClientUrlDecision["outcome"], locale),
+    reason: decisionReasonLabel(rawReason, locale),
+    source,
+    sourceLabel: discoverySourceLabel(source, locale),
+    ...(cleanUrl(string(item.selectedUrl)) ? { selectedUrl: cleanUrl(string(item.selectedUrl)) } : {}),
+    ...(selectionReason ? { selectionReason: selectionReasonLabel(selectionReason, locale) } : {}),
+    ...(cleanUrl(string(item.primaryUrl)) ? { primaryUrl: cleanUrl(string(item.primaryUrl)) } : {}),
+  }];
+}
+
+function decisionOutcomeLabel(outcome: AuditClientUrlDecision["outcome"], locale: AuditLocale): string {
+  if (locale === "en") return outcome === "selected" ? "Selected" : outcome === "unchecked" ? "Not selected" : "Excluded";
+  return outcome === "selected" ? "Выбран" : outcome === "unchecked" ? "Не выбран" : "Исключён";
+}
+
+function decisionReasonLabel(reason: string, locale: AuditLocale): string {
+  const labels: Record<string, readonly [string, string]> = {
+    selected_and_checked: ["Адрес выбран и подробно проверен.", "The URL was selected and checked in detail."],
+    selected_not_completed: ["Адрес выбран, но подробную проверку завершить не удалось.", "The URL was selected, but the detailed check could not be completed."],
+    not_selected_within_limit: ["Адрес не выбран из-за лимита бесплатной проверки.", "The URL was not selected because of the free-check limit."],
+    search_page: ["Страница внутреннего поиска исключена из выборки.", "The internal search page was excluded from the sample."],
+    closed_section: ["Закрытый раздел исключён из публичной проверки.", "The restricted area was excluded from the public check."],
+    technical_page: ["Служебная или правовая страница исключена из выборки.", "The utility or legal page was excluded from the sample."],
+    parameterized_url: ["Адрес с параметрами исключён, чтобы не проверять вариант той же страницы повторно.", "The parameterized URL was excluded to avoid checking another variant of the same page."],
+    redirect: ["Адрес перенаправляет на другую страницу и не проверяется отдельно.", "The URL redirects to another page and is not checked separately."],
+    confirmed_duplicate: ["Подтверждённый дубликат не проверяется повторно.", "The confirmed duplicate is not checked again."],
+    service_url: ["Служебный адрес исключён из выборки.", "The utility URL was excluded from the sample."],
+    technical_object: ["Технический файл не входит в выборку HTML-страниц.", "The technical file is outside the HTML-page sample."],
+    duplicate_template: ["Повторяющийся вариант страницы не выбран в ограниченную выборку.", "The repeated page variant was not selected for the limited sample."],
+    other: ["В результате сохранена другая причина исключения.", "Another exclusion reason was saved in the result."],
+  };
+  const label = labels[reason];
+  if (label) return label[locale === "ru" ? 0 : 1];
+  return reason || (locale === "ru" ? "Причина не была сохранена." : "The reason was not saved.");
+}
+
+function discoverySourceLabel(source: AuditClientUrlDecision["source"], locale: AuditLocale): string {
+  const labels: Record<AuditClientUrlDecision["source"], readonly [string, string]> = {
+    root: ["Стартовый адрес", "Starting URL"],
+    link: ["Ссылка на сайте", "On-site link"],
+    sitemap: ["sitemap.xml", "sitemap.xml"],
+    priority: ["Адрес, переданный для проверки", "URL submitted for checking"],
+    technical: ["Технический файл", "Technical file"],
+    unknown: ["Источник не был сохранён", "Source was not saved"],
+  };
+  return labels[source][locale === "ru" ? 0 : 1];
+}
+
+function buildClientTechnicalFiles(
+  summary: Record<string, unknown>,
+  locale: AuditLocale,
+  coverage: { readonly htmlFound: number; readonly eligible: number },
+): AuditClientTechnicalFile[] {
+  return (["robots", "sitemap"] as const).map((type) => {
+    const facts = record(summary[type]);
+    const url = cleanUrl(string(facts.url));
+    const statusCode = optionalInteger(facts.statusCode);
+    const completed = type === "robots" ? facts.read === true : facts.parsed === true;
+    const status = completed ? "available" as const : "unavailable" as const;
+    const reason = status === "unavailable"
+      ? string(facts.reason) || (locale === "ru"
+          ? `${type === "robots" ? "robots.txt" : "sitemap.xml"} не удалось подтвердить по сохранённым данным.`
+          : `${type === "robots" ? "robots.txt" : "sitemap.xml"} could not be confirmed from the saved data.`)
+      : null;
+    return {
+      type,
+      label: type === "robots" ? "robots.txt" : "sitemap.xml",
+      status,
+      url: url || "",
+      finalUrl: cleanUrl(string(facts.finalUrl)) || null,
+      statusCode,
+      loadedAt: isoTimestamp(string(facts.loadedAt)),
+      reason,
+      facts: Object.keys(facts).length ? technicalFileDetails(type, facts, locale, coverage) : [],
+    };
+  });
+}
+
+function buildClientPerformance(
+  root: Record<string, unknown>,
+  checks: readonly NormalizedCheck[],
+  locale: AuditLocale,
+  storedPerformance: Record<string, unknown> = {},
+): AuditClientPerformance {
+  const rootObservation = record(root.performanceObservation);
+  const source = Object.keys(rootObservation).length ? rootObservation : storedPerformance;
+  const observation = normalizeLighthouseObservation(source);
+  const performanceCheck = checks.find((check) => check.checkId === "performance");
+  const score = finite(observation.performance);
+  const status = observation.status ?? "legacy_unknown";
+  const normalizedScore = score === null ? legacyScore(performanceCheck, storedPerformance) : Math.round(score <= 1 ? score * 100 : score);
+  const profile = string(observation.profile) || string(observation.strategy) || null;
+  return {
+    status,
+    label: performanceLabel(status, locale),
+    targetUrl: cleanUrl(string(observation.finalUrl) || (normalizedScore !== null ? performanceCheck?.targetUrl : "") || string(root.target)) || null,
+    capturedAt: isoTimestamp(string(observation.capturedAt)),
+    profile,
+    runCount: Math.max(0, integer(observation.runCount)),
+    score: lighthouseStatusHasMeasurement(status) ? normalizedScore : null,
+    fcpMs: finite(observation.fcpMs),
+    lcpMs: finite(observation.lcpMs),
+    cls: finite(observation.cls),
+    tbtMs: finite(observation.tbtMs),
+    speedIndexMs: finite(observation.speedIndexMs),
+    lighthouseVersion: string(observation.lighthouseVersion) || null,
+    startedAt: isoTimestamp(string(observation.startedAt)),
+    completedAt: isoTimestamp(string(observation.completedAt)),
+    durationMs: finite(observation.durationMs),
+    source: string(observation.source) || null,
+    errorCode: string(observation.errorCode) || null,
+    reason: performanceReason(status, normalizedScore, profile, locale),
+  };
+}
+
+function lighthouseStatusHasMeasurement(status: LighthouseRunStatus): boolean {
+  return status === "completed" || status === "legacy_summary_only" || status === "not_persisted";
+}
+
+function performanceCanSupportFinding(performance: AuditClientPerformance): boolean {
+  return lighthouseStatusHasMeasurement(performance.status) && performance.score !== null;
+}
+
+function performanceAsObservation(performance: AuditClientPerformance): Record<string, unknown> {
+  return {
+    status: performance.status,
+    performance: performance.score,
+    profile: performance.profile,
+    capturedAt: performance.capturedAt,
+    runCount: performance.runCount,
+    lighthouseVersion: performance.lighthouseVersion,
+    lcpMs: performance.lcpMs,
+    cls: performance.cls,
+    tbtMs: performance.tbtMs,
+  };
+}
+
+function legacyScore(check: NormalizedCheck | undefined, stored: Record<string, unknown>): number | null {
+  const direct = finite(stored.score);
+  if (direct !== null) return Math.round(direct <= 1 ? direct * 100 : direct);
+  const match = check?.reason.match(/(\d{1,3})\s*(?:из|of|\/)\s*100/iu)?.[1];
+  return match ? Number(match) : null;
+}
+
+function performanceLabel(status: LighthouseRunStatus, locale: AuditLocale): string {
+  if (locale === "en") {
+    const labels: Record<LighthouseRunStatus, string> = {
+      not_requested: "Lighthouse was not requested",
+      running: "Lighthouse is running",
+      completed: "Lighthouse laboratory check",
+      failed: "Lighthouse check failed",
+      timed_out: "Lighthouse check timed out",
+      legacy_summary_only: "Saved Lighthouse summary",
+      not_persisted: "Unsaved local run",
+      legacy_unknown: "No saved Lighthouse data",
+    };
+    return labels[status];
+  }
+  const labels: Record<LighthouseRunStatus, string> = {
+    not_requested: "Проверка Lighthouse не запрашивалась",
+    running: "Проверка Lighthouse выполняется",
+    completed: "Лабораторная проверка Lighthouse",
+    failed: "Проверка Lighthouse завершилась ошибкой",
+    timed_out: "Проверка Lighthouse не уложилась во время",
+    legacy_summary_only: "Сохранённый итог Lighthouse",
+    not_persisted: "Локальный несохранённый запуск",
+    legacy_unknown: "Нет сохранённых данных Lighthouse",
+  };
+  return labels[status];
+}
+
+function performanceReason(status: LighthouseRunStatus, score: number | null, profile: string | null, locale: AuditLocale): string {
+  if (locale === "en") {
+    if (status === "completed") return `The Lighthouse laboratory check completed using the ${profile ?? "saved"} profile.${score === null ? "" : ` Final score: ${score} out of 100.`} This is a preliminary result and does not replace real-user data.`;
+    if (status === "legacy_summary_only") return `A previous Lighthouse result was saved${score === null ? "" : `: ${score} out of 100`}. Detailed metrics, timing and run conditions are unavailable in this snapshot. Run the check again for a complete result.`;
+    if (status === "not_persisted") return "Lighthouse completed in this local session, but the result is not stored without persistent storage. Details will be unavailable after refresh or in another browser.";
+    if (status === "failed") return "The speed check could not be completed. This does not mean the page is slow. Run it again and use the diagnostic code from the server log if the error repeats.";
+    if (status === "timed_out") return "The speed check did not finish in time. No result was produced and it does not affect the audit outcome.";
+    if (status === "running") return "The Lighthouse check is still running; no score is available yet.";
+    if (status === "not_requested") return "Lighthouse was not requested for this audit, so no laboratory score is available.";
+    return "This saved result contains no Lighthouse data. It is unknown whether the check was run. Run the audit again for a current measurement.";
+  }
+  if (status === "completed") return `Лабораторная проверка Lighthouse выполнена в ${profile === "desktop" ? "профиле компьютера" : "мобильном профиле"}.${score === null ? "" : ` Итоговый балл: ${score} из 100.`} Это предварительный результат: он зависит от условий запуска и не заменяет данные реальных пользователей.`;
+  if (status === "legacy_summary_only") return `Сохранён итог ранее выполненного запуска Lighthouse${score === null ? "" : `: ${score} из 100`}. В этом снимке не сохранены подробные метрики, время и условия запуска. Чтобы получить полный результат, повторите проверку.`;
+  if (status === "not_persisted") return "Lighthouse успешно выполнился в текущем локальном сеансе, но результат не сохраняется без подключённого хранилища. После обновления страницы или открытия ссылки подробные данные будут недоступны.";
+  if (status === "failed") return "Проверку скорости не удалось завершить. Это не означает, что страница медленная. Повторите запуск; если ошибка повторится, используйте код диагностики из технического журнала.";
+  if (status === "timed_out") return "Проверка скорости не завершилась за отведённое время. Результат не получен и не должен влиять на итог аудита.";
+  if (status === "running") return "Проверка Lighthouse ещё выполняется. Итоговый балл пока недоступен.";
+  if (status === "not_requested") return "Проверка Lighthouse для этого аудита не запрашивалась, поэтому лабораторного балла нет.";
+  return "В этом сохранённом результате нет данных о проверке Lighthouse. Неизвестно, запускалась ли она. Повторите проверку, чтобы получить актуальное измерение.";
+}
+
+function buildExternalMetrics(locale: AuditLocale): AuditClientExternalMetric[] {
+  const values: readonly [AuditClientExternalMetric["id"], string, string][] = locale === "ru" ? [
+    ["actual_indexing", "Фактическое индексирование", "Нужен доступ к Яндекс Вебмастеру или Google Search Console."],
+    ["rankings", "Позиции по запросам", "Нужны данные поискового кабинета и согласованный список запросов."],
+    ["impressions", "Показы в поиске", "Нужны данные Яндекс Вебмастера или Google Search Console."],
+    ["ctr", "Доля переходов из поиска (CTR)", "Нужны данные поискового кабинета."],
+    ["traffic", "Посещаемость", "Нужен доступ к системе аналитики."],
+    ["leads", "Заявки", "Нужен доступ к аналитике и данным формы или CRM."],
+    ["conversions", "Конверсии", "Нужны цели аналитики и данные о целевых действиях."],
+  ] : [
+    ["actual_indexing", "Actual search indexing", "Yandex Webmaster or Google Search Console access is required."],
+    ["rankings", "Search rankings", "Search-console data and an agreed query list are required."],
+    ["impressions", "Search impressions", "Yandex Webmaster or Google Search Console data is required."],
+    ["ctr", "Search click-through rate (CTR)", "Search-console data is required."],
+    ["traffic", "Traffic", "Analytics access is required."],
+    ["leads", "Leads", "Analytics and form or CRM data are required."],
+    ["conversions", "Conversions", "Analytics goals and conversion-event data are required."],
+  ];
+  return values.map(([id, label, reason]) => ({ id, label, status: "unavailable", reason }));
+}
+
+function nullableString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function isoTimestamp(value: string): string | null {
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+}
+
 function normalizeStoredScopeLabel(label: string, locale: AuditLocale): string {
   if (locale === "ru" && label === "Обработано для анализа") return "Предварительно просмотрено адресов";
   if (locale === "en" && label === "Processed for analysis") return "Addresses previewed";
   return label || (locale === "ru" ? "Найдено HTML-страниц" : "HTML pages found");
-}
-
-function normalizeStoredTechnicalDetail(detail: string, locale: AuditLocale): string {
-  if (locale !== "ru") return detail;
-  return detail
-    .replace(/Для предварительного анализа обработано (\d+) URL/gu, "Предварительно просмотрено $1 адресов")
-    .replace(/остальные (\d+) URL не загружались/gu, "остальные $1 адресов не загружались");
 }
 
 function additionalResourceCounts(resources: readonly Record<string, unknown>[]): {
@@ -433,14 +1014,14 @@ function findingSummaryLabel(
       ...(counts.review > 0 ? [`${counts.review} preliminary ${counts.review === 1 ? "signal" : "signals"}`] : []),
       ...(counts.optional > 0 ? [`${counts.optional} possible ${counts.optional === 1 ? "improvement" : "improvements"}`] : []),
     ];
-    return parts.join(" · ") || "No issues requiring attention";
+    return parts.join("; ") || "No issues requiring attention";
   }
   const parts = [
     ...(counts.critical > 0 ? [`${counts.critical} ${russianCountWord(counts.critical, "критическая проблема", "критические проблемы", "критических проблем")}`] : []),
     ...(counts.review > 0 ? [`${counts.review} ${russianCountWord(counts.review, "вывод требует проверки", "вывода требуют проверки", "выводов требуют проверки")}`] : []),
     ...(counts.optional > 0 ? [`${counts.optional} ${russianCountWord(counts.optional, "возможное улучшение", "возможных улучшения", "возможных улучшений")}`] : []),
   ];
-  return parts.join(" · ") || "Нет пунктов, требующих внимания";
+  return parts.join("; ") || "Нет пунктов, требующих внимания";
 }
 
 function russianCountWord(count: number, one: string, few: string, many: string): string {
@@ -495,29 +1076,24 @@ function clientIssue(
     const ru = locale === "ru";
     const score = performanceScore(performanceObservation.performance) ?? check.reason.match(/(\d{1,3})\s*(?:из|of|\/)\s*100/iu)?.[1];
     const runCount = Math.max(1, integer(performanceObservation.runCount) || 1);
-    const page = performancePageLabel(check.targetUrl, locale);
     return {
       checkId: check.checkId,
       kind,
-      title: ru ? `Мобильная производительность ${page}` : `Mobile performance of the ${page}`,
+      title: ru ? "Скорость главной страницы" : "Homepage speed",
       url: check.targetUrl,
       affectedUrls,
-      whatFound: ru
-        ? `В лабораторном тесте измерена мобильная производительность ${page}.`
-        : `A laboratory mobile-performance measurement was completed for the ${page}.`,
-      whyImportant: ru
-        ? "По результатам теста показатель требует внимания, но итоговый балл сам по себе не указывает на конкретную причину."
-        : "The result needs attention, but the total score alone does not identify the cause of lower performance.",
+      whatFound: score
+        ? ru ? `В одном лабораторном мобильном тесте главная страница получила ${score} из 100.` : `In one laboratory mobile test, the homepage scored ${score} out of 100.`
+        : ru ? "Один лабораторный мобильный тест показал, что главная страница может загружаться медленнее ожидаемого." : "One laboratory mobile test indicated that the homepage may load more slowly than expected.",
+      whyImportant: ru ? "Если основное содержимое появляется долго, часть посетителей может уйти, не дождавшись страницы." : "If the main content appears slowly, some visitors may leave before the page is ready.",
       howChecked: runCount === 1
-        ? ru ? "Лабораторный тест Google Lighthouse в мобильном профиле: один запуск." : "One Google Lighthouse run using a laboratory mobile profile."
+        ? ru ? "Один запуск Google Lighthouse (лабораторного теста скорости) в мобильном профиле." : "One Google Lighthouse run using a laboratory mobile profile."
         : ru ? `${runCount} запуска Google Lighthouse в мобильном лабораторном профиле.` : `${runCount} Google Lighthouse runs using a laboratory mobile profile.`,
       reliability: runCount === 1
-        ? ru ? "Это предварительный лабораторный результат одного запуска; он не описывает опыт всех посетителей." : "This is an early result. One run does not represent the speed experienced by every real visitor."
+        ? ru ? "Это предварительный результат. Один запуск не отражает скорость у всех реальных посетителей." : "This is an early result. One run does not represent the speed experienced by every real visitor."
         : ru ? "Это лабораторные измерения. Они не отражают скорость у всех реальных посетителей." : "These are laboratory measurements and do not represent the speed experienced by every real visitor.",
-      nextStep: ru
-        ? "Повторите тест 2–3 раза в одинаковых условиях. Если результат повторяется, изучите отдельные показатели."
-        : "Repeat the test 2–3 times under the same conditions. If the result remains similar, review the separate metrics and identify what needs further investigation.",
-      details: performanceDetails(performanceObservation, locale, score),
+      nextStep: ru ? "Повторите тест 2–3 раза в одинаковых условиях. Если результат повторится, проверьте тяжёлые изображения, шрифты и скрипты первого экрана." : "Repeat the test 2–3 times under the same conditions. If the result repeats, inspect heavy images, fonts and above-the-fold scripts.",
+      details: performanceDetails(performanceObservation, locale),
     };
   }
   if (check.checkId === "breadcrumbs") {
@@ -556,7 +1132,6 @@ function clientIssue(
 function performanceDetails(
   observation: Record<string, unknown>,
   locale: AuditLocale,
-  score?: string,
 ): { label: string; value: string }[] {
   const ru = locale === "ru";
   const details: { label: string; value: string }[] = [];
@@ -569,7 +1144,6 @@ function performanceDetails(
     value: new Intl.DateTimeFormat(ru ? "ru-RU" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Moscow" }).format(new Date(observation.capturedAt)),
   });
   if (typeof observation.lighthouseVersion === "string" && observation.lighthouseVersion.trim()) details.push({ label: "Lighthouse", value: observation.lighthouseVersion.trim() });
-  if (score) details.push({ label: ru ? "Оценка производительности" : "Performance score", value: `${score} ${ru ? "из" : "out of"} 100` });
   const lcp = finite(observation.lcpMs);
   const cls = finite(observation.cls);
   const tbt = finite(observation.tbtMs);
@@ -585,13 +1159,6 @@ function performanceScore(value: unknown): string | null {
   const raw = finite(value);
   if (raw === null) return null;
   return String(Math.round(raw <= 1 ? raw * 100 : raw));
-}
-
-function performancePageLabel(targetUrl: string, locale: AuditLocale): string {
-  const path = urlPath(targetUrl);
-  const homepage = path === "/";
-  if (locale === "ru") return homepage ? "главной страницы" : `страницы ${path}`;
-  return homepage ? "homepage" : `page ${path}`;
 }
 
 function finite(value: unknown): number | null {
@@ -644,7 +1211,7 @@ function buildStrengths(
   const checked = pages.length;
   const strengths: string[] = [];
   if (checked && pages.every((page) => pageStatus(page) >= 200 && pageStatus(page) < 300)) {
-    strengths.push(locale === "ru" ? `Все ${checked} проверенных страниц открылись без серверных ошибок.` : `All ${checked} checked pages opened without a server error.`);
+    strengths.push(locale === "ru" ? `Во время этой проверки ${checked} URL вернули успешный HTTP-ответ.` : `During this check, ${checked} URLs returned a successful HTTP response.`);
   }
   const allPass = (checkId: string) => new Set(checks
     .filter((check) => check.checkId === checkId && check.status === "pass" && check.targetUrl)
@@ -670,19 +1237,6 @@ function buildLimitations(checked: number, locale: AuditLocale): string[] {
     `Выводы относятся только к ${checked} выбранным и проверенным страницам.`,
     "Закрытые разделы и данные сервера не проверялись.",
   ];
-}
-
-function affectedBreadcrumbRecommendationApplies(
-  check: NormalizedCheck,
-  affectedUrls: readonly string[],
-  pages: readonly Record<string, unknown>[],
-): boolean {
-  const candidates = pages.filter((candidate) => affectedUrls.some((affectedUrl) => sameUrl(
-    cleanUrl(string(candidate.finalUrl) || string(candidate.url)),
-    affectedUrl || check.targetUrl,
-  )));
-  return candidates.some((page) => new Set(["service", "category", "hub", "detail", "product", "article", "case"])
-    .has(string(page.pageType)));
 }
 
 function uniquePublicUrls(value: unknown, fallback: string): string[] {

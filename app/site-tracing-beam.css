@@ -1,0 +1,67 @@
+.site-tracing-beam { position: relative; }
+.site-tracing-beam__content {
+  position: relative;
+  z-index: 1;
+}
+.site-tracing-beam__track {
+  --site-beam-fade-start: calc(100% - 18rem);
+  --site-beam-fade-end: 100%;
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  /* The route belongs to the outside gutter, never to the content plane. */
+  left: max(.75rem, calc((100vw - var(--kileni-desktop-shell-max, 100rem)) / 2 - 1.75rem));
+  width: 22px;
+  height: var(--site-beam-fade-end);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, .12) 1.75rem,
+    #000 6.5rem,
+    #000 var(--site-beam-fade-start),
+    rgba(0, 0, 0, .35) calc(var(--site-beam-fade-start) + 4rem),
+    transparent var(--site-beam-fade-end)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, .12) 1.75rem,
+    #000 6.5rem,
+    #000 var(--site-beam-fade-start),
+    rgba(0, 0, 0, .35) calc(var(--site-beam-fade-start) + 4rem),
+    transparent var(--site-beam-fade-end)
+  );
+  pointer-events: none;
+}
+.site-tracing-beam__track::before {
+  position: absolute;
+  z-index: 0;
+  top: -.75rem;
+  left: 5px;
+  width: 12px;
+  height: 8.5rem;
+  background: linear-gradient(180deg, rgba(117, 213, 255, .08), rgba(65, 100, 255, .72), transparent);
+  filter: blur(8px);
+  content: "";
+  opacity: .82;
+}
+.site-tracing-beam__track svg { display: block; overflow: visible; }
+.site-tracing-beam__path--base { stroke: rgba(139, 169, 255, .19); stroke-width: 1; }
+.site-tracing-beam__path--active { stroke-width: 1.45; filter: drop-shadow(0 0 5px rgba(97, 142, 255, .85)); }
+
+html:is([data-kileni-intro="pending"], [data-kileni-intro="play"], [data-kileni-intro="reduced"], [data-kileni-intro="finishing"], [data-kileni-intro="preview"]) .site-tracing-beam__track { opacity: 0; }
+
+/* Keep the route visible on normal desktop and notebook viewports. The shell
+   still leaves a safe gutter there; only compact/mobile layouts lose it. */
+@media (max-width: 899px) { .site-tracing-beam__track { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .site-tracing-beam__path--active { display: none; }
+  .site-tracing-beam__track::before { display: none; }
+  .site-tracing-beam__track::after {
+    position: absolute;
+    inset: 0 auto 0 11px;
+    width: 1px;
+    background: rgba(139, 169, 255, .19);
+    content: "";
+  }
+}

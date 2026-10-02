@@ -455,21 +455,22 @@ function writeContractAuditPdf(
   ru: boolean,
 ) {
   const client = snapshot.clientPresentation;
+  const richEvidence = snapshot.contractVersion === 3;
   const attentionIssues = client.issues.filter((issue) => issue.kind !== "optional");
   const optionalIssues = client.issues.filter((issue) => issue.kind === "optional");
 
   writer.heading(ru ? "Итог" : "Summary");
   writer.paragraph(ru
-    ? `${client.summary.scopeLabel}: ${client.summary.scopeValue} · подходят для выборки: ${client.summary.eligible} · исключено до выборки: ${client.summary.excluded}.`
-    : `${client.summary.scopeLabel}: ${client.summary.scopeValue} · eligible for sampling: ${client.summary.eligible} · excluded before sampling: ${client.summary.excluded}.`, { bold: true, size: 9.4, lineHeight: 11.5 });
+    ? `${client.summary.scopeLabel}: ${client.summary.scopeValue}; подходят для выборки: ${client.summary.eligible}; исключено до выборки: ${client.summary.excluded}.`
+    : `${client.summary.scopeLabel}: ${client.summary.scopeValue}; eligible for sampling: ${client.summary.eligible}; excluded before sampling: ${client.summary.excluded}.`, { bold: true, size: 9.4, lineHeight: 11.5 });
   writer.paragraph(ru
-    ? `Выбрано: ${client.summary.selected} · ${client.summary.checkedLabel}: ${client.summary.checked} · не завершено: ${client.summary.notCompleted} · не вошло в выборку: ${client.summary.outsideSample}.`
-    : `Selected: ${client.summary.selected} · ${client.summary.checkedLabel}: ${client.summary.checked} · not completed: ${client.summary.notCompleted} · outside the sample: ${client.summary.outsideSample}.`, { size: 8.4, lineHeight: 10.2 });
+    ? `Выбрано: ${client.summary.selected}; ${client.summary.checkedLabel}: ${client.summary.checked}; не завершено: ${client.summary.notCompleted}; не вошло в выборку: ${client.summary.outsideSample}.`
+    : `Selected: ${client.summary.selected}; ${client.summary.checkedLabel.toLowerCase()}: ${client.summary.checked}; not completed: ${client.summary.notCompleted}; outside the sample: ${client.summary.outsideSample}.`, { size: 8.4, lineHeight: 10.2 });
+  writer.paragraph(client.conclusion, { bold: true, size: 9, lineHeight: 11 });
+  writer.paragraph(client.summary.findingsLabel, { size: 8.4, lineHeight: 10.2 });
   writer.paragraph(ru
-    ? client.summary.critical === 0
-      ? `На ${client.summary.checked} подробно проверенных страницах критических проблем не найдено. ${client.summary.findingsLabel}.`
-      : `На ${client.summary.checked} подробно проверенных страницах найдено критических проблем: ${client.summary.critical}. ${client.summary.findingsLabel}.`
-    : `Critical problems on the ${client.summary.checked} pages checked in detail: ${client.summary.critical}. ${client.summary.findingsLabel}.`, { size: 8.4, lineHeight: 10.2 });
+    ? `Требуют проверки: ${client.summary.review}; необязательные улучшения: ${client.summary.optional}; группы с непроверенными URL: ${client.summary.unverifiedGroups}; внешние показатели без данных: ${client.summary.unavailableExternalMetrics}.`
+    : `Need review: ${client.summary.review}; optional improvements: ${client.summary.optional}; groups with unchecked URLs: ${client.summary.unverifiedGroups}; external metrics without data: ${client.summary.unavailableExternalMetrics}.`, { size: 8.4, lineHeight: 10.2 });
 
   writer.compactHeading(ru ? "Что стоит проверить" : "What needs a closer look");
   if (!attentionIssues.length) writer.paragraph(ru ? "В проверенной выборке пунктов, требующих действий, не найдено." : "No action items were found in the checked sample.", { bold: true });
@@ -484,13 +485,7 @@ function writeContractAuditPdf(
 
   function writeClientIssue(issue: AuditClientPresentation["issues"][number], index: number) {
     writer.keepTogether(126);
-    const isPerformance = issue.checkId === "performance";
-    writer.paragraph(`${index + 1}. ${clientIssuePdfLabel(issue.kind, ru)} · ${issue.title}`, {
-      bold: true,
-      size: isPerformance ? 8.6 : 9.2,
-      lineHeight: isPerformance ? 10.4 : 11.2,
-      color: clientIssuePdfColor(issue.kind),
-    });
+    writer.paragraph(`${index + 1}. ${clientIssuePdfLabel(issue.kind, ru)} · ${issue.title}`, { bold: true, size: 9.2, lineHeight: 11.2, color: clientIssuePdfColor(issue.kind) });
     writer.paragraph(`${ru ? "Страница" : "Page"}: ${issue.url}`, { size: 7.6, lineHeight: 9.1, color: rgb(.33, .36, .42) });
     writer.paragraph(`${ru ? "Что нашли" : "What was found"}: ${issue.whatFound}`, { size: 8, lineHeight: 9.6 });
     writer.paragraph(`${ru ? "Почему это важно" : "Why it matters"}: ${issue.whyImportant}`, { size: 8, lineHeight: 9.6 });
@@ -514,12 +509,21 @@ function writeContractAuditPdf(
       `${String(index + 1).padStart(2, "0")} · ${page.typeLabel} · ${page.url} · ${page.selectionReason} · ${pageStatus.label}${issueTitles ? `: ${issueTitles}` : ""}`,
       { bold: pageStatus.kind !== "none", size: 7.6, lineHeight: 9, color: pageStatus.kind === "none" ? rgb(.16, .2, .27) : clientIssuePdfColor(pageStatus.kind) },
     );
+    if (!richEvidence) return;
+    const evidence = page.evidence;
+    writer.paragraph(`${ru ? "Время проверки (UTC)" : "Checked at (UTC)"}: ${evidence.checkedAt.value ?? evidence.checkedAt.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`${ru ? "Код ответа" : "Response code"}: ${evidence.httpStatus.value ?? evidence.httpStatus.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`${ru ? "Перенаправления" : "Redirects"}: ${evidence.redirects.value ? `${evidence.redirects.value.count}${evidence.redirects.value.chain.length ? ` (${evidence.redirects.value.chain.join(" -> ")})` : ""}` : evidence.redirects.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`Title: ${evidence.title.value ? `${evidence.title.value.present ? (ru ? "найден" : "present") : (ru ? "не найден" : "missing")}; ${evidence.title.value.text ?? "—"}` : evidence.title.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`H1: ${evidence.h1.value ? `${evidence.h1.value.count}; ${evidence.h1.value.values.join("; ") || "—"}` : evidence.h1.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`Canonical: ${evidence.canonical.value ? `${evidence.canonical.value.url ?? "—"}; ${evidence.canonical.value.valid ? (ru ? "корректен" : "valid") : (ru ? "требует проверки" : "needs review")}` : evidence.canonical.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`Robots: ${evidence.robots.value ? `${ru ? "доступ" : "allowed"}: ${evidence.robots.value.allowed === null ? (ru ? "не определён" : "unavailable") : evidence.robots.value.allowed ? (ru ? "разрешён" : "yes") : (ru ? "запрещён" : "no")}; noindex: ${evidence.robots.value.noindex ? (ru ? "да" : "yes") : (ru ? "нет" : "no")}; meta: ${evidence.robots.value.meta ?? "—"}; X-Robots-Tag: ${evidence.robots.value.header ?? "—"}` : evidence.robots.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`Hreflang: ${evidence.hreflang.value ? evidence.hreflang.value.map((entry) => `${entry.language}: ${entry.url}`).join("; ") || (ru ? "связи не найдены" : "no links found") : evidence.hreflang.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`${ru ? "Структурированные данные" : "Structured data"}: ${evidence.schema.value ? `${ru ? "всего" : "total"} ${evidence.schema.value.total}; ${ru ? "валидных" : "valid"} ${evidence.schema.value.valid}; ${ru ? "с ошибкой" : "invalid"} ${evidence.schema.value.invalid}; ${evidence.schema.value.types.join(", ") || "—"}` : evidence.schema.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`${ru ? "Внутренние ссылки со страницы" : "Internal links from page"}: ${evidence.internalLinks.value ?? evidence.internalLinks.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6 });
+    writer.paragraph(`${ru ? "Фактическое индексирование" : "Actual search indexing"}: ${evidence.actualIndexing.reason ?? "—"}`, { size: 7.2, lineHeight: 8.6, color: rgb(.33, .36, .42) });
+    writer.rule();
   });
-  const explicitIndexingBlocks = client.pages.filter((page) => page.indexability.includes(ru ? "найден явный запрет" : "explicit indexing block was found")).length;
-  writer.paragraph(explicitIndexingBlocks === 0
-    ? (ru ? `Явный запрет на индексирование не обнаружен на всех ${client.pages.length} проверенных страницах.` : `No explicit indexing block was found on any of the ${client.pages.length} checked pages.`)
-    : (ru ? `Явный запрет на индексирование найден на ${explicitIndexingBlocks} из ${client.pages.length} проверенных страниц.` : `An explicit indexing block was found on ${explicitIndexingBlocks} of ${client.pages.length} checked pages.`),
-  { size: 8.2, lineHeight: 10.3, color: explicitIndexingBlocks === 0 ? rgb(.08, .43, .28) : rgb(.72, .12, .16) });
   writer.paragraph(ru
     ? `Ещё ${client.summary.outsideSample} страниц не вошли в бесплатную выборку. По ним отчёт не делает выводов.`
     : `${client.summary.outsideSample} more pages were outside the free sample. The report makes no claims about them.`, { bold: true, size: 8, lineHeight: 9.6 });
@@ -530,8 +534,32 @@ function writeContractAuditPdf(
     ? `Дополнительные изображения, скрипты и документы: ${client.additionalFiles}. Они не входят в бесплатную проверку и не загружались${client.additionalDocuments > 0 ? `; среди них документов: ${client.additionalDocuments}` : ""}.`
     : `Additional images, scripts and documents: ${client.additionalFiles}. They are outside the free check and were not loaded${client.additionalDocuments > 0 ? `; documents among them: ${client.additionalDocuments}` : ""}.`, { size: 7.8, lineHeight: 9.4 });
 
+  if (richEvidence) writer.compactHeading(ru ? "Все группы покрытия" : "All coverage groups");
+  if (richEvidence) client.coverageGroups.forEach((group) => writer.paragraph(
+    `${group.label}: ${ru ? "найдено" : "found"} ${group.found}; ${ru ? "подходят" : "eligible"} ${group.eligible}; ${ru ? "выбрано" : "selected"} ${group.selected}; ${ru ? "проверено" : "checked"} ${group.checked}; ${ru ? "не проверено" : "unchecked"} ${group.unchecked}${group.coverageStatus === "unavailable" ? `; ${ru ? "данные старого отчёта недоступны" : "legacy data unavailable"}` : ""}.`,
+    { size: 7.5, lineHeight: 9 },
+  ));
+
+  if (richEvidence) writer.compactHeading(ru ? "Решения по URL" : "URL decisions");
+  if (richEvidence && !client.urlDecisions.length) writer.paragraph(ru ? "В сохранённом отчёте нет причин выбора и исключения отдельных URL." : "The saved report has no reasons for selecting or excluding individual URLs.", { size: 7.8 });
+  if (richEvidence) client.urlDecisions.forEach((decision, index) => writer.paragraph(
+    `${index + 1}. ${decision.outcomeLabel}: ${decision.url}. ${decision.reason} ${ru ? "Источник" : "Source"}: ${decision.sourceLabel}. ${ru ? "Группа" : "Group"}: ${decision.groupLabel}.${decision.selectionReason ? ` ${ru ? "Причина выбора" : "Selection reason"}: ${decision.selectionReason}` : ""}${decision.primaryUrl ? ` ${ru ? "Основной URL" : "Primary URL"}: ${decision.primaryUrl}` : ""}`,
+    { size: 7.2, lineHeight: 8.6 },
+  ));
+
   writer.compactHeading(ru ? "Технические файлы, проверенные отдельно" : "Technical files checked separately");
-  client.publicTechnicalResources.forEach((resource) => writer.paragraph(`• ${resource.label} · ${resource.url} · ${ru ? "код ответа сервера" : "server response code"} ${resource.statusCode}${resource.details.length ? ` · ${resource.details.join(" ")}` : ""}`, { size: 7.8, lineHeight: 9.4 }));
+  if (richEvidence) client.technicalFiles.forEach((resource) => writer.paragraph(`• ${resource.label}: ${resource.status === "available" ? (ru ? "данные доступны" : "data available") : (ru ? "данные недоступны" : "data unavailable")}; URL: ${resource.url || "—"}; ${ru ? "код ответа" : "response code"}: ${resource.statusCode ?? "—"}; UTC: ${resource.loadedAt ?? "—"}.${resource.reason ? ` ${resource.reason}` : ""}${resource.facts.length ? ` ${resource.facts.join(" ")}` : ""}`, { size: 7.8, lineHeight: 9.4 }));
+  if (!richEvidence) client.publicTechnicalResources.forEach((resource) => writer.paragraph(`• ${resource.label}: ${resource.url}; ${ru ? "код ответа" : "response code"} ${resource.statusCode}. ${resource.details.join(" ")}`, { size: 7.8, lineHeight: 9.4 }));
+
+  if (richEvidence) writer.compactHeading(ru ? "Lighthouse" : "Lighthouse");
+  if (richEvidence) writer.paragraph(`${client.performance.label}. ${client.performance.reason}`, { bold: true, size: 8.2, lineHeight: 10 });
+  if (richEvidence && ["completed", "legacy_summary_only", "not_persisted"].includes(client.performance.status)) writer.paragraph(
+    `${ru ? "URL" : "URL"}: ${client.performance.targetUrl ?? "—"}; UTC: ${client.performance.capturedAt ?? "—"}; ${ru ? "профиль" : "profile"}: ${client.performance.profile ?? "—"}; ${ru ? "запусков" : "runs"}: ${client.performance.runCount}; ${ru ? "оценка" : "score"}: ${client.performance.score ?? "—"}; FCP: ${client.performance.fcpMs ?? "—"}; LCP: ${client.performance.lcpMs ?? "—"}; CLS: ${client.performance.cls ?? "—"}; TBT: ${client.performance.tbtMs ?? "—"}; Speed Index: ${client.performance.speedIndexMs ?? "—"}.`,
+    { size: 7.5, lineHeight: 9 },
+  );
+
+  if (richEvidence) writer.compactHeading(ru ? "Внешние показатели без данных" : "External metrics without data");
+  if (richEvidence) client.externalMetrics.forEach((metric) => writer.paragraph(`• ${metric.label}: ${metric.reason}`, { size: 7.8, lineHeight: 9.4 }));
 
   writer.compactHeading(ru ? "Чего бесплатная проверка не определяет" : "What the free check cannot determine");
   client.limitations.forEach((limitation) => writer.paragraph(`• ${limitation}`, { size: 7.8, lineHeight: 9.4 }));

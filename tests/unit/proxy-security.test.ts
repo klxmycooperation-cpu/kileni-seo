@@ -10,6 +10,7 @@ describe("security proxy", () => {
     expect(response.headers.get("content-security-policy")).not.toContain(
       "upgrade-insecure-requests",
     );
+
   });
 
   it("keeps insecure-request upgrades on HTTPS", async () => {
@@ -18,6 +19,14 @@ describe("security proxy", () => {
     expect(response.headers.get("content-security-policy")).toContain(
       "upgrade-insecure-requests",
     );
+  });
+
+  it("allows only the approved About-page media hosts", async () => {
+    const response = await proxy(new NextRequest("https://kileni.example/about"));
+    const csp = response.headers.get("content-security-policy");
+
+    expect(csp).toContain("img-src 'self' data: blob: https://d2ol7oe51mr4n9.cloudfront.net");
+    expect(csp).toContain("media-src 'self' https://d8j0ntlcm91z4.cloudfront.net");
   });
 
   it("returns a readable noindex 400 for a malformed audit page URL", async () => {

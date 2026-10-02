@@ -7,6 +7,7 @@ import { briefServices } from "../../content/brief";
 import { BriefWizard } from "../forms/BriefWizard";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
+import { CanvasText } from "../ui/canvas-text";
 
 export function BriefPage({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
@@ -20,12 +21,12 @@ export function BriefPage({ locale }: { locale: Locale }) {
           <div className="shell brief-hero-grid">
             <div>
               <p className="brief-kicker">{ru ? "Предложение под вашу задачу" : "A proposal shaped around your task"}</p>
-              <h1>{ru ? "Расскажите о задаче — соберём предложение без лишних работ" : "Describe the task — get a proposal without unnecessary work"}</h1>
+              <h1><CanvasText text={ru ? "Расскажите о задаче\nСоберём предложение" : "Tell us about the task\nWe will prepare a proposal"} lineGap={7} animationDuration={10}/></h1>
               <p className="brief-effort">{ru ? "Обычно это занимает 5–7 минут. Технические знания не нужны, а на сложный вопрос можно ответить «Не уверен»." : "It usually takes 5–7 minutes. No technical knowledge is required, and “Not sure” is a valid answer."}</p>
               <ul className="brief-hero-outcomes" aria-label={ru ? "Что даст бриф" : "What the brief provides"}>
                 {(ru
-                  ? ["Состав работ", "Срок по этапам", "Стоимость и границы"]
-                  : ["Scope of work", "Timing by stage", "Price and boundaries"]
+                  ? ["Состав работ", "Срок по этапам", "Стоимость и границы", "Что понадобится от вас", "Следующие шаги"]
+                  : ["Scope of work", "Timing by stage", "Price and boundaries", "What we need from you", "Next steps"]
                 ).map((item) => <li key={item}>{item}</li>)}
               </ul>
             </div>

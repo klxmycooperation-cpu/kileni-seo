@@ -20,6 +20,22 @@ describe("service information architecture", () => {
     expect(visuals.every((visual) => visual && visual.signals.length >= 3)).toBe(true);
   });
 
+  it("frames SEO promotion as a static editorial map instead of a repeating work cycle", () => {
+    const russian = getService("ru", "seo-promotion");
+    const english = getService("en", "seo-promotion");
+
+    expect(russian?.title).toBe("Превращаем поисковый спрос в понятные страницы сайта");
+    expect(russian?.lead).toBe("Собираем запросы, находим пробелы в структуре и обновляем страницы, чтобы поисковые системы и посетители понимали, какую услугу вы предлагаете и как с вами связаться.");
+    expect(russian?.visual).toMatchObject({
+      kind: "search-listing",
+      label: "Как работа с поиском меняет сайт",
+    });
+    expect(russian?.visual.kind).not.toBe("growth-loop");
+
+    expect(english?.title).toBe("Turn search demand into clear website pages");
+    expect(english?.visual.kind).toBe("search-listing");
+  });
+
   it("gives every service the full decision-making content structure in both languages", () => {
     for (const locale of ["ru", "en"] as const) {
       for (const slug of serviceSlugs) {

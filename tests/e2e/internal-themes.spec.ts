@@ -10,11 +10,8 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("keeps every internal content family in the complete Signal palette", async ({ page }) => {
-  await page.addInitScript(() => {
-    window.localStorage.setItem("kileni:theme:v1", "signal");
-  });
-
+test("keeps every internal content family aligned in both public palettes", async ({ page }) => {
+  test.setTimeout(90_000);
   const families = [
     { path: "/blog", selector: ".editorial-page" },
     { path: "/services", selector: ".services-10" },
@@ -25,13 +22,21 @@ test("keeps every internal content family in the complete Signal palette", async
     { path: "/glossary", selector: ".glossary-page" },
   ] as const;
 
-  for (const family of families) {
-    await page.goto(family.path);
+  await page.goto("/");
+  for (const theme of ["dark", "light"] as const) {
+    await page.evaluate((palette) => {
+      window.localStorage.setItem("kileni:theme:v1", palette);
+    }, theme);
 
-    await expect(page.locator("html"), family.path).toHaveAttribute("data-kileni-theme", "signal");
-    const surface = page.locator(family.selector).first();
-    await expect(surface, `${family.path} surface`).toHaveCSS("background-color", "rgb(8, 21, 15)");
-    await expect(surface, `${family.path} foreground`).toHaveCSS("color", "rgb(243, 255, 246)");
+    for (const family of families) {
+      await page.goto(family.path);
+
+      await expect(page.locator("html"), `${theme}: ${family.path}`).toHaveAttribute("data-kileni-theme", theme);
+      const surface = page.locator(family.selector).first();
+      await expect(surface, `${theme}: ${family.path} keeps the route surface seamless`).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+      await expect(surface, `${theme}: ${family.path} has a visible foreground`).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
+      await expect(page.locator(".site-tracing-beam__content"), `${theme}: ${family.path} route canvas`).not.toHaveCSS("background-image", "none");
+    }
   }
 });
 
@@ -48,8 +53,9 @@ test("applies the persisted Dark palette to architecture pages", async ({ page }
 
     await expect(page.locator("html"), family.path).toHaveAttribute("data-kileni-theme", "dark");
     const surface = page.locator(family.selector).first();
-    await expect(surface, `${family.path} surface`).toHaveCSS("background-color", "rgb(7, 17, 31)");
+    await expect(surface, `${family.path} keeps the route surface seamless`).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     await expect(surface, `${family.path} foreground`).toHaveCSS("color", "rgb(247, 248, 252)");
+    await expect(page.locator(".site-tracing-beam__content"), `${family.path} route canvas`).not.toHaveCSS("background-image", "none");
   }
 });
 
@@ -61,20 +67,16 @@ test("keeps the light home hero's supporting copy readable", async ({ page }) =>
   await page.goto("/");
 
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "light");
-  await expect(page.locator(".hero-free-audit-usage")).toHaveCSS("color", "rgb(75, 89, 112)");
-  await expect(page.locator(".hero-free-audit-usage strong")).toHaveCSS("color", "rgb(16, 23, 34)");
-  await expect(page.locator(".analytics-demo-caption")).toHaveCount(0);
+  await expect(page.locator(".hero-free-audit-usage")).toHaveCSS("color", "rgb(89, 97, 121)");
+  await expect(page.locator(".hero-free-audit-usage strong")).toHaveCSS("color", "rgb(24, 35, 59)");
+  await expect(page.locator(".analytics-demo-caption")).toHaveCSS("color", "rgb(98, 114, 141)");
 });
 
-test("cycles the public themes in the approved Dark to Signal to Light order", async ({ page }) => {
+test("cycles the public themes between Dark and Light", async ({ page }) => {
   await page.goto("/");
 
   const toggle = page.locator(".site-header .theme-toggle:not(.theme-toggle--mobile)");
   await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "dark");
-  await expect(toggle).toHaveAttribute("aria-label", "Включить контрастную тему");
-
-  await toggle.click();
-  await expect(page.locator("html")).toHaveAttribute("data-kileni-theme", "signal");
   await expect(toggle).toHaveAttribute("aria-label", "Включить светлую тему");
 
   await toggle.click();
@@ -86,7 +88,7 @@ test("cycles the public themes in the approved Dark to Signal to Light order", a
 });
 
 test("defines the required semantic tokens in every public palette", async ({ page }) => {
-  const themes = ["dark", "signal", "light"] as const;
+  const themes = ["dark", "light"] as const;
   const tokens = [
     "--background",
     "--background-elevated",
@@ -107,11 +109,12 @@ test("defines the required semantic tokens in every public palette", async ({ pa
     "--focus",
   ] as const;
 
+  await page.goto("/");
   for (const theme of themes) {
-    await page.addInitScript((palette) => {
+    await page.evaluate((palette) => {
       window.localStorage.setItem("kileni:theme:v1", palette);
     }, theme);
-    await page.goto("/");
+    await page.reload();
 
     await expect(page.locator("html"), theme).toHaveAttribute("data-kileni-theme", theme);
     const values = await page.locator(".kileni-site").evaluate((element, names) => {
@@ -122,30 +125,7 @@ test("defines the required semantic tokens in every public palette", async ({ pa
   }
 });
 
-test("keeps the deliverables proof dark in every theme", async ({ page }) => {
-  for (const theme of ["light", "dark", "signal"] as const) {
-    await page.addInitScript((palette) => {
-      window.localStorage.setItem("kileni:theme:v1", palette);
-    }, theme);
-    await page.goto("/");
-
-    const matchesDarkPresentation = await page.locator(".kileni-site").evaluate(() => {
-      const colorOf = (selector: string) => getComputedStyle(document.querySelector(selector)!).color;
-      const backgroundOf = (selector: string) => getComputedStyle(document.querySelector(selector)!).backgroundColor;
-      return {
-        deliverables: backgroundOf(".home-deliverables") === "rgb(7, 17, 31)",
-        heading: colorOf(".home-deliverables h2") === "rgb(247, 248, 252)",
-      };
-    });
-
-    expect(matchesDarkPresentation, theme).toEqual({
-      deliverables: true,
-      heading: true,
-    });
-  }
-});
-
-test("uses semantic colors for the remaining key light-theme home sections", async ({ page }) => {
+test("uses semantic colors for the key light-theme home sections", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("kileni:theme:v1", "light");
   });
@@ -161,28 +141,26 @@ test("uses semantic colors for the remaining key light-theme home sections", asy
       probe.remove();
       return color;
     };
-    const backgroundFor = (token: string) => {
-      const probe = document.createElement("span");
-      probe.style.backgroundColor = `var(${token})`;
-      site.append(probe);
-      const color = getComputedStyle(probe).backgroundColor;
-      probe.remove();
-      return color;
-    };
     const colorOf = (selector: string) => getComputedStyle(document.querySelector(selector)!).color;
     const backgroundOf = (selector: string) => getComputedStyle(document.querySelector(selector)!).backgroundColor;
     return {
+      deliverables: backgroundOf(".home-deliverables") === "rgba(0, 0, 0, 0)",
+      heading: colorOf(".home-deliverables h2") === colorFor("--text-primary"),
       directionNumber: colorOf(".home-direction-list > a > span") === colorFor("--text-muted"),
-      directionBorder: getComputedStyle(document.querySelector(".home-direction-list > a")!).borderTopColor === colorFor("--border"),
-      surface: backgroundOf(".home-directions") === backgroundFor("--surface"),
+      directionBorder: getComputedStyle(document.querySelector(".home-direction-list > a")!).borderTopColor !== "rgba(0, 0, 0, 0)",
+      surface: backgroundOf(".home-directions") === "rgba(0, 0, 0, 0)",
+      routeCanvas: getComputedStyle(document.querySelector(".site-tracing-beam__content")!).backgroundImage !== "none",
       hasPrimary: styles.getPropertyValue("--text-primary").trim().length > 0,
     };
   });
 
   expect(matchesTokens).toEqual({
+    deliverables: true,
+    heading: true,
     directionNumber: true,
     directionBorder: true,
     surface: true,
+    routeCanvas: true,
     hasPrimary: true,
   });
 });

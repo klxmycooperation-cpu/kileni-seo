@@ -11,6 +11,7 @@ import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
 import { Faq } from "./Faq";
 import { ServiceVisual } from "./ServiceVisual";
+import { CanvasText } from "../ui/canvas-text";
 import { ServiceTierProvider, ServiceTierSelector } from "./ServiceTierSelection";
 
 export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) {
@@ -18,14 +19,17 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
   if (!service) return null;
   const d = getDictionary(locale);
   const ru = locale === "ru";
-  const heroTitle = slug === "custom-task"
-    ? (ru ? "Опишите задачу — предложим формат работы" : "Describe the task — we will propose a working format")
-    : service.title;
+  const heroTitle = slug === "seo-audit"
+    ? (ru ? "Проверим сайт\nСоставим список работ" : "We check the website\nAnd prepare a work list")
+    : slug === "custom-task"
+      ? (ru ? "Опишите задачу — предложим формат работы" : "Describe the task — we will propose a working format")
+      : service.title;
   const heroLead = slug === "custom-task"
     ? (ru
         ? "Состав, срок и стоимость определим после короткого брифа. Работу начинаем только после согласования."
         : "Scope, timing and price are confirmed after a short brief. Work starts only after approval.")
     : service.lead;
+  const auditHeroLines = slug === "seo-audit" ? heroTitle.split("\n") : null;
   const offers = offersForServicePage(slug);
   const tierLabels = tierLabelsForService(slug, locale);
   const tierViews = offers.map((offer, index) => {
@@ -38,20 +42,13 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
       limit: item.scope,
       duration: item.duration,
       current: formatOfferPrice(offer, locale),
+      highlights: tierHighlightsForOffer(offer.id, locale),
       features: item.features,
       featured: offer.recommended,
       briefHref: offerBriefHref(offer.id, locale),
     };
   });
   const variantsCopy = getVariantsCopy(slug, locale);
-  const overviewTitles: Record<string, [string, string]> = {
-    "seo-audit": ["Проверим доступность страниц, структуру и технические настройки", "Review page access, structure and technical settings"],
-    "seo-promotion": ["Согласуем страницы и исправления на ближайший месяц", "Agree the pages and improvements for the coming month"],
-    "web-development": ["От структуры страниц до работающего сайта", "From page structure to a working website"],
-    "yandex-ads": ["Подготовим объявления, посадочные страницы и учёт обращений", "Prepare adverts, landing pages and enquiry tracking"],
-    "content-materials": ["Подготовим материалы по вашим данным и задачам", "Create content based on your information and goals"],
-    "custom-task": ["Определим первый этап и ожидаемый результат", "Define the first stage and its expected outcome"],
-  };
 
   return (
     <PublicShell locale={locale}>
@@ -62,7 +59,17 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
           <div className="shell svc-detail-hero-grid">
             <div className="svc-detail-copy">
               <p className="svc-kicker">{service.eyebrow}</p>
-              <h1>{heroTitle}</h1>
+              <h1>
+                <CanvasText text={heroTitle} lineGap={7} animationDuration={10}>
+                  {auditHeroLines
+                    ? auditHeroLines.map((line, index) => (
+                      <span className="svc-audit-title-line" key={line}>
+                        {line}{index < auditHeroLines.length - 1 ? "\n" : null}
+                      </span>
+                    ))
+                    : heroTitle}
+                </CanvasText>
+              </h1>
               <p>{heroLead}</p>
               <div className="svc-hero-actions">
                 <Link className="button button-primary" href="#request">{d.common.order}<span aria-hidden="true">↘</span></Link>
@@ -86,21 +93,21 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
           <div className="shell">
             <header className="svc-compact-heading">
               <p className="svc-kicker">{ru ? "Как решаем задачу" : "How the task is solved"}</p>
-              <h2 id="svc-overview-title">{overviewTitles[slug]?.[ru ? 0 : 1] ?? (ru ? "Состав работ и результат" : "Scope and deliverables")}</h2>
+              <h2 id="svc-overview-title">{ru ? "Показываем, когда услуга подходит, что делаем и какой результат передаём" : "See when the service fits, what we do and what you receive"}</h2>
               <p>{service.problem}</p>
             </header>
             <div className="svc-compact-grid">
               <article>
                 <span>01</span><h3>{ru ? "Когда подходит" : "When it fits"}</h3>
-                <ul>{service.fit.slice(0, 4).map((item) => <li key={item}><span>{item}</span></li>)}</ul>
+                <ul>{service.fit.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ul>
               </article>
               <article>
                 <span>02</span><h3>{ru ? "Что делаем" : "What we do"}</h3>
-                <ol>{service.work.slice(0, 4).map((item, index) => <li key={item}><b>{index + 1}</b><span>{item}</span></li>)}</ol>
+                <ol>{service.work.slice(0, 4).map((item, index) => <li key={item}><b>{index + 1}</b>{item}</li>)}</ol>
               </article>
               <article>
                 <span>03</span><h3>{ru ? "Что получите" : "What you receive"}</h3>
-                <ul>{service.deliverables.slice(0, 5).map((item) => <li key={item}><span>{item}</span></li>)}</ul>
+                <ul>{service.deliverables.slice(0, 5).map((item) => <li key={item}>{item}</li>)}</ul>
               </article>
             </div>
           </div>
@@ -118,7 +125,7 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
             <header><p className="svc-kicker">{ru ? "До старта и после работы" : "Before and after delivery"}</p><h2 id="svc-assurance-title">{ru ? "Границы и приёмка без мелкого шрифта" : "Clear boundaries and acceptance"}</h2><p>{service.duration}</p></header>
             <div className="svc-assurance-grid">
               <article><h3>{ru ? "Не входит" : "Not included"}</h3><ul>{service.exclusions.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ul></article>
-              <article><h3>{ru ? "Как принимаем" : "How we accept delivery"}</h3><ol><li><span>01</span>{ru ? "Фиксируем исходное состояние." : "Record the baseline."}</li><li><span>02</span>{ru ? "Передаём изменения и материалы." : "Hand over changes and materials."}</li><li><span>03</span>{ru ? "Повторяем согласованные проверки." : "Repeat the agreed checks."}</li></ol></article>
+              <article><h3>{ru ? "Как принимаем" : "How we accept delivery"}</h3><ol><li><span>01</span>{ru ? "Фиксируем исходное состояние." : "Record the baseline."}</li><li><span>02</span>{ru ? "Передаём отчёт, задачи и согласованные изменения." : "Hand over the report, tasks and agreed changes."}</li><li><span>03</span>{ru ? "Повторяем согласованные проверки." : "Repeat the agreed checks."}</li><li><span>04</span>{ru ? "Подтверждаем результат и оставшиеся ограничения." : "Confirm the result and any remaining limitations."}</li></ol></article>
             </div>
             <div className="svc-assurance-footer">{service.caseLink && <Link href={localizedPath(locale, service.caseLink)}>{ru ? "Кейс с доказательствами" : "Evidence-based case"}<span aria-hidden="true">↗</span></Link>}<p>{d.common.noGuarantee}</p></div>
           </div>
@@ -132,26 +139,28 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
           </div>
         </section>
 
-        <Faq title={ru ? "Вопросы об услуге" : "Questions about the service"} items={service.faq} />
-        <section id="request" className="svc-request-section">
-          <div className="shell svc-request-grid">
-            <div className="svc-request-intro">
-              <p className="svc-kicker">{ru ? "Следующий шаг" : "Next step"}</p>
-              <h2>{ru ? "Опишите задачу — предложим подходящий объём" : "Describe the task — get a suitable scope"}</h2>
-              <p>{ru ? "До начала назовём состав, срок, цену и то, что не входит в работу." : "Before work starts, we state scope, timing, price and exclusions."}</p>
-              <ul>
-                <li>{ru ? "Ответим по указанному контакту" : "We reply using the contact you provide"}</li>
-                <li>{ru ? "Уточним только необходимые входные данные" : "We ask only for the inputs we need"}</li>
-                <li>{ru ? "Работу начнём после согласования" : "Work starts after your approval"}</li>
-              </ul>
-            </div>
-            <div className="svc-request-form"><LeadForm locale={locale} service={slug} /></div>
-          </div>
-        </section>
+        <Faq className="svc-faq-section" title={ru ? "Вопросы об услуге" : "Questions about the service"} items={service.faq} />
+        <section id="request" className="svc-request-section"><div className="shell svc-request-grid"><div><p className="svc-kicker">{ru ? "Следующий шаг" : "Next step"}</p><h2>{ru ? "Опишите задачу — предложим подходящий объём" : "Describe the task — get a sensible scope"}</h2><p>{ru ? "До начала назовём состав, срок, цену и то, что не входит в работу." : "Before work starts, we state scope, timing, price and exclusions."}</p></div><LeadForm locale={locale} service={slug} /></div></section>
       </article>
       </ServiceTierProvider>
     </PublicShell>
   );
+}
+
+function tierHighlightsForOffer(id: string, locale: Locale): Array<{ value: string; label: string }> | undefined {
+  const ru = locale === "ru";
+  const highlights: Record<string, Array<{ value: string; label: string }>> = {
+    "seo-audit-free": ru
+      ? [{ value: "до 10", label: "открытых страниц" }, { value: "3–7 мин", label: "обычно занимает" }]
+      : [{ value: "up to 10", label: "public pages" }, { value: "3–7 min", label: "typical duration" }],
+    "seo-audit-200": ru
+      ? [{ value: "до 200", label: "страниц и шаблонов" }, { value: "5–7 дней", label: "срок аудита" }]
+      : [{ value: "up to 200", label: "pages and templates" }, { value: "5–7 days", label: "audit duration" }],
+    "seo-audit-implementation": ru
+      ? [{ value: "до 200", label: "страниц в аудите" }, { value: "до 12 ч", label: "согласованных правок" }]
+      : [{ value: "up to 200", label: "pages in the audit" }, { value: "up to 12 h", label: "agreed fixes" }],
+  };
+  return highlights[id];
 }
 
 function CustomTaskPath({ locale }: { locale: Locale }) {

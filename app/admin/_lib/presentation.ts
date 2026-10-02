@@ -134,6 +134,7 @@ export function notificationLabel(value: unknown): string {
 export function channelLabel(value: unknown): string {
   const channel = String(value ?? "").trim();
   if (channel === "email") return "Email";
+  if (channel === "admin_email") return "Email KILENI";
   if (channel === "telegram") return "Telegram";
   return channel || "Канал не указан";
 }

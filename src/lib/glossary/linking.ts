@@ -94,10 +94,17 @@ export function getGlossaryLinkEntries(locale: Locale): GlossaryLinkEntry[] {
     return {
       slug: term.slug,
       term: term[locale].term,
-      tooltip: GLOSSARY_TOOLTIPS[term.slug]?.[locale] ?? "",
+      tooltip: canonicalTooltip(term[locale].definition, GLOSSARY_TOOLTIPS[term.slug]?.[locale] ?? ""),
       aliases: uniqueStrings([term[locale].term, ...localizedAliases]),
     };
   });
+}
+
+function canonicalTooltip(definition: string, curatedTooltip: string): string {
+  const curated = curatedTooltip.trim();
+  if (curated) return curated;
+  const words = definition.trim().split(/\s+/u).filter(Boolean).slice(0, 3);
+  return words.join(" ");
 }
 
 export function countTooltipWords(value: string): number {

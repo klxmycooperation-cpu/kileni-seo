@@ -3,12 +3,12 @@ import Link from "next/link";
 import { AdminDate, AdminEmpty } from "@/src/components/admin/AdminUi";
 import { SubmissionStatus } from "./_components/EntityUi";
 import { requireAdmin } from "./_lib/auth";
-import { adminDashboardData } from "./_lib/data";
+import { adminAttentionSummary, adminDashboardData } from "./_lib/data";
 import { auditStatusLabel } from "./_lib/audit-view";
 
 export default async function AdminPage() {
   await requireAdmin();
-  const data = await adminDashboardData();
+  const [data, attention] = await Promise.all([adminDashboardData(), adminAttentionSummary()]);
 
   return (
     <>
@@ -19,6 +19,12 @@ export default async function AdminPage() {
           <p className="admin-title__description">Новые заявки, заполненные брифы и проверки сайта — без перехода между разными системами.</p>
         </div>
       </div>
+
+      <Link className="admin-attention-summary" href="/admin/requests">
+        <span><b>{attention.newCount}</b><small>{newRequestLabel(attention.newCount)}</small></span>
+        <span className={attention.failedNotificationCount > 0 ? "admin-attention-summary__warning" : undefined}><b>{attention.failedNotificationCount}</b><small>{notificationErrorLabel(attention.failedNotificationCount)}</small></span>
+        <strong>{attention.attentionCount > 0 ? "Открыть обращения, требующие внимания →" : "Открыть общую ленту обращений →"}</strong>
+      </Link>
 
       <section className="admin-dashboard-grid" aria-label="Сводка">
         <DashboardCard href="/admin/leads" title="Заявки" total={data.leads.total} active={data.leads.active} newCount={data.leads.newCount}/>
@@ -73,6 +79,24 @@ export default async function AdminPage() {
       </div>
     </>
   );
+}
+
+function notificationErrorLabel(count: number): string {
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  if (mod100 >= 11 && mod100 <= 14) return "ошибок уведомлений";
+  if (mod10 === 1) return "ошибка уведомления";
+  if (mod10 >= 2 && mod10 <= 4) return "ошибки уведомлений";
+  return "ошибок уведомлений";
+}
+
+function newRequestLabel(count: number): string {
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  if (mod100 >= 11 && mod100 <= 14) return "новых обращений";
+  if (mod10 === 1) return "новое обращение";
+  if (mod10 >= 2 && mod10 <= 4) return "новых обращения";
+  return "новых обращений";
 }
 
 function DashboardChart({ title, description, points }: { title: string; description: string; points: Array<{ day: string; label: string; count: number }> }) {

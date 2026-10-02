@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AdminLogoutButton } from "@/src/components/admin/AdminLogoutButton";
 import { currentAdmin } from "./_lib/auth";
+import { adminAttentionSummary } from "./_lib/data";
 import "./admin.css";
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const admin = await currentAdmin();
+  const attention = admin ? await adminAttentionSummary() : null;
   return (
     <div className="admin-shell">
       <header className="admin-header">
@@ -24,6 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/audits">Аудиты</Link>
           <Link href="/admin/leads">Заявки</Link>
           <Link href="/admin/briefs">Брифы</Link>
+          <Link className="admin-nav-requests" href="/admin/requests">Обращения{attention && attention.newCount > 0 ? <span aria-label={`Новых обращений: ${attention.newCount}`}>{attention.newCount}</span> : null}{attention && attention.failedNotificationCount > 0 ? <b aria-label={`Ошибок уведомлений: ${attention.failedNotificationCount}`}>!</b> : null}</Link>
           <AdminLogoutButton/>
         </nav>}
       </header>

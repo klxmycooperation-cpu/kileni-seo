@@ -4,11 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { Locale } from "../../config/site";
 import { localizedPath, siteConfig } from "../../config/site";
 import { getDictionary } from "../../content/dictionary";
 import { Logo } from "../brand/Logo";
+import { releaseAboutPlanetPreload, warmAboutPlanet } from "../../lib/media/about-preload";
 import { ThemeToggle } from "./ThemeToggle";
 
 const serviceItems = [
@@ -51,7 +52,28 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const d = getDictionary(locale);
-  const home = pathname === "/" || pathname === "/en";
+  const home = pathname === "/";
+
+  useEffect(() => {
+    if (pathname === "/about") {
+      releaseAboutPlanetPreload();
+      return;
+    }
+    const timer = window.setTimeout(() => warmAboutPlanet(), 6_000);
+    const onIntent = (event: Event) => {
+      const anchor = (event.target as Element | null)?.closest?.('a[href="/about"]');
+      if (anchor) warmAboutPlanet(true);
+    };
+    document.addEventListener("pointerover", onIntent, { passive: true });
+    document.addEventListener("focusin", onIntent);
+    document.addEventListener("touchstart", onIntent, { passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("pointerover", onIntent);
+      document.removeEventListener("focusin", onIntent);
+      document.removeEventListener("touchstart", onIntent);
+    };
+  }, [pathname]);
   const phone = siteConfig.publicContacts.phone;
   const phoneHref = `tel:${phone.replace(/[^\d+]/gu, "")}`;
 
@@ -68,9 +90,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     const href = localizedPath(locale, path);
     return pathname === href || pathname.startsWith(`${href}/`);
   };
-  const switched = locale === "ru"
-    ? (pathname === "/" ? "/en" : `/en${pathname}`)
-    : (pathname.replace(/^\/en(?=\/|$)/u, "") || "/");
+
 
   const cancelClose = () => {
     if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
@@ -158,12 +178,14 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       width: body.style.width,
       overflow: body.style.overflow,
     };
-    const backgroundElements = [
+    const backgroundElements = Array.from(new Set([
       document.querySelector<HTMLElement>(".skip-link"),
+      document.getElementById("main-content"),
+      document.querySelector<HTMLElement>(".site-footer"),
       ...document.querySelectorAll<HTMLElement>(".kileni-site > :not(.site-header)"),
       ...document.querySelectorAll<HTMLElement>(".site-header .header-inner > :not(.header-actions)"),
       ...document.querySelectorAll<HTMLElement>(".site-header .header-actions > :not(.menu-button)"),
-    ].filter((element): element is HTMLElement => element instanceof HTMLElement).map((element) => ({
+    ].filter((element): element is HTMLElement => element instanceof HTMLElement))).map((element) => ({
       element,
       hadInert: element.hasAttribute("inert"),
       ariaHidden: element.getAttribute("aria-hidden"),
@@ -278,7 +300,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     const closeDesktopLayout = () => {
-      if (window.innerWidth <= 1080 || textScaleCompact) setDesktopMenu(null);
+      if (window.innerWidth <= 700 || textScaleCompact) setDesktopMenu(null);
       else {
         setMobileOpen(false);
         setMobileSection(null);
@@ -289,12 +311,6 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     return () => window.removeEventListener("resize", closeDesktopLayout);
   }, [textScaleCompact]);
 
-  const switchLocale = (event: ReactMouseEvent<HTMLAnchorElement>) => {
-    event.currentTarget.href = `${switched}${window.location.search}${window.location.hash}`;
-    if (mobileOpen) closeMobileForNavigation();
-    else closeMobile();
-    setDesktopMenu(null);
-  };
 
   const desktopDisclosure = (
     menu: Exclude<DesktopMenu, null>,
@@ -385,6 +401,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     <header
       className={`site-header${home ? " site-header--home" : ""}`}
       data-scrolled={scrolled ? "true" : "false"}
+      data-header-presentation={scrolled ? "compact" : "full"}
       data-text-scale-compact={textScaleCompact ? "true" : undefined}
     >
       <div className="shell header-inner">
@@ -401,7 +418,6 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             <span>{phone}</span>
           </a>
           <ThemeToggle locale={locale}/>
-          <a className="language-link" href={switched} hrefLang={locale === "ru" ? "en" : "ru"} onClick={switchLocale} onAuxClick={switchLocale}>{locale === "ru" ? "EN" : "RU"}</a>
           <Link className="button button-small button-primary header-cta" href={localizedPath(locale, "free-audit")}>{d.nav.cta}</Link>
           <button ref={mobileMenuButtonRef} className="menu-button" type="button" aria-expanded={mobileOpen} aria-controls="mobile-menu" aria-label={mobileOpen ? (locale === "ru" ? "Закрыть меню" : "Close menu") : (locale === "ru" ? "Открыть меню" : "Open menu")} onClick={() => mobileOpen ? closeMobile() : setMobileOpen(true)}><span/><span/></button>
         </div>
@@ -425,7 +441,6 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             <span>{phone}</span>
           </a>
           <ThemeToggle locale={locale} mobile/>
-          <a className="mobile-language-link" href={switched} hrefLang={locale === "ru" ? "en" : "ru"} onClick={switchLocale} onAuxClick={switchLocale}><span aria-hidden="true">{locale === "ru" ? "EN" : "RU"}</span>{locale === "ru" ? "English" : "Русский"}</a>
         </nav>
       </div>
     </header>

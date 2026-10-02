@@ -9,7 +9,7 @@ import { buildPublicShellSchema } from "../../src/components/layout/PublicShell"
 import { SiteFooter } from "../../src/components/layout/SiteFooter";
 
 describe("public navigation SEO", () => {
-  it("uses absolute URLs for BreadcrumbList items in both locales", () => {
+  it("uses absolute URLs for BreadcrumbList items on the Russian site", () => {
     expect(buildBreadcrumbSchema("ru", [
       { label: "Услуги", path: "services" },
       { label: "SEO-аудит", path: "seo-audit", current: true },
@@ -34,18 +34,14 @@ describe("public navigation SEO", () => {
       },
     ]);
 
-    expect(buildBreadcrumbSchema("en", [{ label: "Services", path: "services" }])
-      .itemListElement.map((item) => item.item)).toEqual([
-      "https://kileni-seo.ru/en",
-      "https://kileni-seo.ru/en/services",
-    ]);
+
   });
 
-  it("describes one multilingual WebSite and the business as an Organization", () => {
-    for (const locale of ["ru", "en"] as const) {
+  it("describes the Russian WebSite and the business as an Organization", () => {
+    for (const locale of ["ru"] as const) {
       const graph = buildPublicShellSchema(locale)["@graph"];
       expect(graph.find((node) => node["@id"] === "https://kileni-seo.ru/#organization")?.["@type"]).toBe("Organization");
-      expect(graph.find((node) => node["@id"] === "https://kileni-seo.ru/#website")?.inLanguage).toEqual(["ru", "en"]);
+      expect(graph.find((node) => node["@id"] === "https://kileni-seo.ru/#website")?.inLanguage).toEqual(["ru"]);
     }
   });
 
@@ -60,7 +56,6 @@ describe("public navigation SEO", () => {
 
   it.each([
     ["ru", "/contacts", "/calculator"],
-    ["en", "/en/contacts", "/en/calculator"],
   ] as const)("links the %s contact and calculator pages from the sitewide footer", (locale, contacts, calculator) => {
     const html = renderToStaticMarkup(createElement(SiteFooter, { locale }));
 

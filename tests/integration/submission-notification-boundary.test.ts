@@ -100,6 +100,23 @@ function requestFor(kind: string, payload: unknown, files: File[] = []) {
   return new Request(`http://localhost:3107/api/${kind}`, { method: "POST", headers, body });
 }
 
+it("stores the selected service offer and its canonical terms for the admin", async () => {
+  const contact = "selected-offer@example.test";
+  const response = await routes.leads(requestFor("leads", {
+    name: "Проверка тарифа", contact, consent: true, locale: "ru", service: "web-development",
+    offerId: "development-business", comment: "Нужен сайт компании", selectedTier: "Поддельная цена 1 рубль",
+  }));
+  expect(response.status).toBe(201);
+  const leads = await admin.adminLeadList(contact);
+  expect(leads).toHaveLength(1);
+  const detail = await admin.adminLeadDetail(leads[0].id);
+  expect(detail?.lead.comment).toContain("Сайт компании (development-business)");
+  expect(detail?.lead.comment).toMatch(/70\s*000\s*₽/u);
+  expect(detail?.lead.comment).toContain("До 5 шаблонов и 10 готовых страниц");
+  expect(detail?.lead.comment).toContain("Нужен сайт компании");
+  expect(detail?.lead.comment).not.toContain("Поддельная цена");
+});
+
 it("does not leave a calculator lead without its calculation when the second insert fails", async () => {
   db.sqlite.exec("CREATE TRIGGER test_fail_calculator BEFORE INSERT ON calculator_requests BEGIN SELECT RAISE(ABORT, 'test failure'); END");
   try {

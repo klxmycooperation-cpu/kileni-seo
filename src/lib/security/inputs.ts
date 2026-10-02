@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { PUBLIC_AUDIT_PAGE_LIMIT } from "../../config/public-audit";
+import { getOffer } from "../../config/offers";
 import { isNewPublicContact, newPublicContactType, type NewPublicContactType } from "../contact";
 
 const contactSchema = z.string().trim().min(4).max(160)
-  .refine(isNewPublicContact, "Укажите телефон или e-mail");
+  .refine(isNewPublicContact, "Укажите корректный e-mail");
 
 const optionalAuditEmailSchema = z.string().trim().max(160).refine(
   (value) => value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value),
@@ -12,14 +13,14 @@ const optionalAuditEmailSchema = z.string().trim().max(160).refine(
 
 export function detectContactType(value: string): NewPublicContactType {
   const type = newPublicContactType(value);
-  if (!type) throw new TypeError("Контакт должен содержать корректный телефон или e-mail");
+  if (!type) throw new TypeError("Контакт должен содержать корректный e-mail");
   return type;
 }
 
 const common = {
   name: z.string().trim().min(2).max(80),
   contact: contactSchema,
-  locale: z.enum(["ru", "en"]).default("ru"),
+  locale: z.literal("ru").default("ru"),
   consent: z.literal(true),
   honeypot: z.string().max(0).optional().default(""),
   turnstileToken: z.string().trim().max(2048).optional(),
@@ -37,7 +38,7 @@ export const auditRequestSchema = z.object({
   url: z.string().trim().min(4).max(2048),
   priorityUrls: z.array(z.string().trim().min(1).max(2048)).max(3).optional().default([]),
   email: optionalAuditEmailSchema,
-  locale: z.enum(["ru", "en"]).default("ru"),
+  locale: z.literal("ru").default("ru"),
   consent: z.boolean().optional().default(false),
   authority: z.literal(true),
   honeypot: z.string().max(0).optional().default(""),
@@ -62,10 +63,13 @@ export const leadRequestSchema = z.object({
   ...common,
   target: z.string().trim().max(2048).optional().default(""),
   service: z.string().trim().min(2).max(100),
+  offerId: z.string().trim().max(120).optional(),
   comment: z.string().trim().max(3000).optional().default(""),
   pageUrl: z.string().trim().max(2048).optional().default(""),
   source: z.string().trim().max(120).default("short-form"),
   utm: utmSchema.optional().default({}),
+}).refine((value) => !value.offerId || getOffer(value.offerId)?.service === value.service, {
+  path: ["offerId"], message: "Выбранный тариф не соответствует услуге",
 });
 
 export const calculatorRequestSchema = z.object({

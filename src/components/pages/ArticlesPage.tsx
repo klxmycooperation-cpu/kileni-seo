@@ -6,6 +6,7 @@ import { localizedPath, siteConfig } from "../../config/site";
 import { getArticle, getArticles } from "../../content/articles";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
+import { CanvasText } from "../ui/canvas-text";
 import { ArticlesIndex } from "./ArticlesIndex";
 
 function formatDate(locale: Locale, value: string) {
@@ -60,8 +61,8 @@ export function ArticlesPage({ locale }: { locale: Locale }) {
           <Breadcrumbs locale={locale} items={[{ label: ru ? "Блог" : "Blog" }]}/>
           <section className="page-hero shell">
             <p className="eyebrow light">{ru ? "Блог KILENI" : "KILENI blog"}</p>
-            <h1>{ru ? "Практичные статьи о поиске, сайте и продажах" : "Practical guides to search, websites and sales"}</h1>
-            <p>{ru ? "Разбираем аудит, индексацию, производительность, продвижение интернет-магазинов и стоимость SEO. Объясняем порядок проверки и приводим примеры и источники." : "Guides to auditing, indexing, performance, e-commerce SEO and costs, with practical checks, examples and sources."}</p>
+            <h1><CanvasText text={ru ? "Практичные статьи о поиске, сайте и продажах" : "Practical guides to search, websites and sales"} lineGap={7} animationDuration={10}/></h1>
+            <p>{ru ? "Аудит, индексация, скорость, интернет-магазин, каналы и стоимость SEO. Внутри — порядок действий, данные двух проектов и официальные источники." : "Auditing, indexing, speed, e-commerce, channels and SEO cost. Every guide gives an action order, evidence from two projects and official sources."}</p>
           </section>
         </div>
         <section className="section section-light article-index-section">
@@ -112,7 +113,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
           <Breadcrumbs locale={locale} items={[{ label: ru ? "Блог" : "Blog", path: "blog" }, { label: article.title }]}/>
           <header className="shell article-header">
             <p className="eyebrow light">{article.searchIntent.label}</p>
-            <h1>{article.title}</h1>
+            <h1><CanvasText text={article.title} lineGap={7} animationDuration={10}/></h1>
             <p>{article.readerOutcome}</p>
             <div className="article-meta"><span>{article.author}</span><span>{formatDate(locale, article.date)}</span><span>{article.readingMinutes} {ru ? "минут чтения" : "min read"}</span></div>
           </header>

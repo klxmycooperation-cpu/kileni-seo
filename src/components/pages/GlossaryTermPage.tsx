@@ -10,16 +10,8 @@ import {
 import { glossaryDetailPath } from "../../lib/seo/glossary-metadata";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
+import { CanvasText } from "../ui/canvas-text";
 import { GlossaryReturnLink } from "../glossary/GlossaryReturnLink";
-
-function formatEditorialDate(locale: Locale, value: string) {
-  return new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${value}T00:00:00Z`));
-}
 
 export function GlossaryTermPage({ locale, slug }: { locale: Locale; slug: string }) {
   const term = getGlossaryTerm(slug);
@@ -57,12 +49,8 @@ export function GlossaryTermPage({ locale, slug }: { locale: Locale; slug: strin
         </div>
         <section className="glossary-hero shell">
           <p className="section-kicker">{ru ? "Термин простыми словами" : "Term in plain language"}</p>
-          <h1>{copy.term}</h1>
+          <h1><CanvasText text={copy.term} lineGap={7} animationDuration={10}/></h1>
           <p>{copy.definition}</p>
-          <p className="glossary-provenance">
-            <span>{copy.editor}</span>
-            <span>{ru ? "Обновлено:" : "Updated:"} {formatEditorialDate(locale, term.updatedAt)}</span>
-          </p>
         </section>
 
         <section className="glossary-grid shell" aria-label={ru ? `Разбор термина ${copy.term}` : `${copy.term} explained`}>

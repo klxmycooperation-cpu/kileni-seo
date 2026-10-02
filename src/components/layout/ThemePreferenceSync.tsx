@@ -6,7 +6,7 @@ import { THEME_CHANGE_EVENT, THEME_STORAGE_KEY, type KileniTheme } from "./theme
 function storedTheme(): KileniTheme {
   try {
     const value = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (value === "light" || value === "signal") return value;
+    if (value === "light") return value;
   } catch {
     // Keep the default theme when storage is unavailable.
   }

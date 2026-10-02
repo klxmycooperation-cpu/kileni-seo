@@ -142,8 +142,7 @@ describe("20 current audit pipeline fixtures", () => {
     expect(result.selectedPages.every((item) => !/[?&](?:sort|utm_)/iu.test(item.url))).toBe(true);
     expect(queryDecisions.length).toBeGreaterThan(0);
     expect(queryDecisions.every((item) => item.included === false)).toBe(true);
-    expect(queryContentTypeChecks.length).toBeGreaterThan(0);
-    expect(queryContentTypeChecks.every((item) => item.status === "not_run")).toBe(true);
+    expect(queryContentTypeChecks).toHaveLength(0);
     expect(result.findings.flatMap((finding) => finding.examples)
       .some((example) => example.url ? new URL(example.url).search.length > 0 : false)).toBe(false);
   });
