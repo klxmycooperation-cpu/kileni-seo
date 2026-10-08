@@ -5,11 +5,6 @@ export type KileniTheme = (typeof KILENI_THEMES)[number];
 
 export const THEME_BOOTSTRAP = `(() => {
   const root = document.documentElement;
-  let theme = "dark";
-  try {
-    const stored = window.localStorage.getItem("${THEME_STORAGE_KEY}");
-    if (stored === "dark" || stored === "light") theme = stored;
-  } catch {}
-  root.dataset.kileniTheme = theme;
-  root.style.colorScheme = theme === "light" ? "light" : "dark";
+  root.dataset.kileniTheme = "light";
+  root.style.colorScheme = "light";
 })();`;

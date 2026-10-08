@@ -39,6 +39,7 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
       tierLabel: tierLabels[index] ?? tierLabels[tierLabels.length - 1],
       name: item.title,
       description: item.description,
+      mainResult: item.result,
       limit: item.scope,
       duration: item.duration,
       current: formatOfferPrice(offer, locale),
@@ -48,7 +49,7 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
       briefHref: offerBriefHref(offer.id, locale),
     };
   });
-  const variantsCopy = getVariantsCopy(slug, locale);
+  const variantsTitle = getVariantsTitle(slug, locale);
 
   return (
     <PublicShell locale={locale}>
@@ -114,10 +115,10 @@ export function ServicePage({ locale, slug }: { locale: Locale; slug: string }) 
         </section>
 
         <section className="svc-decision-section svc-variants" id="variants" aria-labelledby="svc-variants-title">
-          <div className="shell"><div className="svc-section-heading"><p className="svc-kicker">{ru ? "Варианты" : "Options"}</p><div className="svc-section-heading__copy"><h2 id="svc-variants-title">{variantsCopy.title}</h2><p>{variantsCopy.subtitle}</p></div></div>
+          <div className="shell"><div className="svc-section-heading"><p className="svc-kicker">{ru ? "Варианты" : "Options"}</p><div className="svc-section-heading__copy"><h2 id="svc-variants-title">{variantsTitle}</h2></div></div>
             {slug === "custom-task"
               ? <CustomTaskPath locale={locale} />
-              : <ServiceTierSelector locale={locale} tiers={tierViews} />}</div>
+              : <ServiceTierSelector locale={locale} tiers={tierViews} layout={slug === "web-development" ? "marketplace" : "standard"} />}</div>
         </section>
 
         <section className="svc-assurance" id="assurance" aria-labelledby="svc-assurance-title">
@@ -151,8 +152,8 @@ function tierHighlightsForOffer(id: string, locale: Locale): Array<{ value: stri
   const ru = locale === "ru";
   const highlights: Record<string, Array<{ value: string; label: string }>> = {
     "seo-audit-free": ru
-      ? [{ value: "до 10", label: "открытых страниц" }, { value: "3–7 мин", label: "обычно занимает" }]
-      : [{ value: "up to 10", label: "public pages" }, { value: "3–7 min", label: "typical duration" }],
+      ? [{ value: "до 10", label: "открытых страниц" }, { value: "3–7 мин", label: "время проверки" }]
+      : [{ value: "up to 10", label: "public pages" }, { value: "3–7 min", label: "check duration" }],
     "seo-audit-200": ru
       ? [{ value: "до 200", label: "страниц и шаблонов" }, { value: "5–7 дней", label: "срок аудита" }]
       : [{ value: "up to 200", label: "pages and templates" }, { value: "5–7 days", label: "audit duration" }],
@@ -217,30 +218,18 @@ function tierLabelsForService(slug: string, locale: Locale): string[] {
   return locale === "ru" ? ["Старт", "Рекомендуем", "Расширенный"] : ["Start", "Recommended", "Advanced"];
 }
 
-function getVariantsCopy(slug: string, locale: Locale): { title: string; subtitle: string } {
+function getVariantsTitle(slug: string, locale: Locale): string {
   if (slug === "seo-audit") {
     return locale === "ru"
-      ? {
-          title: "Какую помощь хотите получить?",
-          subtitle: "Выберите формат: только предварительная оценка, подробный аудит или аудит с внедрением исправлений.",
-        }
-      : {
-          title: "What kind of help do you need?",
-          subtitle: "Choose a preliminary check, a detailed audit, or an audit with implemented fixes.",
-        };
+      ? "Какую помощь хотите получить?"
+      : "What kind of help do you need?";
   }
   if (slug === "custom-task") {
     return locale === "ru"
-      ? {
-          title: "Сначала — короткий бриф",
-          subtitle: "Состав, срок и стоимость определим после короткого брифа. Работу начинаем только после согласования.",
-        }
-      : {
-          title: "Start with a short brief",
-          subtitle: "Scope, timing and price are confirmed after a short brief. Work starts only after approval.",
-        };
+      ? "Сначала — короткий бриф"
+      : "Start with a short brief";
   }
   return locale === "ru"
-    ? { title: "Выберите подходящий формат", subtitle: "Цена, срок и границы каждого варианта показаны рядом." }
-    : { title: "Choose a suitable format", subtitle: "Price, timing and boundaries are shown for every option." };
+    ? "Выберите подходящий формат"
+    : "Choose a suitable format";
 }

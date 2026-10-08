@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "git": {
+    "deploymentEnabled": {
+      "checkpoint/kileni-production-20261008-mobile": false
+    }
+  },
   "buildCommand": "node scripts/validate-launch.mjs && npx next build --webpack"
 }

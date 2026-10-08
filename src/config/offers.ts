@@ -50,6 +50,7 @@ export type DevelopmentScopeContract = Readonly<{
   productType: "landing" | "company-site" | "catalogue-or-shop" | "calculator-addon";
   templates: number | null;
   pages: number | null;
+  products?: number | null;
   states: ScopeBoundary;
   integrations: ScopeBoundary;
   revisions: number | "requires-owner-approval";
@@ -180,7 +181,7 @@ const coreOfferInputs: OfferInput[] = [
     priceType: "fixed",
     billingUnit: "project",
     pageLimit: 10,
-    duration: t("Обычно 3–7 минут", "Usually 3–7 minutes"),
+    duration: t("3–7 минут", "3–7 minutes"),
     result: t("Ссылка на результат с примерами найденных проблем", "A result link with examples of the issues found"),
     features: [
       t("Доступность страниц", "Page availability"),
@@ -334,7 +335,7 @@ const coreOfferInputs: OfferInput[] = [
     priceType: "from",
     billingUnit: "project",
     pageLimit: 1,
-    duration: t("Обычно 10–14 дней после получения материалов", "Usually 10–14 days after materials are received"),
+    duration: t("10–14 дней после получения материалов", "10–14 days after materials are received"),
     result: t("Готовый адаптивный лендинг с рабочими формами и подключённой аналитикой", "A ready-to-use responsive landing page with working forms and analytics"),
     features: [t("Продумываем структуру и прототип страницы", "Plan the page structure and prototype"), t("Разрабатываем дизайн под задачу и бренд", "Create a design for the brief and brand"), t("Адаптируем все экраны для телефона", "Adapt every section for mobile"), t("Подключаем формы и базовую аналитику", "Connect forms and core analytics")],
     recommended: false,
@@ -352,7 +353,7 @@ const coreOfferInputs: OfferInput[] = [
     priceType: "fixed",
     billingUnit: "project",
     pageLimit: 10,
-    duration: t("Обычно 14–21 день после получения материалов", "Usually 14–21 days after materials are received"),
+    duration: t("14–21 день после получения материалов", "14–21 days after materials are received"),
     result: t("Готовый сайт компании с удобным управлением содержимым и подготовкой к поиску", "A complete company website with manageable content and search foundations"),
     features: [t("Проектируем структуру услуг и разделов", "Plan the service and section structure"), t("Разрабатываем дизайн ключевых страниц", "Design the key pages"), t("Собираем адаптивную версию для всех экранов", "Build a responsive version for every screen"), t("Настраиваем базовую техническую подготовку к поиску", "Set up the core technical search foundations")],
     recommended: true,
@@ -370,7 +371,7 @@ const coreOfferInputs: OfferInput[] = [
     priceType: "from",
     billingUnit: "project",
     pageLimit: null,
-    duration: t("Обычно 21–35 дней после получения материалов", "Usually 21–35 days after materials are received"),
+    duration: t("21–35 дней после получения материалов", "21–35 days after materials are received"),
     result: t("Каталог до 100 товаров с карточками, корзиной, заказом через заявку и исходным кодом", "A catalogue for up to 100 products with product pages, cart, order enquiries and source code"),
     features: [t("Создаём каталог и карточки товаров", "Build the catalogue and product pages"), t("Настраиваем корзину и отправку заказа через заявку", "Set up a cart and order enquiry"), t("Загружаем согласованный список товаров", "Import the agreed product list"), t("Передаём исходный код проекта", "Hand over the project source code")],
     recommended: false,
@@ -710,6 +711,7 @@ function buildScopeContract(input: OfferInput): OfferScopeContract {
       productType,
       templates: input.id === "development-start" ? 1 : input.id === "development-business" ? 5 : null,
       pages: input.pageLimit,
+      products: input.id === "development-max" ? 100 : null,
       states: "by-agreement",
       integrations: input.id === "development-max" || input.id === "development-integrations-addon" ? "by-agreement" : "excluded",
       revisions: "requires-owner-approval",

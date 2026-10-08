@@ -285,8 +285,8 @@ const sources: SourceTerm[] = [
     enTerm: "Meta tags",
     ruDefinition: "Элементы HTML, которые передают поисковым системам служебные сведения о странице.",
     enDefinition: "HTML elements that provide search engines with supporting information about a page.",
-    ruPlain: "Это подписи в коде страницы: посетитель обычно их не видит, но поиск использует их для понимания и показа результата.",
-    enPlain: "They are labels in the page code: visitors usually do not see them, but search engines use them to understand and present the result.",
+    ruPlain: "Это сведения в коде страницы: они не входят в её основное содержимое, но поиск использует их для понимания и показа результата.",
+    enPlain: "They are information in the page code: they are not part of its main content, but search engines use them to understand and present the result.",
     ruWhy: "Некорректные или одинаковые метатеги мешают отличить страницы и сформировать понятный сниппет.",
     enWhy: "Incorrect or duplicated meta tags make pages harder to distinguish and can weaken the search snippet.",
     ruExample: "Title называет услугу, а description коротко объясняет предложение без повторения заголовка.",
@@ -664,11 +664,11 @@ const sources: SourceTerm[] = [
   {
     slug: "sku",
     indexable: true,
-    updatedAt: "2026-08-24",
+    updatedAt: "2026-10-07",
     ruTerm: "SKU",
     enTerm: "SKU",
-    ruDefinition: "Уникальная товарная позиция, обычно отличающаяся конкретным набором характеристик.",
-    enDefinition: "A unique stock-keeping unit, usually defined by a specific combination of product attributes.",
+      ruDefinition: "Уникальная товарная позиция с определённым набором характеристик, например размером и цветом.",
+    enDefinition: "A unique stock-keeping unit defined by a specific combination of product attributes.",
     ruPlain: "Это отдельный вариант товара, который магазин учитывает и продаёт как самостоятельную позицию.",
     enPlain: "It is a distinct product variant that the seller tracks and sells as its own item.",
     ruWhy: "Корректное разделение SKU влияет на остатки, цены, варианты и качество данных в карточке.",
@@ -777,10 +777,59 @@ export function getGlossaryTerm(slug: string): GlossaryTerm | undefined {
   return glossaryTerms.find((term) => term.slug === slug);
 }
 
+// Editorial links follow each concept, independently of the service it points to.
+// Keep the order intentional: these are the next three topics for the reader.
+const relatedGlossarySlugs: Record<string, readonly string[]> = {
+  "url": ["canonical", "redirect", "http-status"],
+  "http-status": ["http-404", "redirect", "crawling"],
+  "lighthouse": ["core-web-vitals", "tbt", "lcp"],
+  "seo-audit": ["crawling", "indexing", "acceptance-criterion"],
+  "indexing": ["crawling", "sitemap", "canonical"],
+  "crawling": ["search-crawler", "robots-txt", "sitemap"],
+  "search-crawler": ["crawling", "indexing", "robots-txt"],
+  "robots-txt": ["crawling", "search-crawler", "indexing"],
+  "sitemap": ["url", "crawling", "indexing"],
+  "canonical": ["duplicate-page", "url", "indexing"],
+  "redirect": ["http-status", "url", "http-404"],
+  "http-404": ["http-status", "redirect", "internal-link"],
+  "title": ["meta-tags", "heading-h1", "search-intent"],
+  "description": ["meta-tags", "ctr", "title"],
+  "heading-h1": ["title", "on-page", "search-intent"],
+  "meta-tags": ["title", "description", "indexing"],
+  "on-page": ["title", "heading-h1", "internal-linking"],
+  "internal-link": ["internal-linking", "crawling", "url"],
+  "internal-linking": ["internal-link", "query-cluster", "page-cannibalisation"],
+  "duplicate-page": ["canonical", "page-cannibalisation", "url"],
+  "schema-org": ["structured-data", "json-ld", "product-card"],
+  "structured-data": ["schema-org", "json-ld", "product-attribute"],
+  "json-ld": ["structured-data", "schema-org", "on-page"],
+  "core-web-vitals": ["lcp", "inp", "cls"],
+  "lcp": ["core-web-vitals", "lighthouse", "landing-page"],
+  "cls": ["core-web-vitals", "lcp", "on-page"],
+  "tbt": ["inp", "lighthouse", "core-web-vitals"],
+  "inp": ["tbt", "core-web-vitals", "conversion"],
+  "ctr": ["title", "description", "search-intent"],
+  "conversion": ["ctr", "landing-page", "ab-testing"],
+  "search-semantics": ["semantic-core", "search-intent", "query-cluster"],
+  "query-cluster": ["query-clustering", "search-intent", "landing-page"],
+  "semantic-core": ["search-semantics", "query-cluster", "query-clustering"],
+  "query-clustering": ["query-cluster", "semantic-core", "page-cannibalisation"],
+  "search-intent": ["search-semantics", "query-cluster", "on-page"],
+  "page-cannibalisation": ["query-clustering", "canonical", "duplicate-page"],
+  "landing-page": ["search-intent", "conversion", "on-page"],
+  "product-feed": ["sku", "product-attribute", "product-card"],
+  "product-attribute": ["product-card", "product-feed", "rich-content"],
+  "sku": ["product-feed", "product-card", "product-attribute"],
+  "product-card": ["product-attribute", "rich-content", "conversion"],
+  "rich-content": ["product-card", "structured-data", "ab-testing"],
+  "ab-testing": ["conversion", "ctr", "acceptance-criterion"],
+  "acceptance-criterion": ["seo-audit", "ab-testing", "http-status"],
+};
+
 export function getRelatedGlossaryTerms(slug: string, limit = 3): GlossaryTerm[] {
-  const current = getGlossaryTerm(slug);
-  if (!current) return [];
-  return glossaryTerms
-    .filter((term) => term.slug !== slug && term.ru.relatedHref === current.ru.relatedHref)
+  if (!getGlossaryTerm(slug)) return [];
+  return [...new Set(relatedGlossarySlugs[slug] ?? [])]
+    .map(getGlossaryTerm)
+    .filter((term): term is GlossaryTerm => Boolean(term?.indexable && term.slug !== slug))
     .slice(0, Math.max(0, limit));
 }

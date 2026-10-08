@@ -10,6 +10,7 @@ import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { PublicShell } from "../layout/PublicShell";
 import { priceToneClass } from "../price-emphasis";
 import { CanvasText } from "../ui/canvas-text";
+import { PriceCardIcon } from "./PriceCardIcon";
 
 export function SeoHubPage({ locale }: { locale: Locale }) {
   const ru = locale === "ru";
@@ -65,8 +66,9 @@ export function SeoHubPage({ locale }: { locale: Locale }) {
               <p>{ru ? "С чего начать" : "Where to start"}</p>
               <h2 id="seo-directions-title">{ru ? "Выберите по задаче, а не по названию услуги" : "Choose by task, not by service name"}</h2>
             </header>
-            <div className="seo-hub__direction-grid">
-              <article className="seo-hub__direction">
+            <div className="seo-hub__direction-grid service-price-overview-grid">
+              <article className="seo-hub__direction service-price-card service-price-card--overview" data-price-tone="blue">
+                <PriceCardIcon kind="audit" index={1} />
                 <span>01 · {ru ? "Разовая проверка" : "One-time review"}</span>
                 <h2>{ru ? "SEO-аудит" : "SEO audit"}</h2>
                 <p>{audit.description}</p>
@@ -78,7 +80,8 @@ export function SeoHubPage({ locale }: { locale: Locale }) {
                   {ru ? "Посмотреть SEO-аудит" : "View SEO audit"}<span aria-hidden="true">↗</span>
                 </Link>
               </article>
-              <article className="seo-hub__direction">
+              <article className="seo-hub__direction service-price-card service-price-card--overview" data-price-tone="violet">
+                <PriceCardIcon kind="growth" index={0} />
                 <span>02 · {ru ? "Регулярная работа" : "Ongoing work"}</span>
                 <h2>{ru ? "SEO-продвижение" : "SEO growth"}</h2>
                 <p>{promotion.description}</p>

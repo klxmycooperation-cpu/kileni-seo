@@ -1,0 +1,408 @@
+/* Offer presentation only. Hooks live on service cards inside main content;
+   the assistant and its portalled comparison have no matching selectors. */
+.kileni-site #main-content .service-price-card {
+  --offer-accent: #8aabff;
+  --offer-surface: #0c192b;
+  --offer-text: #f0f4fc;
+  --offer-muted: #becbe0;
+  --offer-line: color-mix(in srgb, var(--offer-accent) 20%, #23324a);
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 1.125rem;
+  border: 1px solid color-mix(in srgb, var(--offer-accent) 48%, transparent);
+  border-radius: 1.125rem;
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--offer-accent) 12%, var(--offer-surface)),
+    var(--offer-surface) 62%);
+  color: var(--offer-text);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  overflow: visible;
+  transform: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.kileni-site #main-content .service-price-card[data-price-tone="violet"] { --offer-accent: #b6a0ff; }
+.kileni-site #main-content .service-price-card[data-price-tone="teal"] { --offer-accent: #65d6be; }
+html[data-kileni-theme="light"] .kileni-site #main-content .service-price-card {
+  --offer-accent: #315ccf;
+  --offer-surface: #fff;
+  --offer-text: #16253c;
+  --offer-muted: #52647c;
+  --offer-line: color-mix(in srgb, var(--offer-accent) 17%, #e4eaf3);
+  box-shadow: 0 8px 24px rgb(34 56 99 / 7%);
+}
+html[data-kileni-theme="light"] .kileni-site #main-content .service-price-card[data-price-tone="violet"] { --offer-accent: #7151cb; }
+html[data-kileni-theme="light"] .kileni-site #main-content .service-price-card[data-price-tone="teal"] { --offer-accent: #087a69; }
+.kileni-site #main-content .service-price-card::before { content: none; }
+.kileni-site #main-content .service-price-card:is(.featured, [data-featured]) {
+  border-color: color-mix(in srgb, var(--offer-accent) 78%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--offer-accent) 9%, transparent);
+}
+.kileni-site #main-content .service-price-card:is(:hover, :focus-within, [data-selected]) {
+  border-color: var(--offer-accent);
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--offer-accent) 15%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--offer-accent) 32%, transparent);
+  transform: none;
+}
+.kileni-site #main-content .service-price-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  overflow: visible;
+  align-items: stretch;
+}
+.kileni-site #main-content .service-price-grid > article.service-price-card[data-offer-id] {
+  display: grid;
+  grid-template-rows: repeat(12, auto);
+  align-content: start;
+  row-gap: 0;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-badge-slot, .marketplace-offer-badge-slot) {
+  grid-row: 1;
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding-bottom: .75rem;
+}
+.kileni-site #main-content .service-price-card .service-price-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--offer-accent) 26%, transparent);
+  border-radius: .7rem;
+  background: color-mix(in srgb, var(--offer-accent) 10%, var(--offer-surface));
+  color: var(--offer-accent);
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-badge, .marketplace-offer-badge) {
+  margin: 0;
+  padding: .375rem .625rem;
+  border: 1px solid color-mix(in srgb, var(--offer-accent) 36%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--offer-accent) 15%, var(--offer-surface));
+  color: var(--offer-accent);
+  font-family: inherit;
+  font-size: .75rem;
+  font-weight: 750;
+  line-height: 1.4;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-head, .marketplace-offer-head) {
+  grid-row: 2 / span 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 0;
+  min-width: 0;
+}
+.kileni-site #main-content .service-price-card .svc-package-head::before { content: none; }
+.kileni-site #main-content .service-price-card :is(.svc-package-head, .marketplace-offer-head) h3 {
+  grid-row: 1;
+  margin: 0;
+  padding: 0 0 .4rem;
+  color: var(--offer-text);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -.035em;
+  text-wrap: pretty;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-meta, .svc-website-offer-label) {
+  grid-row: 2;
+  min-height: 0;
+  margin: 0;
+  padding: 0 0 .375rem;
+  align-self: start;
+  color: var(--offer-accent);
+  font-family: inherit;
+  font-size: .75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+.kileni-site #main-content .service-price-card .svc-tier-label { color: var(--offer-accent); font: inherit; }
+.kileni-site #main-content .service-price-card :is(.svc-package-head, .marketplace-offer-head) > p {
+  grid-row: 3;
+  min-height: 0;
+  margin: 0;
+  padding: 0 0 .75rem;
+  color: var(--offer-muted);
+  font-size: .90625rem;
+  line-height: 1.5;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-price, .marketplace-offer-price) {
+  grid-row: 5;
+  margin: 0;
+  padding: 0 0 .75rem;
+  --price-emphasis: var(--offer-accent) !important;
+  color: var(--offer-accent) !important;
+  font-size: clamp(1.65rem, 2.05vw, 1.875rem);
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: -.045em;
+  text-shadow: none !important;
+  overflow-wrap: normal;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-note, .marketplace-offer-note) {
+  grid-row: 6;
+  min-height: 0;
+  margin: 0;
+  padding: 0 0 .5rem;
+  color: var(--offer-muted);
+  font-size: .8125rem;
+  line-height: 1.5;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-note, .marketplace-offer-note):empty { padding: 0; }
+.kileni-site #main-content .service-price-grid .service-price-card :is(.service-price-facts, dl) {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  grid-row: 7 / span 3;
+  margin: 0;
+  border-top: 1px solid var(--offer-line);
+  border-bottom: 1px solid var(--offer-line);
+}
+.kileni-site #main-content .service-price-grid .service-price-card .service-price-facts {
+  grid-row: 7 / span 2;
+  grid-template-rows: auto auto;
+}
+.kileni-site #main-content .service-price-card .svc-package-limit {
+  align-self: start;
+  min-height: 0;
+  margin: .5rem 0;
+  padding: .625rem .75rem;
+  border: 1px solid var(--offer-line);
+  border-radius: .625rem;
+  background: color-mix(in srgb, var(--offer-accent) 7%, var(--offer-surface));
+  color: var(--offer-text) !important;
+  font-size: .90625rem;
+  line-height: 1.45;
+  gap: .25rem;
+}
+.kileni-site #main-content .service-price-card .svc-package-limit > span {
+  color: var(--offer-muted);
+  font-family: inherit;
+  font-size: .71875rem;
+  line-height: 1.45;
+}
+.kileni-site #main-content .service-price-card .svc-package-limit > b { font-weight: 650; }
+.kileni-site #main-content .service-price-card .service-price-duration {
+  display: block;
+  align-self: start;
+  margin: .5rem 0;
+  color: var(--offer-text);
+  font-family: inherit;
+  font-size: .875rem;
+  line-height: 1.5;
+}
+.kileni-site #main-content .service-price-card dl > div {
+  min-height: 0;
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--offer-line);
+}
+.kileni-site #main-content .service-price-card dl > div:last-child { border-bottom: 0; }
+.kileni-site #main-content .service-price-card dt {
+  color: var(--offer-muted);
+  font-family: inherit;
+  font-size: .71875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: .02em;
+}
+.kileni-site #main-content .service-price-card dd {
+  margin: .25rem 0 0;
+  color: var(--offer-text);
+  font-size: .90625rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+.kileni-site #main-content .service-price-card .svc-package-highlights {
+  grid-row: 10;
+  gap: .5rem;
+  margin: .625rem 0 0;
+}
+.kileni-site #main-content .service-price-card .svc-package-highlight {
+  padding: .5rem .625rem;
+  border: 1px solid var(--offer-line);
+  border-radius: .625rem;
+  background: color-mix(in srgb, var(--offer-accent) 7%, var(--offer-surface));
+}
+.kileni-site #main-content .service-price-card .svc-package-highlight strong {
+  color: var(--offer-accent);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.kileni-site #main-content .service-price-card .svc-package-highlight span {
+  color: var(--offer-muted);
+  font-size: .75rem;
+  line-height: 1.4;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-included, .marketplace-offer__included) {
+  grid-row: 11;
+  align-self: start;
+  margin: 0;
+  padding: .75rem 0 0;
+  border-top: 0;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-included > span, .marketplace-offer__included > h4) {
+  display: block;
+  margin: 0 0 .375rem;
+  color: var(--offer-text);
+  font-family: inherit;
+  font-size: .75rem;
+  font-weight: 750;
+  line-height: 1.45;
+  letter-spacing: .02em;
+}
+.kileni-site #main-content .service-price-card ul { margin: 0; padding: 0; list-style: none; }
+.kileni-site #main-content .service-price-card li {
+  position: relative;
+  margin: 0;
+  padding: .375rem 0 .375rem 1.125rem;
+  border-bottom: 1px solid var(--offer-line);
+  color: var(--offer-muted);
+  font-size: .90625rem;
+  line-height: 1.45;
+}
+.kileni-site #main-content .service-price-card li::before {
+  position: absolute;
+  top: .375rem;
+  left: 0;
+  margin: 0;
+  color: var(--offer-accent);
+  content: "✓";
+  font-weight: 700;
+}
+.kileni-site #main-content .service-price-card li:last-child { border-bottom: 0; }
+.kileni-site #main-content .service-price-card :is(.svc-package-actions, .marketplace-offer-actions) {
+  grid-row: 12;
+  margin: 0;
+  padding-top: .75rem;
+  align-self: end;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-actions, .marketplace-offer-actions) > :is(button, a) {
+  display: flex;
+  width: 100%;
+  min-height: 56px;
+  height: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: .625rem;
+  margin: 0;
+  padding: .5rem .75rem;
+  border: 1px solid color-mix(in srgb, var(--offer-accent) 55%, transparent);
+  border-radius: .75rem;
+  background: color-mix(in srgb, var(--offer-accent) 5%, var(--offer-surface));
+  color: var(--offer-text);
+  font-family: inherit;
+  font-size: .875rem;
+  font-weight: 750;
+  line-height: 1.35;
+  text-align: left;
+  text-decoration: none;
+  box-shadow: none;
+  transform: none;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+html[data-kileni-theme] .kileni-site #main-content .service-price-card[data-selected] :is(.svc-package-actions, .marketplace-offer-actions) > a {
+  border-color: var(--offer-accent) !important;
+  background: color-mix(in srgb, var(--offer-accent) 20%, var(--offer-surface)) !important;
+  color: var(--offer-text) !important;
+}
+.kileni-site #main-content .service-price-card :is(.svc-package-actions, .marketplace-offer-actions) > :is(button, a):hover {
+  border-color: var(--offer-accent);
+  background: color-mix(in srgb, var(--offer-accent) 12%, var(--offer-surface));
+}
+.kileni-site #main-content .service-price-card :is(button, a, summary):focus-visible {
+  outline: 2px solid var(--offer-accent);
+  outline-offset: 3px;
+}
+.kileni-site #main-content .service-price-card--overview {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: 1.5rem;
+}
+.kileni-site #main-content .service-price-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.kileni-site #main-content .service-price-card--overview > span:not(.service-price-icon) { color: var(--offer-muted); }
+.kileni-site #main-content .service-price-card--overview h2 { margin: 0; color: var(--offer-text); font-size: 1.5rem; line-height: 1.2; }
+.kileni-site #main-content .service-price-card--overview > p { margin: 0; color: var(--offer-muted); }
+.kileni-site #main-content .service-price-card--overview dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, .7fr);
+  gap: 1rem;
+  margin: .5rem 0;
+  background: transparent;
+}
+.kileni-site #main-content .service-price-card--overview dl > div { border: 0; background: transparent; padding: .5rem 0; }
+.kileni-site #main-content .service-price-card--overview .seo-hub__direction-price {
+  --price-emphasis: var(--offer-accent) !important;
+  color: var(--offer-accent) !important;
+  font-size: 1.875rem;
+  line-height: 1.25;
+  text-shadow: none !important;
+}
+.kileni-site #main-content .service-price-card--overview > a {
+  align-self: stretch;
+  margin-top: auto;
+  border: 1px solid var(--offer-accent);
+  border-radius: .75rem;
+  background: color-mix(in srgb, var(--offer-accent) 12%, var(--offer-surface));
+  color: var(--offer-text);
+}
+@media (min-width: 761px) {
+  .kileni-site #main-content .service-price-grid { row-gap: 0; }
+  .kileni-site #main-content .service-price-grid > article.service-price-card[data-offer-id] {
+    grid-row: span 12;
+    grid-template-rows: subgrid;
+  }
+  .kileni-site #main-content .service-price-card :is(.svc-package-head, .marketplace-offer-head) {
+    grid-template-rows: subgrid;
+  }
+  .kileni-site #main-content .service-price-grid .service-price-card :is(.service-price-facts, dl) {
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+}
+@media (min-width: 761px) and (max-width: 1099px) {
+  .kileni-site #main-content .service-price-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 0;
+  }
+  .kileni-site #main-content .service-price-grid > .service-price-card:nth-child(n + 3) { margin-top: 1rem; }
+}
+@media (max-width: 760px) {
+  .kileni-site #main-content .service-price-overview-grid { grid-template-columns: minmax(0, 1fr); }
+  .kileni-site #main-content .service-price-grid { grid-template-columns: minmax(0, 1fr); }
+  .kileni-site #main-content .service-price-grid > article.service-price-card[data-offer-id] {
+    grid-row: auto;
+    padding: 1rem;
+  }
+  .kileni-site #main-content .service-price-card :is(.svc-package-badge-slot, .marketplace-offer-badge-slot):empty { display: flex; }
+  .kileni-site #main-content .service-price-card--overview dl { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kileni-site #main-content .service-price-card,
+  .kileni-site #main-content .service-price-card :is(button, a) { transition: none; }
+}
+
+@media (max-width: 760px) {
+  .kileni-site #main-content .service-price-grid { gap: .875rem; }
+  .kileni-site #main-content .service-price-card :is(.svc-package-head, .marketplace-offer-head) > p,
+  .kileni-site #main-content .service-price-card :is(li, dd, .svc-package-limit) { font-size: .9375rem; }
+  .kileni-site #main-content .service-price-card :is(.svc-package-badge-slot, .marketplace-offer-badge-slot) { padding-bottom: .5rem; }
+  .kileni-site #main-content .service-price-card :is(.svc-package-price, .marketplace-offer-price) { padding-bottom: .5rem; }
+  .kileni-site #main-content .service-price-card :is(.svc-package-actions, .marketplace-offer-actions) > :is(button, a) { min-height: 48px; font-size: .9375rem; }
+}

@@ -59,12 +59,12 @@
 }
 
 html[data-kileni-theme="light"] .kileni-site .site-footer {
-  --footer-blend-top: #f7f8fb;
+  --footer-blend-top: #0b132b;
   background-image: linear-gradient(
     180deg,
     var(--footer-blend-top) 0,
-    #eef2f8 3rem,
-    #1a2942 8rem,
+    #0a1426 3rem,
+    #091321 8rem,
     #07101d 12rem,
     #050911 68%,
     #060a12 100%

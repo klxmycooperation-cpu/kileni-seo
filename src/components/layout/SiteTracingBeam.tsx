@@ -36,7 +36,7 @@ export function SiteTracingBeam({ children }: { children: ReactNode }) {
       const end = Math.max(start + 120, Math.min(nextHeight, legalTop - 12));
 
       setHeight(nextHeight);
-      setFade({ start, end });
+      setFade(previous => previous.start === start && previous.end === end ? previous : { start, end });
     };
     updateGeometry();
     const observer = new ResizeObserver(updateGeometry);

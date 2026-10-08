@@ -139,7 +139,6 @@ export function HomePage({ locale }: { locale: Locale }) {
             <div className="home-section-heading">
               <p>{ru ? "Что вы получите" : "What you receive"}</p>
               <h2 id="home-deliverables-title">{ru ? "Как замечание превращается в проверенное исправление" : "How a finding becomes a verified fix"}</h2>
-              <p className="warm-lead">{ru ? "Для каждого замечания показываем причину, приоритет, внесённое изменение и результат повторной проверки." : "For every finding, we show the cause, priority, implemented change and follow-up result."}</p>
               <Link className="button button-primary" href={localizedPath(locale, "seo-audit")}>{ru ? "Что входит в аудит" : "What the audit includes"}<span>↗</span></Link>
             </div>
             <ol className="home-deliverable-list">

@@ -153,18 +153,19 @@
 }
 
 .kileni-site .service-10-seo-audit .svc-detail-copy h1 .canvas-text {
-  display: inline-block;
-  white-space: pre;
+  display: block;
+  max-width: 100%;
+  white-space: normal;
 }
 
-/* The audit headline is deliberately split into two line boxes: its kicker,
-   both title lines and the explanation all share the exact same start axis. */
+/* Preserve the start axis while allowing each phrase to fit its column. */
 .kileni-site .service-10-seo-audit .svc-detail-copy h1 .svc-audit-title-line {
   display: block;
   margin-inline: 0;
   padding-inline: 0;
   text-align: start;
-  white-space: nowrap;
+  white-space: normal;
+  text-wrap: balance;
 }
 
 .kileni-site .svc-audit-journey {
@@ -751,6 +752,34 @@ details.about-mobile-disclosure:not([open]) > .about-acceptance-grid { display: 
 .marketplace-offer > button { min-height: 3rem; margin-top: auto; border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-weight: 800; }
 .marketplace-offer > button[aria-pressed="true"] { background: var(--theme-ink, #0b132b); color: var(--theme-bg, #fff); }
 .marketplace-offer > a { display: flex; justify-content: space-between; margin-top: .75rem; padding: .9rem 1rem; background: var(--signal-accent, #4568ff); color: #fff; font-weight: 800; }
+
+/* Approved compact offer layout shared by all marketplace pages. */
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer {
+  min-height: 0;
+  padding: 1.25rem;
+  grid-template-rows: auto auto auto auto 1fr auto;
+}
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer-badge-slot { min-height: 2.3rem; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer-head { grid-template-rows: minmax(3.75rem, auto) minmax(4rem, auto); }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer-head h3 { padding-top: .35rem; font-size: 1.45rem; line-height: 1.15; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer-head p { padding-top: .4rem; font-size: .875rem; line-height: 1.45; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer-price { margin-top: .5rem; font-size: 2rem; line-height: 1.1; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer-note:empty { display: none; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer dl { margin-top: 1rem; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer dl > div { padding: .55rem 0; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer dl > div:first-child { min-height: 4.75rem; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer dt { font-size: .625rem; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer dd { margin-top: .25rem; font-size: .875rem; line-height: 1.45; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer__included { margin-top: .75rem; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer li { padding: .4rem 0; font-size: .875rem; line-height: 1.45; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer-actions { margin-top: 1rem; }
+.kileni-site .marketplace-page[data-marketplace] .marketplace-offer-actions > :is(button, a) { min-height: 2.75rem; padding: .6rem .8rem; font-size: .875rem; }
+
+@media (max-width: 1024px) {
+  .kileni-site .marketplace-page[data-marketplace] .marketplace-offer-badge-slot:empty { display: none; }
+  .kileni-site .marketplace-page[data-marketplace] .marketplace-offer-head { grid-template-rows: auto auto; gap: .5rem; }
+  .kileni-site .marketplace-page[data-marketplace] .marketplace-offer dl > div:first-child { min-height: 0; }
+}
 .glossary-item details { margin-top: 1rem; border-top: 1px solid var(--theme-line, #d7dce7); }
 .glossary-item summary { padding: .85rem 0; cursor: pointer; font-weight: 700; }
 .glossary-item > a { display: flex; justify-content: space-between; margin-top: 1.2rem; padding-top: .85rem; border-top: 1px solid var(--theme-line, #d7dce7); font-weight: 700; }
@@ -1122,7 +1151,7 @@ html[data-kileni-theme="light"] .kileni-site .service-10 .svc-package-grid > art
 }
 
 html[data-kileni-theme="light"] .kileni-site .service-10 .svc-package-grid > article:nth-child(3) {
-  --package-accent: #16836c;
+  --package-accent: #11755f;
   --package-soft: #d9f2e9;
 }
 
@@ -1221,7 +1250,7 @@ html[data-kileni-theme="dark"] .kileni-site .service-10 .svc-package-price {
   text-shadow: 0 .3rem 1.1rem color-mix(in srgb, var(--package-accent) 30%, transparent);
 }
 
-html[data-kileni-theme="dark"] .kileni-site .service-10 .svc-package-badge { background: var(--package-accent); }
+html[data-kileni-theme="dark"] .kileni-site .service-10 .svc-package-badge { background: var(--package-accent); color: #0b132b; }
 
 html[data-kileni-theme="dark"] .kileni-site .service-10 .svc-package-actions > :is(button, a) {
   border-color: color-mix(in srgb, var(--package-accent) 72%, #fff);
@@ -1348,6 +1377,24 @@ html[data-kileni-theme="dark"] .kileni-site .service-10 .svc-package-highlight s
   color: #9eb1d1;
   font-size: .72rem;
   line-height: 1.42;
+}
+
+@media (min-width: 1025px) {
+  .kileni-site .svc-visual-growth-map {
+    min-height: 22rem;
+    margin-top: -5rem;
+    padding: 1.75rem;
+    gap: 1.5rem;
+    align-content: space-between;
+  }
+  .kileni-site .svc-visual-growth-map header p { font-size: .9rem; }
+  .kileni-site .svc-visual-growth-map li strong { font-size: .95rem; }
+  .kileni-site .svc-visual-growth-map li p { font-size: .82rem; line-height: 1.5; }
+  .kileni-site .svc-visual-growth-map > footer { font-size: .78rem; line-height: 1.5; }
+}
+
+@media (min-width: 1025px) and (max-width: 1400px) {
+  .kileni-site .svc-visual-growth-map li strong { min-height: 2.6em; }
 }
 
 @media (max-width: 640px) {

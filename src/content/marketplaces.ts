@@ -56,7 +56,7 @@ export const marketplacePlatforms: MarketplacePlatform[] = [
       price: "The quote depends on SKU count and media scope. The exact package boundary is agreed before work begins.",
       acceptance: ["all agreed fields are present in the handover table", "media files follow the approved frame map"],
     },
-    docs: [{ label: "Wildberries: инструкции продавца", labelEn: "Wildberries seller documentation", url: "https://seller.wildberries.ru/instructions/ru" }],
+    docs: [{ label: "Wildberries: инструкции продавца", labelEn: "Wildberries seller documentation", url: "https://seller.wildberries.ru/instructions/ru/ru/categories" }],
   },
   {
     id: "ozon", name: "Ozon", nameEn: "Ozon", mark: "OZON", iconSrc: "/marketplaces/ozon.svg", iconWidth: 485, iconHeight: 106, color: "#005bff",

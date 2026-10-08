@@ -38,6 +38,11 @@ import "./theme-contrast-completion.css";
 import "./adaptive-desktop-foundation.css";
 import "./design-system-foundation.css";
 import "./sitewide-adaptive-pass.css";
+import "./compact-pricing.css";
+import "./custom-task-visual.css";
+import "./site-density.css";
+import "./service-price-cards.css";
+import "./contact-chat.css";
 
 const SKIP_LINK_BOOTSTRAP = `(() => {
   window.addEventListener("keydown", (event) => {
@@ -86,7 +91,7 @@ export default async function RootLayout({
     <html
       lang="ru"
       className={manrope.variable}
-      data-kileni-theme="dark"
+      data-kileni-theme="light"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

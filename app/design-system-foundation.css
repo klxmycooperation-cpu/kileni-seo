@@ -1017,7 +1017,7 @@ html[data-kileni-theme="dark"] .kileni-site { --price-emphasis: #91a8ff; }
    every selector, brief and marketplace collection. */
 html[data-kileni-theme="light"] .kileni-site .price-emphasis.price-emphasis--blue { --price-emphasis: #315fdd !important; }
 html[data-kileni-theme="light"] .kileni-site .price-emphasis.price-emphasis--violet { --price-emphasis: #6650d8 !important; }
-html[data-kileni-theme="light"] .kileni-site .price-emphasis.price-emphasis--green { --price-emphasis: #16836c !important; }
+html[data-kileni-theme="light"] .kileni-site .price-emphasis.price-emphasis--green { --price-emphasis: #11755f !important; }
 
 html[data-kileni-theme="dark"] .kileni-site .price-emphasis.price-emphasis--blue { --price-emphasis: #7ba8ff !important; }
 html[data-kileni-theme="dark"] .kileni-site .price-emphasis.price-emphasis--violet { --price-emphasis: #b8a4ff !important; }
@@ -1032,7 +1032,7 @@ html[data-kileni-theme="dark"] .kileni-site .home-10 .price-emphasis { --price-e
 
 html[data-kileni-theme="light"] .kileni-site .pricing-10 .cp-tier-card:nth-child(1) { --price-emphasis: #315fdd; }
 html[data-kileni-theme="light"] .kileni-site .pricing-10 .cp-tier-card:nth-child(2) { --price-emphasis: #6650d8; }
-html[data-kileni-theme="light"] .kileni-site .pricing-10 .cp-tier-card:nth-child(3) { --price-emphasis: #16836c; }
+html[data-kileni-theme="light"] .kileni-site .pricing-10 .cp-tier-card:nth-child(3) { --price-emphasis: #11755f; }
 
 html[data-kileni-theme="dark"] .kileni-site .pricing-10 .cp-tier-card:nth-child(1) { --price-emphasis: #7ba8ff; }
 /* The recommended tier remains a light card even in dark mode, so it keeps

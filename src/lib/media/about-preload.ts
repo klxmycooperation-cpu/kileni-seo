@@ -16,6 +16,9 @@ export function releaseAboutPlanetPreload(): void {
 
 /** Warm the poster and MP4 metadata once; the hero keeps the original quality. */
 export function warmAboutPlanet(intent = false): void {
+  if (!intent || document.hidden) return;
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (connection?.saveData || ["slow-2g", "2g"].includes(connection?.effectiveType ?? "")) return;
   if (!poster) {
     poster = new Image();
     poster.decoding = "async";
@@ -26,11 +29,8 @@ export function warmAboutPlanet(intent = false): void {
     preloader = document.createElement("video");
     preloader.muted = true;
     preloader.playsInline = true;
-    preloader.preload = intent ? "auto" : "metadata";
+    preloader.preload = "metadata";
     preloader.src = aboutPlanetVideo;
-    preloader.load();
-  } else if (intent && preloader.preload !== "auto") {
-    preloader.preload = "auto";
     preloader.load();
   }
 }

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { PUBLIC_AUDIT_PAGE_LIMIT } from "../../config/public-audit";
 import { getOffer } from "../../config/offers";
 import { isNewPublicContact, newPublicContactType, type NewPublicContactType } from "../contact";
+import { BRIEF_ANSWER_LIMIT, BRIEF_WISHES_LIMIT } from "../brief/answer-limits";
 
 const contactSchema = z.string().trim().min(4).max(160)
   .refine(isNewPublicContact, "Укажите корректный e-mail");
@@ -86,7 +87,13 @@ export const briefRequestSchema = z.object({
   ...common,
   service: z.enum(["seo", "audit", "marketplaces", "development", "ads", "custom"]),
   offerId: z.string().trim().min(1).max(120).optional(),
-  answers: z.record(z.string(), z.union([z.string().max(3000), z.number(), z.boolean(), z.array(z.string().max(500))])),
+  answers: z.record(z.string(), z.union([z.string().max(BRIEF_WISHES_LIMIT), z.number(), z.boolean(), z.array(z.string().max(500))])).superRefine((answers, context) => {
+    for (const [key, value] of Object.entries(answers)) {
+      if (key !== "wishes" && typeof value === "string" && value.length > BRIEF_ANSWER_LIMIT) context.addIssue({
+        code: "custom", path: [key], message: `Ответ должен быть не длиннее ${BRIEF_ANSWER_LIMIT} символов`,
+      });
+    }
+  }),
 });
 
 export type AuditRequest = z.infer<typeof auditRequestSchema>;

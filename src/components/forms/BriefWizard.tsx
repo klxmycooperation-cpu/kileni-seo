@@ -5,14 +5,16 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatOfferPrice, getOffer, localizedOffer, type LocalizedOffer } from "../../config/offers";
 import type { Locale } from "../../config/site";
-import { briefServices, commonBriefQuestions, qLabel, serviceQuestions, type BriefService } from "../../content/brief";
+import { briefAnswerLabel, briefServices, commonBriefQuestions, qLabel, serviceQuestions, type BriefService } from "../../content/brief";
 import { readAuditLeadHandoff } from "../../lib/audit/lead-handoff";
-import { BRIEF_DRAFT_KEY, parseBriefDraft, resolveBriefOfferState, type BriefDraftV2 } from "../../lib/brief/offer-state";
+import { BRIEF_DRAFT_KEY, parseBriefDraft, type BriefDraftV2 } from "../../lib/brief/offer-state";
 import { briefPresentationEntries } from "../../lib/brief/presentation";
+import { BRIEF_ANSWER_LIMIT, BRIEF_WISHES_LIMIT } from "../../lib/brief/answer-limits";
 import { priceToneClass } from "../price-emphasis";
 import { useCsrf } from "./useCsrf";
 import { TurnstileField } from "./TurnstileField";
 import { ConsentNotice } from "./ConsentNotice";
+import { assistantBriefConflicts, assistantOfferIssueText, inspectAssistantBriefHandoff, prepareAssistantBriefImport, resolveAssistantBriefEntry, type AssistantBriefHandoff, type AssistantBriefImportPolicy, type AssistantBriefReadResult } from "../../lib/brief/assistant-handoff";
 
 type Answers = Record<string, string>;
 type Guide = { price: string; title?: string; scope?: string; duration?: string; included: string[]; prepare: string[] };
@@ -33,23 +35,52 @@ export function BriefWizard({ locale }: { locale: Locale }) {
   const [turnstileReset, setTurnstileReset] = useState(0);
   const [invalidField, setInvalidField] = useState<string>();
   const [pending, setPending] = useState(false);
+  const [assistantHandoff, setAssistantHandoff] = useState<AssistantBriefHandoff | null>(null);
+  const [assistantImportStatus, setAssistantImportStatus] = useState("");
+  const [assistantReadIssue, setAssistantReadIssue] = useState<Exclude<AssistantBriefReadResult["status"], "ready"> | null>(null);
+  const [assistantRecoverySummary, setAssistantRecoverySummary] = useState<string | null>(null);
+  const [draftStorageUnavailable, setDraftStorageUnavailable] = useState(false);
   const [visualKeyboardOpen, setVisualKeyboardOpen] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousStep = useRef(0);
   const initialized = useRef(false);
+  const inMemoryDraft = useRef<BriefDraftV2 | undefined>(undefined);
 
   const routeLabels = ru
     ? ["Направление", "Цель", "Что уже есть", "Контакт", "Готово"]
     : ["Direction", "Goal", "What exists", "Contact", "Done"];
 
   useEffect(() => {
-    const saved = parseBriefDraft(localStorage.getItem(BRIEF_DRAFT_KEY)) ?? readLegacyDraft(localStorage.getItem("kileni-brief"));
-    const resolved = resolveBriefOfferState(searchKey ? `?${searchKey}` : "", saved);
+    let saved = inMemoryDraft.current;
+    try {
+      const persisted = parseBriefDraft(localStorage.getItem(BRIEF_DRAFT_KEY)) ?? readLegacyDraft(localStorage.getItem("kileni-brief"));
+      if (!initialized.current) saved = persisted ?? saved;
+      setDraftStorageUnavailable(false);
+    } catch {
+      setDraftStorageUnavailable(true);
+    }
+    const resolved = resolveAssistantBriefEntry(searchKey ? `?${searchKey}` : "", saved);
     let nextService = resolved.service;
     let nextAnswers = resolved.answers;
     const query = new URLSearchParams(searchKey);
+    const assistantToken = query.get("assistant");
+    setAssistantImportStatus("");
+    setAssistantReadIssue(null);
+    setAssistantRecoverySummary(null);
+    if (assistantToken !== null) {
+      let transfer: AssistantBriefReadResult;
+      try { transfer = inspectAssistantBriefHandoff(window.sessionStorage, assistantToken); }
+      catch { transfer = { status: "unavailable", data: null }; }
+      setAssistantHandoff(transfer.data);
+      if (transfer.status !== "ready") {
+        setAssistantReadIssue(transfer.status);
+        setAssistantRecoverySummary(transfer.recoverySummary ?? null);
+      }
+    } else setAssistantHandoff(null);
     const auditToken = query.get("audit");
-    const handoff = auditToken ? readAuditLeadHandoff(window.sessionStorage, auditToken) : null;
+    let handoff: ReturnType<typeof readAuditLeadHandoff> = null;
+    try { handoff = auditToken ? readAuditLeadHandoff(window.sessionStorage, auditToken) : null; }
+    catch { /* The form remains usable without the audit transfer. */ }
     if (handoff) {
       const legacyOffer = query.get("offer");
       if (!resolved.offerId && (legacyOffer === "audit" || legacyOffer === "audit-fix")) nextService = "audit";
@@ -71,13 +102,20 @@ export function BriefWizard({ locale }: { locale: Locale }) {
     }
     setDraftReady(true);
     initialized.current = true;
+    inMemoryDraft.current = { version: 2, service: nextService, offerId: resolved.offerId, answers: nextAnswers, step: resolved.step };
   }, [ru, searchKey]);
 
   useEffect(() => {
     if (!draftReady || !initialized.current) return;
     const draft: BriefDraftV2 = { version: 2, service, offerId, answers, step };
-    localStorage.setItem(BRIEF_DRAFT_KEY, JSON.stringify(draft));
-    localStorage.removeItem("kileni-brief");
+    inMemoryDraft.current = draft;
+    try {
+      localStorage.setItem(BRIEF_DRAFT_KEY, JSON.stringify(draft));
+      localStorage.removeItem("kileni-brief");
+      setDraftStorageUnavailable(false);
+    } catch {
+      setDraftStorageUnavailable(true);
+    }
   }, [draftReady, service, offerId, answers, step]);
 
   useEffect(() => {
@@ -135,6 +173,51 @@ export function BriefWizard({ locale }: { locale: Locale }) {
     [service, step],
   );
   const selectedOffer = useMemo(() => getOffer(offerId), [offerId]);
+  const assistantConflicts = useMemo(() => assistantHandoff ? assistantBriefConflicts({ version: 2, service, offerId, answers, step }, assistantHandoff) : [], [assistantHandoff, service, offerId, answers, step]);
+  function dismissAssistantSummary() {
+    setAssistantHandoff(null);
+    setAssistantReadIssue(null);
+    setAssistantRecoverySummary(null);
+    setAssistantImportStatus("");
+  }
+  function importAssistantSummary(policy: AssistantBriefImportPolicy) {
+    if (!assistantHandoff) return;
+    const imported = prepareAssistantBriefImport({ version: 2, service, offerId, answers, step }, assistantHandoff, policy, BRIEF_WISHES_LIMIT, Date.now());
+    if (!imported.ok) {
+      setAssistantImportStatus(imported.reason === "summary-too-long"
+        ? (ru ? "Резюме целиком не помещается в дополнительные пожелания. Ответы не изменены. Скопируйте резюме ниже или освободите место в этом поле на шаге «Цель» и повторите перенос." : "The full summary does not fit in additional preferences. Your answers were not changed. Copy the summary below, or make room in the Goal step and retry.")
+        : (ru ? "Это резюме устарело или больше не подходит для переноса. Ответы не изменены. Скопируйте текст ниже для справки, затем подготовьте актуальное резюме в помощнике." : "This summary has expired or is no longer valid for importing. Your answers were not changed. Copy the text below for reference, then prepare a current summary in the assistant."));
+      return;
+    }
+    if (imported.unchanged) {
+      setAssistantImportStatus(ru ? "Это резюме уже есть в брифе, и указанные значения совпадают. Повторно добавлять его не нужно." : "This summary is already in the brief and its values match. It does not need to be added again.");
+      return;
+    }
+    let persisted = true;
+    try { localStorage.setItem(BRIEF_DRAFT_KEY, JSON.stringify(imported.draft)); }
+    catch { persisted = false; }
+    setDraftStorageUnavailable(!persisted);
+    setService(imported.draft.service);
+    setOfferId(imported.draft.offerId);
+    setAnswers(imported.draft.answers);
+    setStep(imported.draft.step);
+    inMemoryDraft.current = imported.draft;
+    setAssistantImportStatus(persisted
+      ? policy === "keep"
+        ? (ru ? "Резюме добавлено. Текущие заполненные значения сохранены; проверьте дополненные поля перед отправкой." : "Summary added. Your existing values were kept; review the completed fields before sending.")
+        : (ru ? "Данные помощника применены к указанным полям, резюме добавлено. Остальные ответы сохранены; проверьте бриф перед отправкой." : "Assistant details were applied to the listed fields and the summary was added. Other answers were kept; review the brief before sending.")
+      : (ru ? "Данные добавлены в открытую форму, но браузер не сохранил черновик. Скопируйте резюме ниже и не закрывайте страницу до отправки." : "Details were added to the open form, but the browser could not save the draft. Copy the summary below and keep the page open until you send it."));
+  }
+  async function copyAssistantSummary(recoveryText?: string) {
+    if (!assistantHandoff && !recoveryText) return;
+    const text = recoveryText ?? (assistantHandoff!.summary + (assistantHandoff!.offerIssue ? `\n${assistantOfferIssueText(assistantHandoff!.offerIssue, locale)}` : ""));
+    try {
+      await navigator.clipboard.writeText(text);
+      setAssistantImportStatus(ru ? "Резюме скопировано." : "Summary copied.");
+    } catch {
+      setAssistantImportStatus(ru ? "Браузер не разрешил копирование. Раскройте резюме, выделите текст и скопируйте его вручную." : "The browser blocked copying. Expand the summary, select its text and copy it manually.");
+    }
+  }
   const localizedSelectedOffer = useMemo(() => selectedOffer ? localizedOffer(selectedOffer, locale) : undefined, [selectedOffer, locale]);
   const guide = useMemo(() => briefGuide(service, locale, localizedSelectedOffer), [service, locale, localizedSelectedOffer]);
   const requiredQuestionKeys = requiredKeysForStep(step, service);
@@ -240,16 +323,22 @@ export function BriefWizard({ locale }: { locale: Locale }) {
       if (response.ok) {
         setStatus(ru ? "Бриф сохранён. Мы свяжемся в рабочее время." : "Brief saved. We will follow up during working hours.");
         setDraftReady(false);
-        localStorage.removeItem(BRIEF_DRAFT_KEY);
-        localStorage.removeItem("kileni-brief");
+        inMemoryDraft.current = undefined;
+        try {
+          localStorage.removeItem(BRIEF_DRAFT_KEY);
+          localStorage.removeItem("kileni-brief");
+        } catch { /* The server has saved the brief even if browser cleanup fails. */ }
         setStep(4);
+        dismissAssistantSummary();
         return;
       }
       const data = await response.json().catch(() => ({})) as { message?: string };
       setStatus(data.message ?? (ru ? "Не удалось сохранить бриф. Проверьте поля и попробуйте ещё раз." : "Could not save the brief. Check the fields and try again."));
       setTurnstileReset((value) => value + 1);
     } catch {
-      setStatus(ru ? "Нет связи с сервером. Ответы сохранены в браузере — попробуйте отправить ещё раз." : "The server is unavailable. Your answers remain saved in this browser; please try again.");
+      setStatus(draftStorageUnavailable
+        ? (ru ? "Нет связи с сервером. Ответы остаются в открытой форме; сохранение черновика недоступно. Не закрывайте страницу и попробуйте отправить ещё раз." : "The server is unavailable. Your answers remain in the open form, but draft storage is blocked. Keep the page open and retry.")
+        : (ru ? "Нет связи с сервером. Ответы сохранены в браузере — попробуйте отправить ещё раз." : "The server is unavailable. Your answers remain saved in this browser; please try again."));
     } finally {
       setPending(false);
     }
@@ -287,12 +376,49 @@ export function BriefWizard({ locale }: { locale: Locale }) {
               </li>
             ))}
           </ol>
-          <small>{ru ? "Черновик остаётся в этом браузере" : "Your draft stays in this browser"}</small>
+          <small>{draftStorageUnavailable ? (ru ? "Черновик доступен, пока открыта эта страница" : "Your draft is available while this page stays open") : (ru ? "Черновик остаётся в этом браузере" : "Your draft stays in this browser")}</small>
         </nav>
         <ServiceGuide locale={locale} service={service} offer={localizedSelectedOffer} guide={guide} />
       </aside>
 
       <div className="brief-panel">
+        {assistantHandoff && <section className="brief-assistant-import" aria-label={ru ? "Резюме помощника" : "Assistant summary"}>
+          <h2>{ru ? "Ваш подбор из помощника" : "Your assistant selection"}</h2>
+          <p>{ru ? "Проверьте резюме и различия перед переносом. Данные изменятся только после вашего выбора; заявку нужно отправить отдельно." : "Review the summary and differences before importing. Details change only after your choice; sending the brief is a separate action."}</p>
+          {assistantHandoff.offerIssue && <p role="status">{assistantOfferIssueText(assistantHandoff.offerIssue, locale)}</p>}
+          <details>
+            <summary>{ru ? "Посмотреть и скопировать резюме" : "Review and copy summary"}</summary>
+            <textarea className="brief-assistant-summary-text" readOnly rows={8} aria-label={ru ? "Текст резюме для копирования" : "Summary text for copying"} value={assistantHandoff.summary + (assistantHandoff.offerIssue ? `\n${assistantOfferIssueText(assistantHandoff.offerIssue, locale)}` : "")} onFocus={(event) => event.currentTarget.select()} />
+            <button type="button" className="brief-assistant-dismiss" onClick={() => void copyAssistantSummary()}>{ru ? "Скопировать резюме" : "Copy summary"}</button>
+          </details>
+          {assistantConflicts.length > 0 ? <>
+            <p>{ru ? "Некоторые данные отличаются от текущего брифа. Выберите, какие значения оставить. Резюме будет добавлено в дополнительные пожелания в обоих случаях." : "Some details differ from your current brief. Choose which values to keep. The summary will be added to additional preferences in either case."}</p>
+            <ul className="brief-assistant-conflicts">
+              {assistantConflicts.map((conflict) => <li key={conflict.key}>
+                <strong>{conflict.key === "service" ? (ru ? "Направление" : "Service") : conflict.key === "offerId" ? (ru ? "Тариф" : "Offer") : briefAnswerLabel(assistantConflictService(conflict.key, service), conflict.key, locale)}</strong>
+                <p>{ru ? "Сейчас в брифе: " : "Current brief: "}{assistantConflictValue(conflict.key, conflict.current, service, locale)}</p>
+                <p>{ru ? "В резюме: " : "Assistant summary: "}{assistantConflictValue(conflict.key, conflict.incoming, service, locale)}</p>
+              </li>)}
+            </ul>
+            <button type="button" className="button button-primary" onClick={() => importAssistantSummary("keep")}>{ru ? "Сохранить текущие значения" : "Keep current values"}</button>
+            <button type="button" className="brief-assistant-dismiss" onClick={() => importAssistantSummary("apply")}>{ru ? "Применить данные помощника" : "Apply assistant details"}</button>
+          </> : <button type="button" className="button button-primary" onClick={() => importAssistantSummary("keep")}>{ru ? "Использовать данные помощника" : "Use assistant details"}</button>}
+          <button type="button" className="brief-assistant-dismiss" onClick={dismissAssistantSummary}>{ru ? "Продолжить без переноса" : "Continue without importing"}</button>
+        </section>}
+        {assistantReadIssue && <section className="brief-assistant-import" aria-label={ru ? "Перенос из помощника" : "Assistant transfer"}>
+          <h2>{ru ? "Резюме не удалось открыть" : "The summary could not be opened"}</h2>
+          <p role="status">{assistantReadIssueText(assistantReadIssue, locale)}</p>
+          <p>{ru ? "Откройте помощник, проверьте актуальный выбор и подготовьте резюме ещё раз. Если перенос снова не сработает, скопируйте резюме и вставьте его в дополнительные пожелания на шаге «Цель»." : "Open the assistant, check your current selection and prepare the summary again. If the transfer still fails, copy the summary into additional preferences in the Goal step."}</p>
+          {assistantRecoverySummary && <details>
+            <summary>{ru ? "Посмотреть прежнее резюме" : "Review the earlier summary"}</summary>
+            <p>{ru ? "Это прежние данные. Перед использованием проверьте требования и актуальные условия тарифов." : "These are earlier details. Check the requirements and current offer terms before using them."}</p>
+            <textarea className="brief-assistant-summary-text" readOnly rows={8} aria-label={ru ? "Прежнее резюме для копирования" : "Earlier summary text for copying"} value={assistantRecoverySummary} onFocus={(event) => event.currentTarget.select()} />
+            <button type="button" className="brief-assistant-dismiss" onClick={() => void copyAssistantSummary(assistantRecoverySummary)}>{ru ? "Скопировать прежнее резюме" : "Copy the earlier summary"}</button>
+          </details>}
+          <button type="button" className="brief-assistant-dismiss" onClick={dismissAssistantSummary}>{ru ? "Продолжить заполнение брифа" : "Continue completing the brief"}</button>
+        </section>}
+        {assistantImportStatus && <p className="brief-assistant-status" role="status">{assistantImportStatus}</p>}
+        {draftStorageUnavailable && <p className="brief-assistant-status" role="status">{ru ? "Браузер не разрешил сохранить черновик. Ответы остаются в открытой форме; перед уходом со страницы скопируйте важные данные." : "The browser blocked saving your draft. Your answers remain in the open form; copy important details before leaving this page."}</p>}
         <div
           className="brief-progress"
           role="progressbar"
@@ -312,7 +438,6 @@ export function BriefWizard({ locale }: { locale: Locale }) {
           <h2 id="brief-current-step" ref={headingRef} tabIndex={-1}>{heading}</h2>
           {step === 0 && (
             <>
-              <p className="brief-step-intro">{ru ? "Выберите ближайший вариант. Бриф займёт 5–7 минут; технические термины не нужны, а неясные пункты можно отметить «не уверен»." : "Choose the closest option. The brief takes 5–7 minutes; no technical terminology is required, and “Not sure” is a valid answer."}</p>
               <div className="service-choice" aria-labelledby="brief-current-step">
                 {briefServices.map((item, index) => {
                   const label = ru ? item.ru : item.en;
@@ -486,7 +611,7 @@ function QuestionFields({
           <label key={question.key} data-question-key={question.key} data-question-number={String(index + startIndex + 1).padStart(2, "0")}>
             <span>{qLabel(question, locale)}{requiredKeys.includes(question.key) && <small className="brief-required">{ru ? "обязательно" : "required"}</small>}</span>
             {question.type === "textarea" ? (
-              <textarea name={question.key} rows={4} maxLength={3000} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} placeholder={ru ? "Можно коротко и своими словами" : "A short plain-language answer is enough"} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)} />
+              <textarea name={question.key} rows={4} maxLength={question.key === "wishes" ? BRIEF_WISHES_LIMIT : BRIEF_ANSWER_LIMIT} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} placeholder={ru ? "Можно коротко и своими словами" : "A short plain-language answer is enough"} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)} />
             ) : question.type === "select" ? (
               <select name={question.key} required={requiredKeys.includes(question.key)} aria-invalid={invalidField === question.key} value={answers[question.key] ?? ""} onChange={(event) => update(question.key, event.target.value)}>
                 <option value="" hidden={hasUnknownOption}>{ru ? "Нужна помощь с выбором" : "Not sure — help me choose"}</option>
@@ -566,6 +691,30 @@ function ServiceGuide({ locale, service, offer, guide }: { locale: Locale; servi
 function serviceLabel(service: BriefService, locale: Locale) {
   const item = briefServices.find((candidate) => candidate.id === service);
   return locale === "ru" ? item?.ru : item?.en;
+}
+
+function assistantConflictValue(key: string, value: string, service: BriefService, locale: Locale): string {
+  if (key === "service") return serviceLabel(value as BriefService, locale) ?? value;
+  if (key === "offerId") {
+    if (!value) return locale === "ru" ? "Без выбранного тарифа" : "No selected offer";
+    const offer = getOffer(value);
+    return offer ? localizedOffer(offer, locale).title : value;
+  }
+  return briefPresentationEntries({ [key]: value }, assistantConflictService(key, service), locale)[0]?.value ?? value;
+}
+
+function assistantConflictService(key: string, service: BriefService): BriefService {
+  return key === "functions" ? "development" : ["platform", "cardCount"].includes(key) ? "marketplaces" : service;
+}
+
+function assistantReadIssueText(issue: Exclude<AssistantBriefReadResult["status"], "ready">, locale: Locale): string {
+  const messages = {
+    missing: ["В этой вкладке нет данных для переноса. Текущие ответы брифа сохранены.", "This tab has no transfer data. Your current brief answers were kept."],
+    invalid: ["Данные переноса повреждены или не распознаны. Текущие ответы брифа сохранены.", "The transfer data is damaged or could not be read. Your current brief answers were kept."],
+    expired: ["Срок хранения этого резюме истёк. Текущие ответы брифа сохранены.", "This summary has expired. Your current brief answers were kept."],
+    unavailable: ["Браузер не разрешил прочитать данные переноса. Текущие ответы формы сохранены.", "The browser blocked reading the transfer data. Your current form answers were kept."],
+  };
+  return messages[issue][locale === "ru" ? 0 : 1];
 }
 
 function briefGuide(service: BriefService, locale: Locale, offer?: LocalizedOffer): Guide {

@@ -22,7 +22,7 @@ export function BriefPage({ locale }: { locale: Locale }) {
             <div>
               <p className="brief-kicker">{ru ? "Предложение под вашу задачу" : "A proposal shaped around your task"}</p>
               <h1><CanvasText text={ru ? "Расскажите о задаче\nСоберём предложение" : "Tell us about the task\nWe will prepare a proposal"} lineGap={7} animationDuration={10}/></h1>
-              <p className="brief-effort">{ru ? "Обычно это занимает 5–7 минут. Технические знания не нужны, а на сложный вопрос можно ответить «Не уверен»." : "It usually takes 5–7 minutes. No technical knowledge is required, and “Not sure” is a valid answer."}</p>
+              <p className="brief-effort">{ru ? "Заполнение занимает 5–7 минут. Технические знания не нужны, а на сложный вопрос можно ответить «Не уверен»." : "The brief takes 5–7 minutes. No technical knowledge is required, and “Not sure” is a valid answer."}</p>
               <ul className="brief-hero-outcomes" aria-label={ru ? "Что даст бриф" : "What the brief provides"}>
                 {(ru
                   ? ["Состав работ", "Срок по этапам", "Стоимость и границы", "Что понадобится от вас", "Следующие шаги"]

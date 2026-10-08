@@ -556,10 +556,10 @@ html[data-kileni-theme="dark"] .kileni-site{
   .kileni-site .analytics-chart__final-check,
   .kileni-site .analytics-visibility-detail__area,
   .kileni-site .analytics-visibility-detail__point,
-  .kileni-site .analytics-visibility-detail__stage,
   .kileni-site .analytics-visibility-detail__projection,
-  .kileni-site .analytics-visibility-detail__end-tag,
   .kileni-site .analytics-visibility-detail__chips > span { opacity: 1 !important; transform: none !important; clip-path: none !important; animation: none !important; }
+  /* Keep SVG positioning transforms: removing translate moves labels off the plot. */
+  .kileni-site :is(.analytics-visibility-detail__end-tag, .analytics-visibility-detail__stage) { opacity: 1 !important; animation: none !important; }
   .kileni-site .analytics-chart__line { stroke-dashoffset: 0 !important; animation: none !important; }
   .kileni-site .analytics-visibility-detail__line { stroke-dashoffset: 0 !important; animation: none !important; }
   .kileni-site .analytics-gauge__value { stroke-dashoffset: var(--gauge-offset) !important; animation: none !important; }

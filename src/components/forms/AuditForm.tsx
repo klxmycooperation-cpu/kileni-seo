@@ -405,7 +405,7 @@ export function AuditForm({
   return (
     <>
       {activeAudit && <AuditLiveOverlay locale={locale} domain={activeAudit.domain} snapshot={activeAudit}/>} 
-    <form ref={formRef} method="post" className={`audit-form audit-form--two-step${compact ? " audit-form-compact" : ""}`} onSubmit={submit}>
+    <form ref={formRef} method="post" data-step={step} className={`audit-form audit-form--two-step${compact ? " audit-form-compact" : ""}`} onSubmit={submit}>
       <div className="form-heading">
         <span className="status-dot"/>
         <h2>{d.title}</h2>

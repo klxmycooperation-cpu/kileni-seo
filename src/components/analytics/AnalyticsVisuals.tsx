@@ -347,7 +347,8 @@ function VisibilityChart({ locale }: { locale: Locale }) {
       { label: "", value: 66, detail: "Relevance strengthened" }, { label: "", value: 64, detail: "Planned dip" },
       { label: "Aug", value: 68, detail: "Current reference" },
     ];
-  const frame = { left: 20, top: 25, width: 520, height: 174 };
+  // Leave a real gutter for the percentage axis at phone sizes.
+  const frame = { left: 64, top: 25, width: 470, height: 174 };
   const pointAt = (value: number, index: number) => ({
     x: frame.left + (index / (points.length - 1)) * frame.width,
     y: frame.top + ((100 - value) / 100) * frame.height,

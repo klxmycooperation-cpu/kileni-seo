@@ -35,7 +35,9 @@ export function CanvasText({
     if (!context) return;
 
     let disposed = false;
-    let visible = true;
+    let visible = false;
+    let frame = 0;
+    let renderedSize = "";
     let width = 0;
     let height = 0;
     let pixelRatio = 1;
@@ -50,7 +52,8 @@ export function CanvasText({
     };
 
     const draw = () => {
-      if (!width || !height) return;
+      const size = `${width}:${height}:${pixelRatio}`;
+      if (!visible || !width || !height || size === renderedSize) return;
       context.clearRect(0, 0, width, height);
       const baseGradient = context.createLinearGradient(0, 0, width, height);
       baseGradient.addColorStop(0, "#b6cbff");
@@ -82,27 +85,34 @@ export function CanvasText({
       }
       context.globalAlpha = 1;
       element.style.setProperty("--canvas-text-pattern", `url("${canvas.toDataURL("image/png")}")`);
+      renderedSize = size;
+    };
+
+    const scheduleDraw = () => {
+      if (frame || !visible) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        if (disposed || !visible) return;
+        resize();
+        draw();
+      });
     };
 
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry?.isIntersecting ?? false;
       element.dataset.canvasActive = visible ? "true" : "false";
-      if (visible) draw();
+      if (visible) scheduleDraw();
     }, { threshold: 0 });
     const resizeObserver = new ResizeObserver(() => {
-      resize();
-      draw();
+      scheduleDraw();
     });
     const handleWindowResize = () => {
-      resize();
-      draw();
+      scheduleDraw();
     };
 
     const start = async () => {
       await document.fonts.ready;
       if (disposed) return;
-      resize();
-      draw();
       observer.observe(element);
       resizeObserver.observe(element);
       window.addEventListener("resize", handleWindowResize);
@@ -111,6 +121,7 @@ export function CanvasText({
 
     return () => {
       disposed = true;
+      window.cancelAnimationFrame(frame);
       observer.disconnect();
       resizeObserver.disconnect();
       window.removeEventListener("resize", handleWindowResize);

@@ -6,6 +6,7 @@ import { offerBriefHref } from "../../config/offers";
 import type { Locale } from "../../config/site";
 import type { MarketplaceId } from "../../content/marketplaces";
 import { priceToneClass } from "../price-emphasis";
+import { PriceCardIcon, servicePriceTone } from "./PriceCardIcon";
 
 export type MarketplaceOfferView = {
   id: string;
@@ -25,13 +26,14 @@ export function MarketplaceOfferSelector({ platform, locale, offers }: { platfor
   const ru = locale === "ru";
 
   return (
-    <div className="marketplace-offer-grid">
+    <div className="marketplace-offer-grid service-price-grid">
       {offers.map((offer, index) => {
         const active = offer.id === selected;
         const href = offerBriefHref(offer.id, locale);
         return (
-          <article className="marketplace-offer" data-offer-id={offer.id} data-platform={platform} data-selected={active || undefined} data-featured={offer.featured || undefined} key={offer.id}>
+          <article className="marketplace-offer service-price-card" data-price-tone={servicePriceTone(index)} data-offer-id={offer.id} data-platform={platform} data-selected={active || undefined} data-featured={offer.featured || undefined} key={offer.id}>
             <div className="marketplace-offer-badge-slot">
+              <PriceCardIcon kind="listing" index={index} />
               {offer.featured && <span className="marketplace-offer-badge">{ru ? "Рекомендуем" : "Recommended"}</span>}
             </div>
             <div className="marketplace-offer-head"><h3>{offer.name}</h3><p>{offer.description}</p></div>

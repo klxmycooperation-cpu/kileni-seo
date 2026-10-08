@@ -59,7 +59,6 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       releaseAboutPlanetPreload();
       return;
     }
-    const timer = window.setTimeout(() => warmAboutPlanet(), 6_000);
     const onIntent = (event: Event) => {
       const anchor = (event.target as Element | null)?.closest?.('a[href="/about"]');
       if (anchor) warmAboutPlanet(true);
@@ -68,7 +67,6 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     document.addEventListener("focusin", onIntent);
     document.addEventListener("touchstart", onIntent, { passive: true });
     return () => {
-      window.clearTimeout(timer);
       document.removeEventListener("pointerover", onIntent);
       document.removeEventListener("focusin", onIntent);
       document.removeEventListener("touchstart", onIntent);

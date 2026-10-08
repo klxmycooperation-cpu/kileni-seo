@@ -109,7 +109,6 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
         <header>
           <p className="section-kicker">{ru ? "Этапы подготовки" : "Preparation steps"}</p>
           <h2 id="marketplace-card-journey-title">{ru ? "От исходной карточки до файлов для загрузки" : "From the source card to upload-ready files"}</h2>
-          <p>{ru ? "На каждом этапе есть понятный результат: список замечаний, заполненные поля, план изображений и итоговый чек-лист." : "Every stage has a clear result: issue list, completed fields, image plan and final checklist."}</p>
         </header>
         <ol>
           {journey.map((step, index) => <li key={step.title}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{step.title}</h3><p>{step.text}</p></div></li>)}
@@ -146,7 +145,7 @@ function MarketplaceDetail({ locale, platform }: { locale: Locale; platform: Pla
       </section>
       <section className="marketplace-cta shell">
         <h2>{ru ? "Покажите карточки — вернёмся с объёмом и ценой" : "Share the cards — we will return with scope and pricing"}</h2>
-        <Link className="marketplace-cta__action" href="#marketplace-offers"><span>{ru ? "Выбрать вариант" : "Choose an option"}</span><i aria-hidden="true">↓</i></Link>
+        <Link className="marketplace-cta__action" href="#marketplace-offers"><span>{ru ? "Выбрать вариант" : "Choose an option"}</span><i aria-hidden="true">↑</i></Link>
       </section>
       <p className="marketplace-disclaimer shell">{ru ? "Названия и знаки площадок принадлежат правообладателям. KILENI не заявляет статус официального партнёра." : "Platform names and marks belong to their respective owners. KILENI does not claim official partner status."}</p>
     </div>

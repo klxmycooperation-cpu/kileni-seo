@@ -88,6 +88,18 @@ export type GlossaryTextMatch = GlossaryLinkEntry & {
   end: number;
 };
 
+// Entries survive across paragraphs; do not fold every alias again for every
+// candidate. Weak keys release the cache when a route's catalog is replaced.
+const foldedAliases = new WeakMap<GlossaryLinkEntry, Partial<Record<Locale, readonly { alias: string; needle: string }[]>>>();
+
+function aliasesFor(entry: GlossaryLinkEntry, locale: Locale) {
+  let localized = foldedAliases.get(entry);
+  if (!localized) { localized = {}; foldedAliases.set(entry, localized); }
+  return localized[locale] ??= entry.aliases.map(alias => ({
+    alias, needle: alias.toLocaleLowerCase(locale === "ru" ? "ru-RU" : "en-GB"),
+  }));
+}
+
 export function getGlossaryLinkEntries(locale: Locale): GlossaryLinkEntry[] {
   return glossaryTerms.map((term) => {
     const localizedAliases = MATCH_ALIASES[term.slug]?.[locale] ?? [];
@@ -124,14 +136,15 @@ export function findGlossaryTextMatches(
   const matches: GlossaryTextMatch[] = [];
   const used = new Set<string>();
   let cursor = 0;
+  const haystack = value.toLocaleLowerCase(locale === "ru" ? "ru-RU" : "en-GB");
 
   while (cursor < value.length) {
     let next: GlossaryTextMatch | null = null;
 
     for (const entry of entries) {
       if (used.has(entry.slug)) continue;
-      for (const alias of entry.aliases) {
-        const candidate = findAlias(value, alias, cursor, locale);
+      for (const { alias, needle } of aliasesFor(entry, locale)) {
+        const candidate = findAlias(value, haystack, alias, needle, cursor);
         if (!candidate) continue;
         if (
           next === null
@@ -190,13 +203,11 @@ export function buildGlossaryHref(locale: Locale, slug: string, returnTarget: st
 
 function findAlias(
   value: string,
+  haystack: string,
   alias: string,
+  needle: string,
   cursor: number,
-  locale: Locale,
 ): { start: number; end: number } | null {
-  const localeName = locale === "ru" ? "ru-RU" : "en-GB";
-  const haystack = value.toLocaleLowerCase(localeName);
-  const needle = alias.toLocaleLowerCase(localeName);
   let start = haystack.indexOf(needle, cursor);
 
   while (start >= 0) {

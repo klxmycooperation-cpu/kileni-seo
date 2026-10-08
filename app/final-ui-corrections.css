@@ -668,9 +668,8 @@ html[data-kileni-theme="dark"] .kileni-site .home-deliverable-list li:nth-child(
 .kileni-site .svc-build-process__preview-screen i:nth-child(2) { min-height: 56%; }
 .kileni-site .svc-build-process__preview-screen i:nth-child(3) { min-height: 82%; }
 .kileni-site .svc-build-process .svc-visual-route.svc-build-process__steps { min-width: 0; margin: 0; padding: .35rem 0 0; border-left: 1px solid rgba(255,255,255,.2); }
-.kileni-site .svc-build-process .svc-build-process__steps li { min-height: 4.65rem; padding: .65rem 0 .65rem clamp(.75rem, 1.4vw, 1.1rem); border-bottom: 1px solid rgba(255,255,255,.14); }
+.kileni-site .svc-build-process .svc-build-process__steps li { grid-template-columns: 2rem minmax(0, 1fr); min-height: 4.65rem; padding: .65rem 0 .65rem clamp(.75rem, 1.4vw, 1.1rem); border-bottom: 1px solid rgba(255,255,255,.14); }
 .kileni-site .svc-build-process .svc-build-process__steps li:last-child { border-bottom: 0; }
-.kileni-site .svc-build-process .svc-build-process__steps > li > b { font-size: .9rem; }
 
 /* Scope definition: a planning map gives this service a decision geometry
    distinct from the website's delivery board and SEO's analytical visuals. */
@@ -978,4 +977,29 @@ html[data-kileni-theme="dark"] .kileni-site .brief-refinement .brief-offer-previ
 @media (max-width: 640px) {
   .kileni-site .signal-hero .scan-keywords { grid-template-columns: 1fr; }
   .kileni-site .signal-hero .scan-keywords .hero-check-step:nth-child(odd) { margin-right: 0; }
+}
+
+/* Card surfaces clip their own decoration; comparison grids must allow lift,
+   shadows and focus outlines to extend beyond the first row. */
+.kileni-site main :is(.marketplace-offer-grid, .marketplace-grid),
+.kileni-site main .pricing-10 .cp-package-list,
+.kileni-site main .editorial-page .article-index-grid.article-index-grid {
+  overflow: visible;
+}
+
+.kileni-site main .marketplace-offer:is(:hover, :focus-within) {
+  position: relative;
+  z-index: 2;
+}
+
+/* Horizontal rails retain their clipping, with room above and below cards. */
+.kileni-site main .home-article-carousel__viewport {
+  padding-block: 1rem 2rem;
+}
+
+@media (max-width: 680px) {
+  .kileni-site main .pricing-10 .cp-tier-switch[data-option-count] {
+    padding-block: .5rem;
+    margin-block: -.5rem;
+  }
 }

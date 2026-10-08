@@ -370,7 +370,7 @@ const baseRu: Article[] = [
       },
     ],
     faq: [
-      { question: "Что даст заявки быстрее?", answer: "Обычно реклама запускается быстрее, но только готовая страница и измерение показывают окупаемость. SEO требует времени на создание и обработку страниц." },
+      { question: "Что даст заявки быстрее?", answer: "Рекламу можно запустить раньше, чем получить результат от SEO, но только готовая страница и измерение показывают окупаемость. SEO требует времени на создание и обработку страниц." },
       { question: "Можно ли выключить рекламу после роста SEO?", answer: "Можно перераспределить бюджет после сравнения продаж и маржи. Реклама останется полезной для сезонности, тестов и приоритетных запросов." },
       { question: "Нужно ли переносить рекламные ключи в SEO-текст?", answer: "Нет. Их группируют по намерению и пишут для задачи пользователя, а не повторяют механически." },
     ],
@@ -680,7 +680,7 @@ const baseEn: Article[] = [
       },
     ],
     faq: [
-      { question: "Which channel can produce enquiries sooner?", answer: "Advertising usually launches sooner, but only a ready page and conversion measurement show whether it pays back. SEO needs time for publishing and processing." },
+      { question: "Which channel can produce enquiries sooner?", answer: "Advertising can launch before SEO produces results, but only a ready page and conversion measurement show whether it pays back. SEO needs time for publishing and processing." },
       { question: "Can advertising stop after SEO improves?", answer: "Budget can be reallocated after comparing sales and margin. Ads can still support seasonal periods, experiments, and priority queries." },
       { question: "Should campaign keywords be copied into SEO text?", answer: "No. Group them by intent and write for the customer's task instead of repeating phrases mechanically." },
     ],

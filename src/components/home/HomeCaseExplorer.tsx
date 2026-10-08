@@ -145,9 +145,7 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
       return;
     }
     const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      setMetricsVisible(true);
-      observer.disconnect();
+      setMetricsVisible(entry.isIntersecting);
     }, { threshold: 0.08, rootMargin: "0px 0px -10%" });
     observer.observe(section);
     return () => observer.disconnect();
@@ -155,7 +153,9 @@ export function HomeCaseExplorer({ locale, cases }: HomeCaseExplorerProps) {
 
   useEffect(() => {
     if (!metricsVisible || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = window.setInterval(() => setMetricsRun((value) => value + 1), 15_000);
+    const timer = window.setInterval(() => {
+      if (!document.hidden) setMetricsRun((value) => value + 1);
+    }, 15_000);
     return () => window.clearInterval(timer);
   }, [metricsVisible]);
 

@@ -142,7 +142,7 @@ export function ServiceVisual({ visual, locale, items, outcome }: { visual: Serv
                 </div>
               </section>
             <ol className="svc-visual-route svc-build-process__steps" aria-label={ru ? "Этапы создания сайта" : "Website creation steps"}>
-              {steps.map(([number, title, description]) => <li key={number}><span>{number}</span><div><small>{title}</small><strong>{description}</strong></div><b aria-hidden="true">→</b></li>)}
+              {steps.map(([number, title, description]) => <li key={number}><span>{number}</span><div><small>{title}</small><strong>{description}</strong></div></li>)}
             </ol>
             </div>
             <p>{ru ? "Состав фиксируем до начала работ" : "Scope is fixed before work starts"}</p>
@@ -151,21 +151,39 @@ export function ServiceVisual({ visual, locale, items, outcome }: { visual: Serv
       );
     }
     if (visual.variant === "scope-definition") {
-      const rows = ru
-        ? [["Сейчас", items[0] ?? "Текущая ситуация"], ["Нужно получить", outcome], ["Первый этап", items[2] ?? "Состав первого этапа"], ["Как примем", "Проверяемый результат"]]
-        : [["Current situation", items[0] ?? "Current context"], ["Required outcome", outcome], ["First-stage scope", items[2] ?? "Bounded first stage"], ["Acceptance criterion", "Verifiable result"]];
+      const steps = ru
+        ? [
+            ["Исходные данные", "Уточняем цель, материалы и ограничения."],
+            ["Состав работ", "Выбираем подход и выделяем первый этап."],
+            ["Проверка результата", "Проверяем выполненную работу и сверяем её с согласованными требованиями."],
+          ]
+        : [
+            ["Starting point", "Clarify the goal, materials and constraints."],
+            ["Scope of work", "Choose an approach and define the first stage."],
+            ["Acceptance", "Agree how the completed work will be checked."],
+          ];
       return (
-        <aside className="svc-visual svc-visual-build-system svc-scope-definition" aria-label={visual.summary}>
+        <aside className="svc-visual svc-visual-build-system svc-scope-definition svc-scope-plan" aria-label={visual.summary}>
           <div className="svc-build-composition">
-            <div className="svc-build-composition__topline"><span>{visual.label}</span></div>
-            <div className="svc-scope-definition__intro">{ru ? "Сначала фиксируем, что известно и что должно измениться" : "First, make the context and the required change explicit"}</div>
-            <div className="svc-scope-definition__decision-map" aria-hidden="true">
-              <span className="svc-scope-definition__decision-node svc-scope-definition__decision-node--context">{ru ? "Что известно" : "What is known"}</span>
-              <span className="svc-scope-definition__decision-node svc-scope-definition__decision-node--choice">{ru ? "Что меняем" : "What changes"}</span>
-              <span className="svc-scope-definition__decision-node svc-scope-definition__decision-node--check">{ru ? "Как проверим" : "How we verify"}</span>
-            </div>
-            <dl className="svc-scope-definition__list">{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-            <p>{ru ? "Оценку согласуем после уточнения входных данных" : "The estimate follows once the inputs are clear"}</p>
+            <header className="svc-scope-plan__header">
+              <span>{visual.label}</span>
+              <h2>{ru ? "Уточняем задачу и согласуем план" : "Clarify the task and agree on a plan"}</h2>
+            </header>
+            <ol className="svc-scope-plan__steps">
+              {steps.map(([title, description], index) => <li key={title}>
+                <span className="svc-scope-plan__number">{String(index + 1).padStart(2, "0")}</span>
+                <h3>{title}</h3><p>{description}</p>
+              </li>)}
+            </ol>
+            <section className="svc-scope-plan__result" aria-label={ru ? "Результат согласования" : "Agreed outcome"}>
+              <span className="svc-scope-plan__check" aria-hidden="true">✓</span>
+              <div>
+                <span>{ru ? "До начала работы" : "Before work begins"}</span>
+                <strong>{ru ? "Согласованный первый этап" : "An agreed first stage"}</strong>
+                <ul>{(ru ? ["Состав работ", "Срок и смета", "Критерии приёмки"] : ["Scope of work", "Timing and estimate", "Acceptance criteria"]).map(item => <li key={item}>{item}</li>)}</ul>
+              </div>
+            </section>
+            <p>{ru ? "Срок и стоимость согласуем после уточнения исходных данных." : "Timing and cost are agreed once the inputs are clear."}</p>
           </div>
         </aside>
       );

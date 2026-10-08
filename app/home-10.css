@@ -228,7 +228,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .kileni-site .hero-audit-visual * { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; transform: none !important; }
+  .kileni-site .hero-audit-visual * { animation: none !important; }
   .kileni-site .free-audit-usage__pulse { animation: none; }
 }
 

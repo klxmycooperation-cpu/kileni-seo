@@ -1,0 +1,951 @@
+/* Page density only. All tokens and selectors are confined to main content.
+   The portalled contact assistant, floating bubble, and their inherited styles
+   deliberately remain outside this scope. Colours and content belong to the
+   existing route layers. No content is hidden to achieve these measurements. */
+.kileni-site #main-content {
+  --ds-title-size: clamp(2rem, 3.5vw, 3.25rem);
+  --ds-section-title-size: clamp(1.65rem, 2.35vw, 2.25rem);
+  --ds-card-title-size: clamp(1.2rem, 1.5vw, 1.5rem);
+  --ds-lead-size: clamp(1rem, 1.15vw, 1.125rem);
+  --ds-price-size: clamp(1.65rem, 2.1vw, 2.15rem);
+  --ds-card-padding: clamp(1rem, 1.4vw, 1.25rem);
+  --ds-action-height: 2.75rem;
+  --h1-role-home-size: var(--ds-title-size);
+  --h1-role-display-size: var(--ds-title-size);
+  --h1-role-index-size: var(--ds-title-size);
+  --h1-role-page-size: var(--ds-title-size);
+  --h1-role-detail-size: var(--ds-title-size);
+  --h1-role-brief-size: var(--ds-title-size);
+  --page-section-space: clamp(2rem, 3vw, 3rem);
+  --page-layout-gap: clamp(1.25rem, 2.5vw, 2.5rem);
+}
+
+/* A consistent hierarchy, without changing body text or diagram labels. */
+.kileni-site #main-content h1 {
+  font-size: var(--ds-title-size);
+  line-height: 1.08;
+}
+.kileni-site #main-content :is(h1, h2, h3) {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.kileni-site #main-content :is(
+  .section-heading h2, .home-section-heading h2, .home-entry-route__heading h2,
+  .home-decision__heading h2, .home-decision__intro h2, .home-case-explorer__heading h2,
+  .svc-compact-heading h2, .svc-section-heading h2, .svc-request-grid h2,
+  .svc-assurance > .shell > header h2, .svc-result-example__heading h2,
+  .cp-section-intro h2, .cp-extras-grid h2, .cp-request-grid h2,
+  .seo-hub__section-heading h2, .services-explorer__heading h2,
+  .services-explorer__panel h2, .marketplace-card-journey > header h2,
+  .marketplace-result-example > header h2, .marketplace-offers > header h2,
+  .marketplace-docs h2, .marketplace-cta h2, .glossary-cta h2,
+  .brief-download-heading h2, .about-v3-scene__copy h2, .about-v3-final h2,
+  .cp-result-heading h2, .cp-story-heading h2, .contact-grid h2,
+  .warm-final-cta h2, .home-pin-cta h2
+) { font-size: var(--ds-section-title-size); line-height: 1.15; }
+.kileni-site #main-content :is(.svc-detail-copy, .cp-hero, .brief-hero-grid) h1 {
+  max-width: 100%;
+}
+.kileni-site #main-content :is(
+  .hero-lead, .svc-detail-lead, .services-hub__lead, .seo-hub__lead,
+  .page-hero > p:last-child, .cp-cases-title > p:last-child,
+  .marketplace-hero > p:last-child, .glossary-hero > p:last-child,
+  .marketplace-detail-hero p:last-child
+) { font-size: var(--ds-lead-size); line-height: 1.55; }
+
+/* Section rhythm and introductions. */
+.kileni-site #main-content :is(
+  .section, .home-entry-route, .home-process-section, .home-decision,
+  .home-case-explorer, .home-deliverables, .home-directions, .home-pin-cta,
+  .svc-compact-overview, .svc-decision-section, .svc-variants, .svc-assurance,
+  .svc-request-section, .svc-result-example, .svc-inline-glossary,
+  .svc-index-list, .svc-index-custom, .cp-pricing-section, .cp-extras-section,
+  .cp-request-section, .cp-case-index-section, .cp-errors-chart-section,
+  .cp-story-section, .cp-result-section, .services-explorer,
+  .seo-hub__directions, .seo-hub__ladder, .marketplace-card-journey,
+  .marketplace-offers, .brief-workspace, .brief-downloads, .checks-category,
+  .checks-related
+) { padding-block: var(--page-section-space); }
+.kileni-site #main-content :is(
+  .section-heading, .home-section-heading, .home-entry-route__heading,
+  .home-decision__heading, .home-case-explorer__heading, .svc-section-heading,
+  .svc-compact-heading, .seo-hub__section-heading, .services-explorer__heading,
+  .cp-section-intro, .marketplace-card-journey > header,
+  .marketplace-offers > header, .marketplace-result-example > header,
+  .brief-download-heading
+) { margin-bottom: 1.25rem; column-gap: var(--page-layout-gap); }
+.kileni-site #main-content :is(.svc-compact-heading, .svc-section-heading) h2 {
+  max-width: 32ch;
+}
+.kileni-site #main-content :is(.svc-compact-heading, .svc-section-heading) {
+  grid-template-columns: minmax(9rem, .3fr) minmax(0, 1fr);
+  row-gap: .6rem;
+}
+.kileni-site #main-content :is(.svc-compact-grid, .svc-assurance-grid) article {
+  min-height: 0;
+  padding: var(--ds-card-padding);
+}
+.kileni-site #main-content .svc-compact-grid h3 { margin-block: .55rem .65rem; }
+.kileni-site #main-content .svc-compact-grid :is(ul, ol) { gap: .5rem; }
+.kileni-site #main-content :is(.svc-assurance-grid, .svc-request-grid, .cp-request-grid,
+  .cp-extras-grid, .contact-grid, .svc-result-example > .shell) { gap: var(--page-layout-gap); }
+
+/* First screens use the height of their contents, not the viewport. */
+.kileni-site #main-content :is(.svc-detail-hero-grid, .svc-index-hero-grid,
+  .cp-hero-grid, .cp-cases-title, .cp-case-detail-title, .brief-hero-grid,
+  .services-hub__hero-layout, .seo-hub__hero-grid) {
+  min-height: 0;
+  padding-block: 2rem;
+  gap: var(--page-layout-gap);
+}
+.kileni-site #main-content .svc-detail-hero-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+}
+.kileni-site #main-content :is(.svc-detail-copy > p, .svc-kicker, .brief-kicker) {
+  margin-bottom: .75rem;
+}
+.kileni-site #main-content :is(.svc-hero-actions, .hero-entry-actions) {
+  margin-top: 1.25rem;
+  gap: .75rem 1.25rem;
+}
+.kileni-site #main-content :is(.page-hero, .glossary-hero, .marketplace-hero) {
+  padding-block: 2rem;
+  gap: 1rem 2rem;
+}
+/* The glossary has no dark hero wrapper to reserve room for the fixed header. */
+.kileni-site #main-content .glossary-page { padding-top: 5.5rem; }
+.kileni-site #main-content .glossary-page > .glossary-return-slot {
+  min-height: 0;
+  padding-top: .75rem;
+  margin-bottom: 0;
+}
+.kileni-site #main-content .glossary-page > .glossary-return-slot:empty { display: none; }
+.kileni-site #main-content .marketplace-detail-hero {
+  padding-block: 1.5rem;
+  gap: 1.5rem;
+}
+.kileni-site #main-content .marketplace-detail-hero h1 { max-width: 24ch; }
+.kileni-site #main-content .marketplace-platform-switch { flex-wrap: wrap; }
+.kileni-site #main-content .svc-page-toc { padding-block: .5rem; }
+.kileni-site #main-content .svc-detail-copy { gap: .5rem; }
+.kileni-site #main-content .svc-detail-copy h1 { margin-bottom: .5rem; }
+.kileni-site #main-content .service-10-web-development .svc-detail-copy h1 {
+  font-size: var(--ds-title-size) !important;
+}
+@media (min-width: 1025px) {
+  .kileni-site #main-content .seo-hub__hero-side {
+    padding-top: 2.5rem;
+    align-content: center;
+  }
+}
+.kileni-site #main-content .svc-audit-journey__header { min-height: 0; padding: .75rem 1rem; }
+.kileni-site #main-content .svc-audit-journey__checks li { min-height: 0; padding: .5rem .6rem; }
+.kileni-site #main-content .svc-audit-journey__footer { padding: .75rem 1rem; }
+
+/* Home: keep the dashboard, reduce its spare vertical room. */
+.kileni-site #main-content .signal-hero { min-height: 0; padding-block: 6.25rem 2rem; }
+.kileni-site #main-content .signal-hero .hero-grid {
+  min-height: 0;
+  height: auto;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .85fr);
+  gap: var(--page-layout-gap);
+}
+.kileni-site #main-content .signal-hero .hero-tool,
+.kileni-site #main-content .signal-hero .hero-audit-surface { height: auto; }
+.kileni-site #main-content .signal-hero .hero-copy { height: auto; align-self: center; gap: 0; }
+.kileni-site #main-content .signal-hero h1 { margin-bottom: 1rem; }
+.kileni-site #main-content .signal-hero .hero-lead { margin-bottom: 1rem; }
+.kileni-site #main-content .signal-hero .hero-offer { margin: 0 0 .75rem; }
+.kileni-site #main-content .hero-free-audit-usage { margin: 0 0 1rem; }
+.kileni-site #main-content .signal-hero .hero-microcopy { margin-bottom: 1rem; font-size: .875rem; line-height: 1.5; }
+.kileni-site #main-content .signal-hero .hero-offer { font-size: .75rem; }
+.kileni-site #main-content .signal-hero .hero-proof-link { min-height: 44px; }
+.kileni-site #main-content .analytics-hero-chart__plot { height: auto; min-height: 0; }
+.kileni-site #main-content .analytics-visibility-chart { height: auto; max-height: 12rem; }
+.kileni-site #main-content .analytics-hero-chart__metric > div { min-height: 0; }
+.kileni-site #main-content .home-entry-route .shell,
+.kileni-site #main-content .home-process-story,
+.kileni-site #main-content .home-deliverables-grid,
+.kileni-site #main-content .home-directions-grid { gap: var(--page-layout-gap); }
+.kileni-site #main-content .home-entry-route__list > a {
+  min-height: 0;
+  padding: .85rem 1rem;
+}
+.kileni-site #main-content .home-process-chapters li {
+  min-height: 0;
+  padding: 1rem;
+  gap: .75rem;
+}
+.kileni-site #main-content .home-process-chapters h3 { font-size: 1.35rem; margin-bottom: .4rem; }
+.kileni-site #main-content .home-decision__tab { min-height: 0; padding: .9rem 1rem; gap: .5rem; }
+.kileni-site #main-content .home-decision__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+}
+.kileni-site #main-content .home-decision__tabs { grid-area: 1 / 1; }
+.kileni-site #main-content .home-decision__panel {
+  grid-area: 2 / 1;
+  display: grid;
+  align-content: start;
+  padding: 1.25rem;
+  min-height: 0;
+}
+/* Existing inactive panels reserve the tallest option without being visible,
+   announced, or focusable. Changing tabs therefore does not move the page. */
+.kileni-site #main-content .home-decision__panel[hidden] {
+  display: grid;
+  visibility: hidden;
+  pointer-events: none;
+}
+.kileni-site #main-content .home-decision__panel-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: .75rem;
+}
+.kileni-site #main-content .home-decision__panel-head h3 { font-size: 1.4rem; line-height: 1.25; }
+.kileni-site #main-content .home-decision__panel-head p { font-size: .75rem; line-height: 1.4; }
+.kileni-site #main-content .home-decision__panel-head b { font-size: 1.6rem; line-height: 1.2; white-space: normal; }
+.kileni-site #main-content .home-decision__description { font-size: .9375rem; line-height: 1.5; white-space: normal; }
+.kileni-site #main-content .home-decision__panel :is(dd, li) { font-size: .875rem; line-height: 1.5; }
+.kileni-site #main-content .home-decision__panel dt { font-size: .75rem; line-height: 1.4; }
+.kileni-site #main-content .home-decision__tab strong { font-size: .9375rem; line-height: 1.35; }
+.kileni-site #main-content .home-decision__cta { min-height: 44px; font-size: .875rem; }
+.kileni-site #main-content .home-direction-list > a { min-height: 0; padding: 1rem; }
+.kileni-site #main-content .home-deliverable-list li { min-height: 0; padding: 1rem; }
+.kileni-site #main-content .home-case-explorer__results div { min-height: 0; padding: 1rem; }
+.kileni-site #main-content .home-case-explorer__switch button { min-height: 44px; }
+.kileni-site #main-content .home-article-carousel__body { min-height: 0; padding: 1rem; overflow: visible; }
+.kileni-site #main-content .home-article-carousel__body h3 { font-size: 1.125rem; line-height: 1.3; margin-block: .75rem; max-width: none; }
+.kileni-site #main-content .home-article-carousel__body > p:not(.home-article-carousel__meta) {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  font-size: .875rem;
+  line-height: 1.5;
+}
+.kileni-site #main-content .home-deliverables .home-section-heading .warm-lead {
+  font-family: var(--font-manrope), sans-serif;
+  font-size: .9375rem;
+  font-weight: 450;
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.kileni-site #main-content .home-article-carousel__meta { flex-wrap: wrap; font-size: .75rem; line-height: 1.4; }
+.kileni-site #main-content .home-article-carousel__viewport {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  min-height: 0;
+  gap: 1rem;
+  mask-image: none;
+}
+/* Every existing guide participates in sizing the same row, including the
+   already inactive guides. Text wrapping and controls stay stable on rotation. */
+.kileni-site #main-content .home-article-carousel__card {
+  --ds-card-title-size: 1.2rem;
+  display: grid;
+  grid-row: 1;
+  grid-column: 3;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  width: 100%;
+  height: auto;
+  visibility: hidden;
+  pointer-events: none;
+  transform: none;
+  filter: none;
+  transition: border-color .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+.kileni-site #main-content .home-article-carousel__card:is([data-carousel-position="-2"], [data-carousel-position="-1"], [data-carousel-position="0"], [data-carousel-position="1"], [data-carousel-position="2"]) {
+  visibility: visible;
+  pointer-events: auto;
+  opacity: .85;
+}
+.kileni-site #main-content .home-article-carousel__card[data-carousel-position="-2"] { grid-column: 1; }
+.kileni-site #main-content .home-article-carousel__card[data-carousel-position="-1"] { grid-column: 2; }
+.kileni-site #main-content .home-article-carousel__card[data-carousel-position="1"] { grid-column: 4; }
+.kileni-site #main-content .home-article-carousel__card[data-carousel-position="2"] { grid-column: 5; }
+.kileni-site #main-content .home-article-carousel__card[data-active="true"] { opacity: 1; }
+.kileni-site #main-content .home-case-explorer__results dd {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  line-height: 1.3;
+}
+.kileni-site #main-content .home-case-explorer__results > div { min-height: 6rem; }
+.kileni-site #main-content .home-pin-cta { min-height: 0; }
+.kileni-site #main-content .home-pin-cta :is(.pin-container, .pin-container__stage) { min-height: 13rem; }
+
+/* Pricing: shared rows align facts while their content determines the height. */
+.kileni-site #main-content :is(.svc-package-grid > article, .cp-package,
+  .cp-package-detail, .marketplace-offer, .cp-tier-card) { min-height: 0; }
+/* Keep containment on the action row: containment on the card disables its
+   subgrid and can squeeze fact rows underneath the price. */
+.kileni-site #main-content :is(.svc-package-actions, .marketplace-offer-actions) {
+  container: page-offer / inline-size;
+}
+.kileni-site #main-content :is(.svc-package-grid > article, .marketplace-offer, .cp-tier-card) {
+  transform: none;
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.kileni-site #main-content .svc-package-grid > article { padding: 1rem; }
+.kileni-site #main-content .svc-package-grid .svc-package-head {
+  grid-template-rows: auto auto auto;
+  gap: .4rem;
+}
+.kileni-site #main-content .svc-package-head h3 { font-size: 1.3rem; }
+.kileni-site #main-content .svc-package-limit { min-height: 0; margin-block: .6rem; padding: .6rem; }
+.kileni-site #main-content .svc-package-price { font-size: var(--ds-price-size); }
+.kileni-site #main-content .svc-package-actions { margin-top: .75rem; }
+.kileni-site #main-content .service-10-web-development .svc-package-meta { min-height: 0; }
+.kileni-site #main-content :is(.cp-tier-card-summary, .cp-tier-card-value) {
+  min-height: 0;
+  height: auto;
+}
+.kileni-site #main-content .cp-tier-card-select { grid-template-rows: auto auto auto; }
+.kileni-site #main-content .cp-tier-card-summary { grid-template-rows: auto auto auto; gap: .5rem; }
+.kileni-site #main-content .cp-tier-card-summary > strong { font-size: 1.3rem; }
+.kileni-site #main-content .cp-tier-card-price { height: auto; margin-block: .65rem; }
+.kileni-site #main-content .cp-tier-card-price > strong { font-size: var(--ds-price-size); }
+.kileni-site #main-content .cp-tier-card-value { gap: .55rem; }
+.kileni-site #main-content :is(.cp-tier-card-description, .cp-tier-card-includes li, .cp-tier-card-action, .cp-tier-card-details-trigger) {
+  font-size: .875rem;
+  line-height: 1.5;
+}
+.kileni-site #main-content .cp-tier-card-outcome > strong { font-size: .9375rem; }
+.kileni-site #main-content :is(.cp-tier-card-outcome > span, .svc-package-limit > span) { font-size: .75rem; line-height: 1.4; }
+.kileni-site #main-content .cp-tier-card-price > strong { white-space: normal; line-height: 1.15; }
+.kileni-site #main-content .svc-package-actions > :is(button, a) { min-height: 44px; line-height: 1.5; }
+.kileni-site #main-content .service-10-web-development .svc-package-grid { align-items: start; }
+.kileni-site #main-content .service-10-web-development .svc-package-grid > article[data-compact] { align-self: start; }
+.kileni-site #main-content .service-10-web-development .svc-package-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: stretch;
+  min-width: 0;
+  height: auto;
+}
+.kileni-site #main-content .service-10-web-development .svc-package-head h3 {
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  white-space: normal;
+}
+.kileni-site #main-content .service-10-web-development .svc-package-meta {
+  min-width: 0;
+  max-width: 100%;
+  width: auto;
+  flex: 0 1 auto;
+}
+.kileni-site #main-content .service-10-web-development .svc-package-meta > span:last-child {
+  flex-basis: 100%;
+  font-size: .875rem;
+  line-height: 1.45;
+}
+.kileni-site #main-content .cp-category-intro { margin-bottom: 1rem; padding-bottom: 1rem; }
+.kileni-site #main-content .cp-selection-summary { padding: 1rem; }
+.kileni-site #main-content :is(.cp-package-fit, .cp-package-included, .cp-package-facts > div) { min-height: 0; }
+
+/* Marketplace detail: keep every requirement and example in the same order. */
+.kileni-site #main-content .marketplace-card { min-height: 0; padding: 1.25rem; gap: 1.25rem; }
+.kileni-site #main-content .marketplace-card h2 { font-size: 1.6rem; }
+.kileni-site #main-content .marketplace-card-journey li { min-height: 0; padding: 1rem; }
+.kileni-site #main-content .marketplace-card-journey li > div { min-height: 0; padding-top: .8rem; }
+.kileni-site #main-content .marketplace-detail-row { padding-block: 1.25rem; gap: 1.25rem; }
+.kileni-site #main-content .marketplace-detail-row h2 { font-size: 1.6rem; }
+.kileni-site #main-content .marketplace-detail-row ul { gap: .5rem; }
+
+/* Keep all eight scope sections visible while using the available width. */
+.kileni-site #main-content #marketplace-scope {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+  gap: .85rem;
+  border-top: 0;
+}
+.kileni-site #main-content #marketplace-scope > .marketplace-detail-row {
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  align-content: start;
+  gap: .65rem .6rem;
+  padding: 1rem;
+  border: 1px solid var(--theme-line, #d7dce7);
+  border-radius: 14px;
+}
+.kileni-site #main-content #marketplace-scope > .marketplace-detail-row > span {
+  align-self: center;
+  font-size: .75rem;
+  line-height: 1.4;
+}
+.kileni-site #main-content #marketplace-scope > .marketplace-detail-row h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: clamp(1.2rem, 1.6vw, 1.375rem);
+  line-height: 1.25;
+}
+.kileni-site #main-content #marketplace-scope > .marketplace-detail-row ul {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding-left: 1.1rem;
+  gap: .35rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 760px) {
+  .kileni-site #main-content #marketplace-scope {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .65rem;
+  }
+  .kileni-site #main-content #marketplace-scope > .marketplace-detail-row {
+    padding: .85rem;
+  }
+}
+.kileni-site #main-content .marketplace-result-example { padding: var(--page-section-space) 1.5rem; }
+.kileni-site #main-content .marketplace-result-states article { min-height: 0; padding: 1rem; }
+.kileni-site #main-content .marketplace-offer { padding: 1rem; }
+.kileni-site #main-content .marketplace-offer-badge-slot { min-height: 1.75rem; }
+.kileni-site #main-content .marketplace-offer-head { grid-template-rows: auto auto; gap: .45rem; }
+.kileni-site #main-content .marketplace-offer h3 { font-size: 1.3rem; }
+.kileni-site #main-content .marketplace-offer-price { font-size: var(--ds-price-size); margin-block: .75rem; }
+.kileni-site #main-content .marketplace-offer > p { min-height: 0; margin-block: .6rem; }
+.kileni-site #main-content .marketplace-offer-facts > div { padding-block: .5rem; min-height: 0; }
+.kileni-site #main-content .marketplace-offer dl { margin-top: .65rem; }
+.kileni-site #main-content .marketplace-offer dl > div { min-height: 0; padding-block: .5rem; }
+.kileni-site #main-content .marketplace-offer-actions { margin-top: .75rem; }
+.kileni-site #main-content .marketplace-offer__included { margin-top: .65rem; }
+.kileni-site #main-content .marketplace-offer__included li { padding-block: .4rem; }
+
+/* Website offers use the same card structure and reading scale as marketplaces. */
+.kileni-site #main-content .svc-website-offer-grid .marketplace-offer-head h3 {
+  padding-top: .35rem;
+  line-height: 1.15;
+}
+.kileni-site #main-content .svc-website-offer-grid .marketplace-offer-head p {
+  padding-top: .4rem;
+  font-size: .875rem;
+  line-height: 1.45;
+}
+.kileni-site #main-content .svc-website-offer-grid .marketplace-offer-note:empty { display: none; }
+.kileni-site #main-content .svc-website-offer-grid .marketplace-offer-badge {
+  background: var(--kileni-action, #4164ff);
+  color: #fff;
+}
+.kileni-site #main-content .svc-website-offer-grid .marketplace-offer-actions > :is(button, a) {
+  padding: .6rem .8rem;
+  font-size: .875rem;
+}
+.kileni-site #main-content .svc-website-offer-grid dt { font-size: .625rem; }
+.kileni-site #main-content .svc-website-offer-grid dd {
+  margin-top: .25rem;
+  font-size: .875rem;
+  line-height: 1.45;
+}
+.kileni-site #main-content .svc-website-offer-grid li { font-size: .875rem; line-height: 1.45; }
+.kileni-site #main-content .svc-website-offer-label {
+  align-self: center;
+  color: var(--theme-muted, #59657d);
+  font: 700 .7rem/1.4 var(--font-mono, monospace);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.kileni-site #main-content :is(.marketplace-docs, .marketplace-cta, .glossary-cta) {
+  min-height: 0;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  gap: var(--page-layout-gap);
+}
+.kileni-site #main-content .marketplace-disclaimer { padding-block: 1rem 2rem; }
+
+/* Cases, reading pages and glossary cards. Keep article line lengths readable. */
+.kileni-site #main-content :is(.cp-narrative-header, .cp-narrative-result,
+  .cp-narrative-summary, .cp-narrative-footer) {
+  height: auto;
+  min-height: 0;
+  padding: 1.25rem;
+}
+.kileni-site #main-content .cp-narrative-header h2 { font-size: 1.4rem; }
+.kileni-site #main-content .cp-narrative-header { row-gap: .65rem; }
+.kileni-site #main-content .cp-narrative-header h2 { margin-top: .75rem; }
+.kileni-site #main-content .cp-narrative-result dl > div { min-height: 0; padding-block: .75rem; }
+.kileni-site #main-content .cp-narrative-body { gap: 0; }
+.kileni-site #main-content .cp-case-stories { gap: 1.25rem; }
+.kileni-site #main-content .cp-story-grid { gap: var(--page-layout-gap); }
+.kileni-site #main-content .cp-fact-strip { margin-block: 1.5rem; }
+.kileni-site #main-content .cp-evidence-item { padding-block: 1rem; }
+.kileni-site #main-content .article-index-grid { gap: 1.25rem; }
+.kileni-site #main-content .editorial-index-top .page-hero h1 {
+  max-width: 28ch !important;
+  font-size: var(--ds-title-size) !important;
+}
+.kileni-site #main-content .article-card-featured { height: auto !important; }
+.kileni-site #main-content .article-card-featured .article-card-copy { overflow: visible !important; }
+.kileni-site #main-content .article-card:not(.article-card-featured) .article-card-image {
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+.kileni-site #main-content .article-index-grid .article-card-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.kileni-site #main-content .article-header { padding-block: 2rem; }
+.kileni-site #main-content .article-hero-image { margin-block: 0 1.5rem; }
+.kileni-site #main-content .article-layout { padding-block: 1.5rem; gap: 2rem; }
+.kileni-site #main-content .article-body > section { margin-bottom: 1.5rem; }
+.kileni-site #main-content .article-card-copy { min-height: 0; padding: 1rem; }
+.kileni-site #main-content .article-index-grid .article-card-copy > p { font-size: .875rem; line-height: 1.5; }
+.kileni-site #main-content .article-card h2 { font-size: 1.35rem; margin-block: .65rem; }
+.kileni-site #main-content .article-body :is(h2, h3) { margin-top: 1.5rem; }
+.kileni-site #main-content .article-body h2 { font-size: 1.65rem; }
+.kileni-site #main-content .glossary-item { min-height: 0; padding: 1.25rem; }
+.kileni-site #main-content .glossary-item :is(h2, h3) { margin-block: .75rem .6rem; font-size: 1.4rem; }
+.kileni-site #main-content .glossary-page > section.shell:not([class*="glossary-"]) {
+  padding-block: var(--page-section-space);
+}
+.kileni-site #main-content .glossary-cta { margin-bottom: 2rem; }
+
+/* Instructional diagram copy is useful content, not a miniature label. */
+.kileni-site #main-content .svc-visual-growth-map li p { font-size: .84375rem; line-height: 1.5; }
+.kileni-site #main-content .svc-visual-growth-map li strong { font-size: .875rem; line-height: 1.4; }
+.kileni-site #main-content .svc-visual-growth-map > footer { font-size: .8125rem; }
+.kileni-site #main-content .svc-scope-plan__steps p { font-size: .875rem; line-height: 1.5; }
+.kileni-site #main-content .svc-visual-build-system .svc-build-composition > p { font-size: .8125rem; line-height: 1.5; }
+.kileni-site #main-content .services-explorer__panel li { font-size: .875rem; line-height: 1.5; }
+
+/* About: shorter scenes with the same artwork and animated conversation. */
+.kileni-site #main-content .about-v3-scene { min-height: 0; }
+.kileni-site #main-content .about-v3-hero__content { padding-block: 9rem 2.5rem; }
+.kileni-site #main-content .about-v3-hero::after { bottom: -3rem; height: 8rem; }
+.kileni-site #main-content .about-v3-brand { margin-bottom: 1.25rem; }
+.kileni-site #main-content .about-v3-brand__name { font-size: clamp(4rem, 7vw, 6.5rem); }
+.kileni-site #main-content .about-v3-brand__seo { font-size: clamp(1.4rem, 2.5vw, 2.4rem); }
+.kileni-site #main-content .about-v3-hero__title { max-width: 32ch; font-size: var(--ds-section-title-size); }
+.kileni-site #main-content .about-v3-hero__lead { margin-top: 1rem; font-size: 1rem; }
+.kileni-site #main-content .about-v3-scroll-link { margin-top: 1.5rem; min-height: 44px; }
+.kileni-site #main-content .about-v3-seo { margin-top: 0; padding-top: 2rem; }
+.kileni-site #main-content .about-v3-split,
+.kileni-site #main-content .about-v3-final__content { padding-block: var(--page-section-space); gap: var(--page-layout-gap); }
+.kileni-site #main-content .about-v3-scene__copy h2 { max-width: 25ch; }
+.kileni-site #main-content .about-v3-final { margin-top: 0; padding-top: 0; }
+.kileni-site #main-content .about-v3-conversation { width: min(100%, 28rem); min-height: 0; transform: none; }
+.kileni-site #main-content .about-v3-conversation__topbar { min-height: 4rem; padding: .65rem .9rem; }
+.kileni-site #main-content .about-v3-conversation__message { padding: .5rem .75rem .4rem; }
+.kileni-site #main-content .about-chat-report__header { padding: .75rem; }
+.kileni-site #main-content .about-chat-report li { padding-block: .4rem; }
+.kileni-site #main-content .about-chat-report__footer { padding: .6rem .75rem; }
+.kileni-site #main-content .about-motion-example { padding: .1rem .9rem .75rem; }
+/* Typing indicators share the upcoming message's reserved row. Their existing
+   animation can change bubble size without changing the phone or page height. */
+.kileni-site #main-content .about-v3-conversation__timeline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: .4rem;
+  padding: .75rem .9rem .9rem;
+}
+.kileni-site #main-content .about-chat-route { grid-area: 1 / 1; }
+.kileni-site #main-content .about-v3-conversation__message--opening { grid-area: 2 / 1; }
+.kileni-site #main-content :is(.about-v3-conversation__message--answer, .about-v3-conversation__typing--first) { grid-area: 3 / 1; }
+.kileni-site #main-content .about-v3-conversation__message--question { grid-area: 4 / 1; }
+.kileni-site #main-content :is(.about-v3-conversation__message--plan, .about-v3-conversation__typing--second) { grid-area: 5 / 1; }
+.kileni-site #main-content .about-v3-conversation__message--thanks { grid-area: 6 / 1; }
+.kileni-site #main-content .about-v3-conversation__results { grid-area: 7 / 1; }
+.kileni-site #main-content .about-v3-conversation__typing { align-self: start; justify-self: start; }
+.kileni-site #main-content .about-v3-conversation__message--client { justify-self: end; }
+.kileni-site #main-content .about-v3-conversation__message--kileni { justify-self: start; }
+.kileni-site #main-content .about-chat-report li { font-size: .875rem; line-height: 1.5; }
+.kileni-site #main-content .about-chat-report__footer { font-size: .8125rem; line-height: 1.5; }
+.kileni-site #main-content .about-motion-example { font-size: .8125rem; line-height: 1.5; }
+
+/* Forms: keep fields at least 44px high, remove empty panel height. */
+.kileni-site #main-content .brief-hero-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); align-items: center; }
+.kileni-site #main-content .brief-hero-note { padding: 1.25rem; }
+.kileni-site #main-content .brief-hero-note > p { margin-bottom: .75rem; }
+.kileni-site #main-content .brief-offer-preview { margin-block: .75rem; }
+.kileni-site #main-content .brief-offer-preview > div { padding-block: .55rem; }
+.kileni-site #main-content .brief-effort { margin-top: 1rem; padding-top: .75rem; font-family: var(--sans); font-size: .95rem; }
+.kileni-site #main-content .brief-hero-outcomes { margin-top: 1.25rem; }
+.kileni-site #main-content .brief-hero-outcomes li { min-height: 0; padding: .65rem .65rem .65rem 1.75rem; }
+.kileni-site #main-content .brief-hero-outcomes li::before { left: .65rem; }
+.kileni-site #main-content .brief-wizard { min-height: 0; }
+.kileni-site #main-content .brief-compass { max-height: none; overflow: visible; position: static; }
+.kileni-site #main-content .brief-service-guide li { font-size: .875rem; line-height: 1.5; }
+.kileni-site #main-content .brief-service-guide h3 { font-size: .875rem; line-height: 1.4; }
+.kileni-site #main-content .brief-service-guide > small { font-size: .8125rem; line-height: 1.5; }
+.kileni-site #main-content .brief-panel { padding: 1.25rem; }
+.kileni-site #main-content .brief-panel section > h2 { font-size: 1.5rem; }
+.kileni-site #main-content .brief-step-intro { margin-bottom: 1rem; }
+.kileni-site #main-content .brief-step-label { margin-block: .75rem 1rem; }
+.kileni-site #main-content .brief-panel > section { padding-block: 0; }
+.kileni-site #main-content .service-choice { gap: .75rem; }
+.kileni-site #main-content .service-choice button { min-height: 0; padding: 1rem; gap: .4rem .65rem; }
+.kileni-site #main-content .wizard-actions { padding-top: 1rem; gap: .75rem; }
+.kileni-site #main-content :is(.lead-form, .contact-form) { padding: 1.25rem; gap: 1rem; }
+.kileni-site #main-content :is(input:not([type="checkbox"]):not([type="radio"]), select) { min-height: 44px; }
+.kileni-site #main-content textarea { min-height: 7rem; }
+
+/* Wider cards use available room; tablet keeps readable two-column grids. */
+@media (min-width: 981px) {
+  .kileni-site #main-content .brief-route { padding: 1.25rem; }
+  .kileni-site #main-content .brief-route li { min-height: 2.75rem; }
+  .kileni-site #main-content .brief-route small { padding-top: 1rem; font-size: .8125rem; }
+  .kileni-site #main-content .brief-service-guide { margin: 0 1.25rem 1.25rem; padding-top: 1rem; }
+}
+@media (min-width: 1101px) {
+  .kileni-site #main-content .cp-category-selector { grid-template-columns: minmax(10rem, .26fr) minmax(0, 1.74fr); gap: 1.5rem; }
+  .kileni-site #main-content .cp-tier-switch[data-option-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kileni-site #main-content .home-entry-route__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kileni-site #main-content .article-index-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kileni-site #main-content .article-index-grid .article-card {
+    grid-column: auto;
+    grid-template-columns: minmax(0, .55fr) minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+  .kileni-site #main-content .article-index-grid .article-card-image-link { position: relative; height: 100%; }
+  .kileni-site #main-content .article-index-grid .article-card:not(.article-card-featured) .article-card-image {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+  .kileni-site #main-content .article-index-grid .article-card-featured { grid-column: 1 / -1 !important; }
+}
+@media (min-width: 681px) {
+  .kileni-site #main-content .cp-tier-switch { row-gap: 0; align-items: stretch; }
+  .kileni-site #main-content .cp-tier-card {
+    display: grid;
+    grid-row: span 5;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+  .kileni-site #main-content .cp-tier-card-select {
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+  .kileni-site #main-content .cp-tier-card-summary {
+    grid-template-rows: 1.5rem auto 1fr;
+    align-self: stretch;
+  }
+  .kileni-site #main-content .cp-tier-card-value { align-content: start; }
+}
+@media (min-width: 761px) {
+  .kileni-site #main-content .svc-package-grid { row-gap: 0; }
+  .kileni-site #main-content .svc-package-grid > article:not([data-compact]) {
+    grid-row: span 9;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+  .kileni-site #main-content .svc-package-grid > article:not([data-compact])[data-has-highlights="true"] { grid-row: span 10; }
+  .kileni-site #main-content .svc-package-grid > article:not([data-compact]) .svc-package-head {
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+}
+@container page-offer (max-width: 22rem) {
+  .kileni-site #main-content :is(.svc-package-actions, .marketplace-offer-actions) > :is(button, a) { min-height: 4.25rem; }
+}
+@media (min-width: 761px) and (max-width: 1279px) {
+  .kileni-site #main-content .home-article-carousel__viewport { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kileni-site #main-content .home-article-carousel__card[data-carousel-position] { grid-column: 2; }
+  .kileni-site #main-content .home-article-carousel__card:is([data-carousel-position="-2"], [data-carousel-position="2"]) { visibility: hidden; pointer-events: none; }
+  .kileni-site #main-content .home-article-carousel__card[data-carousel-position="-1"] { grid-column: 1; }
+  .kileni-site #main-content .home-article-carousel__card[data-carousel-position="1"] { grid-column: 3; }
+}
+@media (max-width: 760px) {
+  .kileni-site #main-content .home-decision__panel-head { grid-template-columns: minmax(0, 1fr); }
+  .kileni-site #main-content .home-decision__content { display: block; }
+  .kileni-site #main-content .home-decision__panel ul { margin-block: .75rem; }
+  .kileni-site #main-content .home-article-carousel__viewport { grid-template-columns: minmax(0, 1fr); }
+  .kileni-site #main-content .home-article-carousel__card[data-carousel-position] { grid-column: 1; }
+  .kileni-site #main-content .home-article-carousel__card:not([data-active="true"]) { visibility: hidden; pointer-events: none; }
+}
+
+/* Footer spacing is explicit and does not inherit page tokens or affect the
+   contact assistant, which is a separate portal outside this element. */
+.kileni-site .site-footer { padding-block: 2.5rem 1.5rem; }
+.kileni-site .site-footer .footer-grid { gap: 1.5rem; }
+.kileni-site .site-footer .footer-legal-identity { margin-top: 1.5rem; padding-top: 1rem; }
+.kileni-site .site-footer .footer-bottom { margin-top: 1rem; padding-top: 1rem; }
+@media (min-width: 701px) and (max-width: 1100px) {
+  .kileni-site #main-content .marketplace-grid,
+  .kileni-site #main-content .glossary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kileni-site #main-content .marketplace-card-journey ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1000px) {
+  .kileni-site #main-content .signal-hero .hero-grid,
+  .kileni-site #main-content .svc-detail-hero-grid,
+  .kileni-site #main-content .brief-hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .kileni-site #main-content .signal-hero .hero-copy h1 { max-width: 100%; }
+  .kileni-site #main-content .signal-hero .hero-tool { width: min(100%, 42rem); justify-self: center; }
+}
+@media (max-width: 700px) {
+  .kileni-site #main-content {
+    --ds-title-size: clamp(1.75rem, 7.4vw, 2.25rem);
+    --ds-section-title-size: clamp(1.5rem, 6vw, 1.85rem);
+    --page-section-space: 1.5rem;
+    --page-layout-gap: 1rem;
+  }
+  .kileni-site #main-content :is(.eyebrow, .mono, .svc-kicker, .section-kicker, .brief-kicker, .about-v3-eyebrow, .public-contact-label) { font-size: .75rem; line-height: 1.45; }
+  .kileni-site #main-content small { font-size: .8125rem; line-height: 1.4; }
+  .kileni-site #main-content :is(.article-card-meta, .article-card-service, .article-topic-filter, .breadcrumbs, .brief-choice-number) { font-size: .75rem; }
+  .kileni-site #main-content .article-card-result span { font-size: .875rem; line-height: 1.5; }
+  .kileni-site #main-content :is(.article-card-meta span, .article-card-service span, .article-card-result strong, .article-topic-filter button) { font-size: .75rem; }
+  .kileni-site #main-content .svc-build-composition :is(small, span),
+  .kileni-site #main-content .about-v3-conversation :is(small, .about-v3-conversation__steps span) { font-size: .8125rem; line-height: 1.4; }
+  .kileni-site #main-content :is(.svc-detail-hero-grid, .cp-hero-grid,
+    .cp-cases-title, .cp-case-detail-title, .brief-hero-grid) { padding-block: 1.5rem; }
+  .kileni-site #main-content :is(.svc-compact-heading, .svc-section-heading,
+    .marketplace-card-journey > header) { grid-template-columns: minmax(0, 1fr); }
+  .kileni-site #main-content .marketplace-card-journey .section-kicker { grid-row: auto; }
+  .kileni-site #main-content .signal-hero { padding-block: 5.25rem 1.5rem; }
+  /* Mobile composition follows the approved reference: copy, shared chart and
+     form surface, then the four checks. Desktop keeps its existing layout. */
+  .kileni-site #main-content .signal-hero .hero-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .75rem;
+  }
+  .kileni-site #main-content .signal-hero .hero-copy { display: contents; }
+  .kileni-site #main-content .signal-hero .hero-copy > * { margin: 0; }
+  .kileni-site #main-content .signal-hero .hero-copy h1 {
+    width: auto;
+    max-width: 100%;
+    font-size: clamp(1.5rem, 7.4vw, 2rem);
+    line-height: 1.08;
+    letter-spacing: -.045em;
+  }
+  html[data-kileni-theme] .kileni-site #main-content .signal-hero .canvas-text {
+    background: none !important;
+    color: var(--theme-ink) !important;
+    -webkit-text-fill-color: var(--theme-ink);
+    animation: none !important;
+  }
+  .kileni-site #main-content .signal-hero .hero-lead {
+    max-width: none;
+    font-size: .96875rem;
+    line-height: 1.5;
+  }
+  .kileni-site #main-content .signal-hero .hero-offer {
+    width: fit-content;
+    padding: .4rem .65rem;
+    font-size: .75rem;
+    line-height: 1.4;
+    white-space: normal;
+  }
+  .kileni-site #main-content .hero-free-audit-usage { display: flex; font-size: .9375rem; }
+  .kileni-site #main-content .hero-free-audit-usage strong { font-size: 1.25rem; }
+  .kileni-site #main-content .signal-hero .hero-entry-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: .75rem;
+    margin: 0;
+  }
+  .kileni-site #main-content .signal-hero .hero-entry-actions .button {
+    width: 100%;
+    min-height: 48px;
+    padding: .65rem .75rem;
+    font-size: .9375rem;
+    line-height: 1.35;
+    white-space: normal;
+  }
+  .kileni-site #main-content .signal-hero .hero-proof-link {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: .4rem;
+    margin: 0;
+    font-size: .875rem;
+    line-height: 1.4;
+    white-space: normal;
+  }
+  .kileni-site #main-content .signal-hero .hero-microcopy {
+    display: block;
+    margin: 0;
+    font-size: .875rem;
+    line-height: 1.5;
+  }
+  .kileni-site #main-content .signal-hero .hero-tool { order: 1; width: 100%; }
+  .kileni-site #main-content .signal-hero .hero-audit-surface {
+    padding: .5rem;
+    border-radius: 1rem;
+  }
+  .kileni-site #main-content .signal-hero .hero-audit-visual-stack { display: block; }
+  .kileni-site #main-content .hero-dashboard-chrome {
+    min-height: 36px;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: .4rem .5rem;
+    gap: .35rem .5rem;
+    font-size: .75rem;
+    letter-spacing: 0;
+  }
+  .kileni-site #main-content .hero-dashboard-chrome em {
+    display: block;
+    grid-column: 2;
+    font: inherit;
+    text-transform: none;
+  }
+  .kileni-site #main-content .hero-audit-surface .hero-audit-visual.analytics-card {
+    padding: .65rem .25rem;
+    gap: .5rem;
+  }
+  .kileni-site #main-content .analytics-hero-chart { gap: .5rem; padding: 0; }
+  .kileni-site #main-content .analytics-hero-chart__header { min-height: 0; padding: 0; gap: .5rem; }
+  .kileni-site #main-content .analytics-hero-chart__header p { font-size: .8125rem; }
+  .kileni-site #main-content .analytics-hero-chart__mode { font-size: .75rem; }
+  .kileni-site #main-content .analytics-hero-chart__metric {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+  }
+  .kileni-site #main-content .analytics-hero-chart__metric > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: auto;
+    min-height: 0;
+    padding: .4rem .25rem;
+    gap: .25rem;
+    border: 0;
+    border-radius: 0;
+    border-right: 1px solid var(--data-line);
+    background: transparent;
+    text-align: center;
+    box-shadow: none;
+  }
+  .kileni-site #main-content .analytics-hero-chart__metric > div:last-child { border-right: 0; }
+  .kileni-site #main-content .analytics-hero-chart__metric :is(strong, b.analytics-delta, .analytics-hero-chart__metric-context b) {
+    order: -1;
+    font-size: clamp(1.3rem, 6vw, 1.7rem);
+    line-height: 1.15;
+  }
+  .kileni-site #main-content .analytics-hero-chart__metric :is(p, span, small) {
+    font-family: inherit;
+    font-size: .75rem;
+    line-height: 1.4;
+    letter-spacing: 0;
+    text-transform: none;
+    margin: 0;
+    text-shadow: none;
+  }
+  .kileni-site #main-content .analytics-hero-chart__metric-primary::after { content: none; }
+  .kileni-site #main-content .analytics-chart-chrome { min-height: 28px; font-size: .75rem; letter-spacing: 0; }
+  .kileni-site #main-content .signal-hero .analytics-visibility-detail svg {
+    width: 100%;
+    max-width: 100%;
+    max-inline-size: 100%;
+    height: auto;
+    padding: .5rem .25rem;
+  }
+  .kileni-site #main-content .analytics-visibility-detail :is(.analytics-visibility-detail__axis, .analytics-visibility-detail__month) { font-size: 22px; }
+  .kileni-site #main-content .analytics-visibility-detail__target-label { font-size: 18px; letter-spacing: 0; }
+  .kileni-site #main-content .analytics-visibility-detail__stage text { font-size: 18px; font-family: inherit; letter-spacing: 0; }
+  .kileni-site #main-content .analytics-visibility-detail__stage rect { x: -23px; y: -7px; width: 104px; height: 26px; }
+  .kileni-site #main-content .analytics-visibility-detail__value-tag text,
+  .kileni-site #main-content .analytics-visibility-detail__end-tag text { font-size: 22px; }
+  .kileni-site #main-content .analytics-visibility-detail__value-tag rect { x: -28px; y: -20px; width: 56px; height: 30px; }
+  .kileni-site #main-content .analytics-visibility-detail__end-tag rect { x: -30px; y: -22px; width: 64px; height: 34px; }
+  .kileni-site #main-content .analytics-hero-chart__header :is(p, span) { font-family: inherit; text-transform: none; letter-spacing: 0; font-weight: 600; }
+  .kileni-site #main-content .analytics-visibility-detail__summary {
+    display: block;
+    margin: 0;
+    padding: .4rem .5rem;
+    font-size: .75rem;
+    line-height: 1.4;
+  }
+  .kileni-site #main-content .analytics-visibility-detail__chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .4rem;
+  }
+  .kileni-site #main-content .analytics-visibility-detail__chips > span { padding: .3rem .5rem; }
+  .kileni-site #main-content .analytics-visibility-detail__chips :is(small, strong) { font-size: .75rem; line-height: 1.4; }
+  .kileni-site #main-content .analytics-hero-chart__statuses { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .kileni-site #main-content .analytics-hero-chart__statuses > span { font-size: .75rem; padding: .2rem .35rem; }
+  .kileni-site #main-content .hero-audit-visual .analytics-demo-caption { font-size: .8125rem; line-height: 1.45; margin: .5rem 0 0; padding: 0; }
+  .kileni-site #main-content .hero-audit-visual :is(p, small, span, strong, b) { text-shadow: none; }
+  .kileni-site #main-content .signal-hero .hero-form-wrap { display: block; }
+  .kileni-site #main-content .signal-hero .audit-form { padding: .75rem .25rem .25rem; }
+  .kileni-site #main-content .signal-hero .audit-form .form-heading {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: .35rem .5rem;
+    margin-bottom: .65rem;
+  }
+  .kileni-site #main-content .signal-hero .audit-form .form-heading h2 { font-size: 1.125rem; line-height: 1.3; }
+  .kileni-site #main-content .signal-hero .audit-form .form-limit { display: block; grid-column: 2; font-family: inherit; font-size: .8125rem; line-height: 1.4; letter-spacing: 0; text-transform: none; }
+  .kileni-site #main-content .signal-hero .audit-form label { margin-bottom: .5rem; }
+  .kileni-site #main-content .signal-hero .audit-form label > span { font-size: .875rem; }
+  .kileni-site #main-content .signal-hero .audit-form .form-actions { margin-top: .5rem; }
+  .kileni-site #main-content .signal-hero .audit-form .form-actions--first-step { flex-direction: row; flex-wrap: wrap; }
+  .kileni-site #main-content .signal-hero .audit-form .form-actions--first-step .button { min-height: 48px; padding: .5rem; gap: .35rem; font-size: .9375rem; line-height: 1.35; }
+  .kileni-site #main-content .signal-hero .audit-form .form-actions--first-step .text-link { display: inline-flex; min-height: 44px; font-size: .875rem; }
+  .kileni-site #main-content .signal-hero .scan-keywords.hero-check-overview {
+    display: block;
+    order: 2;
+    width: 100%;
+    padding: .35rem;
+    border: 1px solid var(--data-line);
+    border-radius: 1rem;
+    background: var(--analytics-surface);
+  }
+  .kileni-site #main-content .home-check-overview__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kileni-site #main-content .home-check-overview__list::before,
+  .kileni-site #main-content .home-check-overview__list li + li::before { content: none; }
+  .kileni-site #main-content .home-check-overview__list li:nth-child(odd) { border-right: 1px solid var(--data-line); }
+  .kileni-site #main-content .home-check-overview__list li:nth-child(-n + 2) { border-bottom: 1px solid var(--data-line); }
+  .kileni-site #main-content .home-check-overview__list a { grid-template-columns: 24px minmax(0, 1fr); padding: .65rem .45rem; gap: .5rem; height: 100%; align-items: start; }
+  .kileni-site #main-content .home-check-overview__icon { width: 24px; height: 28px; border: 0; background: transparent; }
+  .kileni-site #main-content .home-check-overview__icon svg { width: 22px; height: 22px; }
+  .kileni-site #main-content .home-check-overview__copy { display: grid; gap: .25rem; }
+  .kileni-site #main-content .home-check-overview__copy strong { font-size: .90625rem; }
+  .kileni-site #main-content .home-check-overview__copy small { font-size: .8125rem; line-height: 1.4; }
+  .kileni-site #main-content .home-check-overview__arrow { display: none; }
+  .kileni-site #main-content .home-entry-route__list { grid-template-columns: minmax(0, 1fr); }
+  .kileni-site #main-content .home-process-chapters li { padding: .85rem; }
+  .kileni-site #main-content :is(.marketplace-docs, .marketplace-cta,
+    .glossary-cta, .marketplace-result-example) { padding: 1.25rem; }
+  .kileni-site #main-content .about-v3-hero__content { padding-block: 7rem 2rem; }
+  .kileni-site #main-content .about-v3-split,
+  .kileni-site #main-content .about-v3-final__content { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .kileni-site #main-content .about-v3-split > *,
+  .kileni-site #main-content .about-v3-final__content > * { grid-column: 1; min-width: 0; }
+  .kileni-site #main-content .about-v3-code-editor__line i { white-space: normal; overflow-wrap: anywhere; }
+  .kileni-site #main-content .about-v3-search-map { min-height: 20rem; }
+  .kileni-site #main-content .about-v3-code-editor { min-height: 0; }
+  .kileni-site #main-content .brief-hero-outcomes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kileni-site #main-content .brief-hero-outcomes li { font-size: .875rem; line-height: 1.4; }
+  .kileni-site #main-content .brief-panel { padding: 1rem; }
+  .kileni-site #main-content .service-choice button { padding: .85rem; }
+  .kileni-site #main-content .brief-choice-title { font-size: .9375rem; line-height: 1.3; }
+  .kileni-site #main-content .service-choice .brief-choice-copy { display: block; font-size: .875rem; }
+  .kileni-site #main-content .brief-choice-price { font-size: .875rem; line-height: 1.4; }
+  .kileni-site #main-content :is(.svc-hero-actions > a, .wizard-actions > button,
+    .marketplace-offer-actions > button, .marketplace-offer-actions > a) { min-height: 44px; }
+}
+
+@media (min-width: 390px) and (max-width: 700px) {
+  .kileni-site #main-content .signal-hero .audit-form[data-step="1"] { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: .5rem .6rem; }
+  .kileni-site #main-content .signal-hero .audit-form[data-step="1"] .form-heading { grid-column: 1 / -1; grid-row: 1; }
+  .kileni-site #main-content .signal-hero .audit-form[data-step="1"] .audit-form-step-status { grid-column: 1 / -1; grid-row: 2; }
+  .kileni-site #main-content .signal-hero .audit-form[data-step="1"] > label[for="audit-url"] { grid-column: 1; grid-row: 3; margin: 0; align-self: end; }
+  .kileni-site #main-content .signal-hero .audit-form[data-step="1"] .form-actions--first-step { display: contents; }
+  .kileni-site #main-content .signal-hero .audit-form[data-step="1"] .form-actions--first-step .button { grid-column: 2; grid-row: 3; align-self: end; width: 100%; }
+  .kileni-site #main-content .signal-hero .audit-form[data-step="1"] .audit-url-error { grid-column: 1 / -1; grid-row: 4; }
+  .kileni-site #main-content .signal-hero .audit-form[data-step="1"] .form-actions--first-step .text-link { grid-column: 1 / -1; grid-row: 5; }
+}

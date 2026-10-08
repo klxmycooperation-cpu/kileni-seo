@@ -103,15 +103,26 @@ export function AboutStory({ locale, breadcrumbs }: { locale: Locale; breadcrumb
     let swapping = false;
     let playPending = false;
     let disposed = false;
+    let inView = true;
     let swapTimer: number | undefined;
     const playCurrent = () => {
-      if (document.hidden || !current.paused || playPending) return;
+      if (document.hidden || !inView) {
+        videoA.pause();
+        videoB.pause();
+        videoA.style.animationPlayState = "paused";
+        videoB.style.animationPlayState = "paused";
+        return;
+      }
+      videoA.style.animationPlayState = "running";
+      videoB.style.animationPlayState = "running";
+      if (!current.paused || playPending) return;
       playPending = true;
       void current.play().then(() => {
-        if (disposed) { videoA.pause(); videoB.pause(); }
+        if (disposed || document.hidden || !inView) { videoA.pause(); videoB.pause(); }
       }).catch(() => undefined).finally(() => { playPending = false; });
     };
     const prepareSecondVideo = () => {
+      if (disposed || document.hidden || !inView) return;
       // Do not let a second large download starve the first seconds of playback.
       if (videoB.src || videoA.currentTime < 2 || !Number.isFinite(videoA.duration)
         || !videoA.buffered.length || videoA.buffered.end(videoA.buffered.length - 1) < Math.min(videoA.duration, 10)) return;
@@ -120,13 +131,14 @@ export function AboutStory({ locale, breadcrumbs }: { locale: Locale; breadcrumb
       videoB.load();
     };
     const swap = () => {
+      if (disposed || document.hidden || !inView) return;
       prepareSecondVideo();
       if (swapping || next.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !Number.isFinite(current.duration) || current.duration - current.currentTime > fadeDuration) return;
       swapping = true;
       const outgoing = current;
       next.currentTime = 0;
       void next.play().then(() => {
-        if (disposed) { videoA.pause(); videoB.pause(); return; }
+        if (disposed || document.hidden || !inView) { videoA.pause(); videoB.pause(); swapping = false; return; }
         next.classList.add("is-active");
         outgoing.classList.remove("is-active");
         [current, next] = [next, outgoing];
@@ -137,6 +149,13 @@ export function AboutStory({ locale, breadcrumbs }: { locale: Locale; breadcrumb
         }, (fadeDuration + 0.1) * 1000);
       }).catch(() => { swapping = false; });
     };
+
+    const videoStage = videoA.closest(".about-v3-video-stage");
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+      inView = entry?.isIntersecting ?? false;
+      playCurrent();
+    });
+    if (videoStage) visibilityObserver.observe(videoStage);
 
     videoA.addEventListener("loadeddata", playCurrent);
     videoA.addEventListener("canplay", playCurrent);
@@ -149,6 +168,7 @@ export function AboutStory({ locale, breadcrumbs }: { locale: Locale; breadcrumb
     playCurrent();
     return () => {
       disposed = true;
+      visibilityObserver.disconnect();
       window.clearTimeout(swapTimer);
       videoA.pause();
       videoB.pause();

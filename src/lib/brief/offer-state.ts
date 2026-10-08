@@ -77,7 +77,7 @@ export function resolveBriefOfferState(search: string, draft?: BriefDraftV2): Re
   }
 
   const sourceService = query.get("service");
-  if (!hasExplicitOffer && sourceService) {
+  if ((!hasExplicitOffer || !requestedOfferId) && sourceService) {
     const direct = briefServiceForRoute(sourceService);
     if (direct) {
       service = direct;
@@ -86,7 +86,7 @@ export function resolveBriefOfferState(search: string, draft?: BriefDraftV2): Re
   }
 
   const platform = query.get("platform");
-  if (!hasExplicitOffer && platform && isPlatform(platform)) {
+  if ((!hasExplicitOffer || !requestedOfferId) && platform && isPlatform(platform)) {
     service = "marketplaces";
     answers.platform = platform;
   }

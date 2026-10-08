@@ -8,6 +8,8 @@ import { PageViewBeacon } from "../analytics/PageViewBeacon";
 import { GlossaryLinkEnhancer } from "../glossary/GlossaryLinkEnhancer";
 import { getGlossaryLinkEntries } from "../../lib/glossary/linking";
 import { SiteTracingBeam } from "./SiteTracingBeam";
+import { FloatingContactChat } from "./FloatingContactChat";
+import { buildAssistantCatalog } from "../../content/site-assistant";
 
 export function buildPublicShellSchema(locale: Locale): { "@context": string; "@graph": Array<Record<string, unknown>> } {
   const contacts = getPublicContacts(locale);
@@ -33,6 +35,7 @@ export function PublicShell({ locale, children }: { locale: Locale; children: Re
         <SiteFooter locale={locale} />
       </SiteTracingBeam>
       <CookieManager locale={locale} />
+      <FloatingContactChat locale={locale} catalog={buildAssistantCatalog(locale)} contacts={getPublicContacts(locale)} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</gu, "\\u003c") }} />
     </div>
   );

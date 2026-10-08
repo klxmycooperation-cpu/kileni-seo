@@ -19,6 +19,8 @@ export const INTRO_BOOTSTRAP = `(() => {
   let timer;
   let readinessTimer;
   let timerStartedAt = 0;
+  let blockStartedAt;
+  let hiddenStartedAt;
   let remainingTime = 0;
   let timerCallback;
   let done = false;
@@ -67,17 +69,23 @@ export const INTRO_BOOTSTRAP = `(() => {
   const waitForReadiness = () => {
     window.clearTimeout(readinessTimer);
     if (document.visibilityState === "visible" && root.dataset.kileniIntro === "pending") {
-      readinessTimer = window.setTimeout(complete, ${INTRO_MAX_BLOCK_MS});
+      blockStartedAt ??= performance.now();
+      readinessTimer = window.setTimeout(complete, Math.max(0, ${INTRO_MAX_BLOCK_MS} - (performance.now() - blockStartedAt)));
     }
   };
 
   const syncVisibility = () => {
     if (document.visibilityState !== "visible") {
+      hiddenStartedAt ??= performance.now();
       window.clearTimeout(readinessTimer);
       if (timer !== undefined) remainingTime = Math.max(0, remainingTime - (performance.now() - timerStartedAt));
       window.clearTimeout(timer);
       timer = undefined;
       return;
+    }
+    if (hiddenStartedAt !== undefined) {
+      if (blockStartedAt !== undefined) blockStartedAt += performance.now() - hiddenStartedAt;
+      hiddenStartedAt = undefined;
     }
     if (root.dataset.kileniIntro === "pending") {
       waitForReadiness();
@@ -172,7 +180,8 @@ export const INTRO_BOOTSTRAP = `(() => {
     root.dataset.kileniIntro = "play";
     // The video normally finishes through its ended event. Allow a small
     // decoding margin, then release the page even if playback has stalled.
-    schedule(beginControlledFinish, ${INTRO_DURATION_MS + 500});
+    const loadingTime = blockStartedAt === undefined ? 0 : performance.now() - blockStartedAt;
+    schedule(beginControlledFinish, Math.max(0, Math.min(${INTRO_DURATION_MS + 500}, ${INTRO_MAX_BLOCK_MS - INTRO_FINISH_MS} - loadingTime)));
     addListeners();
   };
 

@@ -588,8 +588,7 @@ html[data-kileni-theme="light"] .kileni-site .home-10 .hero-audit-surface .audit
 @media (max-width: 760px) {
   .kileni-site .home-10 .signal-hero .hero-free-audit-usage,
   .kileni-site .home-10 .signal-hero .hero-proof-link,
-  .kileni-site .home-10 .signal-hero .hero-microcopy,
-  .kileni-site .home-10 .signal-hero .scan-keywords { display: none; }
+
   .kileni-site .home-10 .signal-hero .hero-entry-actions {
     display: grid;
     justify-items: start;

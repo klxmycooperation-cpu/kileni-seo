@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import type { Locale } from "../../config/site";
-import { THEME_CHANGE_EVENT, THEME_STORAGE_KEY, type KileniTheme } from "./theme-config";
+import { THEME_CHANGE_EVENT, type KileniTheme } from "./theme-config";
 
 function currentTheme(): KileniTheme {
   const value = document.documentElement.dataset.kileniTheme;
-  return value === "light" ? value : "dark";
+  return value === "dark" ? value : "light";
 }
 
 export function ThemeToggle({ locale, mobile = false }: { locale: Locale; mobile?: boolean }) {
-  const [theme, setTheme] = useState<KileniTheme>("dark");
+  const [theme, setTheme] = useState<KileniTheme>("light");
 
   useEffect(() => {
     setTheme(currentTheme());
@@ -34,11 +34,6 @@ export function ThemeToggle({ locale, mobile = false }: { locale: Locale; mobile
     const next = nextTheme[theme];
     document.documentElement.dataset.kileniTheme = next;
     document.documentElement.style.colorScheme = next === "light" ? "light" : "dark";
-    try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, next);
-    } catch {
-      // The visual preference still applies for this page when storage is unavailable.
-    }
     setTheme(next);
     window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   };

@@ -24,21 +24,29 @@ export function BrandIntro({ locale }: { locale: "ru" | "en" }) {
   const staticReadyRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
+    if (!visible) return;
     const root = document.documentElement;
     const viewport = window.visualViewport;
-    const syncViewportHeight = () => root.style.setProperty(
-      "--kileni-intro-viewport-height",
-      `${Math.round(viewport?.height ?? window.innerHeight)}px`,
-    );
+    const syncViewportHeight = () => {
+      root.style.setProperty("--kileni-intro-viewport-height", `${Math.ceil(viewport?.height ?? window.innerHeight)}px`);
+      root.style.setProperty("--kileni-intro-cover-height", `${Math.ceil(Math.max(
+        window.innerHeight,
+        document.documentElement.clientHeight,
+        (viewport?.height ?? window.innerHeight) + (viewport?.offsetTop ?? 0),
+      ))}px`);
+    };
     syncViewportHeight();
     viewport?.addEventListener("resize", syncViewportHeight);
+    viewport?.addEventListener("scroll", syncViewportHeight, { passive: true });
     window.addEventListener("resize", syncViewportHeight);
     return () => {
       viewport?.removeEventListener("resize", syncViewportHeight);
+      viewport?.removeEventListener("scroll", syncViewportHeight);
       window.removeEventListener("resize", syncViewportHeight);
       root.style.removeProperty("--kileni-intro-viewport-height");
+      root.style.removeProperty("--kileni-intro-cover-height");
     };
-  }, []);
+  }, [visible]);
 
   useEffect(() => {
     const root = document.documentElement;

@@ -26,6 +26,9 @@
 @media (prefers-reduced-motion: reduce) {
   .canvas-text {
     background-image: linear-gradient(105deg, #dce7ff 0%, #6f9aff 46%, #b9cdfd 100%) !important;
-    animation: none;
+    animation: none !important;
+  }
+  html[data-kileni-theme="light"] .kileni-site .canvas-text {
+    background-image: linear-gradient(105deg, #153665, #214a9c, #153665) !important;
   }
 }

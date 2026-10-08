@@ -13,9 +13,15 @@ const outDir = resolve("public/downloads/generated");
 await mkdir(outDir, { recursive: true });
 
 const palette = { night: "0B0D10", ink: "111318", muted: "69707D", blue: "2867F0", violet: "7457F5", line: "DDE2E9", paper: "F6F7F9" };
-const regularFontPath = process.env.BRIEF_FONT_REGULAR || "/System/Library/Fonts/Supplemental/Arial.ttf";
-const boldFontPath = process.env.BRIEF_FONT_BOLD || "/System/Library/Fonts/Supplemental/Arial Bold.ttf";
-if (!existsSync(regularFontPath) || !existsSync(boldFontPath)) throw new Error("Set BRIEF_FONT_REGULAR and BRIEF_FONT_BOLD to Cyrillic-capable TTF files");
+const fontPairs = [
+  ["C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"],
+  ["/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"],
+  ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"],
+];
+const availableFonts = fontPairs.find(pair => pair.every(existsSync)) ?? [];
+const regularFontPath = process.env.BRIEF_FONT_REGULAR || availableFonts[0];
+const boldFontPath = process.env.BRIEF_FONT_BOLD || availableFonts[1];
+if (!regularFontPath || !boldFontPath || !existsSync(regularFontPath) || !existsSync(boldFontPath)) throw new Error("Set BRIEF_FONT_REGULAR and BRIEF_FONT_BOLD to Cyrillic-capable TTF files");
 const [regularFontBytes, boldFontBytes] = await Promise.all([readFile(regularFontPath), readFile(boldFontPath)]);
 
 const common = {
@@ -199,4 +205,4 @@ async function buildPdf(locale, type, content) {
 function drawPdfHeader(page, title, subtitle, regular, bold, first) { page.drawRectangle({ x:0,y:704,width:612,height:88,color:color(palette.night) }); page.drawText("KILENI", { x:54,y:745,size:16,font:bold,color:rgb(1,1,1) }); page.drawText("SEO", { x:125,y:748,size:7,font:bold,color:color(palette.blue) }); page.drawLine({ start:{x:54,y:731},end:{x:180,y:731},thickness:1,color:color(palette.blue) }); const titleY=first?664:672; page.drawText(title,{x:54,y:titleY,size:first?24:17,font:bold,color:color(palette.ink),maxWidth:504}); if(first&&subtitle)page.drawText(subtitle,{x:54,y:625,size:10,font:regular,color:color(palette.muted),maxWidth:504}); return first?590:635; }
 function color(hex) { const value = hex.replace("#", ""); return rgb(parseInt(value.slice(0,2),16)/255,parseInt(value.slice(2,4),16)/255,parseInt(value.slice(4,6),16)/255); }
 
-console.log(`Generated ${Object.keys(briefs).length * 4} briefs in ${outDir}`);
+console.log(`Generated ${Object.keys(briefs).length * 2} briefs in ${outDir}`);

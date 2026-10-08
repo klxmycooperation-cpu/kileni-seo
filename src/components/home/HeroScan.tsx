@@ -58,8 +58,8 @@ export function HeroScan({ locale }: { locale: Locale }) {
           </div>
           <p className="hero-microcopy">
             {ru
-              ? "Обычно 1–3 минуты. Результат покажет конкретные замечания по проверенным страницам и откроется сразу на сайте."
-              : "Usually 3–7 minutes. Specific URLs and a remediation plan are included in the extended audit."}
+              ? "Проверка занимает 1–3 минуты. Результат покажет конкретные замечания по проверенным страницам и откроется сразу на сайте."
+              : "The check takes 3–7 minutes. Specific URLs and a remediation plan are included in the extended audit."}
           </p>
           <HomeCheckCategories locale={locale} variant="hero" items={checks.map((check) => ({ ...check, href: localizedPath(locale, `glossary/${check.slug}`) }))}/>
         </div>

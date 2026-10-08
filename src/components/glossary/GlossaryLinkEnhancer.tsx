@@ -57,6 +57,7 @@ export function GlossaryLinkEnhancer({
         animationFrame = window.requestAnimationFrame(() => {
           animationFrame = 0;
           enhanceMainContent(main, pathname, locale, entries);
+          observer.takeRecords();
           scrollToGeneratedReturnAnchor(main);
           activated = true;
         });
@@ -79,6 +80,7 @@ export function GlossaryLinkEnhancer({
       refreshFrame = window.requestAnimationFrame(() => {
         refreshFrame = 0;
         enhanceMainContent(main, pathname, locale, entries);
+        observer.takeRecords();
         scrollToGeneratedReturnAnchor(main);
       });
     });
@@ -161,6 +163,12 @@ function enhanceMainContent(
     sourceNumber = index + 1;
     enhanceBlock(block, pathname, sourceNumber, locale, entries);
   }
+  // Finish DOM writes before measuring link positions. Interleaving the two
+  // forces a synchronous layout for every paragraph that contains a term.
+  const alignments = Array.from(main.querySelectorAll<HTMLElement>("[data-glossary-inline]")).map(link => ({
+    link, align: link.getBoundingClientRect().left > window.innerWidth / 2 ? "right" : "left",
+  }));
+  for (const { link, align } of alignments) link.dataset.glossaryTooltipAlign = align;
 }
 
 function enhanceBlock(
@@ -219,10 +227,6 @@ function enhanceBlock(
     node.replaceWith(fragment);
   }
 
-  for (const link of block.querySelectorAll<HTMLElement>("[data-glossary-inline]")) {
-    const rect = link.getBoundingClientRect();
-    link.dataset.glossaryTooltipAlign = rect.left > window.innerWidth / 2 ? "right" : "left";
-  }
 }
 
 function collectEligibleTextNodes(block: HTMLElement): Text[] {
